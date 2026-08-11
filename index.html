@@ -252,6 +252,44 @@
   .abacus-mode-tab.active{ background:var(--yellow); color:#3a2a05; border-color:var(--yellow); }
   .abacus-target{ text-align:center; font-size:15px; font-weight:700; margin-bottom:10px; }
   .abacus-target b{ color:var(--yellow); font-size:22px; }
+
+  /* class management (teacher) + my classes (student) */
+  .class-card{
+    background:var(--input-bg); border:1.5px solid var(--input-border); border-radius:12px; padding:12px 14px; margin-bottom:10px;
+  }
+  .class-card .class-title-row{ display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+  .class-card .class-name{ font-family:'Cairo',sans-serif; font-weight:800; font-size:15px; }
+  .class-card .class-code{ font-size:11px; color:var(--ink-dim); direction:ltr; letter-spacing:1px; }
+  .class-roster{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px; }
+  .class-roster-chip{
+    display:flex; align-items:center; gap:5px; font-size:11.5px; background:var(--bg); border:1px solid var(--input-border);
+    border-radius:14px; padding:3px 10px;
+  }
+  .class-roster-chip .remove-x{ color:var(--coral); cursor:pointer; font-weight:800; }
+  .class-add-student-row{ display:flex; gap:6px; margin-bottom:8px; }
+  .class-add-student-row input{
+    flex:1; direction:ltr; text-align:left; font-size:12.5px; padding:6px 9px; border-radius:7px;
+    border:1.5px solid var(--input-border); background:var(--bg); color:var(--ink);
+  }
+  .class-add-student-row button{
+    flex:none; font-size:11.5px; padding:6px 12px; border-radius:7px; border:none; background:var(--mint); color:#173124; cursor:pointer;
+  }
+  .class-assignment-form{ display:flex; flex-direction:column; gap:6px; }
+  .class-assignment-form select, .class-assignment-form input{
+    font-size:12.5px; padding:7px 9px; border-radius:7px; border:1.5px solid var(--input-border); background:var(--bg); color:var(--ink);
+  }
+  .class-assignment-form button{
+    font-size:12px; font-weight:700; padding:8px; border-radius:7px; border:none; background:var(--yellow); color:#3a2a05; cursor:pointer;
+  }
+  .my-class-card{
+    background:linear-gradient(135deg, rgba(143,201,172,0.14), rgba(231,196,104,0.1));
+    border:1px solid rgba(143,201,172,0.35); border-radius:10px; padding:10px 12px; margin-bottom:10px;
+  }
+  .my-class-card .name{ font-family:'Cairo',sans-serif; font-weight:700; font-size:13.5px; margin-bottom:3px; }
+  .my-class-card .assignment-note{ font-size:12px; color:var(--ink-dim); margin-bottom:6px; }
+  .my-class-card button{
+    font-size:11.5px; font-weight:700; padding:6px 12px; border-radius:8px; border:none; background:var(--mint); color:#173124; cursor:pointer;
+  }
   .enable-camera-btn{
     width:100%; font-family:'Cairo',sans-serif; font-weight:700; font-size:13px; padding:11px;
     border-radius:10px; border:1.5px dashed var(--yellow); background:transparent; color:var(--yellow);
@@ -1090,13 +1128,31 @@
   <!-- PARENT DASHBOARD -->
   <div id="dashboard" class="panel hidden">
     <div class="group-label" style="text-align:center;" data-i18n="dashboardTitle">لوحة الوالدين</div>
+    <button class="challenge-btn hidden" id="teacherClassesBtn" data-i18n="teacherClassesBtn">🏫 إدارة فصولي</button>
     <div id="dashboardBody"></div>
     <button class="secondary-btn" id="closeDashboardBtn" data-i18n="closeBtn">إغلاق</button>
+  </div>
+
+  <!-- TEACHER CLASS MANAGEMENT -->
+  <div id="classManagement" class="panel hidden">
+    <div class="group-label" style="text-align:center;" data-i18n="classManageTitle">🏫 إدارة الفصول</div>
+    <div class="conn-note" data-i18n="classManageNote">البث المباشر لمجموعة كبيرة غير متاح حاليًا (يحتاج خادم فيديو متخصص) — لكن يمكنك تنظيم الفصول، إضافة التلاميذ، وتحديد واجب مخصّص لكل فصل يظهر لهم فور تسجيل الدخول.</div>
+    <div class="mini-editor">
+      <input type="text" id="newClassNameInput" data-i18n-placeholder="newClassNamePh" placeholder="اسم الفصل">
+      <button class="start-btn" id="createClassBtn" data-i18n="createClassBtn">➕ إنشاء فصل جديد</button>
+    </div>
+    <div class="feedback wrong" id="classManageError" style="min-height:16px;"></div>
+    <div id="teacherClassesList"></div>
+    <button class="secondary-btn" id="classManageBackBtn" data-i18n="closeBtn">إغلاق</button>
   </div>
 
   <!-- SETTINGS SCREEN -->
   <div id="settings" class="panel hidden">
     <div class="smart-notif hidden" id="smartNotifBox"><span class="bell">🔔</span><span id="smartNotifText"></span></div>
+    <div id="myClassesSection" class="hidden">
+      <div class="group-label" data-i18n="myClassesLabel">📚 فصولي</div>
+      <div id="myClassesList"></div>
+    </div>
     <div class="profile-header" id="settingsProfileHeader">
       <div class="big-avatar" id="settingsBigAvatar">👧</div>
       <div class="name-row">
@@ -1338,6 +1394,15 @@
   const dashboardLink = document.getElementById('dashboardLink');
   const dashboardBody = document.getElementById('dashboardBody');
   const closeDashboardBtn = document.getElementById('closeDashboardBtn');
+  const teacherClassesBtn = document.getElementById('teacherClassesBtn');
+  const classManagementEl = document.getElementById('classManagement');
+  const newClassNameInput = document.getElementById('newClassNameInput');
+  const createClassBtn = document.getElementById('createClassBtn');
+  const classManageError = document.getElementById('classManageError');
+  const teacherClassesList = document.getElementById('teacherClassesList');
+  const classManageBackBtn = document.getElementById('classManageBackBtn');
+  const myClassesSection = document.getElementById('myClassesSection');
+  const myClassesList = document.getElementById('myClassesList');
 
   const addTeacherLink = document.getElementById('addTeacherLink');
   const addTeacherPanelEl = document.getElementById('addTeacherPanel');
@@ -1910,6 +1975,13 @@
       abacusOpenBtn:'🧮 مدرّب الأباكوس (Abacus)', abacusTitle:'🧮 مدرّب الأباكوس',
       abacusModeFree:'تدريب حر', abacusModeRead:'اقرئي الرقم', abacusModeSet:'مثّلي الرقم',
       abacusSetTargetPrefix:'مثّلي الرقم:', abacusResetBtn:'🔄 صفّري الأباكوس', abacusNewBtn:'🎲 رقم جديد',
+      teacherClassesBtn:'🏫 إدارة فصولي', classManageTitle:'🏫 إدارة الفصول',
+      classManageNote:'البث المباشر لمجموعة كبيرة غير متاح حاليًا (يحتاج خادم فيديو متخصص) — لكن يمكنك تنظيم الفصول، إضافة التلاميذ، وتحديد واجب مخصّص لكل فصل يظهر لهم فور تسجيل الدخول.',
+      newClassNamePh:'اسم الفصل', createClassBtn:'➕ إنشاء فصل جديد', loadingText:'جارٍ التحميل...',
+      noClassesYet:'لا يوجد فصول بعد — أنشئي أول فصل من الأعلى.', noStudentsYet:'لا يوجد تلاميذ في هذا الفصل بعد.',
+      studentUsernamePh:'اسم مستخدم الطالبة', addBtn:'إضافة', assignmentNotePh:'ملاحظة للواجب (اختياري)',
+      setAssignmentBtn:'📌 تحديد كواجب لهذا الفصل', classNameRequired:'اكتبي اسم الفصل أولًا', classCreateFailed:'تعذّر إنشاء الفصل',
+      myClassesLabel:'📚 فصولي', classAssignmentLine:'واجب: {op}', startAssignmentBtn:'ابدئي الواجب الآن', noAssignmentYet:'لا يوجد واجب محدّد حاليًا.',
       enableCameraBtn:'📷 تفعيل الكاميرا لرؤية صديقتك', youLabel:'أنتِ',
       cameraNeedsHttps:'⚠️ الكاميرا تحتاج استضافة الملف على الإنترنت (https) — لن تعمل من ملف مفتوح مباشرة على الجهاز.',
       cameraPermissionDenied:'تعذّر الوصول للكاميرا — تأكدي من السماح لها من إعدادات المتصفح.',
@@ -2058,6 +2130,13 @@
       abacusOpenBtn:'🧮 Abacus Trainer', abacusTitle:'🧮 Abacus Trainer',
       abacusModeFree:'Free practice', abacusModeRead:'Read the number', abacusModeSet:'Set the number',
       abacusSetTargetPrefix:'Set the number:', abacusResetBtn:'🔄 Reset abacus', abacusNewBtn:'🎲 New number',
+      teacherClassesBtn:'🏫 Manage my classes', classManageTitle:'🏫 Class Management',
+      classManageNote:'Live broadcast to a large group is not available yet (needs a dedicated video server) — but you can organize classes, add students, and set a custom assignment for each class that shows up as soon as they log in.',
+      newClassNamePh:'Class name', createClassBtn:'➕ Create new class', loadingText:'Loading...',
+      noClassesYet:'No classes yet — create your first class above.', noStudentsYet:'No students in this class yet.',
+      studentUsernamePh:"Student's username", addBtn:'Add', assignmentNotePh:'Note for the assignment (optional)',
+      setAssignmentBtn:'📌 Set as this class assignment', classNameRequired:'Enter a class name first', classCreateFailed:'Could not create the class',
+      myClassesLabel:'📚 My classes', classAssignmentLine:'Assignment: {op}', startAssignmentBtn:'Start the assignment now', noAssignmentYet:'No assignment set right now.',
       enableCameraBtn:'📷 Enable camera to see your friend', youLabel:'You',
       cameraNeedsHttps:'⚠️ The camera needs the file to be hosted online (https) — it will not work from a file opened directly on the device.',
       cameraPermissionDenied:'Could not access the camera — check that it is allowed in your browser settings.',
@@ -2489,6 +2568,7 @@
     updateDailyStreak();
     settingsEl.classList.remove('hidden');
     if(typeof loadSmartNotification === 'function') loadSmartNotification();
+    if(typeof loadMyClasses === 'function') loadMyClasses();
   }
 
   function applyProfileDefaults(key){
@@ -2538,6 +2618,7 @@
     myStatsScreenEl.classList.add('hidden');
     adminLoginGateEl.classList.add('hidden');
     abacusTrainerEl.classList.add('hidden');
+    classManagementEl.classList.add('hidden');
     raceLobbyEl.classList.add('hidden');
     raceWaitingEl.classList.add('hidden');
     raceResultScreenEl.classList.add('hidden');
@@ -2984,8 +3065,10 @@
       if(hash !== TEACHERS[teacherKey].pin){ ulError.textContent = t('loginErrorMsg'); return; }
       ulError.textContent = '';
       dashboardOpenedBy = 'teacher';
+      currentTeacherUsername = teacherKey;
       hideAllScreens();
       renderDashboard();
+      teacherClassesBtn.classList.remove('hidden');
       dashboardEl.classList.remove('hidden');
       return;
     }
@@ -3207,8 +3290,10 @@
   });
 
   let dashboardOpenedBy = 'admin'; // 'admin' | 'teacher' — controls where the close button goes
+  let currentTeacherUsername = null;
   dashboardLink.addEventListener('click', ()=>{
     dashboardOpenedBy = 'admin';
+    teacherClassesBtn.classList.add('hidden');
     renderDashboard();
     profilesEl.classList.add('hidden');
     dashboardEl.classList.remove('hidden');
@@ -3218,6 +3303,130 @@
     if(dashboardOpenedBy === 'teacher') goToLoginGate();
     else profilesEl.classList.remove('hidden');
   });
+
+  /* ---------- teacher: class management ---------- */
+  teacherClassesBtn.addEventListener('click', ()=>{
+    dashboardEl.classList.add('hidden');
+    classManagementEl.classList.remove('hidden');
+    newClassNameInput.value = '';
+    classManageError.textContent = '';
+    renderTeacherClasses();
+  });
+  classManageBackBtn.addEventListener('click', ()=>{
+    classManagementEl.classList.add('hidden');
+    dashboardEl.classList.remove('hidden');
+  });
+
+  function renderTeacherClasses(){
+    if(!currentTeacherUsername || !SHEET_API_URL) return;
+    teacherClassesList.innerHTML = `<div class="dash-empty">${t('loadingText')}</div>`;
+    postToSheet('list_teacher_classes', { teacherUsername: currentTeacherUsername }).then(res=>{
+      teacherClassesList.innerHTML = '';
+      if(!res || !res.ok || !res.classes || !res.classes.length){
+        teacherClassesList.innerHTML = `<div class="dash-empty">${t('noClassesYet')}</div>`;
+        return;
+      }
+      res.classes.forEach(cls=> teacherClassesList.appendChild(buildTeacherClassCard(cls)));
+    });
+  }
+
+  function buildTeacherClassCard(cls){
+    const card = document.createElement('div');
+    card.className = 'class-card';
+    const rosterHtml = cls.students.length
+      ? cls.students.map(s=> `<span class="class-roster-chip">${s} <span class="remove-x" data-remove-student="${s}">✕</span></span>`).join('')
+      : `<span style="font-size:11.5px; color:var(--ink-dim);">${t('noStudentsYet')}</span>`;
+    const diffOptions = ['units','tens','hundreds','thousands'].map(d=>
+      `<option value="${d}" ${cls.assignment && cls.assignment.difficulty===d ? 'selected':''}>${t('diff'+capitalize(d==='units'?'Units':d))}</option>`
+    ).join('');
+    const opOptions = ['mix','add','sub','mul','div','percent','exponent','sqrt'].map(o=>
+      `<option value="${o}" ${cls.assignment && cls.assignment.operation===o ? 'selected':''}>${t('op'+capitalize(o))}</option>`
+    ).join('');
+    card.innerHTML = `
+      <div class="class-title-row">
+        <span class="class-name">${cls.className}</span>
+        <span class="class-code">${cls.classId}</span>
+      </div>
+      <div class="class-roster">${rosterHtml}</div>
+      <div class="class-add-student-row">
+        <input type="text" class="ltr-input" placeholder="${t('studentUsernamePh')}" id="addStuInput_${cls.classId}">
+        <button data-add-to="${cls.classId}">${t('addBtn')}</button>
+      </div>
+      <div class="class-assignment-form">
+        <select id="assignOp_${cls.classId}">${opOptions}</select>
+        <select id="assignDiff_${cls.classId}">${diffOptions}</select>
+        <input type="text" id="assignNote_${cls.classId}" placeholder="${t('assignmentNotePh')}" value="${cls.assignment ? (cls.assignment.note||'') : ''}">
+        <button data-assign="${cls.classId}">${t('setAssignmentBtn')}</button>
+      </div>
+    `;
+    card.querySelectorAll('[data-remove-student]').forEach(el=>{
+      el.addEventListener('click', ()=>{
+        postToSheet('remove_student_from_class', { classId: cls.classId, studentUsername: el.dataset.removeStudent }).then(()=> renderTeacherClasses());
+      });
+    });
+    card.querySelector('[data-add-to]').addEventListener('click', ()=>{
+      const input = document.getElementById(`addStuInput_${cls.classId}`);
+      const uname = input.value.trim();
+      if(!uname) return;
+      postToSheet('add_student_to_class', { classId: cls.classId, teacherUsername: currentTeacherUsername, studentUsername: uname }).then(()=> renderTeacherClasses());
+    });
+    card.querySelector('[data-assign]').addEventListener('click', ()=>{
+      const opVal = document.getElementById(`assignOp_${cls.classId}`).value;
+      const diffVal = document.getElementById(`assignDiff_${cls.classId}`).value;
+      const noteVal = document.getElementById(`assignNote_${cls.classId}`).value.trim();
+      postToSheet('set_class_assignment', {
+        classId: cls.classId, teacherUsername: currentTeacherUsername, operation: opVal, difficulty: diffVal, note: noteVal
+      }).then(()=> renderTeacherClasses());
+    });
+    return card;
+  }
+
+  createClassBtn.addEventListener('click', ()=>{
+    const name = newClassNameInput.value.trim();
+    if(!name){ classManageError.textContent = t('classNameRequired'); return; }
+    createClassBtn.disabled = true;
+    postToSheet('create_class', { teacherUsername: currentTeacherUsername, className: name }).then(res=>{
+      createClassBtn.disabled = false;
+      if(!res || !res.ok){ classManageError.textContent = t('classCreateFailed'); return; }
+      newClassNameInput.value = '';
+      classManageError.textContent = '';
+      renderTeacherClasses();
+    });
+  });
+
+  /* ---------- student: my classes ---------- */
+  function loadMyClasses(){
+    if(!SHEET_API_URL || !currentProfile){ myClassesSection.classList.add('hidden'); return; }
+    postToSheet('list_student_classes', { studentUsername: currentProfile }).then(res=>{
+      if(!res || !res.ok || !res.classes || !res.classes.length){
+        myClassesSection.classList.add('hidden');
+        return;
+      }
+      myClassesSection.classList.remove('hidden');
+      myClassesList.innerHTML = '';
+      res.classes.forEach(cls=>{
+        const card = document.createElement('div');
+        card.className = 'my-class-card';
+        const assignHtml = cls.assignment
+          ? `<div class="assignment-note">📝 ${fmt('classAssignmentLine', { op: t('op'+capitalize(cls.assignment.operation||'mix')) })}${cls.assignment.note ? ' — ' + cls.assignment.note : ''}</div>
+             <button data-start-assignment="${cls.classId}">${t('startAssignmentBtn')}</button>`
+          : `<div class="assignment-note">${t('noAssignmentYet')}</div>`;
+        card.innerHTML = `<div class="name">🏫 ${cls.className}</div>${assignHtml}`;
+        if(cls.assignment){
+          card.querySelector('[data-start-assignment]').addEventListener('click', ()=>{
+            selectChip(opChips, 'op', cls.assignment.operation || 'mix', v=>op=v);
+            if(['units','tens','hundreds','thousands','tenthousands','hundredthousands','millions'].includes(cls.assignment.difficulty)){
+              selectChip(diffChips, 'diff', cls.assignment.difficulty, v=>diff=v);
+            }
+            updateTableFocusVisibility();
+            startBtn.click();
+          });
+        }
+        myClassesList.appendChild(card);
+      });
+    });
+  }
+
   function renderDashboard(childKeys){
     const keys = childKeys || profileOrder;
     dashboardBody.innerHTML = '';
