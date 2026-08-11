@@ -376,6 +376,44 @@
     html[dir="ltr"] #printReportArea{ direction:ltr; }
   }
 
+  /* command palette — real, functional navigation/search, no fabricated data */
+  .cmdk-overlay{
+    position:fixed; inset:0; z-index:10000; background:rgba(0,0,0,0.55);
+    display:flex; align-items:flex-start; justify-content:center; padding-top:12vh;
+    backdrop-filter:blur(3px);
+  }
+  .cmdk-box{
+    width:min(92vw, 560px); background:var(--input-bg); border:1.5px solid var(--chip-border);
+    border-radius:16px; box-shadow:0 24px 60px rgba(0,0,0,0.45); overflow:hidden;
+  }
+  .cmdk-input-row{ display:flex; align-items:center; gap:10px; padding:14px 16px; border-bottom:1.5px solid var(--chip-border); }
+  .cmdk-icon{ font-size:16px; opacity:0.6; flex:none; }
+  .cmdk-input{
+    flex:1; border:none; background:transparent; color:var(--ink); font-family:'Tajawal',sans-serif;
+    font-size:15px; outline:none;
+  }
+  .cmdk-hint{
+    flex:none; font-size:10.5px; color:var(--ink-dim); border:1px solid var(--chip-border);
+    border-radius:5px; padding:2px 6px;
+  }
+  .cmdk-results{ max-height:340px; overflow-y:auto; padding:6px; }
+  .cmdk-item{
+    display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:9px; cursor:pointer;
+    font-size:13.5px; font-weight:600;
+  }
+  .cmdk-item:hover, .cmdk-item.active{ background:rgba(231,196,104,0.16); }
+  .cmdk-item .cmdk-item-icon{ font-size:16px; flex:none; width:22px; text-align:center; }
+  .cmdk-item .cmdk-item-label{ flex:1; }
+  .cmdk-item .cmdk-item-tag{ font-size:10.5px; color:var(--ink-dim); flex:none; }
+  .cmdk-empty{ padding:24px; text-align:center; color:var(--ink-dim); font-size:13px; }
+  .cmdk-launcher{
+    position:fixed; bottom:18px; inset-inline-end:18px; z-index:400;
+    display:flex; align-items:center; gap:6px; background:var(--input-bg); border:1.5px solid var(--chip-border);
+    border-radius:20px; padding:9px 14px; font-size:12px; font-weight:700; color:var(--ink-dim); cursor:pointer;
+    box-shadow:0 8px 20px rgba(0,0,0,0.25);
+  }
+  @media (max-width:767px){ .cmdk-launcher{ display:none; } } /* mobile: use bottom-of-drawer access instead of a floating button */
+
   /* today's mission — calm, premium "smart dashboard" hero card */
   .mission-card{
     background:var(--input-bg);
@@ -828,8 +866,21 @@
   </div>
 
   <div id="toastStack" class="toast-stack"></div>
+  <div class="cmdk-launcher" id="cmdkLauncher"><span>⌘</span><span data-i18n="cmdkLauncherLabel">أوامر سريعة</span><span style="opacity:0.6;">Ctrl+K</span></div>
 
   <div id="printReportArea" class="print-only"></div>
+
+  <!-- COMMAND PALETTE (Ctrl+K) -->
+  <div id="commandPaletteOverlay" class="cmdk-overlay hidden">
+    <div class="cmdk-box">
+      <div class="cmdk-input-row">
+        <span class="cmdk-icon">⌘</span>
+        <input type="text" id="cmdkInput" class="cmdk-input" data-i18n-placeholder="cmdkPlaceholder" placeholder="اكتبي أمرًا أو ابحثي...">
+        <span class="cmdk-hint">Esc</span>
+      </div>
+      <div id="cmdkResults" class="cmdk-results"></div>
+    </div>
+  </div>
 
   <header>
     <div class="eyebrow" data-i18n="eyebrow">تمرين يوميّ</div>
@@ -1623,6 +1674,10 @@
   const printReportArea = document.getElementById('printReportArea');
   const advancedSettingsToggle = document.getElementById('advancedSettingsToggle');
   const advancedSettingsBody = document.getElementById('advancedSettingsBody');
+  const cmdkLauncher = document.getElementById('cmdkLauncher');
+  const commandPaletteOverlay = document.getElementById('commandPaletteOverlay');
+  const cmdkInput = document.getElementById('cmdkInput');
+  const cmdkResults = document.getElementById('cmdkResults');
   const loginPromptEl = document.getElementById('loginPrompt');
   const loginPromptTitle = document.getElementById('loginPromptTitle');
   const loginPinInput = document.getElementById('loginPinInput');
@@ -2114,6 +2169,14 @@
       hintNumberRecognition:'💡 عدّي على أصابعك ببطء وأنتِ بتقولي كل رقم',
       printReportBtn:'طباعة / حفظ PDF', printReportTitle:'تقرير الأداء',
       advancedSettingsToggle:'⚙️ تدريب مخصّص / إعدادات متقدمة',
+      cmdkPlaceholder:'اكتبي أمرًا أو ابحثي...', cmdkLauncherLabel:'أوامر سريعة', cmdkNoResults:'لا توجد نتائج مطابقة.',
+      cmdToggleTheme:'تبديل المظهر', cmdToggleLang:'تبديل اللغة', cmdToggleSound:'تبديل الصوت',
+      cmdTagAppearance:'المظهر', cmdStartMission:'ابدئي تدريب اليوم', cmdCustomTraining:'تدريب مخصّص',
+      cmdOpenAbacus:'مدرّب الأباكوس', cmdOpenKnowledgeMap:'رحلتي التعليمية', cmdOpenPlacement:'اختبار تحديد المستوى',
+      cmdOpenRace:'سباق مباشر', cmdTagTraining:'تدريب', cmdOpenMyStats:'إنجازاتي وسجلي', cmdEditProfile:'تعديل بياناتي',
+      cmdLogout:'تسجيل الخروج', cmdTagAccount:'حسابي', cmdOpenAllStudents:'لوحة جميع الطلاب', cmdManageClasses:'إدارة الفصول',
+      cmdAddTeacher:'إضافة حساب معلم', cmdSheetConnection:'ربط جوجل شيت', cmdTagAdmin:'إدارة',
+      cmdOpenStudent:'فتح حساب: {name}', cmdTagStudents:'الطلاب',
       tableFocusLabel:'التركيز على جدول', tableAll:'الكل',
       diffLabel:'فئة الأرقام (منازل العدد)',
       diffUnits:'آحاد', diffTens:'عشرات', diffHundreds:'مئات', diffThousands:'آلاف',
@@ -2292,6 +2355,14 @@
       hintNumberRecognition:'💡 Count slowly on your fingers as you say each number',
       printReportBtn:'Print / Save as PDF', printReportTitle:'Performance Report',
       advancedSettingsToggle:'⚙️ Custom Training / Advanced Settings',
+      cmdkPlaceholder:'Type a command or search...', cmdkLauncherLabel:'Quick commands', cmdkNoResults:'No matching results.',
+      cmdToggleTheme:'Toggle appearance', cmdToggleLang:'Switch language', cmdToggleSound:'Toggle sound',
+      cmdTagAppearance:'Appearance', cmdStartMission:"Start today's training", cmdCustomTraining:'Custom training',
+      cmdOpenAbacus:'Abacus trainer', cmdOpenKnowledgeMap:'My learning journey', cmdOpenPlacement:'Placement test',
+      cmdOpenRace:'Live race', cmdTagTraining:'Training', cmdOpenMyStats:'My achievements & history', cmdEditProfile:'Edit my info',
+      cmdLogout:'Log out', cmdTagAccount:'Account', cmdOpenAllStudents:'All students dashboard', cmdManageClasses:'Manage classes',
+      cmdAddTeacher:'Add teacher account', cmdSheetConnection:'Google Sheet connection', cmdTagAdmin:'Admin',
+      cmdOpenStudent:'Open: {name}', cmdTagStudents:'Students',
       tableFocusLabel:'Focus on times table', tableAll:'All',
       diffLabel:'Number range',
       diffUnits:'Units', diffTens:'Tens', diffHundreds:'Hundreds', diffThousands:'Thousands',
@@ -2845,6 +2916,7 @@
     challengeMode = false;
     if(raceMode){ raceMode = false; clearInterval(racePollInterval); }
     if(typeof stopCameraCall === 'function') stopCameraCall();
+    if(typeof commandPaletteOverlay !== 'undefined') commandPaletteOverlay.classList.add('hidden');
     logSessionLogout();
     playEl.classList.add('hidden');
     settingsEl.classList.add('hidden');
@@ -6006,6 +6078,121 @@
     const isOpen = advancedSettingsToggle.getAttribute('aria-expanded') === 'true';
     advancedSettingsToggle.setAttribute('aria-expanded', String(!isOpen));
     advancedSettingsBody.classList.toggle('hidden', isOpen);
+  });
+
+  /* ================= command palette — real navigation shortcuts only.
+     Every command is a thin wrapper that clicks an already-existing,
+     already-tested button; nothing here invents new business logic or
+     fabricated data. A command only appears if its target element
+     currently exists AND is actually reachable (not hidden). ================= */
+  function elIsReachable(el){
+    if(!el) return false;
+    let node = el;
+    while(node && node !== document.body){
+      if(node.classList && node.classList.contains('hidden')) return false;
+      node = node.parentElement;
+    }
+    return true;
+  }
+  function buildCommandList(){
+    const cmds = [];
+    const addIfReachable = (id, icon, labelKey, tagKey)=>{
+      const el = document.getElementById(id);
+      if(elIsReachable(el)){
+        cmds.push({ icon, label:t(labelKey), tag:t(tagKey), run: ()=> el.click() });
+      }
+    };
+    // always-available utility commands
+    cmds.push({ icon:'🎨', label:t('cmdToggleTheme'), tag:t('cmdTagAppearance'), run: ()=> themeBtn.click() });
+    cmds.push({ icon:'🌐', label:t('cmdToggleLang'), tag:t('cmdTagAppearance'), run: ()=> langBtn.click() });
+    cmds.push({ icon:'🔊', label:t('cmdToggleSound'), tag:t('cmdTagAppearance'), run: ()=> soundBtn.click() });
+    // context-dependent navigation — only listed if actually reachable right now
+    addIfReachable('missionStartBtn', '▶️', 'cmdStartMission', 'cmdTagTraining');
+    addIfReachable('advancedSettingsToggle', '⚙️', 'cmdCustomTraining', 'cmdTagTraining');
+    addIfReachable('abacusOpenBtn', '🧮', 'cmdOpenAbacus', 'cmdTagTraining');
+    addIfReachable('knowledgeMapOpenBtn', '📚', 'cmdOpenKnowledgeMap', 'cmdTagTraining');
+    addIfReachable('placementOpenLink', '📝', 'cmdOpenPlacement', 'cmdTagTraining');
+    addIfReachable('raceLobbyOpenBtn', '🏁', 'cmdOpenRace', 'cmdTagTraining');
+    addIfReachable('myStatsLink', '🏅', 'cmdOpenMyStats', 'cmdTagAccount');
+    addIfReachable('editMyProfileLink', '✏️', 'cmdEditProfile', 'cmdTagAccount');
+    addIfReachable('logoutTextLink', '🚪', 'cmdLogout', 'cmdTagAccount');
+    addIfReachable('dashboardLink', '📊', 'cmdOpenAllStudents', 'cmdTagAdmin');
+    addIfReachable('teacherClassesBtn', '🏫', 'cmdManageClasses', 'cmdTagAdmin');
+    addIfReachable('addTeacherLink', '➕', 'cmdAddTeacher', 'cmdTagAdmin');
+    addIfReachable('connectionLink', '🔗', 'cmdSheetConnection', 'cmdTagAdmin');
+    // jump directly to a specific student's profile (admin picker context only)
+    if(elIsReachable(document.getElementById('profileCardsWrap'))){
+      profileOrder.forEach(key=>{
+        const p = PROFILES[key];
+        if(!p) return;
+        cmds.push({
+          icon:'👤', label: fmt('cmdOpenStudent', { name: profileDisplayName(key) }), tag:t('cmdTagStudents'),
+          run: ()=>{
+            const card = document.querySelector(`.profile-card[data-profile="${key}"]`);
+            if(card) card.click();
+          }
+        });
+      });
+    }
+    return cmds;
+  }
+
+  let cmdkActiveIndex = 0;
+  let cmdkFilteredList = [];
+  function openCommandPalette(){
+    commandPaletteOverlay.classList.remove('hidden');
+    cmdkInput.value = '';
+    renderCommandResults('');
+    setTimeout(()=> cmdkInput.focus(), 30);
+  }
+  function closeCommandPalette(){
+    commandPaletteOverlay.classList.add('hidden');
+  }
+  function renderCommandResults(query){
+    const all = buildCommandList();
+    const q = query.trim().toLowerCase();
+    cmdkFilteredList = q ? all.filter(c => c.label.toLowerCase().includes(q)) : all;
+    cmdkActiveIndex = 0;
+    cmdkResults.innerHTML = '';
+    if(!cmdkFilteredList.length){
+      cmdkResults.innerHTML = `<div class="cmdk-empty">${t('cmdkNoResults')}</div>`;
+      return;
+    }
+    cmdkFilteredList.forEach((cmd, i)=>{
+      const row = document.createElement('div');
+      row.className = 'cmdk-item' + (i === 0 ? ' active' : '');
+      row.innerHTML = `<span class="cmdk-item-icon">${cmd.icon}</span><span class="cmdk-item-label">${cmd.label}</span><span class="cmdk-item-tag">${cmd.tag}</span>`;
+      row.addEventListener('click', ()=>{ closeCommandPalette(); cmd.run(); });
+      cmdkResults.appendChild(row);
+    });
+  }
+  function updateCmdkActiveHighlight(){
+    [...cmdkResults.children].forEach((el,i)=> el.classList.toggle('active', i === cmdkActiveIndex));
+    const activeEl = cmdkResults.children[cmdkActiveIndex];
+    if(activeEl) activeEl.scrollIntoView({ block:'nearest' });
+  }
+  cmdkInput.addEventListener('input', ()=> renderCommandResults(cmdkInput.value));
+  cmdkInput.addEventListener('keydown', e=>{
+    if(e.key === 'ArrowDown'){ e.preventDefault(); cmdkActiveIndex = Math.min(cmdkActiveIndex+1, cmdkFilteredList.length-1); updateCmdkActiveHighlight(); }
+    else if(e.key === 'ArrowUp'){ e.preventDefault(); cmdkActiveIndex = Math.max(cmdkActiveIndex-1, 0); updateCmdkActiveHighlight(); }
+    else if(e.key === 'Enter'){
+      e.preventDefault();
+      const cmd = cmdkFilteredList[cmdkActiveIndex];
+      if(cmd){ closeCommandPalette(); cmd.run(); }
+    } else if(e.key === 'Escape'){
+      closeCommandPalette();
+    }
+  });
+  commandPaletteOverlay.addEventListener('click', e=>{
+    if(e.target === commandPaletteOverlay) closeCommandPalette();
+  });
+  cmdkLauncher.addEventListener('click', openCommandPalette);
+  document.addEventListener('keydown', e=>{
+    if((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k'){
+      e.preventDefault();
+      if(commandPaletteOverlay.classList.contains('hidden')) openCommandPalette();
+      else closeCommandPalette();
+    }
   });
 
   applyLanguage('ar');
