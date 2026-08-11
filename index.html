@@ -1275,11 +1275,11 @@
         <input type="text" id="teacherNameInput" data-i18n-placeholder="teacherNamePh" placeholder="اسم المعلم/ة">
       </div>
       <div class="field-icon-wrap">
-        <span class="field-icon">👤</span>
+        <span class="field-icon"><svg class="nx-icon" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/></svg></span>
         <input type="text" id="teacherUserInput" class="ltr-input" data-i18n-placeholder="usernamePlaceholder" placeholder="username">
       </div>
       <div class="field-icon-wrap">
-        <span class="field-icon">🔒</span>
+        <span class="field-icon"><svg class="nx-icon" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
         <input type="password" id="teacherPinInput" data-i18n-placeholder="pinPlaceholder" placeholder="كلمة المرور">
       </div>
       <div class="feedback wrong" id="teacherError" style="min-height:16px;"></div>
@@ -1392,11 +1392,11 @@
     <div class="mini-editor">
       <div class="group-label" style="text-align:center;" id="adminLoginTitle">دخول المالك</div>
       <div class="field-icon-wrap">
-        <span class="field-icon">👤</span>
+        <span class="field-icon"><svg class="nx-icon" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/></svg></span>
         <input type="text" id="adminUserInput" class="ltr-input" data-i18n-placeholder="usernamePlaceholder" placeholder="username">
       </div>
       <div class="field-icon-wrap">
-        <span class="field-icon">🔒</span>
+        <span class="field-icon"><svg class="nx-icon" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
         <input type="password" id="adminPinInput" data-i18n-placeholder="pinPlaceholder" placeholder="كلمة المرور">
       </div>
       <div class="feedback wrong" id="adminLoginError" style="min-height:16px;"></div>
@@ -1511,14 +1511,14 @@
       <div>
         <div class="group-label" data-i18n="usernameLabel">اسم المستخدم</div>
         <div class="field-icon-wrap">
-          <span class="field-icon">👤</span>
+          <span class="field-icon"><svg class="nx-icon" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/></svg></span>
           <input type="text" id="ulUsername" class="ltr-input" data-i18n-placeholder="usernamePlaceholder" placeholder="username">
         </div>
       </div>
       <div>
         <div class="group-label" data-i18n="passwordLabel">كلمة المرور</div>
         <div class="field-icon-wrap">
-          <span class="field-icon">🔒</span>
+          <span class="field-icon"><svg class="nx-icon" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
           <input type="password" id="ulPassword" data-i18n-placeholder="pinPlaceholder" placeholder="كلمة المرور">
           <button type="button" class="pw-toggle-btn" id="ulPwToggle" aria-label="إظهار كلمة المرور">👁</button>
         </div>
@@ -2700,13 +2700,13 @@
       pbCreateProgramBtn:'+ إنشاء برنامج', pbNoCourses:'لا توجد دورات بعد.', pbModuleCount:'{n} وحدة',
       pbCourseTitlePh:'عنوان الدورة', pbCreateCourseBtn:'+ إضافة دورة',
       pbNoModules:'لا توجد وحدات بعد.', pbLessonCount:'{n} درس', pbModuleTitlePh:'عنوان الوحدة', pbCreateModuleBtn:'+ إضافة وحدة',
-      pbNoLessons:'لا توجد دروس بعد.', pbHasAssessment:'✅ يوجد تقييم', pbNoAssessmentYet:'لا يوجد تقييم بعد',
+      pbNoLessons:'لا توجد دروس بعد.', pbHasAssessment:'يوجد تقييم', pbNoAssessmentYet:'لا يوجد تقييم بعد',
       pbAddAssessmentBtn:'تقييم', pbLessonTitlePh:'عنوان الدرس', pbLessonContentPh:'محتوى الدرس',
       pbCreateLessonBtn:'+ إضافة درس', pbQuestionCount:'{n} سؤال', pbCorrectAnswerLabel:'الإجابة الصحيحة',
       pbAssessmentTitlePh:'عنوان التقييم', pbQuestionTextPh:'نص السؤال', pbOptionPh:'خيار', pbOptional:'اختياري',
       pbAddQuestionBtn:'+ إضافة سؤال', pbSaveAssessmentBtn:'حفظ التقييم',
       ppProgressLabel:'التقدّم: {pct}%', ppNoContentYet:'لا يوجد محتوى بعد في هذا البرنامج.',
-      ppLessonDone:'✅ تم إكمال الدرس', ppMarkCompleteBtn:'وضع علامة مكتمل', ppSubmitAssessmentBtn:'إرسال الإجابات',
+      ppLessonDone:'تم إكمال الدرس', ppMarkCompleteBtn:'وضع علامة مكتمل', ppSubmitAssessmentBtn:'إرسال الإجابات',
       ppScoreResult:'نتيجتك: {score}%', toastLessonComplete:'📘 أكملتِ درس: {lesson}', toastAssessmentResult:'📝 نتيجة التقييم: {score}%',
       whoPlaying:'من يلعب اليوم؟',
       joryName:'جوري', joryAge:'٦ سنوات ونصف',
@@ -2715,8 +2715,8 @@
       opLabel:'العملية الحسابية', opAdd:'جمع +', opSub:'طرح −', opMul:'ضرب ×', opDiv:'قسمة ÷', opMix:'منوّع',
       opPercent:'نسبة مئوية %', opExponent:'أُسس xⁿ', opSqrt:'جذر تربيعي √', opNumberRecognition:'🔢 التعرّف على الأرقام',
       levelNameNumberRecognition:'التعرّف على الأرقام',
-      hintPercent:'💡 اقسمي على 100 ثم اضربي في العدد', hintExponent:'💡 اضربي العدد في نفسه بعدد مرات الأُس', hintSqrt:'💡 دوّري على عدد مضروب في نفسه يساوي الرقم',
-      hintNumberRecognition:'💡 عدّي على أصابعك ببطء وأنتِ بتقولي كل رقم',
+      hintPercent:'اقسمي على 100 ثم اضربي في العدد', hintExponent:'اضربي العدد في نفسه بعدد مرات الأُس', hintSqrt:'دوّري على عدد مضروب في نفسه يساوي الرقم',
+      hintNumberRecognition:'عدّي على أصابعك ببطء وأنتِ بتقولي كل رقم',
       printReportBtn:'طباعة / حفظ PDF', printReportTitle:'تقرير الأداء',
       advancedSettingsToggle:'⚙️ تدريب مخصّص / إعدادات متقدمة',
       cmdkPlaceholder:'اكتبي أمرًا أو ابحثي...', cmdkLauncherLabel:'أوامر سريعة', cmdkNoResults:'لا توجد نتائج مطابقة.',
@@ -2823,15 +2823,15 @@
       levelNameDecimals:'الأعداد العشرية', levelNameFractions:'الكسور', levelNamePercent:'النسبة المئوية',
       levelNameExponent:'الأُسس', levelNameSqrt:'الجذر التربيعي', levelNameCompound:'المسائل المركبة', levelNameAbacus:'الأباكوس',
       levelNotStarted:'لم تبدئي بعد', levelMasteryScore:'إتقان {n}%', levelPracticeBtn:'تدرّبي', levelsCompleted:'أتقنتِ {done} من {total} مستوى',
-      toastBadgeEarned:'🎖️ حصلتِ على شارة: {badge}', toastLevelMastered:'✅ أتقنتِ مستوى: {level}', toastDailyGoalDone:'🎉 اكتمل هدف اليوم!',
+      toastBadgeEarned:'🎖️ حصلتِ على شارة: {badge}', toastLevelMastered:'أتقنتِ مستوى: {level}', toastDailyGoalDone:'🎉 اكتمل هدف اليوم!',
       placementOpenLink:'📝 اختبار تحديد المستوى', placementTitle:'📝 اختبار تحديد المستوى',
       placementIntroText:'اختبار قصير من 8 أسئلة يساعدنا نحدد أفضل نقطة بداية مناسبة لكِ. جاوبي بأفضل ما تقدري — مفيش وقت محدد.',
       placementStartBtn:'▶ ابدئي الاختبار', placementSkipBtn:'تخطّي والبدء العادي', placementApplyBtn:'▶ ابدئي بهذا المستوى',
-      placementResultDiff:'تم تحديد مستواك المناسب: <b>{diff}</b>', placementResultWeak:'💡 ننصح كمان بالتركيز على: {op}',
+      placementResultDiff:'تم تحديد مستواك المناسب: <b>{diff}</b>', placementResultWeak:'ننصح كمان بالتركيز على: {op}',
       enableCameraBtn:'📷 تفعيل الكاميرا لرؤية صديقتك', youLabel:'أنتِ',
       cameraNeedsHttps:'⚠️ الكاميرا تحتاج استضافة الملف على الإنترنت (https) — لن تعمل من ملف مفتوح مباشرة على الجهاز.',
       cameraPermissionDenied:'تعذّر الوصول للكاميرا — تأكدي من السماح لها من إعدادات المتصفح.',
-      cameraConnecting:'⏳ جارٍ الاتصال بكاميرا صديقتك...', cameraConnected:'✅ متصلة!', cameraFailed:'⚠️ تعذّر الاتصال — يمكنكما إكمال السباق بدون فيديو.',
+      cameraConnecting:'⏳ جارٍ الاتصال بكاميرا صديقتك...', cameraConnected:'متصلة!', cameraFailed:'⚠️ تعذّر الاتصال — يمكنكما إكمال السباق بدون فيديو.',
       adminLoginTitle:'دخول المالك', adminSetupTitle:'إنشاء حساب المالك (أول مرة)',
       adminSetupNote:'هذا الحساب له صلاحية كاملة على التطبيق. أنشئيه الآن مرة واحدة فقط — لن يظهر هذا الطلب مجددًا.',
       levelLabel:'المستوى {n}', levelUpMsg:'🎉 المستوى {n}!', dailyStreakLabel:'🔥 {n} يوم متتالي',
@@ -2875,9 +2875,9 @@
       accountDisabledTitle:'هذا الحساب معطّل حاليًا', accountDisabledBody:'تواصلي مع صاحب التطبيق لإعادة تفعيل الحساب.',
       perStudentSubNote:'حالة الاشتراك والتفعيل الآن لكل حساب على حدة — راجعيها من قائمة الطلاب في لوحة الإدارة الرئيسية.',
       adminDashTitle:'مركز تحكّم نِكسورا', adminDashStudents:'المتعلّمون', adminDashTools:'الأدوات والإعدادات',
-      statusExempt:'حساب عائلي (دائم)', statusDisabled:'🚫 معطّل', statusSubscribed:'✅ مشترك حتى {date}',
+      statusExempt:'حساب عائلي (دائم)', statusDisabled:'🚫 معطّل', statusSubscribed:'مشترك حتى {date}',
       statusTrialDays:'⏳ تجربة — {n} يوم متبقٍ', statusTrialExpiredShort:'⚠️ التجربة منتهية', statusNoTrial:'لم يبدأ بعد',
-      disableAccountBtn:'🚫 تعطيل', enableAccountBtn:'✅ تفعيل',
+      disableAccountBtn:'🚫 تعطيل', enableAccountBtn:'تفعيل',
       grantSubLabel:'منح اشتراك مجاني', grantSubDaysPh:'عدد الأيام', grantSubBtn:'منح', grantSubSuccess:'✓ تم المنح',
       totalStudentsLabel:'إجمالي الطلاب', activeSubsLabel:'اشتراكات فعّالة', disabledAccountsLabel:'حسابات معطّلة',
       subInactive:'غير مفعّل', subActive:'مفعّل — حتى {date}',
@@ -2887,8 +2887,8 @@
       comparisonTitle:'نتيجة التحدي',
       winnerLine:'🏆 الفائز: {name}!', tieLine:'🤝 تعادل!',
       backToProfiles:'العودة لاختيار اللاعب',
-      hintAdd:'💡 اجمع العشرات ثم الآحاد', hintSub:'💡 اطرح تدريجيًا من الأكبر للأصغر',
-      hintMul:'💡 جزّئ العدد إلى أجزاء أسهل ثم اجمعها', hintDiv:'💡 فكّر: كم مرة يتكرر المقسوم عليه؟',
+      hintAdd:'اجمع العشرات ثم الآحاد', hintSub:'اطرح تدريجيًا من الأكبر للأصغر',
+      hintMul:'جزّئ العدد إلى أجزاء أسهل ثم اجمعها', hintDiv:'فكّر: كم مرة يتكرر المقسوم عليه؟',
       badgeStreak5:'متتالية 5', badgeStreak10:'متتالية 10', badgeScore100:'100 نقطة',
       badgeScore500:'500 نقطة', badgeAccuracy100:'دقة 100%', badgeFifty:'50 مسألة',
       certBtn:'📄 تنزيل الشهادة', certTitle:'شهادة تقدير',
@@ -2950,13 +2950,13 @@
       pbCreateProgramBtn:'+ Create Program', pbNoCourses:'No courses yet.', pbModuleCount:'{n} modules',
       pbCourseTitlePh:'Course title', pbCreateCourseBtn:'+ Add Course',
       pbNoModules:'No modules yet.', pbLessonCount:'{n} lessons', pbModuleTitlePh:'Module title', pbCreateModuleBtn:'+ Add Module',
-      pbNoLessons:'No lessons yet.', pbHasAssessment:'✅ Has an assessment', pbNoAssessmentYet:'No assessment yet',
+      pbNoLessons:'No lessons yet.', pbHasAssessment:'Has an assessment', pbNoAssessmentYet:'No assessment yet',
       pbAddAssessmentBtn:'Assessment', pbLessonTitlePh:'Lesson title', pbLessonContentPh:'Lesson content',
       pbCreateLessonBtn:'+ Add Lesson', pbQuestionCount:'{n} questions', pbCorrectAnswerLabel:'Correct answer',
       pbAssessmentTitlePh:'Assessment title', pbQuestionTextPh:'Question text', pbOptionPh:'Option', pbOptional:'optional',
       pbAddQuestionBtn:'+ Add Question', pbSaveAssessmentBtn:'Save Assessment',
       ppProgressLabel:'Progress: {pct}%', ppNoContentYet:'No content in this program yet.',
-      ppLessonDone:'✅ Lesson completed', ppMarkCompleteBtn:'Mark as Complete', ppSubmitAssessmentBtn:'Submit Answers',
+      ppLessonDone:'Lesson completed', ppMarkCompleteBtn:'Mark as Complete', ppSubmitAssessmentBtn:'Submit Answers',
       ppScoreResult:'Your score: {score}%', toastLessonComplete:'📘 Lesson completed: {lesson}', toastAssessmentResult:'📝 Assessment result: {score}%',
       whoPlaying:"Who's playing today?",
       joryName:'Jory', joryAge:'6.5 years old',
@@ -2965,8 +2965,8 @@
       opLabel:'Operation', opAdd:'Addition +', opSub:'Subtraction −', opMul:'Multiplication ×', opDiv:'Division ÷', opMix:'Mixed',
       opPercent:'Percentage %', opExponent:'Exponents xⁿ', opSqrt:'Square root √', opNumberRecognition:'🔢 Number recognition',
       levelNameNumberRecognition:'Number recognition',
-      hintPercent:'💡 Divide by 100, then multiply by the number', hintExponent:'💡 Multiply the number by itself the exponent number of times', hintSqrt:'💡 Find a number multiplied by itself that equals this',
-      hintNumberRecognition:'💡 Count slowly on your fingers as you say each number',
+      hintPercent:'Divide by 100, then multiply by the number', hintExponent:'Multiply the number by itself the exponent number of times', hintSqrt:'Find a number multiplied by itself that equals this',
+      hintNumberRecognition:'Count slowly on your fingers as you say each number',
       printReportBtn:'Print / Save as PDF', printReportTitle:'Performance Report',
       advancedSettingsToggle:'⚙️ Custom Training / Advanced Settings',
       cmdkPlaceholder:'Type a command or search...', cmdkLauncherLabel:'Quick commands', cmdkNoResults:'No matching results.',
@@ -3073,15 +3073,15 @@
       levelNameDecimals:'Decimals', levelNameFractions:'Fractions', levelNamePercent:'Percentage',
       levelNameExponent:'Exponents', levelNameSqrt:'Square root', levelNameCompound:'Compound problems', levelNameAbacus:'Abacus',
       levelNotStarted:'Not started yet', levelMasteryScore:'{n}% mastery', levelPracticeBtn:'Practice', levelsCompleted:'Mastered {done} of {total} levels',
-      toastBadgeEarned:'🎖️ You earned a badge: {badge}', toastLevelMastered:'✅ You mastered: {level}', toastDailyGoalDone:"🎉 Today's goal complete!",
+      toastBadgeEarned:'🎖️ You earned a badge: {badge}', toastLevelMastered:'You mastered: {level}', toastDailyGoalDone:"🎉 Today's goal complete!",
       placementOpenLink:'📝 Placement test', placementTitle:'📝 Placement test',
       placementIntroText:"A short 8-question test to help us find the best starting point for you. Answer as best you can — no time limit.",
       placementStartBtn:'▶ Start the test', placementSkipBtn:'Skip and start normally', placementApplyBtn:'▶ Start at this level',
-      placementResultDiff:'Your recommended starting level: <b>{diff}</b>', placementResultWeak:'💡 We also recommend focusing on: {op}',
+      placementResultDiff:'Your recommended starting level: <b>{diff}</b>', placementResultWeak:'We also recommend focusing on: {op}',
       enableCameraBtn:'📷 Enable camera to see your friend', youLabel:'You',
       cameraNeedsHttps:'⚠️ The camera needs the file to be hosted online (https) — it will not work from a file opened directly on the device.',
       cameraPermissionDenied:'Could not access the camera — check that it is allowed in your browser settings.',
-      cameraConnecting:"⏳ Connecting to your friend's camera...", cameraConnected:'✅ Connected!', cameraFailed:'⚠️ Could not connect — you can still finish the race without video.',
+      cameraConnecting:"⏳ Connecting to your friend's camera...", cameraConnected:'Connected!', cameraFailed:'⚠️ Could not connect — you can still finish the race without video.',
       adminLoginTitle:'Owner login', adminSetupTitle:'Create owner account (first time)',
       adminSetupNote:'This account has full control over the app. Create it once now — this prompt will never show again.',
       levelLabel:'Level {n}', levelUpMsg:'🎉 Level {n}!', dailyStreakLabel:'🔥 {n} day streak',
@@ -3125,9 +3125,9 @@
       accountDisabledTitle:'This account is currently disabled', accountDisabledBody:'Contact the app owner to reactivate it.',
       perStudentSubNote:'Subscription and activation are now tracked per account — check the student list in the main admin dashboard.',
       adminDashTitle:'NEXORA Command Center', adminDashStudents:'Learners', adminDashTools:'Tools & Settings',
-      statusExempt:'Family account (permanent)', statusDisabled:'🚫 Disabled', statusSubscribed:'✅ Subscribed until {date}',
+      statusExempt:'Family account (permanent)', statusDisabled:'🚫 Disabled', statusSubscribed:'Subscribed until {date}',
       statusTrialDays:'⏳ Trial — {n} days left', statusTrialExpiredShort:'⚠️ Trial expired', statusNoTrial:'Not started yet',
-      disableAccountBtn:'🚫 Disable', enableAccountBtn:'✅ Enable',
+      disableAccountBtn:'🚫 Disable', enableAccountBtn:'Enable',
       grantSubLabel:'Grant free subscription', grantSubDaysPh:'Number of days', grantSubBtn:'Grant', grantSubSuccess:'✓ Granted',
       totalStudentsLabel:'Total students', activeSubsLabel:'Active subscriptions', disabledAccountsLabel:'Disabled accounts',
       subInactive:'Not active', subActive:'Active — until {date}',
@@ -3137,8 +3137,8 @@
       comparisonTitle:'Challenge results',
       winnerLine:'🏆 Winner: {name}!', tieLine:"🤝 It's a tie!",
       backToProfiles:'Back to player selection',
-      hintAdd:'💡 Add the tens, then the units', hintSub:'💡 Subtract step by step from the larger number',
-      hintMul:'💡 Break the number into easier parts, then add', hintDiv:'💡 Think: how many times does the divisor fit?',
+      hintAdd:'Add the tens, then the units', hintSub:'Subtract step by step from the larger number',
+      hintMul:'Break the number into easier parts, then add', hintDiv:'Think: how many times does the divisor fit?',
       badgeStreak5:'5 streak', badgeStreak10:'10 streak', badgeScore100:'100 points',
       badgeScore500:'500 points', badgeAccuracy100:'100% accuracy', badgeFifty:'50 problems',
       certBtn:'📄 Download certificate', certTitle:'Certificate of Achievement',
@@ -4029,7 +4029,7 @@
       const dateStr = new Date(result.date).toLocaleDateString(currentLang === 'ar' ? 'ar-EG' : 'en-US');
       certVerifyResult.innerHTML = `
         <div class="cert-verify-result valid">
-          <div class="cvr-row"><b>✅ ${t('certVerifyValid')}</b></div>
+          <div class="cvr-row"><b>${nxIcon('check')} ${t('certVerifyValid')}</b></div>
           <div class="cvr-row"><span>${t('certVerifyName')}</span><b>${result.name}</b></div>
           <div class="cvr-row"><span>${t('statScore')}</span><b>${result.score}</b></div>
           <div class="cvr-row"><span>${t('sumAccLabel')}</span><b>${result.accuracy}%</b></div>
@@ -5246,7 +5246,7 @@
         const done = lpIsLessonComplete(currentProfile, l.id);
         const row = document.createElement('div');
         row.className = 'lp-row' + (done ? ' completed' : '');
-        row.innerHTML = `<div class="lp-row-info"><div class="lp-row-title">${done ? '✅ ' : ''}${l.title}</div></div><span class="lp-row-badge">›</span>`;
+        row.innerHTML = `<div class="lp-row-info"><div class="lp-row-title">${done ? nxIcon('check')+' ' : ''}${l.title}</div></div><span class="lp-row-badge">›</span>`;
         row.addEventListener('click', ()=> ppNavigate('lesson', ppCourse, ppModule, l));
         ppContentArea.appendChild(row);
       });
@@ -5375,7 +5375,7 @@
         ppContentArea.innerHTML = `
           ${expiredNote}
           <div class="cert-verify-result ${attempt.passed ? 'valid' : 'invalid'}">
-            <div class="cvr-row"><b>${attempt.passed ? '✅' : '❌'} ${fmt('ppScoreResult', { score: attempt.score })}</b></div>
+            <div class="cvr-row"><b>${attempt.passed ? nxIcon('check') : nxIcon('x')} ${fmt('ppScoreResult', { score: attempt.score })}</b></div>
           </div>
           <button class="secondary-btn" id="ppBackToLessonBtn">${t('closeBtn')}</button>`;
         showToast(fmt('toastAssessmentResult', { score: attempt.score }), attempt.passed ? nxIcon('check') : nxIcon('clipboard'), 'learning');
@@ -6389,11 +6389,11 @@
       const mastery = computeLevelMastery(p, level.bucket);
       let statusIcon, statusClass, masteryText;
       if(mastery === null){
-        statusIcon = '⚪'; statusClass = 'not-started'; masteryText = t('levelNotStarted');
+        statusIcon = '<svg class="nx-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/></svg>'; statusClass = 'not-started'; masteryText = t('levelNotStarted');
       } else if(mastery >= MASTERY_THRESHOLD){
-        statusIcon = '✅'; statusClass = 'mastered'; masteryText = fmt('levelMasteryScore', { n: mastery });
+        statusIcon = nxIcon('check'); statusClass = 'mastered'; masteryText = fmt('levelMasteryScore', { n: mastery });
       } else {
-        statusIcon = '🔵'; statusClass = 'in-progress'; masteryText = fmt('levelMasteryScore', { n: mastery });
+        statusIcon = '<svg class="nx-icon nx-icon-filled" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/></svg>'; statusClass = 'in-progress'; masteryText = fmt('levelMasteryScore', { n: mastery });
       }
       const row = document.createElement('div');
       row.className = 'knowledge-level-row ' + statusClass;
@@ -7257,7 +7257,7 @@
         <span><span class="who">${userStr}</span> → <span class="right">${correctStr}</span></span>
       </div>
       <div class="row-line">
-        <button class="explain-btn">💡 ${t('explainBtn')}</button>
+        <button class="explain-btn">${nxIcon('lightbulb')} ${t('explainBtn')}</button>
       </div>
     `;
     const btn = row.querySelector('.explain-btn');
@@ -7288,7 +7288,7 @@
     const todayKey = 'mm_ai_fact_' + new Date().toISOString().slice(0,10) + '_' + currentLang;
     let cached = null;
     try{ cached = localStorage.getItem(todayKey); }catch(e){}
-    if(cached){ aiFactCard.textContent = '💡 ' + cached; aiFactCard.classList.remove('hidden'); return; }
+    if(cached){ aiFactCard.textContent = '' + cached; aiFactCard.classList.remove('hidden'); return; }
     const prompt = currentLang === 'ar'
       ? 'اكتبي حقيقة رياضية ممتعة وقصيرة جدًا أو لغزًا رياضيًا بسيطًا مناسبًا للأطفال، بالعربية، جملة أو جملتين كحد أقصى، بأسلوب مرح ومشوّق بدون مقدمات.'
       : 'Write one very short fun math fact or a simple riddle for children, in English, at most two sentences, in a playful and exciting tone, no preamble.';
@@ -7296,7 +7296,7 @@
       if(!text) return;
       const clean = text.length > 220 ? text.slice(0,220) + '…' : text;
       try{ localStorage.setItem(todayKey, clean); }catch(e){}
-      aiFactCard.textContent = '💡 ' + clean;
+      aiFactCard.textContent = '' + clean;
       aiFactCard.classList.remove('hidden');
     });
   }
