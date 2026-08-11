@@ -215,6 +215,11 @@
     background:rgba(0,0,0,0.5); padding:2px 7px; border-radius:8px;
   }
   .video-box.local{ flex:0 0 30%; }
+  .unmute-btn{
+    position:absolute; bottom:4px; inset-inline-end:6px; width:26px; height:26px; border-radius:50%;
+    border:none; background:rgba(0,0,0,0.55); color:#fff; font-size:13px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+  }
   .video-call-status{ text-align:center; font-size:11px; color:var(--ink-dim); margin-bottom:8px; }
   .enable-camera-btn{
     width:100%; font-family:'Cairo',sans-serif; font-weight:700; font-size:13px; padding:11px;
@@ -864,11 +869,41 @@
   <div id="raceLobby" class="panel hidden">
     <div class="group-label" style="text-align:center;" data-i18n="raceLobbyTitle">🏁 سباق مباشر</div>
     <div class="conn-note" data-i18n="raceLobbyNote">كل لاعبة تدخل من حسابها الخاص (على جهازها) وتحل نفس الأسئلة في نفس الوقت — النتائج تتحدّث لحظيًا.</div>
+    <div>
+      <div class="group-label" data-i18n="raceSettingsTitle">إعدادات السباق (تُطبَّق على الطرفين)</div>
+      <div class="group-label" data-i18n="opLabel" style="margin-bottom:6px;">العملية الحسابية</div>
+      <div class="chips" id="raceOpChips">
+        <button class="chip active" data-race-op="mix" data-i18n="opMix">منوّع</button>
+        <button class="chip" data-race-op="add" data-i18n="opAdd">جمع +</button>
+        <button class="chip" data-race-op="sub" data-i18n="opSub">طرح −</button>
+        <button class="chip" data-race-op="mul" data-i18n="opMul">ضرب ×</button>
+        <button class="chip" data-race-op="div" data-i18n="opDiv">قسمة ÷</button>
+      </div>
+      <div class="group-label" data-i18n="diffLabel" style="margin-top:10px; margin-bottom:6px;">فئة الأرقام (منازل العدد)</div>
+      <div class="chips" id="raceDiffChips">
+        <button class="chip" data-race-diff="units" data-i18n="diffUnits">آحاد</button>
+        <button class="chip active" data-race-diff="tens" data-i18n="diffTens">عشرات</button>
+        <button class="chip" data-race-diff="hundreds" data-i18n="diffHundreds">مئات</button>
+        <button class="chip" data-race-diff="thousands" data-i18n="diffThousands">آلاف</button>
+        <button class="chip" data-race-diff="tenthousands" data-i18n="diffTenThousands">عشرات آلاف</button>
+        <button class="chip" data-race-diff="hundredthousands" data-i18n="diffHundredThousands">مئات آلاف</button>
+        <button class="chip" data-race-diff="millions" data-i18n="diffMillions">ملايين</button>
+      </div>
+      <div class="group-label" data-i18n="lenLabel" style="margin-top:10px; margin-bottom:6px;">عدد الأسئلة</div>
+      <div class="chips" id="raceLenChips">
+        <button class="chip" data-race-len="10" data-i18n="len10">10 أسئلة</button>
+        <button class="chip active" data-race-len="15" data-i18n="raceLen15">15 سؤالاً</button>
+        <button class="chip" data-race-len="20" data-i18n="len20">20 سؤالاً</button>
+        <button class="chip" data-race-len="30" data-i18n="raceLen30">30 سؤالاً</button>
+      </div>
+    </div>
     <button class="start-btn" id="createRaceBtn" data-i18n="createRaceBtn">🆕 إنشاء سباق جديد</button>
+    <div class="login-divider" data-i18n="orDivider">أو</div>
     <div class="pin-row" style="justify-content:center; width:100%;">
       <input type="text" id="joinRaceCodeInput" data-i18n-placeholder="raceCodePlaceholder" placeholder="ABCDE" style="flex:1; direction:ltr; text-align:center; text-transform:uppercase; font-family:'Cairo',sans-serif; font-weight:800; letter-spacing:3px;">
       <button class="secondary-btn" id="joinRaceBtn" data-i18n="joinRaceBtn" style="flex:none;">انضمام</button>
     </div>
+    <div class="conn-note" data-i18n="raceJoinNote">إعدادات السباق تُحدَّد بالكامل من ينشئه — فقط الصقي الكود وانضمّي.</div>
     <div class="feedback wrong" id="raceLobbyError" style="min-height:18px;"></div>
     <button class="secondary-btn" id="raceLobbyBackBtn" data-i18n="cancelBtn">إلغاء</button>
   </div>
@@ -1135,7 +1170,7 @@
     <button class="enable-camera-btn hidden" id="enableCameraBtn" data-i18n="enableCameraBtn">📷 تفعيل الكاميرا لرؤية صديقتك</button>
     <div class="video-call-status hidden" id="videoCallStatus"></div>
     <div class="video-call-panel hidden" id="videoCallPanel">
-      <div class="video-box"><video id="remoteVideo" autoplay playsinline></video><span class="video-label" id="remoteVideoLabel"></span></div>
+      <div class="video-box"><video id="remoteVideo" autoplay playsinline muted></video><span class="video-label" id="remoteVideoLabel"></span><button class="unmute-btn hidden" id="unmuteRemoteBtn" title="تفعيل الصوت">🔇</button></div>
       <div class="video-box local"><video id="localVideo" autoplay playsinline muted></video><span class="video-label" data-i18n="youLabel">أنتِ</span></div>
     </div>
     <div class="opponent-panel hidden" id="opponentPanel">
@@ -1332,6 +1367,9 @@
   const raceLobbyOpenBtn = document.getElementById('raceLobbyOpenBtn');
   const raceLobbyEl = document.getElementById('raceLobby');
   const createRaceBtn = document.getElementById('createRaceBtn');
+  const raceOpChips = document.querySelectorAll('#raceOpChips .chip');
+  const raceDiffChips = document.querySelectorAll('#raceDiffChips .chip');
+  const raceLenChips = document.querySelectorAll('#raceLenChips .chip');
   const joinRaceCodeInput = document.getElementById('joinRaceCodeInput');
   const joinRaceBtn = document.getElementById('joinRaceBtn');
   const raceLobbyError = document.getElementById('raceLobbyError');
@@ -1347,6 +1385,7 @@
   const videoCallPanel = document.getElementById('videoCallPanel');
   const remoteVideo = document.getElementById('remoteVideo');
   const remoteVideoLabel = document.getElementById('remoteVideoLabel');
+  const unmuteRemoteBtn = document.getElementById('unmuteRemoteBtn');
   const localVideo = document.getElementById('localVideo');
   const opponentName = document.getElementById('opponentName');
   const opponentBar = document.getElementById('opponentBar');
@@ -1774,6 +1813,8 @@
       mascotIdle:'🦉', mascotHappy:'🥳', mascotSad:'😥',
       raceLobbyOpenBtn:'🏁 سباق مباشر مع صديقة', raceLobbyTitle:'🏁 سباق مباشر',
       raceLobbyNote:'كل لاعبة تدخل من حسابها الخاص (على جهازها) وتحل نفس الأسئلة في نفس الوقت — النتائج تتحدّث لحظيًا.',
+      raceSettingsTitle:'إعدادات السباق (تُطبَّق على الطرفين)', raceLen15:'15 سؤالاً', raceLen30:'30 سؤالاً',
+      raceJoinNote:'إعدادات السباق تُحدَّد بالكامل من ينشئه — فقط الصقي الكود وانضمّي.',
       createRaceBtn:'🆕 إنشاء سباق جديد', raceCodePlaceholder:'ABCDE', joinRaceBtn:'انضمام',
       raceWaitingTitle:'شاركي هذا الكود مع صديقتك', raceWaitingBody:'بانتظار انضمامها... اتركي الصفحة مفتوحة.',
       raceCodeInvalid:'الكود غير صحيح أو السباق ممتلئ بالفعل', raceJoinedTitle:'انضممتِ! جاري البدء...',
@@ -1909,6 +1950,8 @@
       mascotIdle:'🦉', mascotHappy:'🥳', mascotSad:'😥',
       raceLobbyOpenBtn:'🏁 Live race with a friend', raceLobbyTitle:'🏁 Live race',
       raceLobbyNote:'Each player logs in on her own device with her own account and solves the same questions at the same time — results update live.',
+      raceSettingsTitle:'Race settings (apply to both players)', raceLen15:'15 questions', raceLen30:'30 questions',
+      raceJoinNote:'The race settings are fully set by whoever created it — just paste the code and join.',
       createRaceBtn:'🆕 Create a new race', raceCodePlaceholder:'ABCDE', joinRaceBtn:'Join',
       raceWaitingTitle:'Share this code with your friend', raceWaitingBody:'Waiting for her to join... keep this page open.',
       raceCodeInvalid:'Invalid code, or the race is already full', raceJoinedTitle:'Joined! Starting...',
@@ -4040,7 +4083,7 @@
   /* ================= AI (Gemini via Apps Script proxy) ================= */
   function callAi(prompt){
     if(!SHEET_API_URL) return Promise.resolve(null);
-    return postToSheet('ai', { prompt }).then(res => (res && res.ok && res.text) ? res.text : null);
+    return postToSheet('ai', { prompt, username: currentProfile || 'guest' }).then(res => (res && res.ok && res.text) ? res.text : null);
   }
 
   /* ---------- on-demand AI explanation for a missed problem ---------- */
@@ -4287,10 +4330,20 @@
     settingsEl.classList.remove('hidden');
   });
 
+  let raceLobbyOp = 'mix';
+  let raceLobbyDiff = 'tens';
+  let raceLobbyLen = 15;
+  raceOpChips.forEach(c=> c.addEventListener('click', ()=> selectChip(raceOpChips,'raceOp',c.dataset.raceOp, v=>raceLobbyOp=v)));
+  raceDiffChips.forEach(c=> c.addEventListener('click', ()=> selectChip(raceDiffChips,'raceDiff',c.dataset.raceDiff, v=>raceLobbyDiff=v)));
+  raceLenChips.forEach(c=> c.addEventListener('click', ()=> selectChip(raceLenChips,'raceLen',c.dataset.raceLen, v=>raceLobbyLen=parseInt(v,10))));
+
   createRaceBtn.addEventListener('click', ()=>{
     if(!SHEET_API_URL){ raceLobbyError.textContent = t('raceCodeInvalid'); return; }
     createRaceBtn.disabled = true;
-    postToSheet('create_race', { username: currentProfile, name: profileDisplayName(currentProfile), questionCount: 15 }).then(res=>{
+    postToSheet('create_race', {
+      username: currentProfile, name: profileDisplayName(currentProfile),
+      op: raceLobbyOp, diff: raceLobbyDiff, questionCount: raceLobbyLen
+    }).then(res=>{
       createRaceBtn.disabled = false;
       if(!res || !res.ok){ raceLobbyError.textContent = t('raceCodeInvalid'); return; }
       raceCode = res.code;
@@ -4380,6 +4433,11 @@
   ]};
 
   enableCameraBtn.addEventListener('click', initCameraCall);
+  unmuteRemoteBtn.addEventListener('click', ()=>{
+    remoteVideo.muted = false;
+    unmuteRemoteBtn.textContent = '🔊';
+    setTimeout(()=> unmuteRemoteBtn.classList.add('hidden'), 900);
+  });
 
   async function initCameraCall(){
     enableCameraBtn.disabled = true;
@@ -4401,6 +4459,9 @@
     localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
     peerConnection.ontrack = (event)=>{
       remoteVideo.srcObject = event.streams[0];
+      remoteVideo.muted = true; // start muted so the video reliably plays past the browser's autoplay policy
+      remoteVideo.play().catch(()=>{}); // ignore — muted playback should virtually always be allowed
+      unmuteRemoteBtn.classList.remove('hidden');
       videoCallStatus.textContent = t('cameraConnected');
       setTimeout(()=> videoCallStatus.classList.add('hidden'), 2000);
     };
@@ -4463,6 +4524,8 @@
     videoCallStatus.classList.add('hidden');
     enableCameraBtn.classList.add('hidden');
     enableCameraBtn.disabled = false;
+    unmuteRemoteBtn.classList.add('hidden');
+    unmuteRemoteBtn.textContent = '🔇';
   }
 
   function postRaceProgress(done){
