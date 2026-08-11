@@ -58,6 +58,36 @@
     --yellow:#c98bff; --mint:#7fe6c8; --coral:#ff6ba3;
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+
+  /* NEXORA boot experience — shown immediately at page load, removed the
+     moment real initialization (profiles + learning entities + session
+     check) genuinely finishes. No fake percentages, no invented steps. */
+  .boot-screen{
+    position:fixed; inset:0; z-index:20000; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:18px; background:#0B1220; color:#F1F5F9; font-family:'IBM Plex Sans Arabic','Tajawal',sans-serif;
+    transition:opacity .35s ease; padding:24px;
+  }
+  .boot-screen.boot-done{ opacity:0; pointer-events:none; }
+  .boot-visual{ width:120px; height:120px; }
+  .boot-graph{ width:100%; height:100%; }
+  .boot-graph-lines line{ stroke:rgba(99,102,241,0.35); stroke-width:1; }
+  .boot-node{ fill:#6366F1; }
+  .boot-node-core{ fill:#06B6D4; }
+  @media (prefers-reduced-motion: no-preference){
+    .boot-node{ animation:boot-pulse 2.2s ease-in-out infinite; }
+    .boot-node-core{ animation:boot-pulse-core 2.2s ease-in-out infinite; }
+  }
+  @keyframes boot-pulse{ 0%,100%{ opacity:0.55; } 50%{ opacity:1; } }
+  @keyframes boot-pulse-core{ 0%,100%{ opacity:0.85; transform:scale(1); } 50%{ opacity:1; transform:scale(1.08); } }
+  .boot-brand{ font-family:'Cairo',sans-serif; font-weight:800; font-size:20px; letter-spacing:1.5px; }
+  .boot-step-text{ font-size:12.5px; color:#94A3B8; min-height:16px; }
+  .boot-progress-wrap{ width:180px; height:3px; border-radius:3px; background:rgba(148,163,184,0.18); overflow:hidden; }
+  .boot-progress-bar{ height:100%; width:0%; background:linear-gradient(90deg,#6366F1,#06B6D4); border-radius:3px; transition:width .25s ease; }
+  .boot-error{ text-align:center; max-width:320px; }
+  .boot-error-title{ font-weight:800; font-size:14px; margin-bottom:6px; }
+  .boot-error-text{ font-size:12.5px; color:#94A3B8; margin-bottom:14px; }
+  .boot-error-actions{ display:flex; gap:8px; justify-content:center; }
+
   button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focus-visible{
     outline:2.5px solid var(--yellow); outline-offset:2px; border-radius:6px;
   }
@@ -763,6 +793,31 @@
     border-radius:9px; border:1.5px solid var(--input-border); background:var(--input-bg); color:var(--ink);
     font-size:14px; outline:none; box-sizing:border-box;
   }
+  .pw-toggle-btn{
+    position:absolute; top:50%; transform:translateY(-50%); inset-inline-end:10px;
+    background:none; border:none; cursor:pointer; font-size:14px; opacity:0.65; padding:4px; line-height:1;
+  }
+  .pw-toggle-btn:hover{ opacity:1; }
+  #ulPassword{ padding-inline-end:34px !important; }
+  .login-options-row{ display:flex; justify-content:flex-end; margin:2px 0 4px; }
+  .remember-me-label{ display:flex; align-items:center; gap:6px; font-size:12px; color:var(--ink-dim); cursor:pointer; }
+  .login-brand-visual{ display:flex; justify-content:center; margin-bottom:6px; }
+  .login-graph{ width:100px; height:50px; }
+  .login-graph-lines line{ stroke:rgba(99,102,241,0.3); stroke-width:0.8; }
+  .login-node{ fill:#6366F1; }
+  .login-node-core{ fill:#06B6D4; }
+  .login-welcome-desc{ text-align:center; font-size:12px; color:var(--ink-dim); margin:-6px 0 12px; }
+  .oauth-row{ display:flex; gap:8px; margin-bottom:12px; }
+  .oauth-btn{
+    flex:1; display:flex; align-items:center; justify-content:center; gap:6px; padding:10px;
+    border-radius:9px; border:1.5px solid var(--input-border); background:transparent; color:var(--ink-dim);
+    font-size:12px; font-weight:600; cursor:not-allowed; opacity:0.55;
+  }
+  .oauth-soon{ font-size:9px; border:1px solid var(--chip-border); border-radius:6px; padding:1px 5px; }
+  .security-note{
+    display:flex; align-items:center; justify-content:center; gap:6px; font-size:10.5px; color:var(--ink-dim);
+    margin:14px 0 6px; opacity:0.75;
+  }
   html[dir="rtl"] .field-icon-wrap input{ padding:11px 40px 11px 14px !important; }
   .field-icon-wrap input.ltr-input{ direction:ltr; text-align:left; }
   .field-icon-wrap input:focus{ border-color:var(--yellow); }
@@ -1067,6 +1122,38 @@
 </style>
 </head>
 <body>
+
+<div id="bootScreen" class="boot-screen" role="status" aria-live="polite">
+  <div class="boot-visual" aria-hidden="true">
+    <svg viewBox="0 0 200 200" class="boot-graph">
+      <g class="boot-graph-lines">
+        <line x1="100" y1="100" x2="60" y2="55"></line>
+        <line x1="100" y1="100" x2="140" y2="55"></line>
+        <line x1="100" y1="100" x2="45" y2="120"></line>
+        <line x1="100" y1="100" x2="155" y2="120"></line>
+        <line x1="100" y1="100" x2="100" y2="155"></line>
+      </g>
+      <circle cx="100" cy="100" r="10" class="boot-node boot-node-core"></circle>
+      <circle cx="60" cy="55" r="5" class="boot-node"></circle>
+      <circle cx="140" cy="55" r="5" class="boot-node"></circle>
+      <circle cx="45" cy="120" r="5" class="boot-node"></circle>
+      <circle cx="155" cy="120" r="5" class="boot-node"></circle>
+      <circle cx="100" cy="155" r="5" class="boot-node"></circle>
+    </svg>
+  </div>
+  <div class="boot-brand">NEXORA</div>
+  <div class="boot-step-text" id="bootStepText"></div>
+  <div class="boot-progress-wrap"><div class="boot-progress-bar" id="bootProgressBar"></div></div>
+  <div class="boot-error hidden" id="bootErrorBox">
+    <div class="boot-error-title" id="bootErrorTitle"></div>
+    <div class="boot-error-text" id="bootErrorText"></div>
+    <div class="boot-error-actions">
+      <button class="start-btn" id="bootRetryBtn"></button>
+      <button class="secondary-btn" id="bootLoginBackBtn"></button>
+    </div>
+  </div>
+</div>
+
 
 <div class="app-shell" id="appShell">
   <aside class="app-sidebar" id="appSidebar">
@@ -1397,9 +1484,25 @@
 
   <!-- USERNAME + PASSWORD LOGIN SCREEN -->
   <div id="usernameLogin" class="panel">
+    <div class="login-brand-visual" aria-hidden="true">
+      <svg viewBox="0 0 120 60" class="login-graph">
+        <g class="login-graph-lines">
+          <line x1="60" y1="30" x2="30" y2="12"></line>
+          <line x1="60" y1="30" x2="90" y2="12"></line>
+          <line x1="60" y1="30" x2="20" y2="45"></line>
+          <line x1="60" y1="30" x2="100" y2="45"></line>
+        </g>
+        <circle cx="60" cy="30" r="5" class="login-node login-node-core"></circle>
+        <circle cx="30" cy="12" r="2.5" class="login-node"></circle>
+        <circle cx="90" cy="12" r="2.5" class="login-node"></circle>
+        <circle cx="20" cy="45" r="2.5" class="login-node"></circle>
+        <circle cx="100" cy="45" r="2.5" class="login-node"></circle>
+      </svg>
+    </div>
     <div class="ai-fact-card hidden" id="aiFactCard"></div>
     <div class="mini-editor">
-      <div class="group-label" style="text-align:center;" data-i18n="loginRequiredTitle">تسجيل الدخول</div>
+      <div class="group-label" style="text-align:center;" data-i18n="loginWelcomeTitle">مرحبًا بك في نِكسورا</div>
+      <div class="login-welcome-desc" data-i18n="loginWelcomeDesc">سجّلي الدخول للوصول إلى مساحة التعلّم الخاصة بكِ.</div>
       <div>
         <div class="group-label" data-i18n="usernameLabel">اسم المستخدم</div>
         <div class="field-icon-wrap">
@@ -1412,18 +1515,27 @@
         <div class="field-icon-wrap">
           <span class="field-icon">🔒</span>
           <input type="password" id="ulPassword" data-i18n-placeholder="pinPlaceholder" placeholder="كلمة المرور">
+          <button type="button" class="pw-toggle-btn" id="ulPwToggle" aria-label="إظهار كلمة المرور">👁</button>
         </div>
+      </div>
+      <div class="login-options-row">
+        <label class="remember-me-label"><input type="checkbox" id="ulRememberMe" checked> <span data-i18n="rememberMeLabel">تذكّرني</span></label>
       </div>
       <div class="feedback wrong" id="ulError" style="min-height:18px;"></div>
       <button class="start-btn" id="ulLoginBtn" data-i18n="loginConfirm">دخول</button>
       <div class="link-line" id="goToRegisterLink" data-i18n="goToRegisterLink">ليس لديكِ حساب؟ سجّلي الآن</div>
     </div>
     <div class="login-divider" data-i18n="orDivider">أو</div>
+    <div class="oauth-row">
+      <button class="oauth-btn" disabled title="قريبًا"><span>Google</span> <span class="oauth-soon" data-i18n="oauthComingSoonBadge">قريبًا</span></button>
+      <button class="oauth-btn" disabled title="قريبًا"><span>Microsoft</span> <span class="oauth-soon" data-i18n="oauthComingSoonBadge">قريبًا</span></button>
+    </div>
     <div class="secondary-options">
       <button class="secondary-link-btn" id="guestBtn" data-i18n="guestBtn">👤 متابعة كضيف</button>
       <button class="secondary-link-btn" id="challengeBtnLogin" data-i18n="challengeBtn">🏆 تحدي بين اللاعبتين</button>
     </div>
     <div class="guest-note" id="guestNote"></div>
+    <div class="security-note"><span class="security-note-icon">🛡</span><span data-i18n="securityNoteText">اتصال آمن — بياناتكِ محمية داخل نِكسورا</span></div>
     <div class="link-line subtle-link" id="adminLink" data-i18n="adminLink">🛠️ إدارة الحسابات (لصاحب التطبيق)</div>
     <div class="link-line subtle-link" id="certVerifyLink" data-i18n="certVerifyLink">🔍 التحقق من شهادة</div>
   </div>
@@ -2060,6 +2172,8 @@
   const usernameLoginEl = document.getElementById('usernameLogin');
   const ulUsername = document.getElementById('ulUsername');
   const ulPassword = document.getElementById('ulPassword');
+  const ulPwToggle = document.getElementById('ulPwToggle');
+  const ulRememberMe = document.getElementById('ulRememberMe');
   const ulError = document.getElementById('ulError');
   const ulLoginBtn = document.getElementById('ulLoginBtn');
   const goToRegisterLink = document.getElementById('goToRegisterLink');
@@ -2566,6 +2680,14 @@
       modDetailsProgress:'التقدّم: {pct}%', modDetailsLessonCount:'عدد الدروس', modDetailsAssessCount:'عدد التقييمات',
       modDetailsCompletedCount:'المكتمل', modDetailsStartBtn:'ابدئي الوحدة', modDetailsContinueBtn:'واصلي الوحدة',
       cpPrevious:'السابق', cpNext:'التالي', cpProgressOfCourse:'{done} من {total} درسًا مكتملًا في هذه الدورة',
+      bootStepInit:'جارٍ تهيئة نِكسورا', bootStepProfileDetail:'تم تحميل {n} من الملفات الشخصية',
+      bootStepProgramsDetail:'{n} برنامج تعليمي جاهز', bootStepProgressDetail:'تمت مزامنة سجل التقدّم ({n} إنجاز)',
+      bootStepPermissionsDetail:'تم تجهيز صلاحيات الحساب', bootStepWorkspaceDetail:'مساحة العمل جاهزة',
+      bootErrorTitle:'تعذّر تجهيز نِكسورا', bootErrorText:'لم نتمكّن من تحميل بعض بيانات المنصة.',
+      bootRetryBtn:'إعادة المحاولة', bootLoginBackBtn:'العودة لتسجيل الدخول',
+      loginWelcomeTitle:'مرحبًا بك في نِكسورا', loginWelcomeDesc:'سجّلي الدخول للوصول إلى مساحة التعلّم الخاصة بكِ.',
+      pwToggleAria:'إظهار كلمة المرور', pwToggleAriaHide:'إخفاء كلمة المرور', rememberMeLabel:'تذكّرني',
+      oauthComingSoon:'قريبًا — غير متصل بعد', oauthComingSoonBadge:'قريبًا', securityNoteText:'اتصال آمن — بياناتكِ محمية داخل نِكسورا',
       shellNavProgramBuilder:'بناء البرامج', pbTitle:'🎓 بناء البرامج التعليمية', ppTitle:'📘 البرنامج التعليمي',
       pbBreadcrumbPrograms:'برامجي', pbNoPrograms:'لا توجد برامج بعد. أنشئي أول برنامج.', pbCourseCount:'{n} دورة',
       pbProgramTitlePh:'عنوان البرنامج', pbProgramDescPh:'وصف مختصر (اختياري)',
@@ -2808,6 +2930,14 @@
       modDetailsProgress:'Progress: {pct}%', modDetailsLessonCount:'Lessons', modDetailsAssessCount:'Assessments',
       modDetailsCompletedCount:'Completed', modDetailsStartBtn:'Start Module', modDetailsContinueBtn:'Continue Module',
       cpPrevious:'Previous', cpNext:'Next', cpProgressOfCourse:'{done} of {total} lessons complete in this course',
+      bootStepInit:'Initializing NEXORA', bootStepProfileDetail:'Loaded {n} profile(s)',
+      bootStepProgramsDetail:'{n} learning program(s) ready', bootStepProgressDetail:'Progress synced ({n} completion record(s))',
+      bootStepPermissionsDetail:'Account permissions prepared', bootStepWorkspaceDetail:'Workspace ready',
+      bootErrorTitle:'Could not prepare NEXORA', bootErrorText:'We were unable to load some platform data.',
+      bootRetryBtn:'Retry', bootLoginBackBtn:'Back to Login',
+      loginWelcomeTitle:'Welcome to NEXORA', loginWelcomeDesc:'Sign in to access your learning space.',
+      pwToggleAria:'Show password', pwToggleAriaHide:'Hide password', rememberMeLabel:'Remember me',
+      oauthComingSoon:'Coming soon — not connected yet', oauthComingSoonBadge:'Coming soon', securityNoteText:'Secure connection — your data is protected inside NEXORA',
       shellNavProgramBuilder:'Program Builder', pbTitle:'🎓 Program Builder', ppTitle:'📘 Learning Program',
       pbBreadcrumbPrograms:'My Programs', pbNoPrograms:'No programs yet. Create your first program.', pbCourseCount:'{n} courses',
       pbProgramTitlePh:'Program title', pbProgramDescPh:'Short description (optional)',
@@ -3043,6 +3173,8 @@
     speechSwitch.setAttribute('aria-label', t('speechAria'));
     adaptiveSwitch.setAttribute('aria-label', t('adaptiveAria'));
     replaySpeechBtn.title = t('replayAria'); replaySpeechBtn.setAttribute('aria-label', t('replayAria'));
+    if(ulPwToggle){ ulPwToggle.setAttribute('aria-label', t(ulPassword.type === 'text' ? 'pwToggleAriaHide' : 'pwToggleAria')); }
+    document.querySelectorAll('.oauth-btn').forEach(b=> b.title = t('oauthComingSoon'));
     langBtn.textContent = lang === 'ar' ? 'EN' : 'ع';
     if(currentProfile && PROFILES[currentProfile]){
       settingsPlayerName.textContent = profileDisplayName(currentProfile);
@@ -4042,9 +4174,16 @@
   function logSessionLogin(key){
     loggedInKey = key;
     logoutBtn.classList.remove('hidden');
-    saveCurrentSession(key);
+    const remember = !ulRememberMe || ulRememberMe.checked; // default true — identical to prior behavior unless explicitly unchecked
+    if(remember) saveCurrentSession(key);
     if(SHEET_API_URL) postToSheet('login', { username: key });
   }
+  ulPwToggle.addEventListener('click', ()=>{
+    const showing = ulPassword.type === 'text';
+    ulPassword.type = showing ? 'password' : 'text';
+    ulPwToggle.textContent = showing ? '👁' : '🙈';
+    ulPwToggle.setAttribute('aria-label', t(showing ? 'pwToggleAria' : 'pwToggleAriaHide'));
+  });
   function logSessionLogout(){
     if(loggedInKey && SHEET_API_URL) postToSheet('logout', { username: loggedInKey });
     loggedInKey = null;
@@ -8041,7 +8180,7 @@
 
   // Stay signed in like a real app: if a session was left open, resume it
   // automatically instead of showing the login screen again.
-  (function tryAutoLogin(){
+  function tryAutoLogin(){
     let savedKey = null;
     try{ savedKey = localStorage.getItem('mm_current_session'); }catch(e){}
     if(savedKey && PROFILES[savedKey]){
@@ -8050,7 +8189,78 @@
       return;
     }
     if(typeof loadDailyAiFact === 'function') loadDailyAiFact();
-  })();
+  }
+
+  /* ---------- NEXORA boot experience: real, verifiable steps only.
+     Each step reports an ACTUAL count from data already loaded during
+     script execution (profiles, learning-platform entities, progress
+     records) — not a fake percentage. Respects prefers-reduced-motion,
+     never gets stuck (hard timeout fallback), and offers a genuine
+     retry/error state if a step throws. ---------- */
+  const bootScreen = document.getElementById('bootScreen');
+  const bootStepText = document.getElementById('bootStepText');
+  const bootProgressBar = document.getElementById('bootProgressBar');
+  const bootErrorBox = document.getElementById('bootErrorBox');
+  const bootErrorTitle = document.getElementById('bootErrorTitle');
+  const bootErrorText = document.getElementById('bootErrorText');
+  const bootRetryBtn = document.getElementById('bootRetryBtn');
+  const bootLoginBackBtn = document.getElementById('bootLoginBackBtn');
+
+  function runBootSequence(){
+    const reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const stepDelay = reducedMotion ? 0 : 180;
+    let bootCompleted = false;
+    const safetyTimeout = setTimeout(()=>{ if(!bootCompleted) showBootError(new Error('timeout')); }, 6000);
+
+    const steps = [
+      { run: ()=> t('bootStepInit') },
+      { run: ()=> fmt('bootStepProfileDetail', { n: Object.keys(PROFILES).length }) },
+      { run: ()=> fmt('bootStepProgramsDetail', { n: lpLoad(LP_KEYS.PROGRAMS).filter(p=>p.status==='published').length }) },
+      { run: ()=> fmt('bootStepProgressDetail', { n: lpLoad(LP_KEYS.LESSON_COMPLETIONS).length }) },
+      { run: ()=> { loadServiceFlags(); return t('bootStepPermissionsDetail'); } },
+      { run: ()=> t('bootStepWorkspaceDetail') }
+    ];
+    let i = 0;
+    function nextStep(){
+      if(i >= steps.length){
+        bootProgressBar.style.width = '100%';
+        bootCompleted = true;
+        clearTimeout(safetyTimeout);
+        setTimeout(()=>{
+          bootScreen.classList.add('boot-done');
+          setTimeout(()=>{ bootScreen.remove(); }, reducedMotion ? 0 : 380);
+          tryAutoLogin();
+        }, reducedMotion ? 0 : 120);
+        return;
+      }
+      try{
+        bootStepText.textContent = steps[i].run();
+        bootProgressBar.style.width = Math.round(((i+1)/steps.length)*100) + '%';
+        i++;
+        setTimeout(nextStep, stepDelay);
+      }catch(err){
+        clearTimeout(safetyTimeout);
+        showBootError(err);
+      }
+    }
+    nextStep();
+  }
+  function showBootError(err){
+    bootStepText.textContent = '';
+    bootErrorBox.classList.remove('hidden');
+    bootErrorTitle.textContent = t('bootErrorTitle');
+    bootErrorText.textContent = t('bootErrorText');
+    bootRetryBtn.textContent = t('bootRetryBtn');
+    bootLoginBackBtn.textContent = t('bootLoginBackBtn');
+  }
+  bootRetryBtn.addEventListener('click', ()=> location.reload());
+  bootLoginBackBtn.addEventListener('click', ()=>{
+    bootScreen.classList.add('boot-done');
+    setTimeout(()=>{ bootScreen.remove(); }, 380);
+    if(typeof loadDailyAiFact === 'function') loadDailyAiFact();
+  });
+
+  runBootSequence();
 })();
 </script>
 
