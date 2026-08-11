@@ -66,13 +66,64 @@
     min-height:100dvh;
     background: radial-gradient(1200px 600px at 50% -10%, rgba(255,255,255,0.05), transparent 60%), var(--bg);
     color:var(--ink); font-family:'Tajawal', sans-serif;
-    display:flex; align-items:center; justify-content:center;
+    display:flex; align-items:flex-start; justify-content:center;
     padding: clamp(10px, 4vw, 24px);
     padding-top: max(env(safe-area-inset-top), clamp(10px,4vw,24px));
     padding-bottom: max(env(safe-area-inset-bottom), clamp(10px,4vw,24px));
     transition: background .25s ease, color .25s ease;
     overflow-x:hidden;
   }
+  @media (max-width:1023px){ body{ padding-bottom:84px; } } /* reserves room for the fixed mobile bottom nav */
+
+  /* ===== application shell: real sidebar (desktop) + bottom nav (mobile),
+     not just a resized card. The existing .frame and every panel inside it
+     are untouched — this is a wrapper, not a rewrite. ===== */
+  .app-shell{ display:flex; align-items:flex-start; justify-content:center; width:100%; max-width:1500px; }
+  .app-sidebar{ display:none; }
+  .app-main{ flex:1; min-width:0; display:flex; flex-direction:column; align-items:center; }
+  .app-topbar{
+    width:100%; max-width:var(--frame-max-w); display:flex; align-items:center; gap:8px; padding-bottom:8px;
+  }
+  .topbar-icon-btn{
+    width:36px; height:36px; border-radius:9px; border:1.5px solid var(--chip-border); background:transparent;
+    color:var(--ink); font-size:15px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex:none;
+  }
+  .topbar-spacer{ flex:1; }
+  .topbar-role-label{ font-size:11.5px; color:var(--ink-dim); font-weight:600; }
+  @media (min-width:1024px){
+    .app-sidebar{
+      display:flex; flex-direction:column; flex:none; width:216px; margin-inline-end:22px;
+      background:var(--input-bg); border:1.5px solid var(--chip-border); border-radius:16px;
+      padding:16px 12px; position:sticky; top:20px; max-height:calc(100dvh - 40px); overflow-y:auto;
+    }
+  }
+  .sidebar-brand{
+    font-family:'Cairo',sans-serif; font-weight:800; font-size:16px; color:var(--yellow);
+    padding:4px 10px 14px; border-bottom:1px solid var(--chip-border); margin-bottom:10px;
+  }
+  .sidebar-nav{ display:flex; flex-direction:column; gap:3px; }
+  .sidebar-nav-item{
+    display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:9px; cursor:pointer;
+    font-family:'Tajawal',sans-serif; font-size:13px; font-weight:600; color:var(--ink-dim);
+    transition:background .15s ease, color .15s ease;
+  }
+  .sidebar-nav-item:hover{ background:rgba(231,196,104,0.1); color:var(--ink); }
+  .sidebar-nav-item.active{ background:rgba(231,196,104,0.16); color:var(--ink); }
+  .sidebar-nav-item .nav-icon{ font-size:15px; flex:none; width:18px; text-align:center; }
+
+  .app-bottom-nav{
+    position:fixed; bottom:0; inset-inline:0; z-index:500; display:flex; justify-content:space-around;
+    background:var(--input-bg); border-top:1.5px solid var(--chip-border);
+    padding:6px 4px max(6px, env(safe-area-inset-bottom));
+  }
+  @media (min-width:1024px){ .app-bottom-nav{ display:none !important; } }
+  .bottom-nav-item{
+    display:flex; flex-direction:column; align-items:center; gap:2px; padding:6px 10px; border-radius:9px;
+    cursor:pointer; font-size:9.5px; font-weight:700; color:var(--ink-dim); min-width:44px; min-height:44px; justify-content:center;
+  }
+  .bottom-nav-item.active{ color:var(--yellow); }
+  .bottom-nav-item .nav-icon{ font-size:19px; }
+
   .frame{
     width:100%; max-width:var(--frame-max-w); background:var(--bg);
     border: clamp(6px,1.6vw,10px) solid var(--rail); border-radius:14px;
@@ -899,7 +950,18 @@
 </head>
 <body>
 
-<div class="frame">
+<div class="app-shell" id="appShell">
+  <aside class="app-sidebar" id="appSidebar">
+    <div class="sidebar-brand">MathIQ</div>
+    <nav class="sidebar-nav" id="sidebarNav"></nav>
+  </aside>
+  <div class="app-main">
+    <div class="app-topbar hidden" id="appTopbar">
+      <button class="topbar-icon-btn" id="cmdkTopbarBtn" data-i18n-title="cmdkLauncherLabel" title="أوامر سريعة">🔍</button>
+      <div class="topbar-spacer"></div>
+      <span class="topbar-role-label" id="topbarRoleLabel"></span>
+    </div>
+    <div class="frame">
   <div class="topbar">
     <button class="icon-btn" id="themeBtn" title="تبديل المظهر" aria-label="تبديل المظهر">🎨</button>
     <button class="icon-btn" id="soundBtn" title="تبديل الصوت" aria-label="تبديل الصوت">🔊</button>
@@ -1680,6 +1742,10 @@
     </div>
   </div>
 </div>
+</div>
+</div>
+
+<nav class="app-bottom-nav hidden" id="appBottomNav"></nav>
 
 <script>
 (function(){
@@ -1766,6 +1832,13 @@
   const advancedSettingsToggle = document.getElementById('advancedSettingsToggle');
   const advancedSettingsBody = document.getElementById('advancedSettingsBody');
   const cmdkLauncher = document.getElementById('cmdkLauncher');
+  const appShell = document.getElementById('appShell');
+  const appSidebar = document.getElementById('appSidebar');
+  const sidebarNav = document.getElementById('sidebarNav');
+  const appTopbar = document.getElementById('appTopbar');
+  const cmdkTopbarBtn = document.getElementById('cmdkTopbarBtn');
+  const topbarRoleLabel = document.getElementById('topbarRoleLabel');
+  const appBottomNav = document.getElementById('appBottomNav');
   const commandPaletteOverlay = document.getElementById('commandPaletteOverlay');
   const cmdkInput = document.getElementById('cmdkInput');
   const cmdkResults = document.getElementById('cmdkResults');
@@ -2267,6 +2340,11 @@
       programMentalMathName:'الحساب الذهني', programAbacusName:'الأباكوس',
       programEnglishName:'اللغة الإنجليزية', programCodingName:'البرمجة', comingSoonBadge:'قريبًا',
       programAccuracyStat:'الدقة {acc}%', programNotStartedStat:'لم تبدئي بعد', backToProgramsLink:'🏠 كل البرامج',
+      shellRoleLearner:'متعلّمة', shellRoleAdmin:'المالك', shellRoleTeacher:'معلّمة',
+      shellNavPrograms:'البرامج', shellNavJourney:'رحلتي التعليمية', shellNavAchievements:'إنجازاتي',
+      shellNavAccount:'حسابي', shellNavLogout:'تسجيل الخروج', shellNavOverview:'نظرة عامة',
+      shellNavAllStudents:'كل المتعلّمين', shellNavServices:'الخدمات', shellNavBilling:'الاشتراك',
+      shellNavClasses:'فصولي',
       whoPlaying:'من يلعب اليوم؟',
       joryName:'جوري', joryAge:'٦ سنوات ونصف',
       jasmineName:'جاسمين', jasmineAge:'١١ سنة',
@@ -2466,6 +2544,11 @@
       programMentalMathName:'Mental Math', programAbacusName:'Abacus',
       programEnglishName:'English Language', programCodingName:'Programming', comingSoonBadge:'Coming Soon',
       programAccuracyStat:'{acc}% accuracy', programNotStartedStat:'Not started yet', backToProgramsLink:'🏠 All Programs',
+      shellRoleLearner:'Learner', shellRoleAdmin:'Owner', shellRoleTeacher:'Instructor',
+      shellNavPrograms:'Programs', shellNavJourney:'My Journey', shellNavAchievements:'Achievements',
+      shellNavAccount:'Account', shellNavLogout:'Log out', shellNavOverview:'Overview',
+      shellNavAllStudents:'All Learners', shellNavServices:'Services', shellNavBilling:'Billing',
+      shellNavClasses:'My Classes',
       whoPlaying:"Who's playing today?",
       joryName:'Jory', joryAge:'6.5 years old',
       jasmineName:'Jasmine', jasmineAge:'11 years old',
@@ -3019,6 +3102,7 @@
     if(typeof loadMyClasses === 'function') loadMyClasses();
     if(typeof renderTodayMission === 'function') renderTodayMission();
     applyServiceFlags();
+    renderShellNav('learner');
     showProgramsHub();
   }
 
@@ -3089,6 +3173,7 @@
     if(raceMode){ raceMode = false; clearInterval(racePollInterval); }
     if(typeof stopCameraCall === 'function') stopCameraCall();
     if(typeof commandPaletteOverlay !== 'undefined') commandPaletteOverlay.classList.add('hidden');
+    if(typeof renderShellNav === 'function') renderShellNav(null); // safe default; callers re-set their own role right after
     logSessionLogout();
     playEl.classList.add('hidden');
     settingsEl.classList.add('hidden');
@@ -3126,10 +3211,12 @@
     hideAllScreens();
     profilesEl.classList.remove('hidden');
     renderProfiles();
+    renderShellNav('admin');
   }
   // The app's actual front door: username + password required to proceed.
   function goToLoginGate(){
     hideAllScreens();
+    renderShellNav(null);
     ulUsername.value = ''; ulPassword.value = ''; ulError.textContent = '';
     usernameLoginEl.classList.remove('hidden');
     updateGuestNote();
@@ -3567,6 +3654,7 @@
       renderDashboard();
       teacherClassesBtn.classList.remove('hidden');
       dashboardEl.classList.remove('hidden');
+      renderShellNav('teacher');
       return;
     }
 
@@ -3729,6 +3817,7 @@
     usernameLoginEl.classList.add('hidden');
     renderTodayMission();
     applyServiceFlags();
+    renderShellNav('learner');
     showProgramsHub();
   });
 
@@ -3824,6 +3913,74 @@
     });
   }
   loadServiceFlags();
+
+  /* ---------- application shell navigation: real sidebar (desktop) +
+     bottom nav (mobile), populated per role. Every item is a thin wrapper
+     around an already-existing, already-tested action — zero new
+     business logic, just a second way to reach the same real screens. ---------- */
+  let currentShellRole = null;
+  function buildShellItemsForRole(role){
+    if(role === 'learner'){
+      return [
+        { icon:'🏠', label:t('shellNavPrograms'), run: ()=> showProgramsHub() },
+        { icon:'📚', label:t('shellNavJourney'), run: ()=>{ if(isServiceOn('knowledgeMap')) knowledgeMapOpenBtn.click(); } },
+        { icon:'🏅', label:t('shellNavAchievements'), run: ()=> myStatsLink.click() },
+        { icon:'⚙️', label:t('shellNavAccount'), run: ()=> editMyProfileLink.click() },
+        { icon:'🚪', label:t('shellNavLogout'), run: ()=> goToLoginGate() }
+      ];
+    }
+    if(role === 'admin'){
+      return [
+        { icon:'📊', label:t('shellNavOverview'), run: ()=> goToProfiles() },
+        { icon:'📈', label:t('shellNavAllStudents'), run: ()=> dashboardLink.click() },
+        { icon:'🧩', label:t('shellNavServices'), run: ()=> serviceActivationLink.click() },
+        { icon:'💳', label:t('shellNavBilling'), run: ()=> subscriptionLink.click() },
+        { icon:'🚪', label:t('shellNavLogout'), run: ()=> backToLoginLink.click() }
+      ];
+    }
+    if(role === 'teacher'){
+      return [
+        { icon:'📊', label:t('shellNavOverview'), run: ()=>{ dashboardOpenedBy = 'teacher'; renderDashboard(); dashboardEl.classList.remove('hidden'); } },
+        { icon:'🏫', label:t('shellNavClasses'), run: ()=> teacherClassesBtn.click() },
+        { icon:'🚪', label:t('shellNavLogout'), run: ()=> goToLoginGate() }
+      ];
+    }
+    return [];
+  }
+  function renderShellNav(role){
+    currentShellRole = role;
+    if(!role){
+      appTopbar.classList.add('hidden');
+      appBottomNav.classList.add('hidden');
+      sidebarNav.innerHTML = '';
+      appBottomNav.innerHTML = '';
+      return;
+    }
+    const roleLabelKey = role === 'learner' ? 'shellRoleLearner' : (role === 'admin' ? 'shellRoleAdmin' : 'shellRoleTeacher');
+    topbarRoleLabel.textContent = t(roleLabelKey);
+    appTopbar.classList.remove('hidden');
+
+    const items = buildShellItemsForRole(role);
+    sidebarNav.innerHTML = '';
+    items.forEach(item=>{
+      const el = document.createElement('div');
+      el.className = 'sidebar-nav-item';
+      el.innerHTML = `<span class="nav-icon">${item.icon}</span><span>${item.label}</span>`;
+      el.addEventListener('click', item.run);
+      sidebarNav.appendChild(el);
+    });
+
+    appBottomNav.innerHTML = '';
+    items.slice(0, 5).forEach(item=>{
+      const el = document.createElement('div');
+      el.className = 'bottom-nav-item';
+      el.innerHTML = `<span class="nav-icon">${item.icon}</span><span>${item.label}</span>`;
+      el.addEventListener('click', item.run);
+      appBottomNav.appendChild(el);
+    });
+    appBottomNav.classList.remove('hidden');
+  }
+  cmdkTopbarBtn.addEventListener('click', openCommandPalette);
 
   function renderServiceActivationList(){
     serviceActivationList.innerHTML = '';
