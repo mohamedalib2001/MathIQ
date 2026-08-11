@@ -1087,6 +1087,35 @@
   .dash-row span:first-child{ color:var(--ink-dim); }
   .dash-empty{ font-size:13px; color:var(--ink-dim); text-align:center; padding:8px; }
 
+  /* ===== NEXORA skeleton system (Sprint 4) — CSS-only shimmer, follows
+     the same border-radius/spacing tokens as real cards so the shape
+     matches what replaces it. Only ever shown while a genuine async
+     operation (AI/network) is pending — never a fake setTimeout delay. ===== */
+  .nx-skel{
+    background:linear-gradient(90deg, var(--input-bg) 25%, var(--chip-border) 37%, var(--input-bg) 63%);
+    background-size:400% 100%; border-radius:8px;
+  }
+  @media (prefers-reduced-motion: no-preference){
+    .nx-skel{ animation:nx-shimmer 1.6s ease-in-out infinite; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .nx-skel{ background:var(--input-bg); opacity:0.6; }
+  }
+  @keyframes nx-shimmer{ 0%{ background-position:100% 50%; } 100%{ background-position:0% 50%; } }
+  .nx-skel-text{ height:11px; margin-bottom:7px; }
+  .nx-skel-text:last-child{ margin-bottom:0; width:70%; }
+  .nx-skel-card{
+    background:var(--input-bg); border:1.5px solid var(--input-border); border-radius:14px; padding:14px; margin-bottom:9px;
+  }
+  .nx-skel-card-icon{ width:30px; height:30px; border-radius:8px; margin-bottom:10px; }
+  .nx-skel-card-title{ height:13px; width:55%; margin-bottom:8px; }
+  .nx-skel-row{
+    display:flex; align-items:center; gap:10px; background:var(--input-bg); border:1.5px solid var(--input-border);
+    border-radius:12px; padding:12px 14px; margin-bottom:8px;
+  }
+  .nx-skel-avatar{ width:26px; height:26px; border-radius:50%; flex:none; }
+  .nx-skel-row-lines{ flex:1; }
+
   /* connection & login */
   .conn-status{
     display:flex; align-items:center; gap:8px; font-size:13px; padding:10px 12px;
@@ -5868,8 +5897,9 @@
     const prompt = currentLang === 'ar'
       ? `بيانات أداء طالبة اسمها ${name} في الحساب الذهني حسب نوع العملية: ${statsLine}. اكتبي ملاحظة قصيرة جدًا (جملة أو جملتين، أقل من 25 كلمة) بالعربية لولي الأمر أو المعلم، تلخّص نقطة القوة ونقطة تحتاج تحسين، بأسلوب مهني ومشجّع، بدون مقدمات.`
       : `Performance data for a student named ${name} in mental math by operation: ${statsLine}. Write a very short note (one or two sentences, under 25 words) in English for a parent or teacher, summarizing a strength and an area needing improvement, in a professional and encouraging tone, no preamble.`;
+    targetEl.innerHTML = nxSkeletonText(2);
     callAi(prompt).then(text=>{
-      if(!text || !targetEl.isConnected) return;
+      if(!text || !targetEl.isConnected){ targetEl.innerHTML = ''; return; } // clear the skeleton cleanly on empty/stale response
       targetEl.textContent = '🤖 ' + text;
       targetEl.classList.add('visible');
     });
@@ -6781,6 +6811,39 @@
     return icons[name] || '';
   }
 
+  /* ---------- NEXORA skeleton components: reusable HTML-string builders.
+     Only ever invoked around a genuine pending network/AI call — never
+     behind an artificial delay. ---------- */
+  function nxSkeletonText(lines){
+    lines = lines || 2;
+    let html = '';
+    for(let i=0;i<lines;i++) html += `<div class="nx-skel nx-skel-text"></div>`;
+    return html;
+  }
+  function nxSkeletonCard(){
+    return `<div class="nx-skel-card"><div class="nx-skel nx-skel-card-icon"></div><div class="nx-skel nx-skel-card-title"></div>${nxSkeletonText(2)}</div>`;
+  }
+  function nxSkeletonList(rows){
+    rows = rows || 3;
+    let html = '';
+    for(let i=0;i<rows;i++){
+      html += `<div class="nx-skel-row"><div class="nx-skel nx-skel-avatar"></div><div class="nx-skel-row-lines">${nxSkeletonText(2)}</div></div>`;
+    }
+    return html;
+  }
+  function nxSkeletonTable(rows){
+    return nxSkeletonList(rows || 4);
+  }
+  function nxSkeletonDashboard(){
+    return `<div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:10px;">${nxSkeletonCard()}${nxSkeletonCard()}</div>${nxSkeletonList(2)}`;
+  }
+  function nxSkeletonCourse(){
+    return `<div class="nx-skel nx-skel-card-title" style="width:40%; height:16px; margin-bottom:12px;"></div>${nxSkeletonList(3)}`;
+  }
+  function nxSkeletonProfile(){
+    return `<div class="nx-skel-row"><div class="nx-skel nx-skel-avatar" style="width:48px; height:48px;"></div><div class="nx-skel-row-lines">${nxSkeletonText(2)}</div></div>`;
+  }
+
   function showToast(message, icon, category){
     const el = document.createElement('div');
     el.className = 'toast-item';
@@ -7380,8 +7443,10 @@
     const prompt = currentLang === 'ar'
       ? 'اكتبي حقيقة رياضية ممتعة وقصيرة جدًا أو لغزًا رياضيًا بسيطًا مناسبًا للأطفال، بالعربية، جملة أو جملتين كحد أقصى، بأسلوب مرح ومشوّق بدون مقدمات.'
       : 'Write one very short fun math fact or a simple riddle for children, in English, at most two sentences, in a playful and exciting tone, no preamble.';
+    aiFactCard.innerHTML = nxSkeletonText(2);
+    aiFactCard.classList.remove('hidden');
     callAi(prompt).then(text=>{
-      if(!text) return;
+      if(!text){ aiFactCard.classList.add('hidden'); return; } // no fake success — hide cleanly on empty/failed response
       const clean = text.length > 220 ? text.slice(0,220) + '…' : text;
       try{ localStorage.setItem(todayKey, clean); }catch(e){}
       aiFactCard.textContent = '' + clean;
@@ -7395,8 +7460,10 @@
     const prompt = currentLang === 'ar'
       ? `اكتبي جملة تشجيعية قصيرة جدًا (أقل من 20 كلمة) بالعربية لطفلة اسمها ${profileName} حصلت على ${scoreVal_} نقطة بدقة ${accVal}% في تمرين حساب ذهني. كوني ودودة ومرحة جدًا ومناسبة للأطفال، بدون مقدمات، جملة واحدة فقط.`
       : `Write one very short (under 20 words) encouraging sentence in English for a child named ${profileName} who scored ${scoreVal_} points with ${accVal}% accuracy in a mental math practice. Be warm, playful, and kid-appropriate. No preamble, one sentence only.`;
+    aiEncourageCard.innerHTML = nxSkeletonText(1);
+    aiEncourageCard.classList.remove('hidden');
     callAi(prompt).then(text=>{
-      if(!text) return;
+      if(!text){ aiEncourageCard.classList.add('hidden'); return; } // no fake success — hide cleanly
       aiEncourageCard.textContent = '🤖 ' + text;
       aiEncourageCard.classList.remove('hidden');
     });
