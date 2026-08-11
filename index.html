@@ -1208,6 +1208,7 @@
 
     <div class="feedback" id="feedback"></div>
     <div class="quit-link" id="quitLink" data-i18n="quitLink">إنهاء التمرين والعودة للإعدادات</div>
+    <div class="quit-link hidden" id="leaveRaceLink" data-i18n="leaveRaceBtn" style="color:var(--coral); font-weight:700;">🚩 مغادرة السباق</div>
   </div>
 
   <!-- HANDOFF SCREEN (challenge mode) -->
@@ -1216,6 +1217,7 @@
       <div class="handoff-emoji">🔄</div>
       <div class="handoff-title" id="handoffTitle"></div>
       <button class="start-btn" id="handoffContinueBtn" data-i18n="handoffContinue" style="min-width:180px;">متابعة</button>
+      <div class="quit-link hidden" id="handoffLeaveBtn" data-i18n="leaveRaceBtn" style="color:var(--coral); font-weight:700;">🚩 مغادرة السباق</div>
     </div>
   </div>
 
@@ -1468,9 +1470,11 @@
   const adaptiveLabelEl = document.getElementById('adaptiveLabelEl');
   const timerbar = document.getElementById('timerbar');
   const quitLink = document.getElementById('quitLink');
+  const leaveRaceLink = document.getElementById('leaveRaceLink');
 
   const handoffTitle = document.getElementById('handoffTitle');
   const handoffContinueBtn = document.getElementById('handoffContinueBtn');
+  const handoffLeaveBtn = document.getElementById('handoffLeaveBtn');
   const winnerBanner = document.getElementById('winnerBanner');
   const compareGrid = document.getElementById('compareGrid');
   const backToProfilesBtn = document.getElementById('backToProfilesBtn');
@@ -1822,6 +1826,8 @@
       raceYouWin:'🏆 فزتِ! أحسنتِ يا بطلة!', raceOpponentWins:'🏆 فازت {name}! حاولي مرة أخرى',
       raceTie:'🤝 تعادل رائع بينكما!', raceWaitingOpponent:'انتظري صديقتك تخلّص الأسئلة...',
       raceLeadChange:'⚡ {name} تتقدم الآن!',
+      leaveRaceBtn:'🚩 مغادرة السباق', leaveRaceConfirm:'هل أنتِ متأكدة من مغادرة السباق؟ سيظهر لصديقتك أنك غادرتِ فورًا، وستفوز تلقائيًا بالنتيجة الحالية.',
+      raceOpponentLeft:'🚩 غادرت {name} السباق — فزتِ تلقائيًا!',
       usernameLabel:'اسم المستخدم (لتسجيل الدخول)', usernamePlaceholder:'username',
       passwordLabel:'كلمة المرور', usernameLoginLink:'🔑 دخول باسم مستخدم وكلمة مرور',
       usernameTaken:'اسم المستخدم مستخدم بالفعل، اختاري اسمًا آخر',
@@ -1959,6 +1965,8 @@
       raceYouWin:'🏆 You won! Great job, champion!', raceOpponentWins:'🏆 {name} won! Try again',
       raceTie:"🤝 A great tie between you two!", raceWaitingOpponent:'Waiting for your friend to finish...',
       raceLeadChange:'⚡ {name} is now in the lead!',
+      leaveRaceBtn:'🚩 Leave race', leaveRaceConfirm:"Are you sure you want to leave the race? Your friend will see immediately that you left, and she'll automatically win with the current score.",
+      raceOpponentLeft:'🚩 {name} left the race — you win automatically!',
       usernameLabel:'Username (for login)', usernamePlaceholder:'username',
       passwordLabel:'Password', usernameLoginLink:'🔑 Log in with username & password',
       usernameTaken:'That username is already taken, pick another', 
@@ -3962,6 +3970,8 @@
     settingsEl.classList.add('hidden');
     summaryEl.classList.add('hidden');
     if(challengeMode){ startChallenge(); return; }
+    quitLink.classList.remove('hidden');
+    leaveRaceLink.classList.add('hidden');
     playEl.classList.remove('hidden');
     if(quizLen === 'minute') startMinuteTimer();
     nextProblem();
@@ -4402,6 +4412,8 @@
     opponentBar.style.width = '0%';
     opponentScore.textContent = '0';
     raceBanterLine.textContent = fmt('raceOpponentJoined', { name: raceOpponentName || '' });
+    quitLink.classList.add('hidden');
+    leaveRaceLink.classList.remove('hidden');
     playEl.classList.remove('hidden');
     nextProblem();
     clearInterval(racePollInterval);
@@ -4528,13 +4540,29 @@
     unmuteRemoteBtn.textContent = '🔇';
   }
 
-  function postRaceProgress(done){
+  function postRaceProgress(done, left){
     if(!raceMode || !raceCode) return;
     postToSheet('race_progress', {
       code: raceCode, username: currentProfile,
-      index: count, score, correct: correctCount, done: !!done
+      index: count, score, correct: correctCount, done: !!done, left: !!left
     });
   }
+
+  function leaveRace(){
+    if(!raceMode) return;
+    const ok = window.confirm(t('leaveRaceConfirm'));
+    if(!ok) return;
+    postRaceProgress(false, true); // tell the opponent, in real time, that we left
+    raceMode = false;
+    clearInterval(racePollInterval);
+    stopCameraCall();
+    playEl.classList.add('hidden');
+    handoffEl.classList.add('hidden');
+    settingsEl.classList.remove('hidden');
+  }
+  leaveRaceLink.addEventListener('click', leaveRace);
+  // Reused during "waiting for opponent to finish" — same confirm-and-notify flow.
+  handoffLeaveBtn.addEventListener('click', leaveRace);
 
   function pollRaceState(){
     if(!raceMode || !raceCode) return;
@@ -4544,6 +4572,17 @@
       const meData = raceIsPlayer1 ? res.player1 : res.player2;
       if(!oppData || !oppData.progress) return;
       const oppProgress = oppData.progress;
+
+      // opponent explicitly left — end the race immediately for us too,
+      // with an automatic win by forfeit (no point continuing to race someone who's gone)
+      if(oppProgress.left){
+        clearInterval(racePollInterval);
+        const myScore = (meData && meData.progress) ? meData.progress.score : score;
+        const myCorrect = (meData && meData.progress) ? meData.progress.correct : correctCount;
+        showRaceResult(myScore, myCorrect, oppProgress.score, oppProgress.correct, true);
+        return;
+      }
+
       const total = raceProblems.length || 1;
       opponentBar.style.width = Math.min(100, Math.round((oppProgress.index/total)*100)) + '%';
       opponentScore.textContent = oppProgress.score;
@@ -4558,7 +4597,7 @@
 
       if(raceDone && oppProgress.done){
         clearInterval(racePollInterval);
-        showRaceResult(myScore, correctCount, oppProgress.score, oppProgress.correct);
+        showRaceResult(myScore, correctCount, oppProgress.score, oppProgress.correct, false);
       } else if(raceDone){
         raceBanterLine.textContent = t('raceWaitingOpponent');
       }
@@ -4567,20 +4606,22 @@
 
   function finishRacePlayer(){
     raceDone = true;
-    postRaceProgress(true);
+    postRaceProgress(true, false);
     playEl.classList.add('hidden');
     raceBanterLine.textContent = t('raceWaitingOpponent');
     // keep the play screen's opponent panel logic alive via polling until opponent finishes too
     handoffEl.classList.remove('hidden');
     handoffTitle.textContent = t('raceWaitingOpponent');
     handoffContinueBtn.classList.add('hidden');
+    handoffLeaveBtn.classList.remove('hidden');
   }
 
-  function showRaceResult(myScore, myCorrect, oppScore, oppCorrect){
+  function showRaceResult(myScore, myCorrect, oppScore, oppCorrect, opponentLeft){
     raceMode = false;
     stopCameraCall();
     handoffEl.classList.add('hidden');
     handoffContinueBtn.classList.remove('hidden');
+    handoffLeaveBtn.classList.add('hidden');
     opponentPanel.classList.add('hidden');
     const myAcc = raceProblems.length ? Math.round((myCorrect/raceProblems.length)*100) : 0;
     const oppAcc = raceProblems.length ? Math.round((oppCorrect/raceProblems.length)*100) : 0;
@@ -4600,12 +4641,19 @@
     const oppCard = document.createElement('div');
     oppCard.className = 'compare-card';
     oppCard.innerHTML = `
-      <div class="avatar">🙂</div>
+      <div class="avatar">${opponentLeft ? '🚩' : '🙂'}</div>
       <div class="name">${raceOpponentName}</div>
       <div class="row"><span>${t('statScore')}</span><b>${oppScore}</b></div>
       <div class="row"><span>${t('sumAccLabel')}</span><b>${oppAcc}%</b></div>
     `;
     raceCompareGrid.appendChild(oppCard);
+
+    raceResultBanter.textContent = '';
+    if(opponentLeft){
+      raceWinnerBanner.textContent = fmt('raceOpponentLeft', { name: raceOpponentName });
+      raceResultScreenEl.classList.remove('hidden');
+      return; // no AI banter for an abandoned match — the leave message says it all
+    }
 
     if(myScore === oppScore){
       raceWinnerBanner.textContent = t('raceTie');
@@ -4614,7 +4662,6 @@
     } else {
       raceWinnerBanner.textContent = fmt('raceOpponentWins', { name: raceOpponentName });
     }
-    raceResultBanter.textContent = '';
     if(SHEET_API_URL){
       const prompt = currentLang === 'ar'
         ? `اكتبي جملة مرحة قصيرة جدًا (أقل من 18 كلمة) بالعربية تعلّق على نتيجة سباق حساب ذهني بين طفلتين، اللاعبة الأولى حصلت على ${myScore} نقطة والثانية على ${oppScore} نقطة. كوني ودودة ومشجّعة للاثنتين معًا، بدون مقدمات.`
