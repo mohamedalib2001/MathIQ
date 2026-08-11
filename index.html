@@ -4249,7 +4249,10 @@
     admin: ['*'],
     teacher: [
       'program.create','program.update','program.archive','program.restore','program.publish',
-      'course.create','module.create','lesson.create','lesson.update','assessment.create'
+      'course.create','course.update','course.archive','course.restore',
+      'module.create','module.update','module.archive','module.restore',
+      'lesson.create','lesson.update','lesson.archive','lesson.restore',
+      'assessment.create','assessment.update','assessment.archive','assessment.restore'
     ],
     learner: ['program.enroll','lesson.complete','assessment.submit']
   };
@@ -4319,32 +4322,128 @@
   function lpCreateCourse(programId, title, description){
     if(!can(lpCurrentRole(), 'course.create')) return lpDenyAndNotify('course.create');
     const courses = lpLoad(LP_KEYS.COURSES);
-    const c = { id: lpGenId('course'), programId, title, description };
+    const c = { id: lpGenId('course'), programId, title, description, level:null, duration:null, skillIds:[], archived:false };
     courses.push(c);
+    lpSave(LP_KEYS.COURSES, courses);
+    return c;
+  }
+  function lpUpdateCourse(courseId, fields){
+    if(!can(lpCurrentRole(), 'course.update')) return lpDenyAndNotify('course.update');
+    const courses = lpLoad(LP_KEYS.COURSES);
+    const c = courses.find(x => x.id === courseId);
+    if(c) Object.assign(c, fields);
+    lpSave(LP_KEYS.COURSES, courses);
+    return c;
+  }
+  function lpArchiveCourse(courseId){
+    if(!can(lpCurrentRole(), 'course.archive')) return lpDenyAndNotify('course.archive');
+    const courses = lpLoad(LP_KEYS.COURSES);
+    const c = courses.find(x => x.id === courseId);
+    if(c) c.archived = true;
+    lpSave(LP_KEYS.COURSES, courses);
+    return c;
+  }
+  function lpRestoreCourse(courseId){
+    if(!can(lpCurrentRole(), 'course.restore')) return lpDenyAndNotify('course.restore');
+    const courses = lpLoad(LP_KEYS.COURSES);
+    const c = courses.find(x => x.id === courseId);
+    if(c) c.archived = false;
     lpSave(LP_KEYS.COURSES, courses);
     return c;
   }
   function lpCreateModule(courseId, title){
     if(!can(lpCurrentRole(), 'module.create')) return lpDenyAndNotify('module.create');
     const modules = lpLoad(LP_KEYS.MODULES);
-    const m = { id: lpGenId('mod'), courseId, title };
+    const m = { id: lpGenId('mod'), courseId, title, description:'', skillIds:[], archived:false };
     modules.push(m);
+    lpSave(LP_KEYS.MODULES, modules);
+    return m;
+  }
+  function lpUpdateModule(moduleId, fields){
+    if(!can(lpCurrentRole(), 'module.update')) return lpDenyAndNotify('module.update');
+    const modules = lpLoad(LP_KEYS.MODULES);
+    const m = modules.find(x => x.id === moduleId);
+    if(m) Object.assign(m, fields);
+    lpSave(LP_KEYS.MODULES, modules);
+    return m;
+  }
+  function lpArchiveModule(moduleId){
+    if(!can(lpCurrentRole(), 'module.archive')) return lpDenyAndNotify('module.archive');
+    const modules = lpLoad(LP_KEYS.MODULES);
+    const m = modules.find(x => x.id === moduleId);
+    if(m) m.archived = true;
+    lpSave(LP_KEYS.MODULES, modules);
+    return m;
+  }
+  function lpRestoreModule(moduleId){
+    if(!can(lpCurrentRole(), 'module.restore')) return lpDenyAndNotify('module.restore');
+    const modules = lpLoad(LP_KEYS.MODULES);
+    const m = modules.find(x => x.id === moduleId);
+    if(m) m.archived = false;
     lpSave(LP_KEYS.MODULES, modules);
     return m;
   }
   function lpCreateLesson(moduleId, title, content){
     if(!can(lpCurrentRole(), 'lesson.create')) return lpDenyAndNotify('lesson.create');
     const lessons = lpLoad(LP_KEYS.LESSONS);
-    const l = { id: lpGenId('lesson'), moduleId, title, content };
+    const l = { id: lpGenId('lesson'), moduleId, title, content, resources:'', skillIds:[], archived:false };
     lessons.push(l);
+    lpSave(LP_KEYS.LESSONS, lessons);
+    return l;
+  }
+  function lpUpdateLesson(lessonId, fields){
+    if(!can(lpCurrentRole(), 'lesson.update')) return lpDenyAndNotify('lesson.update');
+    const lessons = lpLoad(LP_KEYS.LESSONS);
+    const l = lessons.find(x => x.id === lessonId);
+    if(l) Object.assign(l, fields);
+    lpSave(LP_KEYS.LESSONS, lessons);
+    return l;
+  }
+  function lpArchiveLesson(lessonId){
+    if(!can(lpCurrentRole(), 'lesson.archive')) return lpDenyAndNotify('lesson.archive');
+    const lessons = lpLoad(LP_KEYS.LESSONS);
+    const l = lessons.find(x => x.id === lessonId);
+    if(l) l.archived = true;
+    lpSave(LP_KEYS.LESSONS, lessons);
+    return l;
+  }
+  function lpRestoreLesson(lessonId){
+    if(!can(lpCurrentRole(), 'lesson.restore')) return lpDenyAndNotify('lesson.restore');
+    const lessons = lpLoad(LP_KEYS.LESSONS);
+    const l = lessons.find(x => x.id === lessonId);
+    if(l) l.archived = false;
     lpSave(LP_KEYS.LESSONS, lessons);
     return l;
   }
   function lpCreateAssessment(lessonId, title, questions, passScore, timeLimit, skillIds){
     if(!can(lpCurrentRole(), 'assessment.create')) return lpDenyAndNotify('assessment.create');
     const assessments = lpLoad(LP_KEYS.ASSESSMENTS);
-    const a = { id: lpGenId('assess'), lessonId, title, questions, passScore: passScore || 60, timeLimit: timeLimit || null, skillIds: skillIds || [] };
+    const a = { id: lpGenId('assess'), lessonId, title, questions, passScore: passScore || 60, timeLimit: timeLimit || null, skillIds: skillIds || [], archived:false };
     assessments.push(a);
+    lpSave(LP_KEYS.ASSESSMENTS, assessments);
+    return a;
+  }
+  function lpUpdateAssessment(assessmentId, fields){
+    if(!can(lpCurrentRole(), 'assessment.update')) return lpDenyAndNotify('assessment.update');
+    const assessments = lpLoad(LP_KEYS.ASSESSMENTS);
+    const a = assessments.find(x => x.id === assessmentId);
+    if(a) Object.assign(a, fields);
+    lpSave(LP_KEYS.ASSESSMENTS, assessments);
+    return a;
+  }
+  function lpArchiveAssessment(assessmentId){
+    if(!can(lpCurrentRole(), 'assessment.archive')) return lpDenyAndNotify('assessment.archive');
+    const assessments = lpLoad(LP_KEYS.ASSESSMENTS);
+    const a = assessments.find(x => x.id === assessmentId);
+    if(a) a.archived = true;
+    lpSave(LP_KEYS.ASSESSMENTS, assessments);
+    return a;
+  }
+  function lpRestoreAssessment(assessmentId){
+    if(!can(lpCurrentRole(), 'assessment.restore')) return lpDenyAndNotify('assessment.restore');
+    const assessments = lpLoad(LP_KEYS.ASSESSMENTS);
+    const a = assessments.find(x => x.id === assessmentId);
+    if(a) a.archived = false;
     lpSave(LP_KEYS.ASSESSMENTS, assessments);
     return a;
   }
@@ -4359,19 +4458,22 @@
     return e;
   }
   function lpGetCoursesForProgram(programId){ return lpLoad(LP_KEYS.COURSES).filter(c => c.programId === programId); }
+  function lpGetActiveCoursesForProgram(programId){ return lpGetCoursesForProgram(programId).filter(c => !c.archived); }
+  function lpGetActiveModulesForCourse(courseId){ return lpGetModulesForCourse(courseId).filter(m => !m.archived); }
+  function lpGetActiveLessonsForModule(moduleId){ return lpGetLessonsForModule(moduleId).filter(l => !l.archived); }
   function lpGetModulesForCourse(courseId){ return lpLoad(LP_KEYS.MODULES).filter(m => m.courseId === courseId); }
   function lpGetLessonsForModule(moduleId){ return lpLoad(LP_KEYS.LESSONS).filter(l => l.moduleId === moduleId); }
   function lpGetAssessmentForLesson(lessonId){ return lpLoad(LP_KEYS.ASSESSMENTS).find(a => a.lessonId === lessonId) || null; }
   function lpGetLessonsForProgram(programId){
-    const courseIds = lpGetCoursesForProgram(programId).map(c => c.id);
-    const moduleIds = lpLoad(LP_KEYS.MODULES).filter(m => courseIds.includes(m.courseId)).map(m => m.id);
-    return lpLoad(LP_KEYS.LESSONS).filter(l => moduleIds.includes(l.moduleId));
+    const courseIds = lpGetActiveCoursesForProgram(programId).map(c => c.id);
+    const moduleIds = lpLoad(LP_KEYS.MODULES).filter(m => courseIds.includes(m.courseId) && !m.archived).map(m => m.id);
+    return lpLoad(LP_KEYS.LESSONS).filter(l => moduleIds.includes(l.moduleId) && !l.archived);
   }
   function lpGetOrderedLessonsForCourse(courseId){
-    const modules = lpGetModulesForCourse(courseId);
+    const modules = lpGetActiveModulesForCourse(courseId);
     let all = [];
     modules.forEach(m => {
-      lpGetLessonsForModule(m.id).forEach(l => all.push(Object.assign({}, l, { moduleTitle: m.title })));
+      lpGetActiveLessonsForModule(m.id).forEach(l => all.push(Object.assign({}, l, { moduleTitle: m.title })));
     });
     return all;
   }
@@ -4489,6 +4591,8 @@
      calls the tested data-layer functions above; no separate logic. ---------- */
   let pbLevel = 'programs', pbProgram = null, pbCourse = null, pbModule = null, pbLesson = null;
   let pbEditingProgram = null;
+  let pbEditingEntity = null, pbEditingType = null;
+  function pbOpenEdit(type, entity){ pbEditingEntity = entity; pbEditingType = type; renderProgramBuilder(); }
   function pbOpenEditForm(p){ pbEditingProgram = p; renderProgramBuilder(); }
   let pbAssessmentQuestions = [];
   function pbNavigate(level, program, course, mod, lesson){
@@ -4496,6 +4600,7 @@
     pbProgram = program || null; pbCourse = course || null; pbModule = mod || null; pbLesson = lesson || null;
     if(level === 'assessment') pbAssessmentQuestions = [];
     pbEditingProgram = null;
+    pbEditingEntity = null; pbEditingType = null;
     renderProgramBuilder();
   }
   function renderMySkills(){
@@ -4615,11 +4720,44 @@
       if(!courses.length) pbListArea.innerHTML = `<div class="dash-empty">${t('pbNoCourses')}</div>`;
       courses.forEach(c=>{
         const row = document.createElement('div');
-        row.className = 'lp-row';
-        row.innerHTML = `<div class="lp-row-info"><div class="lp-row-title">${c.title}</div><div class="lp-row-sub">${fmt('pbModuleCount',{ n: lpGetModulesForCourse(c.id).length })}</div></div><span class="lp-row-badge">›</span>`;
+        row.className = 'lp-row' + (c.archived ? ' disabled-service' : '');
+        row.innerHTML = `
+          <div class="lp-row-info">
+            <div class="lp-row-title">${c.title} ${c.archived ? `<span class="lp-status-badge status-archived">${t('statusArchived')}</span>` : ''}</div>
+            <div class="lp-row-sub">${fmt('pbModuleCount',{ n: lpGetModulesForCourse(c.id).length })}</div>
+          </div>
+          <div class="lp-row-actions">
+            <button class="lp-mini-btn" data-act="edit">${t('pbEditBtn')}</button>
+            ${!c.archived ? `<button class="lp-mini-btn" data-act="archive">${t('pbArchiveBtn')}</button>` : `<button class="lp-mini-btn" data-act="restore">${t('pbRestoreBtn')}</button>`}
+          </div>`;
+        row.querySelector('[data-act="edit"]').addEventListener('click', e=>{ e.stopPropagation(); pbOpenEdit('course', c); });
+        const archiveBtn = row.querySelector('[data-act="archive"]');
+        if(archiveBtn) archiveBtn.addEventListener('click', e=>{ e.stopPropagation(); lpArchiveCourse(c.id); renderProgramBuilder(); });
+        const restoreBtn = row.querySelector('[data-act="restore"]');
+        if(restoreBtn) restoreBtn.addEventListener('click', e=>{ e.stopPropagation(); lpRestoreCourse(c.id); renderProgramBuilder(); });
         row.addEventListener('click', ()=> pbNavigate('modules', pbProgram, c));
         pbListArea.appendChild(row);
       });
+      if(pbEditingType === 'course' && pbEditingEntity){
+        pbCreateForm.innerHTML = `
+          <div class="lp-create-form">
+            <div class="conn-note">${t('pbEditingLabel')}: ${pbEditingEntity.title}</div>
+            <input type="text" id="pbEditCourseTitle" value="${pbEditingEntity.title}">
+            <textarea id="pbEditCourseDesc" rows="2">${pbEditingEntity.description||''}</textarea>
+            <button class="start-btn" id="pbSaveCourseEditBtn">${t('pbSaveChangesBtn')}</button>
+            <button class="secondary-btn" id="pbCancelEditBtn">${t('pbCancelBtn')}</button>
+          </div>`;
+        document.getElementById('pbSaveCourseEditBtn').addEventListener('click', ()=>{
+          lpUpdateCourse(pbEditingEntity.id, {
+            title: document.getElementById('pbEditCourseTitle').value.trim() || pbEditingEntity.title,
+            description: document.getElementById('pbEditCourseDesc').value.trim()
+          });
+          pbEditingEntity = null; pbEditingType = null;
+          renderProgramBuilder();
+        });
+        document.getElementById('pbCancelEditBtn').addEventListener('click', ()=>{ pbEditingEntity = null; pbEditingType = null; renderProgramBuilder(); });
+        return;
+      }
       pbCreateForm.innerHTML = `
         <div class="lp-create-form">
           <input type="text" id="pbNewCourseTitle" placeholder="${t('pbCourseTitlePh')}">
@@ -4640,11 +4778,44 @@
       if(!modules.length) pbListArea.innerHTML = `<div class="dash-empty">${t('pbNoModules')}</div>`;
       modules.forEach(m=>{
         const row = document.createElement('div');
-        row.className = 'lp-row';
-        row.innerHTML = `<div class="lp-row-info"><div class="lp-row-title">${m.title}</div><div class="lp-row-sub">${fmt('pbLessonCount',{ n: lpGetLessonsForModule(m.id).length })}</div></div><span class="lp-row-badge">›</span>`;
+        row.className = 'lp-row' + (m.archived ? ' disabled-service' : '');
+        row.innerHTML = `
+          <div class="lp-row-info">
+            <div class="lp-row-title">${m.title} ${m.archived ? `<span class="lp-status-badge status-archived">${t('statusArchived')}</span>` : ''}</div>
+            <div class="lp-row-sub">${fmt('pbLessonCount',{ n: lpGetLessonsForModule(m.id).length })}</div>
+          </div>
+          <div class="lp-row-actions">
+            <button class="lp-mini-btn" data-act="edit">${t('pbEditBtn')}</button>
+            ${!m.archived ? `<button class="lp-mini-btn" data-act="archive">${t('pbArchiveBtn')}</button>` : `<button class="lp-mini-btn" data-act="restore">${t('pbRestoreBtn')}</button>`}
+          </div>`;
+        row.querySelector('[data-act="edit"]').addEventListener('click', e=>{ e.stopPropagation(); pbOpenEdit('module', m); });
+        const archiveBtn = row.querySelector('[data-act="archive"]');
+        if(archiveBtn) archiveBtn.addEventListener('click', e=>{ e.stopPropagation(); lpArchiveModule(m.id); renderProgramBuilder(); });
+        const restoreBtn = row.querySelector('[data-act="restore"]');
+        if(restoreBtn) restoreBtn.addEventListener('click', e=>{ e.stopPropagation(); lpRestoreModule(m.id); renderProgramBuilder(); });
         row.addEventListener('click', ()=> pbNavigate('lessons', pbProgram, pbCourse, m));
         pbListArea.appendChild(row);
       });
+      if(pbEditingType === 'module' && pbEditingEntity){
+        pbCreateForm.innerHTML = `
+          <div class="lp-create-form">
+            <div class="conn-note">${t('pbEditingLabel')}: ${pbEditingEntity.title}</div>
+            <input type="text" id="pbEditModuleTitle" value="${pbEditingEntity.title}">
+            <textarea id="pbEditModuleDesc" rows="2">${pbEditingEntity.description||''}</textarea>
+            <button class="start-btn" id="pbSaveModuleEditBtn">${t('pbSaveChangesBtn')}</button>
+            <button class="secondary-btn" id="pbCancelEditBtn">${t('pbCancelBtn')}</button>
+          </div>`;
+        document.getElementById('pbSaveModuleEditBtn').addEventListener('click', ()=>{
+          lpUpdateModule(pbEditingEntity.id, {
+            title: document.getElementById('pbEditModuleTitle').value.trim() || pbEditingEntity.title,
+            description: document.getElementById('pbEditModuleDesc').value.trim()
+          });
+          pbEditingEntity = null; pbEditingType = null;
+          renderProgramBuilder();
+        });
+        document.getElementById('pbCancelEditBtn').addEventListener('click', ()=>{ pbEditingEntity = null; pbEditingType = null; renderProgramBuilder(); });
+        return;
+      }
       pbCreateForm.innerHTML = `
         <div class="lp-create-form">
           <input type="text" id="pbNewModuleTitle" placeholder="${t('pbModuleTitlePh')}">
@@ -4666,12 +4837,46 @@
       if(!lessons.length) pbListArea.innerHTML = `<div class="dash-empty">${t('pbNoLessons')}</div>`;
       lessons.forEach(l=>{
         const row = document.createElement('div');
-        row.className = 'lp-row';
+        row.className = 'lp-row' + (l.archived ? ' disabled-service' : '');
         const hasAssessment = !!lpGetAssessmentForLesson(l.id);
-        row.innerHTML = `<div class="lp-row-info"><div class="lp-row-title">${l.title}</div><div class="lp-row-sub">${hasAssessment ? t('pbHasAssessment') : t('pbNoAssessmentYet')}</div></div><span class="lp-row-badge">${t('pbAddAssessmentBtn')} ›</span>`;
-        row.addEventListener('click', ()=> pbNavigate('assessment', pbProgram, pbCourse, pbModule, l));
+        row.innerHTML = `
+          <div class="lp-row-info">
+            <div class="lp-row-title">${l.title} ${l.archived ? `<span class="lp-status-badge status-archived">${t('statusArchived')}</span>` : ''}</div>
+            <div class="lp-row-sub">${hasAssessment ? t('pbHasAssessment') : t('pbNoAssessmentYet')}</div>
+          </div>
+          <div class="lp-row-actions">
+            <button class="lp-mini-btn" data-act="edit">${t('pbEditBtn')}</button>
+            ${!l.archived ? `<button class="lp-mini-btn" data-act="archive">${t('pbArchiveBtn')}</button>` : `<button class="lp-mini-btn" data-act="restore">${t('pbRestoreBtn')}</button>`}
+            <button class="lp-mini-btn" data-act="assess">${t('pbAddAssessmentBtn')}</button>
+          </div>`;
+        row.querySelector('[data-act="edit"]').addEventListener('click', e=>{ e.stopPropagation(); pbOpenEdit('lesson', l); });
+        row.querySelector('[data-act="assess"]').addEventListener('click', e=>{ e.stopPropagation(); pbNavigate('assessment', pbProgram, pbCourse, pbModule, l); });
+        const archiveBtn = row.querySelector('[data-act="archive"]');
+        if(archiveBtn) archiveBtn.addEventListener('click', e=>{ e.stopPropagation(); lpArchiveLesson(l.id); renderProgramBuilder(); });
+        const restoreBtn = row.querySelector('[data-act="restore"]');
+        if(restoreBtn) restoreBtn.addEventListener('click', e=>{ e.stopPropagation(); lpRestoreLesson(l.id); renderProgramBuilder(); });
         pbListArea.appendChild(row);
       });
+      if(pbEditingType === 'lesson' && pbEditingEntity){
+        pbCreateForm.innerHTML = `
+          <div class="lp-create-form">
+            <div class="conn-note">${t('pbEditingLabel')}: ${pbEditingEntity.title}</div>
+            <input type="text" id="pbEditLessonTitle" value="${pbEditingEntity.title}">
+            <textarea id="pbEditLessonContent" rows="3">${pbEditingEntity.content||''}</textarea>
+            <button class="start-btn" id="pbSaveLessonEditBtn">${t('pbSaveChangesBtn')}</button>
+            <button class="secondary-btn" id="pbCancelEditBtn">${t('pbCancelBtn')}</button>
+          </div>`;
+        document.getElementById('pbSaveLessonEditBtn').addEventListener('click', ()=>{
+          lpUpdateLesson(pbEditingEntity.id, {
+            title: document.getElementById('pbEditLessonTitle').value.trim() || pbEditingEntity.title,
+            content: document.getElementById('pbEditLessonContent').value.trim()
+          });
+          pbEditingEntity = null; pbEditingType = null;
+          renderProgramBuilder();
+        });
+        document.getElementById('pbCancelEditBtn').addEventListener('click', ()=>{ pbEditingEntity = null; pbEditingType = null; renderProgramBuilder(); });
+        return;
+      }
       pbCreateForm.innerHTML = `
         <div class="lp-create-form">
           <input type="text" id="pbNewLessonTitle" placeholder="${t('pbLessonTitlePh')}">
@@ -4691,7 +4896,18 @@
       const existing = lpGetAssessmentForLesson(pbLesson.id);
       if(existing){
         const timeLabel = existing.timeLimit ? fmt('pbTimeLimitShown', { min: existing.timeLimit }) : t('pbNoTimeLimit');
-        pbListArea.innerHTML = `<div class="dash-row"><span>${existing.title}</span><b>${fmt('pbQuestionCount',{ n: existing.questions.length })} · ${timeLabel}</b></div>`;
+        const statusBadge = existing.archived ? `<span class="lp-status-badge status-archived">${t('statusArchived')}</span>` : '';
+        pbListArea.innerHTML = `
+          <div class="lp-row" style="cursor:default;">
+            <div class="lp-row-info"><span>${existing.title}</span> ${statusBadge}<div class="lp-row-sub">${fmt('pbQuestionCount',{ n: existing.questions.length })} · ${timeLabel}</div></div>
+            <div class="lp-row-actions">
+              ${!existing.archived ? `<button class="lp-mini-btn" id="pbArchiveAssessBtn">${t('pbArchiveBtn')}</button>` : `<button class="lp-mini-btn" id="pbRestoreAssessBtn">${t('pbRestoreBtn')}</button>`}
+            </div>
+          </div>`;
+        const archiveBtn = document.getElementById('pbArchiveAssessBtn');
+        if(archiveBtn) archiveBtn.addEventListener('click', ()=>{ lpArchiveAssessment(existing.id); renderProgramBuilder(); });
+        const restoreBtn = document.getElementById('pbRestoreAssessBtn');
+        if(restoreBtn) restoreBtn.addEventListener('click', ()=>{ lpRestoreAssessment(existing.id); renderProgramBuilder(); });
       } else {
         pbListArea.innerHTML = `<div class="dash-empty">${t('pbNoAssessmentYet')}</div>`;
       }
@@ -4833,7 +5049,7 @@
     if(ppLevel === 'courses'){
       ppBreadcrumb.textContent = ppProgram.title;
       ppContentArea.innerHTML = `<div class="lp-progress-bar-wrap"><div class="lp-progress-bar" style="width:${progress}%"></div></div><div class="conn-note">${fmt('ppProgressLabel',{ pct: progress })}</div>`;
-      const courses = lpGetCoursesForProgram(ppProgram.id);
+      const courses = lpGetActiveCoursesForProgram(ppProgram.id);
       if(!courses.length) ppContentArea.innerHTML += `<div class="dash-empty">${t('ppNoContentYet')}</div>`;
       courses.forEach(c=>{
         const row = document.createElement('div');
@@ -4846,7 +5062,7 @@
     } else if(ppLevel === 'modules'){
       ppBreadcrumb.innerHTML = `<span class="switch-player" id="ppCrumbCourses">${ppProgram.title}</span> › ${ppCourse.title}`;
       document.getElementById('ppCrumbCourses').addEventListener('click', ()=> ppNavigate('courses'));
-      const modules = lpGetModulesForCourse(ppCourse.id);
+      const modules = lpGetActiveModulesForCourse(ppCourse.id);
       modules.forEach(m=>{
         const row = document.createElement('div');
         row.className = 'lp-row';
@@ -4858,7 +5074,7 @@
     } else if(ppLevel === 'moduleDetails'){
       ppBreadcrumb.innerHTML = `<span class="switch-player" id="ppCrumbCourses">${ppProgram.title}</span> › ${ppCourse.title}`;
       document.getElementById('ppCrumbCourses').addEventListener('click', ()=> ppNavigate('courses'));
-      const lessons = lpGetLessonsForModule(ppModule.id);
+      const lessons = lpGetActiveLessonsForModule(ppModule.id);
       const completedIds = new Set(lpLoad(LP_KEYS.LESSON_COMPLETIONS).filter(c=>c.learnerUsername===currentProfile).map(c=>c.lessonId));
       const doneCount = lessons.filter(l=>completedIds.has(l.id)).length;
       const modPct = lessons.length ? Math.round((doneCount/lessons.length)*100) : 0;
@@ -4881,7 +5097,7 @@
       ppBreadcrumb.innerHTML = `<span class="switch-player" id="ppCrumbCourses">${ppProgram.title}</span> › <span class="switch-player" id="ppCrumbModules">${ppModule.title}</span>`;
       document.getElementById('ppCrumbCourses').addEventListener('click', ()=> ppNavigate('courses'));
       document.getElementById('ppCrumbModules').addEventListener('click', ()=> ppNavigate('moduleDetails', ppCourse, ppModule));
-      const lessons = lpGetLessonsForModule(ppModule.id);
+      const lessons = lpGetActiveLessonsForModule(ppModule.id);
       lessons.forEach(l=>{
         const done = lpIsLessonComplete(currentProfile, l.id);
         const row = document.createElement('div');
@@ -4895,7 +5111,8 @@
       ppBreadcrumb.innerHTML = `<span class="switch-player" id="ppCrumbLessons">${ppModule.title}</span> › ${ppLesson.title}`;
       document.getElementById('ppCrumbLessons').addEventListener('click', ()=> ppNavigate('lessons', ppCourse, ppModule));
       const done = lpIsLessonComplete(currentProfile, ppLesson.id);
-      const assessment = lpGetAssessmentForLesson(ppLesson.id);
+      const rawAssessment = lpGetAssessmentForLesson(ppLesson.id);
+      const assessment = (rawAssessment && !rawAssessment.archived) ? rawAssessment : null;
       const orderedLessons = lpGetOrderedLessonsForCourse(ppCourse.id);
       const completedIds = new Set(lpLoad(LP_KEYS.LESSON_COMPLETIONS).filter(c=>c.learnerUsername===currentProfile).map(c=>c.lessonId));
       const doneCount = orderedLessons.filter(l=>completedIds.has(l.id)).length;
@@ -4907,9 +5124,9 @@
       let sidebarHtml = `
         <div class="cp-sidebar-course-title">${ppCourse.title}</div>
         <div class="cp-sidebar-progress-wrap"><div class="cp-sidebar-progress" style="width:${coursePct}%"></div></div>`;
-      lpGetModulesForCourse(ppCourse.id).forEach(m=>{
+      lpGetActiveModulesForCourse(ppCourse.id).forEach(m=>{
         sidebarHtml += `<div class="cp-sidebar-module">${m.title}</div>`;
-        lpGetLessonsForModule(m.id).forEach(l=>{
+        lpGetActiveLessonsForModule(m.id).forEach(l=>{
           const isDone = completedIds.has(l.id);
           const isCurrent = l.id === ppLesson.id;
           sidebarHtml += `<div class="cp-sidebar-lesson ${isDone?'done':''} ${isCurrent?'current':''}" data-lesson-id="${l.id}" data-module-id="${m.id}"><span class="cp-lesson-dot"></span><span>${l.title}</span></div>`;
@@ -4943,8 +5160,8 @@
       document.querySelectorAll('.cp-sidebar-lesson').forEach(el=>{
         el.addEventListener('click', ()=>{
           const lid = el.dataset.lessonId, mid = el.dataset.moduleId;
-          const targetModule = lpGetModulesForCourse(ppCourse.id).find(m=>m.id===mid);
-          const targetLesson = lpGetLessonsForModule(mid).find(l=>l.id===lid);
+          const targetModule = lpGetActiveModulesForCourse(ppCourse.id).find(m=>m.id===mid);
+          const targetLesson = lpGetActiveLessonsForModule(mid).find(l=>l.id===lid);
           if(targetModule && targetLesson) ppNavigate('lesson', ppCourse, targetModule, targetLesson);
         });
       });
@@ -4960,12 +5177,12 @@
       }
       const prevBtn = document.getElementById('cpPrevBtn');
       if(prevLesson) prevBtn.addEventListener('click', ()=>{
-        const targetModule = lpGetModulesForCourse(ppCourse.id).find(m=>lpGetLessonsForModule(m.id).some(l=>l.id===prevLesson.id));
+        const targetModule = lpGetActiveModulesForCourse(ppCourse.id).find(m=>lpGetActiveLessonsForModule(m.id).some(l=>l.id===prevLesson.id));
         ppNavigate('lesson', ppCourse, targetModule, prevLesson);
       });
       const nextBtn = document.getElementById('cpNextBtn');
       if(nextLesson) nextBtn.addEventListener('click', ()=>{
-        const targetModule = lpGetModulesForCourse(ppCourse.id).find(m=>lpGetLessonsForModule(m.id).some(l=>l.id===nextLesson.id));
+        const targetModule = lpGetActiveModulesForCourse(ppCourse.id).find(m=>lpGetActiveLessonsForModule(m.id).some(l=>l.id===nextLesson.id));
         ppNavigate('lesson', ppCourse, targetModule, nextLesson);
       });
 
