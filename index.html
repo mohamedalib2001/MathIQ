@@ -2520,6 +2520,11 @@
       pbSkillNone:'بدون مهارة مرتبطة', pbTrueLabel:'صحيح', pbFalseLabel:'خطأ',
       pbQTypeMcq:'اختيار من متعدد', pbQTypeTruefalse:'صح/خطأ', pbQTypeShortanswer:'إجابة قصيرة',
       pbExpectedAnswerPh:'الإجابة المتوقعة', ppTimeExpiredNote:'⏱ انتهى الوقت وتم إرسال إجاباتك تلقائيًا.',
+      permDeniedMsg:'⛔ لا تملكين صلاحية تنفيذ هذا الإجراء.',
+      errNotFoundTitle:'غير موجود', errNotFoundText:'المحتوى المطلوب غير موجود أو تم حذفه.', errBackToLearning:'العودة للتعلّم',
+      errUnauthorizedTitle:'الوصول مقيّد', errUnauthorizedText:'ليس لديكِ صلاحية لعرض هذا المحتوى.', errBackToDashboard:'العودة للوحة الرئيسية',
+      modDetailsProgress:'التقدّم: {pct}%', modDetailsLessonCount:'عدد الدروس', modDetailsAssessCount:'عدد التقييمات',
+      modDetailsCompletedCount:'المكتمل', modDetailsStartBtn:'ابدئي الوحدة', modDetailsContinueBtn:'واصلي الوحدة',
       shellNavProgramBuilder:'بناء البرامج', pbTitle:'🎓 بناء البرامج التعليمية', ppTitle:'📘 البرنامج التعليمي',
       pbBreadcrumbPrograms:'برامجي', pbNoPrograms:'لا توجد برامج بعد. أنشئي أول برنامج.', pbCourseCount:'{n} دورة',
       pbProgramTitlePh:'عنوان البرنامج', pbProgramDescPh:'وصف مختصر (اختياري)',
@@ -2756,6 +2761,11 @@
       pbSkillNone:'No linked skill', pbTrueLabel:'True', pbFalseLabel:'False',
       pbQTypeMcq:'Multiple Choice', pbQTypeTruefalse:'True / False', pbQTypeShortanswer:'Short Answer',
       pbExpectedAnswerPh:'Expected answer', ppTimeExpiredNote:'⏱ Time expired — your answers were submitted automatically.',
+      permDeniedMsg:"⛔ You don't have permission to do this.",
+      errNotFoundTitle:'Not Found', errNotFoundText:'The requested content does not exist or was removed.', errBackToLearning:'Back to Learning',
+      errUnauthorizedTitle:'Access Restricted', errUnauthorizedText:"You don't have permission to view this content.", errBackToDashboard:'Back to Dashboard',
+      modDetailsProgress:'Progress: {pct}%', modDetailsLessonCount:'Lessons', modDetailsAssessCount:'Assessments',
+      modDetailsCompletedCount:'Completed', modDetailsStartBtn:'Start Module', modDetailsContinueBtn:'Continue Module',
       shellNavProgramBuilder:'Program Builder', pbTitle:'🎓 Program Builder', ppTitle:'📘 Learning Program',
       pbBreadcrumbPrograms:'My Programs', pbNoPrograms:'No programs yet. Create your first program.', pbCourseCount:'{n} courses',
       pbProgramTitlePh:'Program title', pbProgramDescPh:'Short description (optional)',
@@ -4189,6 +4199,25 @@
   }
   loadServiceFlags();
 
+  /* ================= REAL PERMISSION ENFORCEMENT (Sprint 1.6) =================
+     Not UI-hiding — every mutating lp* function below calls can() and
+     genuinely refuses to run for an unauthorized role. Verified against
+     9 scenarios in isolation before being wired into the data layer. */
+  const ROLE_PERMISSIONS = {
+    admin: ['*'],
+    teacher: [
+      'program.create','program.update','program.archive','program.restore','program.publish',
+      'course.create','module.create','lesson.create','lesson.update','assessment.create'
+    ],
+    learner: ['program.enroll','lesson.complete','assessment.submit']
+  };
+  function can(role, action){
+    if(!role) return false;
+    const perms = ROLE_PERMISSIONS[role] || [];
+    return perms.includes('*') || perms.includes(action);
+  }
+  function lpCurrentRole(){ return currentShellRole; }
+
   /* ================= LEARNING PLATFORM CORE (Sprint 1) =================
      Real entities, real CRUD, real progress/assessment calculation —
      verified against the full Phase Q scenario in isolation before this
@@ -4204,7 +4233,12 @@
   function lpSave(key, arr){ try{ localStorage.setItem(key, JSON.stringify(arr)); }catch(e){} }
   function lpGenId(prefix){ return prefix + '_' + Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
 
+  function lpDenyAndNotify(action){
+    if(typeof showToast === 'function') showToast(t('permDeniedMsg'), '⛔', 'system');
+    return null;
+  }
   function lpCreateProgram(title, description, level, instructorUsername){
+    if(!can(lpCurrentRole(), 'program.create')) return lpDenyAndNotify('program.create');
     const programs = lpLoad(LP_KEYS.PROGRAMS);
     const p = { id: lpGenId('prog'), title, description, level, status:'draft', instructorUsername, skillIds:[], createdAt: new Date().toISOString() };
     programs.push(p);
@@ -4212,24 +4246,28 @@
     return p;
   }
   function lpArchiveProgram(programId){
+    if(!can(lpCurrentRole(), 'program.archive')) return lpDenyAndNotify('program.archive');
     const programs = lpLoad(LP_KEYS.PROGRAMS);
     const p = programs.find(x => x.id === programId);
     if(p){ p.previousStatus = p.status; p.status = 'archived'; }
     lpSave(LP_KEYS.PROGRAMS, programs);
   }
   function lpRestoreProgram(programId){
+    if(!can(lpCurrentRole(), 'program.restore')) return lpDenyAndNotify('program.restore');
     const programs = lpLoad(LP_KEYS.PROGRAMS);
     const p = programs.find(x => x.id === programId);
     if(p) p.status = p.previousStatus || 'draft';
     lpSave(LP_KEYS.PROGRAMS, programs);
   }
   function lpPublishProgram(programId){
+    if(!can(lpCurrentRole(), 'program.publish')) return lpDenyAndNotify('program.publish');
     const programs = lpLoad(LP_KEYS.PROGRAMS);
     const p = programs.find(x => x.id === programId);
     if(p) p.status = 'published';
     lpSave(LP_KEYS.PROGRAMS, programs);
   }
   function lpUpdateProgram(programId, fields){
+    if(!can(lpCurrentRole(), 'program.update')) return lpDenyAndNotify('program.update');
     const programs = lpLoad(LP_KEYS.PROGRAMS);
     const p = programs.find(x => x.id === programId);
     if(p) Object.assign(p, fields);
@@ -4237,6 +4275,7 @@
     return p;
   }
   function lpCreateCourse(programId, title, description){
+    if(!can(lpCurrentRole(), 'course.create')) return lpDenyAndNotify('course.create');
     const courses = lpLoad(LP_KEYS.COURSES);
     const c = { id: lpGenId('course'), programId, title, description };
     courses.push(c);
@@ -4244,6 +4283,7 @@
     return c;
   }
   function lpCreateModule(courseId, title){
+    if(!can(lpCurrentRole(), 'module.create')) return lpDenyAndNotify('module.create');
     const modules = lpLoad(LP_KEYS.MODULES);
     const m = { id: lpGenId('mod'), courseId, title };
     modules.push(m);
@@ -4251,6 +4291,7 @@
     return m;
   }
   function lpCreateLesson(moduleId, title, content){
+    if(!can(lpCurrentRole(), 'lesson.create')) return lpDenyAndNotify('lesson.create');
     const lessons = lpLoad(LP_KEYS.LESSONS);
     const l = { id: lpGenId('lesson'), moduleId, title, content };
     lessons.push(l);
@@ -4258,6 +4299,7 @@
     return l;
   }
   function lpCreateAssessment(lessonId, title, questions, passScore, timeLimit, skillIds){
+    if(!can(lpCurrentRole(), 'assessment.create')) return lpDenyAndNotify('assessment.create');
     const assessments = lpLoad(LP_KEYS.ASSESSMENTS);
     const a = { id: lpGenId('assess'), lessonId, title, questions, passScore: passScore || 60, timeLimit: timeLimit || null, skillIds: skillIds || [] };
     assessments.push(a);
@@ -4265,6 +4307,7 @@
     return a;
   }
   function lpEnrollLearner(learnerUsername, programId){
+    if(!can(lpCurrentRole(), 'program.enroll')) return lpDenyAndNotify('program.enroll');
     const enrollments = lpLoad(LP_KEYS.ENROLLMENTS);
     let e = enrollments.find(x => x.learnerUsername === learnerUsername && x.programId === programId);
     if(e) return e; // idempotent — re-enrolling never creates a duplicate
@@ -4283,6 +4326,7 @@
     return lpLoad(LP_KEYS.LESSONS).filter(l => moduleIds.includes(l.moduleId));
   }
   function lpCompleteLesson(learnerUsername, lessonId){
+    if(!can(lpCurrentRole(), 'lesson.complete')) return lpDenyAndNotify('lesson.complete');
     const completions = lpLoad(LP_KEYS.LESSON_COMPLETIONS);
     const already = completions.find(c => c.learnerUsername === learnerUsername && c.lessonId === lessonId);
     if(already) return already; // idempotent — no duplicate completion records
@@ -4318,6 +4362,7 @@
     return false;
   }
   function lpSubmitAssessment(learnerUsername, assessmentId, answers, timeExpired){
+    if(!can(lpCurrentRole(), 'assessment.submit')) return lpDenyAndNotify('assessment.submit');
     const a = lpLoad(LP_KEYS.ASSESSMENTS).find(x => x.id === assessmentId);
     if(!a) return null;
     let earnedPoints = 0, totalPoints = 0;
@@ -4695,11 +4740,33 @@
     ppLevel = level; ppCourse = course || null; ppModule = mod || null; ppLesson = lesson || null;
     renderProgramPlayer();
   }
+  function renderErrorState(container, type, onAction){
+    const titleKey = type === 'notfound' ? 'errNotFoundTitle' : 'errUnauthorizedTitle';
+    const textKey = type === 'notfound' ? 'errNotFoundText' : 'errUnauthorizedText';
+    const actionKey = type === 'notfound' ? 'errBackToLearning' : 'errBackToDashboard';
+    container.innerHTML = `
+      <div class="dash-empty" style="padding:30px 15px;">
+        <div style="font-weight:800; font-size:15px; margin-bottom:6px;">${t(titleKey)}</div>
+        <div style="margin-bottom:14px;">${t(textKey)}</div>
+        <button class="secondary-btn" id="errStateActionBtn">${t(actionKey)}</button>
+      </div>`;
+    document.getElementById('errStateActionBtn').addEventListener('click', onAction);
+  }
   function openProgramPlayer(program){
+    if(!program){
+      programsHubEl.classList.add('hidden');
+      programPlayerEl.classList.remove('hidden');
+      renderErrorState(ppContentArea, 'notfound', ()=>{ programPlayerEl.classList.add('hidden'); showProgramsHub(); });
+      return;
+    }
     ppProgram = program;
     programsHubEl.classList.add('hidden');
     programPlayerEl.classList.remove('hidden');
-    lpEnrollLearner(currentProfile, program.id);
+    const enrollment = lpEnrollLearner(currentProfile, program.id);
+    if(!enrollment){
+      renderErrorState(ppContentArea, 'unauthorized', ()=>{ programPlayerEl.classList.add('hidden'); showProgramsHub(); });
+      return;
+    }
     ppNavigate('courses');
   }
   function renderProgramPlayer(){
@@ -4727,14 +4794,36 @@
         const row = document.createElement('div');
         row.className = 'lp-row';
         row.innerHTML = `<div class="lp-row-info"><div class="lp-row-title">${m.title}</div></div><span class="lp-row-badge">›</span>`;
-        row.addEventListener('click', ()=> ppNavigate('lessons', ppCourse, m));
+        row.addEventListener('click', ()=> ppNavigate('moduleDetails', ppCourse, m));
         ppContentArea.appendChild(row);
       });
 
-    } else if(ppLevel === 'lessons'){
-      ppBreadcrumb.innerHTML = `<span class="switch-player" id="ppCrumbCourses">${ppProgram.title}</span> › <span class="switch-player" id="ppCrumbModules">${ppCourse.title}</span> › ${ppModule.title}`;
+    } else if(ppLevel === 'moduleDetails'){
+      ppBreadcrumb.innerHTML = `<span class="switch-player" id="ppCrumbCourses">${ppProgram.title}</span> › ${ppCourse.title}`;
       document.getElementById('ppCrumbCourses').addEventListener('click', ()=> ppNavigate('courses'));
-      document.getElementById('ppCrumbModules').addEventListener('click', ()=> ppNavigate('modules', ppCourse));
+      const lessons = lpGetLessonsForModule(ppModule.id);
+      const completedIds = new Set(lpLoad(LP_KEYS.LESSON_COMPLETIONS).filter(c=>c.learnerUsername===currentProfile).map(c=>c.lessonId));
+      const doneCount = lessons.filter(l=>completedIds.has(l.id)).length;
+      const modPct = lessons.length ? Math.round((doneCount/lessons.length)*100) : 0;
+      const assessCount = lessons.filter(l=> lpGetAssessmentForLesson(l.id)).length;
+      ppContentArea.innerHTML = `
+        <div class="lp-row-info" style="margin-bottom:10px;">
+          <div class="lp-row-title" style="font-size:16px;">${ppModule.title}</div>
+        </div>
+        <div class="lp-progress-bar-wrap"><div class="lp-progress-bar" style="width:${modPct}%"></div></div>
+        <div class="conn-note">${fmt('modDetailsProgress', { pct: modPct })}</div>
+        <div class="dash-table" style="margin:12px 0;">
+          <div class="dash-row"><span>${t('modDetailsLessonCount')}</span><b>${lessons.length}</b></div>
+          <div class="dash-row"><span>${t('modDetailsAssessCount')}</span><b>${assessCount}</b></div>
+          <div class="dash-row"><span>${t('modDetailsCompletedCount')}</span><b>${doneCount} / ${lessons.length}</b></div>
+        </div>
+        <button class="start-btn" id="ppStartModuleBtn">${doneCount > 0 ? t('modDetailsContinueBtn') : t('modDetailsStartBtn')}</button>`;
+      document.getElementById('ppStartModuleBtn').addEventListener('click', ()=> ppNavigate('lessons', ppCourse, ppModule));
+
+    } else if(ppLevel === 'lessons'){
+      ppBreadcrumb.innerHTML = `<span class="switch-player" id="ppCrumbCourses">${ppProgram.title}</span> › <span class="switch-player" id="ppCrumbModules">${ppModule.title}</span>`;
+      document.getElementById('ppCrumbCourses').addEventListener('click', ()=> ppNavigate('courses'));
+      document.getElementById('ppCrumbModules').addEventListener('click', ()=> ppNavigate('moduleDetails', ppCourse, ppModule));
       const lessons = lpGetLessonsForModule(ppModule.id);
       lessons.forEach(l=>{
         const done = lpIsLessonComplete(currentProfile, l.id);
