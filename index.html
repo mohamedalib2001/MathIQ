@@ -8,6 +8,10 @@
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Tajawal:wght@400;500;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
+  /* ==================== MODULE: DESIGN SYSTEM / TOKENS ====================
+     :root custom properties are the single source of color/spacing truth.
+     Theme variants (html[data-theme="..."]) override these same variable
+     names — components below never hardcode colors, only reference vars. */
   :root{
     --yellow:#e7c468; --mint:#8fc9ac; --coral:#e08370;
     /* consistent spacing scale */
@@ -2752,6 +2756,13 @@
   let challengeResults = {};
 
   /* ---------- i18n ---------- */
+  /* ==================== MODULE: I18N ====================
+     Boundary marker (Sprint 5) — real file separation is unsafe here:
+     ES module <script type="module"> imports fail under the file://
+     protocol (CORS), which would break local preview before the file is
+     uploaded to GitHub Pages. This comment marks the logical module so a
+     future real split (once served only over https://) is a pure
+     copy-paste with zero logic changes. */
   const TRANSLATIONS = {
     ar: {
       eyebrow:'تمرين يوميّ', title:'نِكسورا',
@@ -2796,6 +2807,7 @@
       pwToggleAria:'إظهار كلمة المرور', pwToggleAriaHide:'إخفاء كلمة المرور', rememberMeLabel:'تذكّرني',
       oauthComingSoon:'قريبًا — غير متصل بعد', oauthComingSoonBadge:'قريبًا', securityNoteText:'اتصال آمن — بياناتكِ محمية داخل نِكسورا',
       loginBrandTagline:'منصة التعلّم الذكي', loginBrandHeadline:'تعلّم أذكى.\nتطوّر أسرع.',
+      lpSyncCreateFailed:'تعذّر الحفظ على الخادم. حاولي مرة أخرى.', pbSavingLabel:'جارٍ الحفظ...',
       loginBrandDesc:'منصة تعليمية ذكية تجمع التعلّم والتقييم والمهارات والتحليلات في تجربة واحدة.',
       forgotPasswordLink:'نسيت كلمة المرور؟', forgotPasswordMsg:'تواصلي مع معلّمتكِ أو ولي أمركِ لإعادة تعيين كلمة المرور.',
       footerPrivacy:'الخصوصية', footerTerms:'الشروط', footerHelp:'المساعدة',
@@ -3050,6 +3062,7 @@
       pwToggleAria:'Show password', pwToggleAriaHide:'Hide password', rememberMeLabel:'Remember me',
       oauthComingSoon:'Coming soon — not connected yet', oauthComingSoonBadge:'Coming soon', securityNoteText:'Secure connection — your data is protected inside NEXORA',
       loginBrandTagline:'Intelligent Learning Platform', loginBrandHeadline:'Learn smarter.\nGrow faster.',
+      lpSyncCreateFailed:'Could not save to the server. Please try again.', pbSavingLabel:'Saving...',
       loginBrandDesc:'An intelligent education platform bringing learning, assessment, skills and analytics into one experience.',
       forgotPasswordLink:'Forgot password?', forgotPasswordMsg:'Contact your teacher or guardian to reset your password.',
       footerPrivacy:'Privacy', footerTerms:'Terms', footerHelp:'Help',
@@ -3262,6 +3275,8 @@
       bucketNumberRecognition:'Number recognition'
     }
   };
+
+  /* ==================== END MODULE: I18N ==================== */
 
   function t(key){ return TRANSLATIONS[currentLang][key] ?? key; }
   function fmt(key, vars){
@@ -4048,6 +4063,61 @@
     return fetch(SHEET_API_URL, { method:'POST', body: JSON.stringify({ type, ...payload }) })
       .then(r=>r.json()).catch(()=>null);
   }
+
+  /* ==================== MODULE: LP_API (Sprint 7) ====================
+     Frontend Data Access Layer for the Learning Platform Core. Every
+     screen goes through this instead of calling fetch()/postToSheet
+     directly for LP entities: UI -> LP_API -> Apps Script -> Sheets. */
+  const LP_API = {
+    programs: {
+      create: (fields) => postToSheet('lp_create_program', { fields }),
+      list: (filterField, filterValue) => postToSheet('lp_list_programs', { filterField, filterValue }),
+      update: (id, fields, requestingUsername) => postToSheet('lp_update_program', { id, fields, requestingUsername }),
+      setStatus: (id, status, requestingUsername) => postToSheet('lp_set_program_status', { id, status, requestingUsername })
+    },
+    courses: {
+      create: (fields) => postToSheet('lp_create_course', { fields }),
+      list: (filterField, filterValue) => postToSheet('lp_list_courses', { filterField, filterValue }),
+      update: (id, fields, requestingUsername) => postToSheet('lp_update_course', { id, fields, requestingUsername }),
+      archive: (id, requestingUsername) => postToSheet('lp_archive_course', { id, requestingUsername }),
+      restore: (id, requestingUsername) => postToSheet('lp_restore_course', { id, requestingUsername })
+    },
+    modules: {
+      create: (fields) => postToSheet('lp_create_module', { fields }),
+      list: (filterField, filterValue) => postToSheet('lp_list_modules', { filterField, filterValue }),
+      update: (id, fields, requestingUsername) => postToSheet('lp_update_module', { id, fields, requestingUsername }),
+      archive: (id, requestingUsername) => postToSheet('lp_archive_module', { id, requestingUsername }),
+      restore: (id, requestingUsername) => postToSheet('lp_restore_module', { id, requestingUsername })
+    },
+    lessons: {
+      create: (fields) => postToSheet('lp_create_lesson', { fields }),
+      list: (filterField, filterValue) => postToSheet('lp_list_lessons', { filterField, filterValue }),
+      update: (id, fields, requestingUsername) => postToSheet('lp_update_lesson', { id, fields, requestingUsername }),
+      archive: (id, requestingUsername) => postToSheet('lp_archive_lesson', { id, requestingUsername }),
+      restore: (id, requestingUsername) => postToSheet('lp_restore_lesson', { id, requestingUsername })
+    },
+    assessments: {
+      create: (fields) => postToSheet('lp_create_assessment', { fields }),
+      list: (filterField, filterValue) => postToSheet('lp_list_assessments', { filterField, filterValue }),
+      update: (id, fields, requestingUsername) => postToSheet('lp_update_assessment', { id, fields, requestingUsername }),
+      archive: (id, requestingUsername) => postToSheet('lp_archive_assessment', { id, requestingUsername }),
+      restore: (id, requestingUsername) => postToSheet('lp_restore_assessment', { id, requestingUsername })
+    },
+    enrollments: {
+      create: (learnerUsername, programId) => postToSheet('lp_create_enrollment', { learnerUsername, programId }),
+      list: (learnerUsername) => postToSheet('lp_list_enrollments', { learnerUsername })
+    },
+    progress: {
+      completeLesson: (learnerUsername, lessonId) => postToSheet('lp_complete_lesson', { learnerUsername, lessonId }),
+      submitAssessment: (learnerUsername, assessmentId, score, passed, timeExpired) => postToSheet('lp_submit_assessment', { learnerUsername, assessmentId, score, passed, timeExpired }),
+      get: (learnerUsername) => postToSheet('lp_get_progress', { learnerUsername })
+    },
+    skills: {
+      list: () => postToSheet('lp_list_skills', {})
+    }
+  };
+  /* ==================== END MODULE: LP_API ==================== */
+
   function setConnStatus(state){ // 'idle' | 'testing' | 'ok' | 'fail'
     connDot.classList.toggle('ok', state === 'ok');
     if(state === 'ok') connStatusText.textContent = t('connConnected');
@@ -4502,6 +4572,11 @@
   }
   loadServiceFlags();
 
+  /* ==================== MODULE: PERMISSIONS ====================
+     Public API: can(role, action) -> boolean. Real enforcement lives
+     inside each lp* mutating function (they call can() and refuse to
+     run — not just hide a button). See Sprint 1.6/1.6-continued reports
+     for the enforcement test evidence. */
   /* ================= REAL PERMISSION ENFORCEMENT (Sprint 1.6) =================
      Not UI-hiding — every mutating lp* function below calls can() and
      genuinely refuses to run for an unauthorized role. Verified against
@@ -4523,6 +4598,11 @@
     return perms.includes('*') || perms.includes(action);
   }
   function lpCurrentRole(){ return currentShellRole; }
+  /* ==================== END MODULE: PERMISSIONS ====================
+     (lp* CRUD functions below still call can() individually — the
+     enforcement is distributed by design, at each mutation point, not
+     centralized in a single gate, since that's what makes it real
+     enforcement rather than a single bypassable checkpoint.) */
 
   /* ================= LEARNING PLATFORM CORE (Sprint 1) =================
      Real entities, real CRUD, real progress/assessment calculation —
@@ -4543,8 +4623,23 @@
     if(typeof showToast === 'function') showToast(t('permDeniedMsg'), nxIcon('ban'), 'system');
     return null;
   }
-  function lpCreateProgram(title, description, level, instructorUsername){
+  async function lpCreateProgram(title, description, level, instructorUsername){
     if(!can(lpCurrentRole(), 'program.create')) return lpDenyAndNotify('program.create');
+    if(SHEET_API_URL){
+      // real backend mode: the create is a genuine network operation —
+      // no local record is added unless the server confirms success.
+      const result = await LP_API.programs.create({ InstructorUsername: instructorUsername, Title: title, Description: description, Level: level });
+      if(!result || !result.ok){
+        showToast(t('lpSyncCreateFailed'), nxIcon('alertTriangle'), 'system');
+        return null;
+      }
+      const programs = lpLoad(LP_KEYS.PROGRAMS);
+      const p = { id: result.id, title, description, level, status:'draft', instructorUsername, skillIds:[], createdAt: new Date().toISOString() };
+      programs.push(p);
+      lpSave(LP_KEYS.PROGRAMS, programs);
+      return p;
+    }
+    // no backend configured — identical to the original local-only behavior
     const programs = lpLoad(LP_KEYS.PROGRAMS);
     const p = { id: lpGenId('prog'), title, description, level, status:'draft', instructorUsername, skillIds:[], createdAt: new Date().toISOString() };
     programs.push(p);
@@ -4967,11 +5062,14 @@
           </select>
           <button class="start-btn" id="pbCreateProgramBtn">${t('pbCreateProgramBtn')}</button>
         </div>`;
-      document.getElementById('pbCreateProgramBtn').addEventListener('click', ()=>{
+      document.getElementById('pbCreateProgramBtn').addEventListener('click', async ()=>{
         const title = document.getElementById('pbNewProgramTitle').value.trim();
         if(!title) return;
-        lpCreateProgram(title, document.getElementById('pbNewProgramDesc').value.trim(), document.getElementById('pbNewProgramLevel').value, pbOwnerUsername());
-        renderProgramBuilder();
+        const btn = document.getElementById('pbCreateProgramBtn');
+        const originalLabel = btn.textContent;
+        btn.disabled = true; btn.textContent = t('pbSavingLabel');
+        await lpCreateProgram(title, document.getElementById('pbNewProgramDesc').value.trim(), document.getElementById('pbNewProgramLevel').value, pbOwnerUsername());
+        renderProgramBuilder(); // re-render happens after the await resolves either way — button state doesn't persist since the form is rebuilt
       });
 
     } else if(pbLevel === 'courses'){
@@ -5274,6 +5372,10 @@
     ppLevel = level; ppCourse = course || null; ppModule = mod || null; ppLesson = lesson || null;
     renderProgramPlayer();
   }
+  /* ==================== MODULE: ERROR STATE ====================
+     Single source (Sprint 1.6): renderErrorState(container, type, onAction)
+     with type in {'notfound','unauthorized'}. Never duplicated — every
+     screen that needs an error state calls this same function. */
   function renderErrorState(container, type, onAction){
     const titleKey = type === 'notfound' ? 'errNotFoundTitle' : 'errUnauthorizedTitle';
     const textKey = type === 'notfound' ? 'errNotFoundText' : 'errUnauthorizedText';
@@ -5286,6 +5388,7 @@
       </div>`;
     document.getElementById('errStateActionBtn').addEventListener('click', onAction);
   }
+  /* ==================== END MODULE: ERROR STATE ==================== */
   function openProgramPlayer(program){
     if(!program){
       programsHubEl.classList.add('hidden');
@@ -6777,7 +6880,10 @@
     }
   }
 
-  /* ---------- in-app toast notifications ---------- */
+  /* ==================== MODULE: ICONS ====================
+     Single source of truth for nxIcon(name) — used everywhere instead of
+     Unicode emoji. Same public API (`nxIcon('home')`) would survive an
+     eventual real file split unchanged. */
   /* ---------- NEXORA icon system: inline SVG, sized via currentColor.
      Replaces decorative emoji in product chrome (sidebar/topbar/bottom
      nav/notifications/status). Educational content typed by users is
@@ -6810,7 +6916,11 @@
     };
     return icons[name] || '';
   }
+  /* ==================== END MODULE: ICONS ==================== */
 
+  /* ==================== MODULE: SKELETON/UI-UTILITIES ====================
+     Reusable loading placeholders (Sprint 4). Only ever invoked around a
+     genuine pending network/AI call. */
   /* ---------- NEXORA skeleton components: reusable HTML-string builders.
      Only ever invoked around a genuine pending network/AI call — never
      behind an artificial delay. ---------- */
@@ -6843,7 +6953,9 @@
   function nxSkeletonProfile(){
     return `<div class="nx-skel-row"><div class="nx-skel nx-skel-avatar" style="width:48px; height:48px;"></div><div class="nx-skel-row-lines">${nxSkeletonText(2)}</div></div>`;
   }
+  /* ==================== END MODULE: SKELETON/UI-UTILITIES ==================== */
 
+  /* ---------- in-app toast notifications ---------- */
   function showToast(message, icon, category){
     const el = document.createElement('div');
     el.className = 'toast-item';
