@@ -841,6 +841,10 @@
       <div class="dash-table" id="myStatsOpTable"></div>
     </div>
     <div class="mystats-section">
+      <h4 data-i18n="myStatsErrorPatterns">أنماط أخطائك</h4>
+      <div class="dash-table" id="myStatsErrorPatterns"></div>
+    </div>
+    <div class="mystats-section">
       <h4 data-i18n="myStatsMistakes">آخر الأخطاء (للمراجعة)</h4>
       <div class="mistakes-list" id="myStatsMistakesList"></div>
     </div>
@@ -1460,6 +1464,7 @@
   const myStatsTotal = document.getElementById('myStatsTotal');
   const myStatsBadges = document.getElementById('myStatsBadges');
   const myStatsOpTable = document.getElementById('myStatsOpTable');
+  const myStatsErrorPatterns = document.getElementById('myStatsErrorPatterns');
   const myStatsMistakesList = document.getElementById('myStatsMistakesList');
   const myStatsCertsList = document.getElementById('myStatsCertsList');
   const closeMyStatsBtn = document.getElementById('closeMyStatsBtn');
@@ -1701,7 +1706,9 @@
       disabled: false,          // admin can suspend a specific account
       trialStart: null,         // set at self-registration — this account's own 30-day clock
       subscriptionUntil: null,  // ISO date | null — set by admin (custom duration) or via unlock code
-      dailyGoal: { target: 10, date: null, answered: 0 } // resets automatically each new day
+      dailyGoal: { target: 10, date: null, answered: 0 }, // resets automatically each new day
+      errorTypeCounts: {}, // { noAnswer, placeValueError, signError, carrySlip, calculationError }
+      sessionLog: [] // rolling log for the weekly report: { date, score, accuracy, questionCount, operation }
     };
   }
 
@@ -1726,7 +1733,9 @@
       badges: Array.from(p.badges), opStats: p.opStats, isCustom: p.isCustom,
       recentMistakes: p.recentMistakes || [], certificatesIssued: p.certificatesIssued || [],
       disabled: !!p.disabled, trialStart: p.trialStart || null, subscriptionUntil: p.subscriptionUntil || null,
-      dailyGoal: p.dailyGoal || { target:10, date:null, answered:0 }
+      dailyGoal: p.dailyGoal || { target:10, date:null, answered:0 },
+      errorTypeCounts: p.errorTypeCounts || {},
+      sessionLog: p.sessionLog || []
     };
   }
   function saveProfilesToStorage(){
@@ -2025,6 +2034,11 @@
       myClassesLabel:'📚 فصولي', classAssignmentLine:'واجب: {op}', startAssignmentBtn:'ابدئي الواجب الآن', noAssignmentYet:'لا يوجد واجب محدّد حاليًا.',
       missionGreeting:'مرحبًا {name} 👋', missionGoalComplete:'🎉 اكتمل هدف اليوم!', missionGoalProgress:'{done} / {target} أسئلة اليوم',
       missionRecommendWeak:'ركّزي اليوم على {op} — هتحسّني فيها بسرعة!', missionRecommendFresh:'جاهزة لبداية تمرين جديد؟', missionStartBtn:'▶ ابدئي تدريب اليوم',
+      myStatsErrorPatterns:'أنماط أخطائك', noErrorPatternsYet:'لا يوجد بيانات كافية بعد.',
+      errTypeNoAnswer:'⏱️ لم تُجب في الوقت', errTypePlaceValueError:'🔢 خطأ في القيمة المكانية (منزلة العدد)',
+      errTypeSignError:'➕➖ خطأ في الإشارة', errTypeCarrySlip:'✍️ خطأ بسيط قريب من الصحيح', errTypeCalculationError:'🧮 خطأ حسابي عام',
+      weeklyReportTitle:'تقرير هذا الأسبوع', weeklySessions:'عدد الجلسات', weeklyQuestions:'الأسئلة المُجابة',
+      weeklyAvgAccuracy:'متوسط الدقة', weeklyTrend:'التغيّر عن الأسبوع الماضي', noWeeklyDataYet:'لا يوجد تدريب هذا الأسبوع بعد.',
       enableCameraBtn:'📷 تفعيل الكاميرا لرؤية صديقتك', youLabel:'أنتِ',
       cameraNeedsHttps:'⚠️ الكاميرا تحتاج استضافة الملف على الإنترنت (https) — لن تعمل من ملف مفتوح مباشرة على الجهاز.',
       cameraPermissionDenied:'تعذّر الوصول للكاميرا — تأكدي من السماح لها من إعدادات المتصفح.',
@@ -2182,6 +2196,11 @@
       myClassesLabel:'📚 My classes', classAssignmentLine:'Assignment: {op}', startAssignmentBtn:'Start the assignment now', noAssignmentYet:'No assignment set right now.',
       missionGreeting:'Hi {name} 👋', missionGoalComplete:"🎉 Today's goal complete!", missionGoalProgress:'{done} / {target} questions today',
       missionRecommendWeak:"Focus on {op} today — you'll improve fast!", missionRecommendFresh:'Ready to start a fresh practice?', missionStartBtn:"▶ Start today's training",
+      myStatsErrorPatterns:'Your mistake patterns', noErrorPatternsYet:'Not enough data yet.',
+      errTypeNoAnswer:"⏱️ Didn't answer in time", errTypePlaceValueError:'🔢 Place-value error (digit position)',
+      errTypeSignError:'➕➖ Sign error', errTypeCarrySlip:'✍️ Small slip, close to correct', errTypeCalculationError:'🧮 General calculation error',
+      weeklyReportTitle:"This week's report", weeklySessions:'Sessions', weeklyQuestions:'Questions answered',
+      weeklyAvgAccuracy:'Average accuracy', weeklyTrend:'Change from last week', noWeeklyDataYet:'No practice yet this week.',
       enableCameraBtn:'📷 Enable camera to see your friend', youLabel:'You',
       cameraNeedsHttps:'⚠️ The camera needs the file to be hosted online (https) — it will not work from a file opened directly on the device.',
       cameraPermissionDenied:'Could not access the camera — check that it is allowed in your browser settings.',
@@ -3493,7 +3512,15 @@
         }
       });
       const insightId = 'teacherInsight_' + key;
-      box.innerHTML = `<h3>${p.avatar} ${profileDisplayName(key)}</h3><div class="dash-table">${any ? rowsHtml : `<div class="dash-empty">${t('dashNoData')}</div>`}</div><div class="ai-insight" id="${insightId}"></div>`;
+      box.innerHTML = `
+        <h3>${p.avatar} ${profileDisplayName(key)}</h3>
+        <div class="dash-table">${any ? rowsHtml : `<div class="dash-empty">${t('dashNoData')}</div>`}</div>
+        <div class="mystats-section" style="margin-top:10px;">
+          <h4 style="font-size:12px;">📅 ${t('weeklyReportTitle')}</h4>
+          <div class="dash-table">${weeklyReportHtml(p)}</div>
+        </div>
+        <div class="ai-insight" id="${insightId}"></div>
+      `;
       dashboardBody.appendChild(box);
       if(any) loadDashboardInsight(key, document.getElementById(insightId));
     });
@@ -3556,7 +3583,15 @@
       });
       const summary = `<div class="dash-row"><span>${t('statBest')}</span><b>${p.best.score} ${t('pointsWord')}</b></div>`;
       const insightId = 'insight_' + key;
-      box.innerHTML = `<h3>${p.avatar} ${profileDisplayName(key)}</h3><div class="dash-table">${summary}${any ? rowsHtml : `<div class="dash-empty">${t('dashNoData')}</div>`}</div><div class="ai-insight" id="${insightId}"></div>`;
+      box.innerHTML = `
+        <h3>${p.avatar} ${profileDisplayName(key)}</h3>
+        <div class="dash-table">${summary}${any ? rowsHtml : `<div class="dash-empty">${t('dashNoData')}</div>`}</div>
+        <div class="mystats-section" style="margin-top:10px;">
+          <h4 style="font-size:12px;">📅 ${t('weeklyReportTitle')}</h4>
+          <div class="dash-table">${weeklyReportHtml(p)}</div>
+        </div>
+        <div class="ai-insight" id="${insightId}"></div>
+      `;
       parentChildrenList.appendChild(box);
       if(any) loadDashboardInsight(key, document.getElementById(insightId));
     });
@@ -3874,6 +3909,59 @@
     return String(currentAnswer);
   }
 
+  /* ---------- mistake intelligence: classify WHY an answer was wrong,
+     not just log that it was wrong ---------- */
+  function classifyMistake(userAnswer, correctAnswer, kind){
+    if(userAnswer === null || userAnswer === undefined || userAnswer === '') return 'noAnswer';
+    if(kind === 'fraction') return 'calculationError';
+    const u = Number(userAnswer), c = Number(correctAnswer);
+    if(isNaN(u)) return 'calculationError';
+    const diff = Math.abs(u - c);
+    if(diff === 0) return 'calculationError';
+    if(c !== 0 && Number.isInteger(c) && (u === c*10 || (Number.isInteger(c/10) && c/10 !== 0 && u === c/10))) return 'placeValueError';
+    if(u === -c && c !== 0) return 'signError';
+    if(diff <= 2) return 'carrySlip';
+    return 'calculationError';
+  }
+
+  /* ---------- weekly report: this week vs last week, for parents/teachers ---------- */
+  function computeWeeklyReport(p){
+    const log = p.sessionLog || [];
+    const now = Date.now();
+    const weekMs = 7*24*60*60*1000;
+    const thisWeek = log.filter(s => now - new Date(s.date).getTime() <= weekMs);
+    const lastWeek = log.filter(s => {
+      const age = now - new Date(s.date).getTime();
+      return age > weekMs && age <= weekMs*2;
+    });
+    function summarize(sessions){
+      if(!sessions.length) return null;
+      const totalQ = sessions.reduce((a,s)=>a+s.questionCount,0);
+      const avgAcc = Math.round(sessions.reduce((a,s)=>a+s.accuracy,0)/sessions.length);
+      return { sessionsCount: sessions.length, totalQuestions: totalQ, avgAccuracy: avgAcc };
+    }
+    const thisWeekSummary = summarize(thisWeek);
+    const lastWeekSummary = summarize(lastWeek);
+    let trend = null;
+    if(thisWeekSummary && lastWeekSummary) trend = thisWeekSummary.avgAccuracy - lastWeekSummary.avgAccuracy;
+    return { thisWeek: thisWeekSummary, lastWeek: lastWeekSummary, trend };
+  }
+  function weeklyReportHtml(p){
+    const report = computeWeeklyReport(p);
+    if(!report.thisWeek) return `<div class="dash-empty">${t('noWeeklyDataYet')}</div>`;
+    let trendHtml = '';
+    if(report.trend !== null){
+      const arrow = report.trend > 0 ? '📈' : (report.trend < 0 ? '📉' : '➡️');
+      trendHtml = `<div class="dash-row"><span>${t('weeklyTrend')}</span><b>${arrow} ${report.trend > 0 ? '+' : ''}${report.trend}%</b></div>`;
+    }
+    return `
+      <div class="dash-row"><span>${t('weeklySessions')}</span><b>${report.thisWeek.sessionsCount}</b></div>
+      <div class="dash-row"><span>${t('weeklyQuestions')}</span><b>${report.thisWeek.totalQuestions}</b></div>
+      <div class="dash-row"><span>${t('weeklyAvgAccuracy')}</span><b>${report.thisWeek.avgAccuracy}%</b></div>
+      ${trendHtml}
+    `;
+  }
+
   /* ---------- hints ---------- */
   function updateHint(p){
     if(p.op && wrongStreakByOp[p.op] !== undefined && wrongStreakByOp[p.op] >= 2 && !p.isWord){
@@ -4069,8 +4157,11 @@
       if(!challengeMode && !raceMode && PROFILES[currentProfile]){
         const prof = PROFILES[currentProfile];
         if(!prof.recentMistakes) prof.recentMistakes = [];
-        prof.recentMistakes.push({ text: compact, correct: correctDisplayString(), date: new Date().toISOString() });
+        const errorType = classifyMistake(userAnswer, currentAnswer, currentAnswerKind);
+        prof.recentMistakes.push({ text: compact, correct: correctDisplayString(), date: new Date().toISOString(), errorType });
         if(prof.recentMistakes.length > 20) prof.recentMistakes.shift();
+        if(!prof.errorTypeCounts) prof.errorTypeCounts = {};
+        prof.errorTypeCounts[errorType] = (prof.errorTypeCounts[errorType] || 0) + 1;
       }
     }
     scoreVal.textContent = score;
@@ -4340,6 +4431,9 @@
     prof.totalCorrect += correctCount;
     computeBadges(prof, acc, count);
     renderBadges(prof);
+    if(!prof.sessionLog) prof.sessionLog = [];
+    prof.sessionLog.push({ date: new Date().toISOString(), score, accuracy: acc, questionCount: count, operation: op });
+    if(prof.sessionLog.length > 90) prof.sessionLog.shift(); // keep roughly 2-3 months of daily use
     saveProfilesToStorage();
     if(typeof loadAiEncouragement === 'function') loadAiEncouragement(profileDisplayName(currentProfile), score, acc);
 
@@ -4788,6 +4882,23 @@
       }
     });
     if(!anyOp) myStatsOpTable.innerHTML = `<div class="dash-empty">${t('dashNoData')}</div>`;
+
+    myStatsErrorPatterns.innerHTML = '';
+    const errCounts = p.errorTypeCounts || {};
+    const errTotal = Object.values(errCounts).reduce((a,b)=>a+b, 0);
+    if(errTotal === 0){
+      myStatsErrorPatterns.innerHTML = `<div class="dash-empty">${t('noErrorPatternsYet')}</div>`;
+    } else {
+      Object.keys(errCounts).sort((a,b)=> errCounts[b]-errCounts[a]).forEach(type=>{
+        const count = errCounts[type];
+        if(!count) return;
+        const pct = Math.round((count/errTotal)*100);
+        const row = document.createElement('div');
+        row.className = 'dash-row';
+        row.innerHTML = `<span>${t('errType'+capitalize(type))}</span><span><b>${count}</b> (${pct}%)</span>`;
+        myStatsErrorPatterns.appendChild(row);
+      });
+    }
 
     myStatsMistakesList.innerHTML = '';
     const mistakesLog = p.recentMistakes || [];
