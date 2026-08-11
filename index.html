@@ -90,6 +90,25 @@
   }
   .topbar-spacer{ flex:1; }
   .topbar-role-label{ font-size:11.5px; color:var(--ink-dim); font-weight:600; }
+  .topbar-icon-wrap{ position:relative; }
+  .notif-badge{
+    position:absolute; top:-4px; inset-inline-end:-4px; background:var(--coral); color:#fff; font-size:9px;
+    font-weight:800; border-radius:8px; min-width:15px; height:15px; display:flex; align-items:center; justify-content:center;
+    padding:0 3px;
+  }
+  .notif-panel{
+    position:absolute; top:44px; inset-inline-end:0; width:300px; max-height:380px; overflow-y:auto;
+    background:var(--input-bg); border:1.5px solid var(--chip-border); border-radius:14px;
+    box-shadow:0 20px 50px rgba(0,0,0,0.4); z-index:600; padding:8px;
+  }
+  .notif-panel-header{ font-family:'Cairo',sans-serif; font-weight:700; font-size:13px; padding:8px 10px; }
+  .notif-panel-item{
+    display:flex; align-items:flex-start; gap:9px; padding:9px 10px; border-radius:9px; font-size:12px;
+  }
+  .notif-panel-item.unread{ background:rgba(99,102,241,0.1); }
+  .notif-panel-item .notif-icon{ font-size:15px; flex:none; margin-top:1px; }
+  .notif-panel-item .notif-msg{ line-height:1.5; }
+  .notif-panel-item .notif-date{ font-size:10px; color:var(--ink-dim); margin-top:2px; }
   @media (min-width:1024px){
     .app-sidebar{
       display:flex; flex-direction:column; flex:none; width:216px; margin-inline-end:22px;
@@ -958,6 +977,14 @@
   <div class="app-main">
     <div class="app-topbar hidden" id="appTopbar">
       <button class="topbar-icon-btn" id="cmdkTopbarBtn" data-i18n-title="cmdkLauncherLabel" title="أوامر سريعة">🔍</button>
+      <div class="topbar-icon-wrap hidden" id="notifBellWrap">
+        <button class="topbar-icon-btn" id="notifBellBtn" aria-label="الإشعارات">🔔</button>
+        <span class="notif-badge hidden" id="notifBellBadge">0</span>
+        <div class="notif-panel hidden" id="notifPanel">
+          <div class="notif-panel-header" data-i18n="notifCenterTitle">مركز الإشعارات</div>
+          <div id="notifPanelList"></div>
+        </div>
+      </div>
       <div class="topbar-spacer"></div>
       <span class="topbar-role-label" id="topbarRoleLabel"></span>
     </div>
@@ -1843,6 +1870,11 @@
   const cmdkTopbarBtn = document.getElementById('cmdkTopbarBtn');
   const topbarRoleLabel = document.getElementById('topbarRoleLabel');
   const appBottomNav = document.getElementById('appBottomNav');
+  const notifBellWrap = document.getElementById('notifBellWrap');
+  const notifBellBtn = document.getElementById('notifBellBtn');
+  const notifBellBadge = document.getElementById('notifBellBadge');
+  const notifPanel = document.getElementById('notifPanel');
+  const notifPanelList = document.getElementById('notifPanelList');
   const commandPaletteOverlay = document.getElementById('commandPaletteOverlay');
   const cmdkInput = document.getElementById('cmdkInput');
   const cmdkResults = document.getElementById('cmdkResults');
@@ -2098,7 +2130,8 @@
       subscriptionUntil: null,  // ISO date | null — set by admin (custom duration) or via unlock code
       dailyGoal: { target: 10, date: null, answered: 0 }, // resets automatically each new day
       errorTypeCounts: {}, // { noAnswer, placeValueError, signError, carrySlip, calculationError }
-      sessionLog: [] // rolling log for the weekly report: { date, score, accuracy, questionCount, operation }
+      sessionLog: [], // rolling log for the weekly report: { date, score, accuracy, questionCount, operation }
+      notificationHistory: [] // persistent notification center log: { message, icon, category, date, read }
     };
   }
 
@@ -2125,7 +2158,8 @@
       disabled: !!p.disabled, trialStart: p.trialStart || null, subscriptionUntil: p.subscriptionUntil || null,
       dailyGoal: p.dailyGoal || { target:10, date:null, answered:0 },
       errorTypeCounts: p.errorTypeCounts || {},
-      sessionLog: p.sessionLog || []
+      sessionLog: p.sessionLog || [],
+      notificationHistory: p.notificationHistory || []
     };
   }
   function saveProfilesToStorage(){
@@ -2351,6 +2385,7 @@
       shellNavAccount:'حسابي', shellNavLogout:'تسجيل الخروج', shellNavOverview:'نظرة عامة',
       shellNavAllStudents:'كل المتعلّمين', shellNavServices:'الخدمات', shellNavBilling:'الاشتراك',
       shellNavClasses:'فصولي',
+      notifCenterTitle:'مركز الإشعارات', notifEmptyState:'لا يوجد إشعارات بعد.',
       whoPlaying:'من يلعب اليوم؟',
       joryName:'جوري', joryAge:'٦ سنوات ونصف',
       jasmineName:'جاسمين', jasmineAge:'١١ سنة',
@@ -2556,6 +2591,7 @@
       shellNavAccount:'Account', shellNavLogout:'Log out', shellNavOverview:'Overview',
       shellNavAllStudents:'All Learners', shellNavServices:'Services', shellNavBilling:'Billing',
       shellNavClasses:'My Classes',
+      notifCenterTitle:'Notification Center', notifEmptyState:'No notifications yet.',
       whoPlaying:"Who's playing today?",
       joryName:'Jory', joryAge:'6.5 years old',
       jasmineName:'Jasmine', jasmineAge:'11 years old',
@@ -3971,11 +4007,15 @@
       appBottomNav.classList.add('hidden');
       sidebarNav.innerHTML = '';
       appBottomNav.innerHTML = '';
+      notifBellWrap.classList.add('hidden');
+      notifPanel.classList.add('hidden');
       return;
     }
     const roleLabelKey = role === 'learner' ? 'shellRoleLearner' : (role === 'admin' ? 'shellRoleAdmin' : 'shellRoleTeacher');
     topbarRoleLabel.textContent = t(roleLabelKey);
     appTopbar.classList.remove('hidden');
+    notifBellWrap.classList.toggle('hidden', role !== 'learner');
+    if(role === 'learner') updateNotificationBadge();
 
     const items = buildShellItemsForRole(role);
     sidebarNav.innerHTML = '';
@@ -3998,6 +4038,14 @@
     appBottomNav.classList.remove('hidden');
   }
   cmdkTopbarBtn.addEventListener('click', openCommandPalette);
+  notifBellBtn.addEventListener('click', ()=>{
+    const willOpen = notifPanel.classList.contains('hidden');
+    notifPanel.classList.toggle('hidden', !willOpen);
+    if(willOpen) renderNotificationPanel();
+  });
+  document.addEventListener('click', e=>{
+    if(!notifBellWrap.contains(e.target)) notifPanel.classList.add('hidden');
+  });
 
   function renderServiceActivationList(){
     serviceActivationList.innerHTML = '';
@@ -5172,7 +5220,7 @@
   }
 
   /* ---------- in-app toast notifications ---------- */
-  function showToast(message, icon){
+  function showToast(message, icon, category){
     const el = document.createElement('div');
     el.className = 'toast-item';
     el.innerHTML = `<span class="toast-icon">${icon || '🔔'}</span><span>${message}</span>`;
@@ -5181,6 +5229,52 @@
       el.classList.add('leaving');
       setTimeout(()=> el.remove(), 320);
     }, 3600);
+    logNotification(message, icon, category);
+  }
+
+  /* ---------- notification center: a real persistent history, not just
+     temporary popups. Stored per student profile, capped, with unread
+     tracking and a topbar bell + badge. ---------- */
+  function logNotification(message, icon, category){
+    const p = PROFILES[currentProfile];
+    if(!p) return;
+    if(!p.notificationHistory) p.notificationHistory = [];
+    p.notificationHistory.push({ message, icon: icon || '🔔', category: category || 'system', date: new Date().toISOString(), read: false });
+    if(p.notificationHistory.length > 50) p.notificationHistory.shift();
+    saveProfilesToStorage();
+    updateNotificationBadge();
+  }
+  function updateNotificationBadge(){
+    const p = PROFILES[currentProfile];
+    if(!p || !notifBellBtn){ return; }
+    const unread = (p.notificationHistory || []).filter(n => !n.read).length;
+    if(unread > 0){
+      notifBellBadge.textContent = unread > 9 ? '9+' : String(unread);
+      notifBellBadge.classList.remove('hidden');
+    } else {
+      notifBellBadge.classList.add('hidden');
+    }
+  }
+  function renderNotificationPanel(){
+    const p = PROFILES[currentProfile];
+    notifPanelList.innerHTML = '';
+    const history = (p && p.notificationHistory) ? p.notificationHistory.slice().reverse() : [];
+    if(!history.length){
+      notifPanelList.innerHTML = `<div class="dash-empty">${t('notifEmptyState')}</div>`;
+      return;
+    }
+    history.forEach(n=>{
+      const row = document.createElement('div');
+      row.className = 'notif-panel-item' + (n.read ? '' : ' unread');
+      const dateStr = new Date(n.date).toLocaleDateString(currentLang === 'ar' ? 'ar-EG' : 'en-US', { hour:'2-digit', minute:'2-digit' });
+      row.innerHTML = `<span class="notif-icon">${n.icon}</span><div class="notif-body"><div class="notif-msg">${n.message}</div><div class="notif-date">${dateStr}</div></div>`;
+      notifPanelList.appendChild(row);
+    });
+    if(p){
+      p.notificationHistory.forEach(n=> n.read = true);
+      saveProfilesToStorage();
+    }
+    updateNotificationBadge();
   }
 
   function celebrate(){
