@@ -2029,7 +2029,7 @@
   let mistakes = [];
   let audioCtx = null;
   let currentProblemSpeechText = '';
-  let wrongStreakByOp = { add:0, sub:0, mul:0, div:0, percent:0, exponent:0, sqrt:0 };
+  let wrongStreakByOp = { add:0, sub:0, mul:0, div:0, percent:0, exponent:0, sqrt:0, numberRecognition:0 };
 
   let adaptiveIndex = 0;
   let adaptiveStreak = 0;
@@ -2057,6 +2057,7 @@
       opPercent:'نسبة مئوية %', opExponent:'أُسس xⁿ', opSqrt:'جذر تربيعي √', opNumberRecognition:'🔢 التعرّف على الأرقام',
       levelNameNumberRecognition:'التعرّف على الأرقام',
       hintPercent:'💡 اقسمي على 100 ثم اضربي في العدد', hintExponent:'💡 اضربي العدد في نفسه بعدد مرات الأُس', hintSqrt:'💡 دوّري على عدد مضروب في نفسه يساوي الرقم',
+      hintNumberRecognition:'💡 عدّي على أصابعك ببطء وأنتِ بتقولي كل رقم',
       tableFocusLabel:'التركيز على جدول', tableAll:'الكل',
       diffLabel:'فئة الأرقام (منازل العدد)',
       diffUnits:'آحاد', diffTens:'عشرات', diffHundreds:'مئات', diffThousands:'آلاف',
@@ -2232,6 +2233,7 @@
       opPercent:'Percentage %', opExponent:'Exponents xⁿ', opSqrt:'Square root √', opNumberRecognition:'🔢 Number recognition',
       levelNameNumberRecognition:'Number recognition',
       hintPercent:'💡 Divide by 100, then multiply by the number', hintExponent:'💡 Multiply the number by itself the exponent number of times', hintSqrt:'💡 Find a number multiplied by itself that equals this',
+      hintNumberRecognition:'💡 Count slowly on your fingers as you say each number',
       tableFocusLabel:'Focus on times table', tableAll:'All',
       diffLabel:'Number range',
       diffUnits:'Units', diffTens:'Tens', diffHundreds:'Hundreds', diffThousands:'Thousands',
@@ -2775,7 +2777,7 @@
     adaptiveOn = false; adaptiveSwitch.classList.remove('on');
     if(DIFF_ORDER.includes(diff)){ adaptiveIndex = DIFF_ORDER.indexOf(diff); adaptiveStreak = 0; }
     stepsGroup.classList.add('hidden');
-    wrongStreakByOp = { add:0, sub:0, mul:0, div:0, percent:0, exponent:0, sqrt:0 };
+    wrongStreakByOp = { add:0, sub:0, mul:0, div:0, percent:0, exponent:0, sqrt:0, numberRecognition:0 };
   }
 
   function hideAllScreens(){
@@ -4121,7 +4123,7 @@
     `;
   }
 
-  /* ---------- knowledge map: 11 levels, each mapped to one real tracked
+  /* ---------- knowledge map: each level maps to one real tracked
      bucket (no invented per-difficulty stats that don't actually exist).
      Mastery = 70% accuracy + 30% speed-vs-target, needs 3+ attempts to show. ---------- */
   const KNOWLEDGE_LEVELS = [
@@ -4850,7 +4852,7 @@
   function resetStats(){
     score = 0; streak = 0; bestStreak = 0; count = 0; correctCount = 0; mistakes = [];
     scoreVal.textContent = 0; streakVal.textContent = 0; bestVal.textContent = 0;
-    wrongStreakByOp = { add:0, sub:0, mul:0, div:0, percent:0, exponent:0, sqrt:0 };
+    wrongStreakByOp = { add:0, sub:0, mul:0, div:0, percent:0, exponent:0, sqrt:0, numberRecognition:0 };
     previousLevel = 1;
     updateLevelDisplay();
     updateStreakFlame();
