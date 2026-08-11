@@ -118,6 +118,11 @@
     width:36px; height:36px; border-radius:9px; border:1.5px solid var(--chip-border); background:transparent;
     color:var(--ink); font-size:15px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex:none;
   }
+  /* NEXORA icon system — replaces decorative emoji with consistent inline SVG.
+     One <svg> markup per semantic icon, sized via currentColor so it
+     inherits text color automatically in any context. */
+  .nx-icon{ width:1em; height:1em; display:inline-block; vertical-align:-0.12em; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+  .nx-icon.nx-icon-filled{ fill:currentColor; stroke:none; }
   .topbar-spacer{ flex:1; }
   .topbar-role-label{ font-size:11.5px; color:var(--ink-dim); font-weight:600; }
   .topbar-icon-wrap{ position:relative; }
@@ -1162,9 +1167,9 @@
   </aside>
   <div class="app-main">
     <div class="app-topbar hidden" id="appTopbar">
-      <button class="topbar-icon-btn" id="cmdkTopbarBtn" data-i18n-title="cmdkLauncherLabel" title="أوامر سريعة">🔍</button>
+      <button class="topbar-icon-btn" id="cmdkTopbarBtn" data-i18n-title="cmdkLauncherLabel" title="أوامر سريعة"><svg class="nx-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></button>
       <div class="topbar-icon-wrap hidden" id="notifBellWrap">
-        <button class="topbar-icon-btn" id="notifBellBtn" aria-label="الإشعارات">🔔</button>
+        <button class="topbar-icon-btn" id="notifBellBtn" aria-label="الإشعارات"><svg class="nx-icon" viewBox="0 0 24 24"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></button>
         <span class="notif-badge hidden" id="notifBellBadge">0</span>
         <div class="notif-panel hidden" id="notifPanel">
           <div class="notif-panel-header" data-i18n="notifCenterTitle">مركز الإشعارات</div>
@@ -4418,7 +4423,7 @@
   function lpGenId(prefix){ return prefix + '_' + Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
 
   function lpDenyAndNotify(action){
-    if(typeof showToast === 'function') showToast(t('permDeniedMsg'), '⛔', 'system');
+    if(typeof showToast === 'function') showToast(t('permDeniedMsg'), nxIcon('ban'), 'system');
     return null;
   }
   function lpCreateProgram(title, description, level, instructorUsername){
@@ -5308,7 +5313,7 @@
         lpCompleteLesson(currentProfile, ppLesson.id);
         lpUpdateEnrollmentActivity(currentProfile, ppProgram.id);
         const prof = PROFILES[currentProfile];
-        if(prof) showToast(fmt('toastLessonComplete', { lesson: ppLesson.title }), '', 'learning');
+        if(prof) showToast(fmt('toastLessonComplete', { lesson: ppLesson.title }), nxIcon('bookOpen'), 'learning');
         renderProgramPlayer();
       });
       if(assessment){
@@ -5373,7 +5378,7 @@
             <div class="cvr-row"><b>${attempt.passed ? '✅' : '❌'} ${fmt('ppScoreResult', { score: attempt.score })}</b></div>
           </div>
           <button class="secondary-btn" id="ppBackToLessonBtn">${t('closeBtn')}</button>`;
-        showToast(fmt('toastAssessmentResult', { score: attempt.score }), attempt.passed ? '✅' : '📝', 'learning');
+        showToast(fmt('toastAssessmentResult', { score: attempt.score }), attempt.passed ? nxIcon('check') : nxIcon('clipboard'), 'learning');
         document.getElementById('ppBackToLessonBtn').addEventListener('click', ()=> ppNavigate('lesson', ppCourse, ppModule, ppLesson));
       }
       document.getElementById('ppSubmitAssessmentBtn').addEventListener('click', ()=> finishAssessment(false));
@@ -5408,29 +5413,29 @@
   function buildShellItemsForRole(role){
     if(role === 'learner'){
       return [
-        { icon:'🏠', label:t('shellNavPrograms'), run: ()=> showProgramsHub() },
-        { icon:'📚', label:t('shellNavJourney'), run: ()=>{ if(isServiceOn('knowledgeMap')) knowledgeMapOpenBtn.click(); } },
-        { icon:'🧩', label:t('shellNavSkills'), run: ()=>{ hideAllScreens(); mySkillsScreen.classList.remove('hidden'); renderMySkills(); renderShellNav('learner'); } },
-        { icon:'🏅', label:t('shellNavAchievements'), run: ()=> myStatsLink.click() },
-        { icon:'⚙️', label:t('shellNavAccount'), run: ()=> editMyProfileLink.click() },
-        { icon:'🚪', label:t('shellNavLogout'), run: ()=> goToLoginGate() }
+        { icon:nxIcon('home'), label:t('shellNavPrograms'), run: ()=> showProgramsHub() },
+        { icon:nxIcon('book'), label:t('shellNavJourney'), run: ()=>{ if(isServiceOn('knowledgeMap')) knowledgeMapOpenBtn.click(); } },
+        { icon:nxIcon('puzzle'), label:t('shellNavSkills'), run: ()=>{ hideAllScreens(); mySkillsScreen.classList.remove('hidden'); renderMySkills(); renderShellNav('learner'); } },
+        { icon:nxIcon('award'), label:t('shellNavAchievements'), run: ()=> myStatsLink.click() },
+        { icon:nxIcon('settings'), label:t('shellNavAccount'), run: ()=> editMyProfileLink.click() },
+        { icon:nxIcon('logout'), label:t('shellNavLogout'), run: ()=> goToLoginGate() }
       ];
     }
     if(role === 'admin'){
       return [
-        { icon:'📊', label:t('shellNavOverview'), run: ()=> goToProfiles() },
-        { icon:'📈', label:t('shellNavAllStudents'), run: ()=> dashboardLink.click() },
-        { icon:'🧩', label:t('shellNavServices'), run: ()=> serviceActivationLink.click() },
-        { icon:'💳', label:t('shellNavBilling'), run: ()=> subscriptionLink.click() },
-        { icon:'🚪', label:t('shellNavLogout'), run: ()=> backToLoginLink.click() }
+        { icon:nxIcon('chart'), label:t('shellNavOverview'), run: ()=> goToProfiles() },
+        { icon:nxIcon('trending'), label:t('shellNavAllStudents'), run: ()=> dashboardLink.click() },
+        { icon:nxIcon('puzzle'), label:t('shellNavServices'), run: ()=> serviceActivationLink.click() },
+        { icon:nxIcon('card'), label:t('shellNavBilling'), run: ()=> subscriptionLink.click() },
+        { icon:nxIcon('logout'), label:t('shellNavLogout'), run: ()=> backToLoginLink.click() }
       ];
     }
     if(role === 'teacher'){
       return [
-        { icon:'📊', label:t('shellNavOverview'), run: ()=>{ dashboardOpenedBy = 'teacher'; renderDashboard(); dashboardEl.classList.remove('hidden'); } },
-        { icon:'🏫', label:t('shellNavClasses'), run: ()=> teacherClassesBtn.click() },
-        { icon:'🎓', label:t('shellNavProgramBuilder'), run: ()=> openProgramBuilder() },
-        { icon:'🚪', label:t('shellNavLogout'), run: ()=> goToLoginGate() }
+        { icon:nxIcon('chart'), label:t('shellNavOverview'), run: ()=>{ dashboardOpenedBy = 'teacher'; renderDashboard(); dashboardEl.classList.remove('hidden'); } },
+        { icon:nxIcon('school'), label:t('shellNavClasses'), run: ()=> teacherClassesBtn.click() },
+        { icon:nxIcon('graduation'), label:t('shellNavProgramBuilder'), run: ()=> openProgramBuilder() },
+        { icon:nxIcon('logout'), label:t('shellNavLogout'), run: ()=> goToLoginGate() }
       ];
     }
     return [];
@@ -6655,10 +6660,43 @@
   }
 
   /* ---------- in-app toast notifications ---------- */
+  /* ---------- NEXORA icon system: inline SVG, sized via currentColor.
+     Replaces decorative emoji in product chrome (sidebar/topbar/bottom
+     nav/notifications/status). Educational content typed by users is
+     never touched — this only covers hardcoded UI strings. ---------- */
+  function nxIcon(name){
+    const icons = {
+      home: '<svg class="nx-icon" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>',
+      book: '<svg class="nx-icon" viewBox="0 0 24 24"><path d="M4 4h11a4 4 0 0 1 4 4v12H8a4 4 0 0 0-4 4V4z"/><path d="M4 4v16"/></svg>',
+      puzzle: '<svg class="nx-icon" viewBox="0 0 24 24"><path d="M4 8h4V5a2 2 0 0 1 4 0v3h4a2 2 0 0 1 2 2v4h-3a2 2 0 0 0 0 4h3v4a2 2 0 0 1-2 2h-4v-3a2 2 0 0 0-4 0v3H6a2 2 0 0 1-2-2v-4h3a2 2 0 0 0 0-4H4V8z"/></svg>',
+      award: '<svg class="nx-icon" viewBox="0 0 24 24"><circle cx="12" cy="8" r="5"/><path d="M8.5 12.5L7 22l5-3 5 3-1.5-9.5"/></svg>',
+      settings: '<svg class="nx-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>',
+      logout: '<svg class="nx-icon" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>',
+      chart: '<svg class="nx-icon" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>',
+      trending: '<svg class="nx-icon" viewBox="0 0 24 24"><path d="M23 6l-9.5 9.5-5-5L1 18"/><path d="M17 6h6v6"/></svg>',
+      card: '<svg class="nx-icon" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><path d="M1 10h22"/></svg>',
+      school: '<svg class="nx-icon" viewBox="0 0 24 24"><path d="M2 10l10-6 10 6-10 6-10-6z"/><path d="M6 12v5c0 1 3 3 6 3s6-2 6-3v-5"/></svg>',
+      graduation: '<svg class="nx-icon" viewBox="0 0 24 24"><path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12.5V17c0 1.5 3 3 6 3s6-1.5 6-3v-4.5"/></svg>',
+      bell: '<svg class="nx-icon" viewBox="0 0 24 24"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>',
+      search: '<svg class="nx-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>',
+      check: '<svg class="nx-icon" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>',
+      alertTriangle: '<svg class="nx-icon" viewBox="0 0 24 24"><path d="M12 2L1 21h22L12 2z"/><path d="M12 9v5"/><path d="M12 17h.01"/></svg>',
+      lightbulb: '<svg class="nx-icon" viewBox="0 0 24 24"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.5.4.8 1 .8 1.7v.6h6.4v-.6c0-.7.3-1.3.8-1.7A7 7 0 0 0 12 2z"/></svg>',
+      party: '<svg class="nx-icon" viewBox="0 0 24 24"><path d="M2 22l5-14 14 5-14 5-5 4z"/><path d="M14 2l1.5 3.5L19 7l-3.5 1.5L14 12l-1.5-3.5L9 7l3.5-1.5z"/></svg>',
+      bookOpen: '<svg class="nx-icon" viewBox="0 0 24 24"><path d="M2 5c3-2 6-2 10 0v15c-4-2-7-2-10 0z"/><path d="M22 5c-3-2-6-2-10 0v15c4-2 7-2 10 0z"/></svg>',
+      clipboard: '<svg class="nx-icon" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 3h6v3H9z"/><path d="M9 11h6"/><path d="M9 15h6"/></svg>',
+      x: '<svg class="nx-icon" viewBox="0 0 24 24"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg>',
+      ban: '<svg class="nx-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M4.9 4.9l14.2 14.2"/></svg>',
+      flame: '<svg class="nx-icon" viewBox="0 0 24 24"><path d="M12 2c1 4-4 5-4 10a4 4 0 0 0 8 0c1.5 1 2 3 2 4a6 6 0 0 1-12 0c0-5 3-6 4-10 1 1 2 2 2 3 1-2 0-5 0-7z"/></svg>',
+      target: '<svg class="nx-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1" class="nx-icon-filled"/></svg>'
+    };
+    return icons[name] || '';
+  }
+
   function showToast(message, icon, category){
     const el = document.createElement('div');
     el.className = 'toast-item';
-    el.innerHTML = `<span class="toast-icon">${icon || '🔔'}</span><span>${message}</span>`;
+    el.innerHTML = `<span class="toast-icon">${icon || nxIcon('bell')}</span><span>${message}</span>`;
     toastStack.appendChild(el);
     setTimeout(()=>{
       el.classList.add('leaving');
@@ -6840,14 +6878,14 @@
 
   /* ---------- achievements ---------- */
   const BADGES = [
-    { id:'streak5',  icon:'🔥',  key:'badgeStreak5',    check:(prof)=> prof.best.streak >= 5 },
-    { id:'streak10', icon:'🔥🔥', key:'badgeStreak10',   check:(prof)=> prof.best.streak >= 10 },
-    { id:'score100', icon:'💯',  key:'badgeScore100',   check:(prof)=> prof.best.score >= 100 },
-    { id:'score500', icon:'🏆',  key:'badgeScore500',   check:(prof)=> prof.best.score >= 500 },
-    { id:'acc100',   icon:'🎯',  key:'badgeAccuracy100',check:(prof,acc,cnt)=> acc === 100 && cnt >= 5 },
-    { id:'fifty',    icon:'🏅',  key:'badgeFifty',      check:(prof)=> prof.totalAnswered >= 50 },
+    { id:'streak5',  icon:nxIcon('flame'),  key:'badgeStreak5',    check:(prof)=> prof.best.streak >= 5 },
+    { id:'streak10', icon:nxIcon('flame'), key:'badgeStreak10',   check:(prof)=> prof.best.streak >= 10 },
+    { id:'score100', icon:nxIcon('award'),  key:'badgeScore100',   check:(prof)=> prof.best.score >= 100 },
+    { id:'score500', icon:nxIcon('award'),  key:'badgeScore500',   check:(prof)=> prof.best.score >= 500 },
+    { id:'acc100',   icon:nxIcon('target'),  key:'badgeAccuracy100',check:(prof,acc,cnt)=> acc === 100 && cnt >= 5 },
+    { id:'fifty',    icon:nxIcon('award'),  key:'badgeFifty',      check:(prof)=> prof.totalAnswered >= 50 },
     ...KNOWLEDGE_LEVELS.map(level=> ({
-      id: 'master_' + level.bucket, icon: '✅', key: level.nameKey,
+      id: 'master_' + level.bucket, icon: nxIcon('check'), key: level.nameKey,
       check: (prof)=> false // awarded only via checkLevelMasteryBadges — never auto-checked here to avoid double-toasting
     }))
   ];
@@ -6866,7 +6904,7 @@
       const mastery = computeLevelMastery(prof, level.bucket);
       if(mastery !== null && mastery >= MASTERY_THRESHOLD){
         prof.badges.add(badgeId);
-        showToast(fmt('toastLevelMastered', { level: t(level.nameKey) }), '✅');
+        showToast(fmt('toastLevelMastered', { level: t(level.nameKey) }), nxIcon('check'));
       }
     });
   }
@@ -7006,7 +7044,7 @@
     prof.sessionLog.push({ date: new Date().toISOString(), score, accuracy: acc, questionCount: count, operation: op });
     if(prof.sessionLog.length > 90) prof.sessionLog.shift(); // keep roughly 2-3 months of daily use
     if(prof.dailyGoal && prof.dailyGoal.answered >= prof.dailyGoal.target && !prof.dailyGoal.toastShown){
-      showToast(t('toastDailyGoalDone'), '🎉');
+      showToast(t('toastDailyGoalDone'), nxIcon('party'));
       prof.dailyGoal.toastShown = true;
     }
     saveProfilesToStorage();
