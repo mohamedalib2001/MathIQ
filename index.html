@@ -52,6 +52,9 @@
     --yellow:#c98bff; --mint:#7fe6c8; --coral:#ff6ba3;
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focus-visible{
+    outline:2.5px solid var(--yellow); outline-offset:2px; border-radius:6px;
+  }
   html,body{margin:0;padding:0;}
   body{
     min-height:100dvh;
@@ -322,6 +325,10 @@
   .toast-item .toast-icon{ font-size:20px; flex:none; }
   @keyframes toastIn{ from{ opacity:0; transform:translateY(-12px) scale(0.95); } to{ opacity:1; transform:translateY(0) scale(1); } }
   @keyframes toastOut{ from{ opacity:1; transform:translateX(0); } to{ opacity:0; transform:translateX(30px); } }
+  @media (prefers-reduced-motion: reduce){
+    .toast-item, .toast-item.leaving{ animation:none !important; }
+    *{ scroll-behavior:auto !important; }
+  }
 
   /* today's mission — calm, premium "smart dashboard" hero card */
   .mission-card{
@@ -1287,6 +1294,7 @@
         <button class="chip" data-op="percent" data-i18n="opPercent">نسبة مئوية %</button>
         <button class="chip" data-op="exponent" data-i18n="opExponent">أُسس xⁿ</button>
         <button class="chip" data-op="sqrt" data-i18n="opSqrt">جذر تربيعي √</button>
+        <button class="chip" data-op="numberRecognition" data-i18n="opNumberRecognition">🔢 التعرّف على الأرقام</button>
       </div>
     </div>
     <div id="tableFocusGroup" class="hidden">
@@ -1400,7 +1408,7 @@
     <button class="enable-camera-btn hidden" id="enableCameraBtn" data-i18n="enableCameraBtn">📷 تفعيل الكاميرا لرؤية صديقتك</button>
     <div class="video-call-status hidden" id="videoCallStatus"></div>
     <div class="video-call-panel hidden" id="videoCallPanel">
-      <div class="video-box"><video id="remoteVideo" autoplay playsinline muted></video><span class="video-label" id="remoteVideoLabel"></span><button class="unmute-btn hidden" id="unmuteRemoteBtn" title="تفعيل الصوت">🔇</button></div>
+      <div class="video-box"><video id="remoteVideo" autoplay playsinline muted></video><span class="video-label" id="remoteVideoLabel"></span><button class="unmute-btn hidden" id="unmuteRemoteBtn" title="تفعيل الصوت" aria-label="تفعيل الصوت">🔇</button></div>
       <div class="video-box local"><video id="localVideo" autoplay playsinline muted></video><span class="video-label" data-i18n="youLabel">أنتِ</span></div>
     </div>
     <div class="opponent-panel hidden" id="opponentPanel">
@@ -1788,7 +1796,8 @@
       badges: new Set(),
       opStats:{ add:{c:0,t:0,time:0}, sub:{c:0,t:0,time:0}, mul:{c:0,t:0,time:0}, div:{c:0,t:0,time:0},
                 compound:{c:0,t:0,time:0}, decimals:{c:0,t:0,time:0}, fractions:{c:0,t:0,time:0},
-                percent:{c:0,t:0,time:0}, exponent:{c:0,t:0,time:0}, sqrt:{c:0,t:0,time:0}, abacus:{c:0,t:0,time:0} },
+                percent:{c:0,t:0,time:0}, exponent:{c:0,t:0,time:0}, sqrt:{c:0,t:0,time:0}, abacus:{c:0,t:0,time:0},
+                numberRecognition:{c:0,t:0,time:0} },
       recentMistakes: [],     // rolling log across sessions: { text, correct, date }
       certificatesIssued: [], // rolling log: { score, accuracy, date }
       isCustom: !!isCustom,
@@ -2045,7 +2054,8 @@
       jasmineName:'جاسمين', jasmineAge:'١١ سنة',
       switchPlayer:'(تبديل اللاعب)',
       opLabel:'العملية الحسابية', opAdd:'جمع +', opSub:'طرح −', opMul:'ضرب ×', opDiv:'قسمة ÷', opMix:'منوّع',
-      opPercent:'نسبة مئوية %', opExponent:'أُسس xⁿ', opSqrt:'جذر تربيعي √',
+      opPercent:'نسبة مئوية %', opExponent:'أُسس xⁿ', opSqrt:'جذر تربيعي √', opNumberRecognition:'🔢 التعرّف على الأرقام',
+      levelNameNumberRecognition:'التعرّف على الأرقام',
       hintPercent:'💡 اقسمي على 100 ثم اضربي في العدد', hintExponent:'💡 اضربي العدد في نفسه بعدد مرات الأُس', hintSqrt:'💡 دوّري على عدد مضروب في نفسه يساوي الرقم',
       tableFocusLabel:'التركيز على جدول', tableAll:'الكل',
       diffLabel:'فئة الأرقام (منازل العدد)',
@@ -2209,7 +2219,8 @@
       dashNoData:'لا توجد بيانات بعد', closeBtn:'إغلاق', secLabel:'ث',
       bucketAdd:'جمع', bucketSub:'طرح', bucketMul:'ضرب', bucketDiv:'قسمة',
       bucketCompound:'المسائل المركبة', bucketDecimals:'الأعداد العشرية', bucketFractions:'الكسور',
-      bucketPercent:'النسبة المئوية', bucketExponent:'الأُسس', bucketSqrt:'الجذر التربيعي', bucketAbacus:'الأباكوس'
+      bucketPercent:'النسبة المئوية', bucketExponent:'الأُسس', bucketSqrt:'الجذر التربيعي', bucketAbacus:'الأباكوس',
+      bucketNumberRecognition:'التعرّف على الأرقام'
     },
     en: {
       eyebrow:'Daily practice', title:'Mental Math',
@@ -2218,7 +2229,8 @@
       jasmineName:'Jasmine', jasmineAge:'11 years old',
       switchPlayer:'(Switch player)',
       opLabel:'Operation', opAdd:'Addition +', opSub:'Subtraction −', opMul:'Multiplication ×', opDiv:'Division ÷', opMix:'Mixed',
-      opPercent:'Percentage %', opExponent:'Exponents xⁿ', opSqrt:'Square root √',
+      opPercent:'Percentage %', opExponent:'Exponents xⁿ', opSqrt:'Square root √', opNumberRecognition:'🔢 Number recognition',
+      levelNameNumberRecognition:'Number recognition',
       hintPercent:'💡 Divide by 100, then multiply by the number', hintExponent:'💡 Multiply the number by itself the exponent number of times', hintSqrt:'💡 Find a number multiplied by itself that equals this',
       tableFocusLabel:'Focus on times table', tableAll:'All',
       diffLabel:'Number range',
@@ -2382,7 +2394,8 @@
       dashNoData:'No data yet', closeBtn:'Close', secLabel:'s',
       bucketAdd:'Addition', bucketSub:'Subtraction', bucketMul:'Multiplication', bucketDiv:'Division',
       bucketCompound:'Compound', bucketDecimals:'Decimals', bucketFractions:'Fractions',
-      bucketPercent:'Percentage', bucketExponent:'Exponents', bucketSqrt:'Square root', bucketAbacus:'Abacus'
+      bucketPercent:'Percentage', bucketExponent:'Exponents', bucketSqrt:'Square root', bucketAbacus:'Abacus',
+      bucketNumberRecognition:'Number recognition'
     }
   };
 
@@ -2550,7 +2563,7 @@
   }
   function updateTableFocusVisibility(){
     tableFocusGroup.classList.toggle('hidden', !(op==='mul' || op==='div' || op==='mix'));
-    diffMagnitudeGroup.classList.toggle('hidden', op==='percent' || op==='exponent' || op==='sqrt');
+    diffMagnitudeGroup.classList.toggle('hidden', op==='percent' || op==='exponent' || op==='sqrt' || op==='numberRecognition');
   }
   opChips.forEach(c=> c.addEventListener('click', ()=>{
     selectChip(opChips,'op',c.dataset.op, v=>op=v);
@@ -3864,6 +3877,17 @@
     return { text, ans:n, op:'sqrt' };
   }
 
+  const NUM_WORDS_AR = ['','واحد','اثنان','ثلاثة','أربعة','خمسة','ستة','سبعة','ثمانية','تسعة','عشرة',
+    'أحد عشر','اثنا عشر','ثلاثة عشر','أربعة عشر','خمسة عشر','ستة عشر','سبعة عشر','ثمانية عشر','تسعة عشر','عشرون'];
+  const NUM_WORDS_EN = ['','one','two','three','four','five','six','seven','eight','nine','ten',
+    'eleven','twelve','thirteen','fourteen','fifteen','sixteen','seventeen','eighteen','nineteen','twenty'];
+  function genNumberRecognitionProblem(){
+    const n = randInt(1, 20);
+    const word = currentLang === 'ar' ? NUM_WORDS_AR[n] : NUM_WORDS_EN[n];
+    const text = currentLang === 'ar' ? `اكتبي الرقم: «${word}»` : `Type the number: "${word}"`;
+    return { text, ans:n, op:'numberRecognition', isWord:true };
+  }
+
   function allowedOpsForCompound(){
     if(op === 'add') return ['+'];
     if(op === 'sub') return ['−'];
@@ -3985,6 +4009,7 @@
     if(op === 'percent'){ const p = genPercentProblem(); p.bucket = 'percent'; p.compactText = p.text; return p; }
     if(op === 'exponent'){ const p = genExponentProblem(); p.bucket = 'exponent'; p.compactText = p.text; return p; }
     if(op === 'sqrt'){ const p = genSqrtProblem(); p.bucket = 'sqrt'; p.compactText = p.text; return p; }
+    if(op === 'numberRecognition'){ const p = genNumberRecognitionProblem(); p.bucket = 'numberRecognition'; p.compactText = p.text; return p; }
     if(problemType === 'compound'){ const p = genCompoundProblem(compoundSteps); p.bucket = 'compound'; return p; }
     const p = genSimpleProblem();
     p.bucket = p.op;
@@ -4100,6 +4125,7 @@
      bucket (no invented per-difficulty stats that don't actually exist).
      Mastery = 70% accuracy + 30% speed-vs-target, needs 3+ attempts to show. ---------- */
   const KNOWLEDGE_LEVELS = [
+    { id:0,  bucket:'numberRecognition', icon:'🔢', nameKey:'levelNameNumberRecognition' },
     { id:1,  bucket:'add',       icon:'➕', nameKey:'levelNameAdd' },
     { id:2,  bucket:'sub',       icon:'➖', nameKey:'levelNameSub' },
     { id:3,  bucket:'mul',       icon:'✖️', nameKey:'levelNameMul' },
@@ -4112,7 +4138,7 @@
     { id:10, bucket:'compound',  icon:'🧩', nameKey:'levelNameCompound' },
     { id:11, bucket:'abacus',    icon:'🧮', nameKey:'levelNameAbacus' }
   ];
-  const LEVEL_TARGET_TIME = { add:6, sub:6, mul:8, div:8, decimals:10, fractions:10, compound:15, percent:10, exponent:10, sqrt:10, abacus:12 };
+  const LEVEL_TARGET_TIME = { numberRecognition:8, add:6, sub:6, mul:8, div:8, decimals:10, fractions:10, compound:15, percent:10, exponent:10, sqrt:10, abacus:12 };
   const MASTERY_THRESHOLD = 75;
 
   function computeLevelMastery(p, bucket){
@@ -4264,7 +4290,7 @@
         <button class="level-practice-btn" data-level-bucket="${level.bucket}">${t('levelPracticeBtn')}</button>
       `;
       row.querySelector('.level-practice-btn').addEventListener('click', ()=>{
-        if(['add','sub','mul','div','percent','exponent','sqrt'].includes(level.bucket)){
+        if(['add','sub','mul','div','percent','exponent','sqrt','numberRecognition'].includes(level.bucket)){
           selectChip(opChips, 'op', level.bucket, v=>op=v);
           updateTableFocusVisibility();
         } else if(level.bucket === 'decimals' || level.bucket === 'fractions'){
@@ -5124,7 +5150,7 @@
 
   missionStartBtn.addEventListener('click', ()=>{
     const recommendOp = missionStartBtn.dataset.recommendOp;
-    if(recommendOp && ['add','sub','mul','div','percent','exponent','sqrt'].includes(recommendOp)){
+    if(recommendOp && ['add','sub','mul','div','percent','exponent','sqrt','numberRecognition'].includes(recommendOp)){
       selectChip(opChips, 'op', recommendOp, v=>op=v);
       updateTableFocusVisibility();
     }
@@ -5824,6 +5850,18 @@
     clearInterval(racePollInterval);
     raceResultScreenEl.classList.add('hidden');
     goToLoginGate();
+  });
+
+  // accessibility: make non-<button> clickable text elements keyboard-navigable
+  // (covers elements present at page load; dynamically-injected small chips
+  // added later remain mouse/touch — a reasonable scope boundary)
+  document.querySelectorAll('.quit-link, .switch-player, .logout-text-link, .abacus-mode-tab, .link-line').forEach(el=>{
+    if(el.tagName === 'BUTTON' || el.tagName === 'A') return;
+    if(!el.hasAttribute('tabindex')) el.setAttribute('tabindex', '0');
+    if(!el.hasAttribute('role')) el.setAttribute('role', 'button');
+    el.addEventListener('keydown', e=>{
+      if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); el.click(); }
+    });
   });
 
   applyLanguage('ar');
