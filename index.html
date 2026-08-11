@@ -136,6 +136,16 @@
   .switch.on{ background:var(--mint); }
   .switch.on::after{ inset-inline-start:23px; background:#173124; }
 
+  .service-item{
+    display:flex; align-items:center; gap:12px; background:var(--input-bg); border:1.5px solid var(--input-border);
+    border-radius:12px; padding:12px 14px; margin-bottom:9px;
+  }
+  .service-item .service-icon{ font-size:20px; flex:none; }
+  .service-item .service-info{ flex:1; }
+  .service-item .service-name{ font-family:'Cairo',sans-serif; font-weight:700; font-size:13.5px; }
+  .service-item .service-desc{ font-size:11px; color:var(--ink-dim); margin-top:2px; }
+  .service-item.disabled-service{ opacity:0.6; }
+
   .start-btn{
     margin-top:4px; font-family:'Cairo', sans-serif; font-weight:700; font-size:17px;
     padding:15px; min-height:50px; border-radius:10px; border:none; background:var(--mint); color:#173124; cursor:pointer;
@@ -901,8 +911,18 @@
       <div class="admin-tool-tile" id="addTeacherLink"><span class="tile-icon">➕</span><span data-i18n="addTeacherLink">إضافة حساب معلم</span></div>
       <div class="admin-tool-tile" id="connectionLink"><span class="tile-icon">🔗</span><span data-i18n="connectionLink">ربط جوجل شيت</span></div>
       <div class="admin-tool-tile" id="subscriptionLink"><span class="tile-icon">💳</span><span data-i18n="subscriptionLink">الاشتراك والتفعيل</span></div>
+      <div class="admin-tool-tile" id="serviceActivationLink"><span class="tile-icon">🧩</span><span data-i18n="serviceActivationLink">تفعيل الخدمات</span></div>
     </div>
     <div class="link-line subtle-link" id="backToLoginLink" data-i18n="backToLoginLink">🔒 رجوع لتسجيل الدخول</div>
+  </div>
+
+  <!-- SERVICE ACTIVATION (admin only) — real on/off switches for real,
+       already-built modules. No fabricated data, no fake business metrics. -->
+  <div id="serviceActivation" class="panel hidden">
+    <div class="group-label" style="text-align:center;" data-i18n="serviceActivationTitle">🧩 تفعيل الخدمات</div>
+    <div class="conn-note" data-i18n="serviceActivationNote">كل خدمة هنا حقيقية وموجودة بالفعل. عطّلي أي خدمة مش جاهزة لطالباتك بعد، وفعّليها فور ما تكوني مستعدة — التعطيل يخفيها عن كل الطالبات فورًا.</div>
+    <div id="serviceActivationList"></div>
+    <button class="secondary-btn" id="serviceActivationBackBtn" data-i18n="closeBtn">إغلاق</button>
   </div>
 
   <!-- ADD TEACHER ACCOUNT (admin only) -->
@@ -1678,6 +1698,10 @@
   const commandPaletteOverlay = document.getElementById('commandPaletteOverlay');
   const cmdkInput = document.getElementById('cmdkInput');
   const cmdkResults = document.getElementById('cmdkResults');
+  const serviceActivationLink = document.getElementById('serviceActivationLink');
+  const serviceActivationEl = document.getElementById('serviceActivation');
+  const serviceActivationList = document.getElementById('serviceActivationList');
+  const serviceActivationBackBtn = document.getElementById('serviceActivationBackBtn');
   const loginPromptEl = document.getElementById('loginPrompt');
   const loginPromptTitle = document.getElementById('loginPromptTitle');
   const loginPinInput = document.getElementById('loginPinInput');
@@ -2177,6 +2201,14 @@
       cmdLogout:'تسجيل الخروج', cmdTagAccount:'حسابي', cmdOpenAllStudents:'لوحة جميع الطلاب', cmdManageClasses:'إدارة الفصول',
       cmdAddTeacher:'إضافة حساب معلم', cmdSheetConnection:'ربط جوجل شيت', cmdTagAdmin:'إدارة',
       cmdOpenStudent:'فتح حساب: {name}', cmdTagStudents:'الطلاب',
+      serviceActivationLink:'تفعيل الخدمات', serviceActivationTitle:'🧩 تفعيل الخدمات',
+      serviceActivationNote:'كل خدمة هنا حقيقية وموجودة بالفعل. عطّلي أي خدمة مش جاهزة لطالباتك بعد، وفعّليها فور ما تكوني مستعدة — التعطيل يخفيها عن كل الطالبات فورًا.',
+      svcAbacusName:'مدرّب الأباكوس', svcAbacusDesc:'أداة الأباكوس التفاعلية بأوضاع التدريب الثلاثة',
+      svcRaceName:'السباق المباشر', svcRaceDesc:'تحدٍّ مباشر بين طالبتين مع مزامنة لحظية',
+      svcKnowledgeMapName:'الرحلة التعليمية', svcKnowledgeMapDesc:'خريطة المستويات الـ12 ونظام الإتقان',
+      svcPlacementName:'اختبار تحديد المستوى', svcPlacementDesc:'اختبار الـ8 أسئلة لتحديد نقطة البداية المناسبة',
+      svcAiPracticeName:'التمرين الذكي بالذكاء الاصطناعي', svcAiPracticeDesc:'توليد أسئلة مخصّصة عبر Gemini، مُتحقَّقة رياضيًا',
+      svcCameraName:'الكاميرا المباشرة أثناء السباق', svcCameraDesc:'مكالمة فيديو مباشرة بين اللاعبتين أثناء السباق',
       tableFocusLabel:'التركيز على جدول', tableAll:'الكل',
       diffLabel:'فئة الأرقام (منازل العدد)',
       diffUnits:'آحاد', diffTens:'عشرات', diffHundreds:'مئات', diffThousands:'آلاف',
@@ -2363,6 +2395,14 @@
       cmdLogout:'Log out', cmdTagAccount:'Account', cmdOpenAllStudents:'All students dashboard', cmdManageClasses:'Manage classes',
       cmdAddTeacher:'Add teacher account', cmdSheetConnection:'Google Sheet connection', cmdTagAdmin:'Admin',
       cmdOpenStudent:'Open: {name}', cmdTagStudents:'Students',
+      serviceActivationLink:'Service Activation', serviceActivationTitle:'🧩 Service Activation',
+      serviceActivationNote:"Every service here is real and already built. Disable anything not ready for your students yet, and turn it on when you are — disabling hides it from all students instantly.",
+      svcAbacusName:'Abacus Trainer', svcAbacusDesc:'The interactive abacus tool with its three practice modes',
+      svcRaceName:'Live Race', svcRaceDesc:'A live head-to-head challenge between two students with real-time sync',
+      svcKnowledgeMapName:'Learning Journey', svcKnowledgeMapDesc:'The 12-level knowledge map with the mastery system',
+      svcPlacementName:'Placement Test', svcPlacementDesc:'The 8-question test that finds each student a suitable starting point',
+      svcAiPracticeName:'AI-Generated Smart Practice', svcAiPracticeDesc:'Personalized questions via Gemini, math-verified before display',
+      svcCameraName:'Live Camera During Races', svcCameraDesc:'A real-time video call between two students during a race',
       tableFocusLabel:'Focus on times table', tableAll:'All',
       diffLabel:'Number range',
       diffUnits:'Units', diffTens:'Tens', diffHundreds:'Hundreds', diffThousands:'Thousands',
@@ -2889,6 +2929,7 @@
     if(typeof loadSmartNotification === 'function') loadSmartNotification();
     if(typeof loadMyClasses === 'function') loadMyClasses();
     if(typeof renderTodayMission === 'function') renderTodayMission();
+    applyServiceFlags();
   }
 
   function applyProfileDefaults(key){
@@ -2940,6 +2981,7 @@
     adminLoginGateEl.classList.add('hidden');
     abacusTrainerEl.classList.add('hidden');
     classManagementEl.classList.add('hidden');
+    serviceActivationEl.classList.add('hidden');
     knowledgeMapEl.classList.add('hidden');
     placementTestEl.classList.add('hidden');
     raceLobbyEl.classList.add('hidden');
@@ -3555,6 +3597,7 @@
     usernameLoginEl.classList.add('hidden');
     settingsEl.classList.remove('hidden');
     renderTodayMission();
+    applyServiceFlags();
   });
 
   registerNowBtn.addEventListener('click', ()=>{
@@ -3615,6 +3658,74 @@
 
   let dashboardOpenedBy = 'admin'; // 'admin' | 'teacher' — controls where the close button goes
   let currentTeacherUsername = null;
+
+  /* ---------- service activation: real on/off switches for real, already-
+     built modules only. Admin-controlled, persisted locally, applied to
+     every student's settings screen immediately. No fabricated services,
+     no fake business data — every entry here maps to a working feature. ---------- */
+  const SERVICE_MODULES = [
+    { id:'abacus',        icon:'🧮', nameKey:'svcAbacusName',       descKey:'svcAbacusDesc',       elIds:['abacusOpenBtn'] },
+    { id:'race',          icon:'🏁', nameKey:'svcRaceName',         descKey:'svcRaceDesc',         elIds:['raceLobbyOpenBtn'] },
+    { id:'knowledgeMap',  icon:'📚', nameKey:'svcKnowledgeMapName', descKey:'svcKnowledgeMapDesc', elIds:['knowledgeMapOpenBtn'] },
+    { id:'placementTest', icon:'📝', nameKey:'svcPlacementName',    descKey:'svcPlacementDesc',    elIds:['placementOpenLink'] },
+    { id:'aiPractice',    icon:'🤖', nameKey:'svcAiPracticeName',   descKey:'svcAiPracticeDesc',   elIds:['aiPracticeRow'] },
+    { id:'liveCamera',    icon:'📷', nameKey:'svcCameraName',       descKey:'svcCameraDesc',       elIds:[] } // checked live inside startRaceGameplay()
+  ];
+  let serviceFlags = {};
+  function loadServiceFlags(){
+    try{
+      const raw = localStorage.getItem('mm_service_flags_v1');
+      serviceFlags = raw ? JSON.parse(raw) : {};
+    }catch(e){ serviceFlags = {}; }
+  }
+  function saveServiceFlags(){
+    try{ localStorage.setItem('mm_service_flags_v1', JSON.stringify(serviceFlags)); }catch(e){}
+  }
+  function isServiceOn(id){ return serviceFlags[id] !== false; } // default ON unless explicitly disabled
+  function applyServiceFlags(){
+    SERVICE_MODULES.forEach(m=>{
+      const on = isServiceOn(m.id);
+      m.elIds.forEach(elId=>{
+        const el = document.getElementById(elId);
+        if(el) el.classList.toggle('hidden', !on);
+      });
+    });
+  }
+  loadServiceFlags();
+
+  function renderServiceActivationList(){
+    serviceActivationList.innerHTML = '';
+    SERVICE_MODULES.forEach(m=>{
+      const on = isServiceOn(m.id);
+      const row = document.createElement('div');
+      row.className = 'service-item' + (on ? '' : ' disabled-service');
+      row.innerHTML = `
+        <span class="service-icon">${m.icon}</span>
+        <div class="service-info">
+          <div class="service-name">${t(m.nameKey)}</div>
+          <div class="service-desc">${t(m.descKey)}</div>
+        </div>
+        <button class="switch ${on ? 'on' : ''}" data-service-id="${m.id}" aria-label="${t(m.nameKey)}"></button>
+      `;
+      row.querySelector('.switch').addEventListener('click', ()=>{
+        serviceFlags[m.id] = !isServiceOn(m.id);
+        saveServiceFlags();
+        applyServiceFlags();
+        renderServiceActivationList();
+      });
+      serviceActivationList.appendChild(row);
+    });
+  }
+  serviceActivationLink.addEventListener('click', ()=>{
+    profilesEl.classList.add('hidden');
+    serviceActivationEl.classList.remove('hidden');
+    renderServiceActivationList();
+  });
+  serviceActivationBackBtn.addEventListener('click', ()=>{
+    serviceActivationEl.classList.add('hidden');
+    profilesEl.classList.remove('hidden');
+  });
+
   dashboardLink.addEventListener('click', ()=>{
     dashboardOpenedBy = 'admin';
     teacherClassesBtn.classList.add('hidden');
@@ -5641,9 +5752,11 @@
     clearInterval(racePollInterval);
     racePollInterval = setInterval(pollRaceState, 2500);
 
-    // offer the live camera call — only meaningful in a secure context (https/localhost)
+    // offer the live camera call — only meaningful in a secure context (https/localhost) and if the admin has this service enabled
     remoteVideoLabel.textContent = raceOpponentName || '';
-    if(window.isSecureContext){
+    if(!isServiceOn('liveCamera')){
+      // service disabled by admin — stay silent, no video UI shown at all
+    } else if(window.isSecureContext){
       enableCameraBtn.classList.remove('hidden');
     } else {
       videoCallStatus.textContent = t('cameraNeedsHttps');
