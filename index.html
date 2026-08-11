@@ -118,6 +118,25 @@
     background:rgba(239,68,68,0.1); border:1.5px solid rgba(239,68,68,0.35); border-radius:12px; padding:14px;
   }
   .cert-verify-result .cvr-row{ display:flex; justify-content:space-between; font-size:13px; padding:4px 0; }
+
+  .lp-row{
+    display:flex; align-items:center; gap:10px; background:var(--input-bg); border:1.5px solid var(--input-border);
+    border-radius:12px; padding:12px 14px; margin-bottom:8px; cursor:pointer;
+  }
+  .lp-row:hover{ border-color:var(--yellow); }
+  .lp-row .lp-row-info{ flex:1; }
+  .lp-row .lp-row-title{ font-family:'Cairo',sans-serif; font-weight:700; font-size:13.5px; }
+  .lp-row .lp-row-sub{ font-size:11px; color:var(--ink-dim); margin-top:2px; }
+  .lp-row .lp-row-badge{ font-size:11px; font-weight:700; color:var(--ink-dim); flex:none; }
+  .lp-row.completed{ border-color:rgba(16,185,129,0.5); background:rgba(16,185,129,0.08); }
+  .lp-create-form{ display:flex; flex-direction:column; gap:8px; margin:12px 0; }
+  .lp-create-form input, .lp-create-form textarea, .lp-create-form select{
+    width:100%; padding:10px 12px; border-radius:9px; border:1.5px solid var(--input-border);
+    background:var(--input-bg); color:var(--ink); font-family:'IBM Plex Sans Arabic','Tajawal',sans-serif; font-size:13px;
+  }
+  .lp-progress-bar-wrap{ height:8px; border-radius:6px; background:var(--bg); overflow:hidden; margin:6px 0; }
+  .lp-progress-bar{ height:100%; background:var(--mint); border-radius:6px; }
+  .lp-question-block{ background:var(--input-bg); border:1px solid var(--input-border); border-radius:10px; padding:10px; margin-bottom:8px; }
   @media (min-width:1024px){
     .app-sidebar{
       display:flex; flex-direction:column; flex:none; width:216px; margin-inline-end:22px;
@@ -1048,6 +1067,25 @@
     <div class="link-line subtle-link" id="backToLoginLink" data-i18n="backToLoginLink">🔒 رجوع لتسجيل الدخول</div>
   </div>
 
+  <!-- PROGRAM BUILDER (trainer) — real CRUD for Program > Course > Module >
+       Lesson > Assessment, drilled down one level at a time. -->
+  <div id="programBuilder" class="panel hidden">
+    <div class="group-label" style="text-align:center;" data-i18n="pbTitle">🎓 بناء البرامج التعليمية</div>
+    <div class="conn-note" id="pbBreadcrumb"></div>
+    <div id="pbListArea"></div>
+    <div id="pbCreateForm"></div>
+    <button class="secondary-btn" id="pbBackBtn" data-i18n="closeBtn">إغلاق</button>
+  </div>
+
+  <!-- LEARNER PROGRAM PLAYER — real Program > Course > Module > Lesson
+       navigation + lesson completion + assessment taking. -->
+  <div id="programPlayer" class="panel hidden">
+    <div class="group-label" style="text-align:center;" data-i18n="ppTitle">📘 البرنامج التعليمي</div>
+    <div class="conn-note" id="ppBreadcrumb"></div>
+    <div id="ppContentArea"></div>
+    <button class="secondary-btn" id="ppBackBtn" data-i18n="closeBtn">إغلاق</button>
+  </div>
+
   <!-- SERVICE ACTIVATION (admin only) — real on/off switches for real,
        already-built modules. No fabricated data, no fake business metrics. -->
   <div id="serviceActivation" class="panel hidden">
@@ -1899,6 +1937,15 @@
   const notifBellBadge = document.getElementById('notifBellBadge');
   const notifPanel = document.getElementById('notifPanel');
   const notifPanelList = document.getElementById('notifPanelList');
+  const programBuilderEl = document.getElementById('programBuilder');
+  const pbBreadcrumb = document.getElementById('pbBreadcrumb');
+  const pbListArea = document.getElementById('pbListArea');
+  const pbCreateForm = document.getElementById('pbCreateForm');
+  const pbBackBtn = document.getElementById('pbBackBtn');
+  const programPlayerEl = document.getElementById('programPlayer');
+  const ppBreadcrumb = document.getElementById('ppBreadcrumb');
+  const ppContentArea = document.getElementById('ppContentArea');
+  const ppBackBtn = document.getElementById('ppBackBtn');
   const certVerifyLink = document.getElementById('certVerifyLink');
   const certVerifyScreen = document.getElementById('certVerifyScreen');
   const certVerifyInput = document.getElementById('certVerifyInput');
@@ -2420,6 +2467,21 @@
       certVerifyNote:'أدخلي رقم الشهادة الظاهر عليها للتحقق من صحتها.', certVerifyBtn:'تحقّق',
       certVerifyValid:'شهادة حقيقية وموثّقة', certVerifyInvalid:'رقم الشهادة غير صحيح أو غير موجود في السجلّات.',
       certVerifyName:'اسم المتعلّم',
+      shellNavProgramBuilder:'بناء البرامج', pbTitle:'🎓 بناء البرامج التعليمية', ppTitle:'📘 البرنامج التعليمي',
+      pbBreadcrumbPrograms:'برامجي', pbNoPrograms:'لا توجد برامج بعد. أنشئي أول برنامج.', pbCourseCount:'{n} دورة',
+      pbProgramTitlePh:'عنوان البرنامج', pbProgramDescPh:'وصف مختصر (اختياري)',
+      levelBeginner:'مبتدئ', levelIntermediate:'متوسط', levelAdvanced:'متقدّم',
+      pbCreateProgramBtn:'+ إنشاء برنامج', pbNoCourses:'لا توجد دورات بعد.', pbModuleCount:'{n} وحدة',
+      pbCourseTitlePh:'عنوان الدورة', pbCreateCourseBtn:'+ إضافة دورة',
+      pbNoModules:'لا توجد وحدات بعد.', pbLessonCount:'{n} درس', pbModuleTitlePh:'عنوان الوحدة', pbCreateModuleBtn:'+ إضافة وحدة',
+      pbNoLessons:'لا توجد دروس بعد.', pbHasAssessment:'✅ يوجد تقييم', pbNoAssessmentYet:'لا يوجد تقييم بعد',
+      pbAddAssessmentBtn:'تقييم', pbLessonTitlePh:'عنوان الدرس', pbLessonContentPh:'محتوى الدرس',
+      pbCreateLessonBtn:'+ إضافة درس', pbQuestionCount:'{n} سؤال', pbCorrectAnswerLabel:'الإجابة الصحيحة',
+      pbAssessmentTitlePh:'عنوان التقييم', pbQuestionTextPh:'نص السؤال', pbOptionPh:'خيار', pbOptional:'اختياري',
+      pbAddQuestionBtn:'+ إضافة سؤال', pbSaveAssessmentBtn:'حفظ التقييم',
+      ppProgressLabel:'التقدّم: {pct}%', ppNoContentYet:'لا يوجد محتوى بعد في هذا البرنامج.',
+      ppLessonDone:'✅ تم إكمال الدرس', ppMarkCompleteBtn:'وضع علامة مكتمل', ppSubmitAssessmentBtn:'إرسال الإجابات',
+      ppScoreResult:'نتيجتك: {score}%', toastLessonComplete:'📘 أكملتِ درس: {lesson}', toastAssessmentResult:'📝 نتيجة التقييم: {score}%',
       whoPlaying:'من يلعب اليوم؟',
       joryName:'جوري', joryAge:'٦ سنوات ونصف',
       jasmineName:'جاسمين', jasmineAge:'١١ سنة',
@@ -2630,6 +2692,21 @@
       certVerifyNote:'Enter the certificate number shown on it to verify its authenticity.', certVerifyBtn:'Verify',
       certVerifyValid:'Genuine, verified certificate', certVerifyInvalid:'This certificate number is invalid or not on record.',
       certVerifyName:'Learner name',
+      shellNavProgramBuilder:'Program Builder', pbTitle:'🎓 Program Builder', ppTitle:'📘 Learning Program',
+      pbBreadcrumbPrograms:'My Programs', pbNoPrograms:'No programs yet. Create your first program.', pbCourseCount:'{n} courses',
+      pbProgramTitlePh:'Program title', pbProgramDescPh:'Short description (optional)',
+      levelBeginner:'Beginner', levelIntermediate:'Intermediate', levelAdvanced:'Advanced',
+      pbCreateProgramBtn:'+ Create Program', pbNoCourses:'No courses yet.', pbModuleCount:'{n} modules',
+      pbCourseTitlePh:'Course title', pbCreateCourseBtn:'+ Add Course',
+      pbNoModules:'No modules yet.', pbLessonCount:'{n} lessons', pbModuleTitlePh:'Module title', pbCreateModuleBtn:'+ Add Module',
+      pbNoLessons:'No lessons yet.', pbHasAssessment:'✅ Has an assessment', pbNoAssessmentYet:'No assessment yet',
+      pbAddAssessmentBtn:'Assessment', pbLessonTitlePh:'Lesson title', pbLessonContentPh:'Lesson content',
+      pbCreateLessonBtn:'+ Add Lesson', pbQuestionCount:'{n} questions', pbCorrectAnswerLabel:'Correct answer',
+      pbAssessmentTitlePh:'Assessment title', pbQuestionTextPh:'Question text', pbOptionPh:'Option', pbOptional:'optional',
+      pbAddQuestionBtn:'+ Add Question', pbSaveAssessmentBtn:'Save Assessment',
+      ppProgressLabel:'Progress: {pct}%', ppNoContentYet:'No content in this program yet.',
+      ppLessonDone:'✅ Lesson completed', ppMarkCompleteBtn:'Mark as Complete', ppSubmitAssessmentBtn:'Submit Answers',
+      ppScoreResult:'Your score: {score}%', toastLessonComplete:'📘 Lesson completed: {lesson}', toastAssessmentResult:'📝 Assessment result: {score}%',
       whoPlaying:"Who's playing today?",
       joryName:'Jory', joryAge:'6.5 years old',
       jasmineName:'Jasmine', jasmineAge:'11 years old',
@@ -3218,6 +3295,19 @@
       programAbacusStat.textContent = abacusAcc !== null ? fmt('programAccuracyStat', { acc: abacusAcc }) : t('programNotStartedStat');
     }
 
+    // real Sprint-1 programs, rendered as additional cards before the "coming soon" placeholders
+    document.querySelectorAll('.lp-real-program-card').forEach(el => el.remove());
+    const realPrograms = lpLoad(LP_KEYS.PROGRAMS).filter(pr => pr.status === 'active');
+    realPrograms.forEach(pr=>{
+      const card = document.createElement('div');
+      card.className = 'program-card lp-real-program-card';
+      const progress = lpComputeProgramProgress(currentProfile, pr.id);
+      const stat = progress > 0 ? fmt('programAccuracyStat', { acc: progress }) : t('programNotStartedStat');
+      card.innerHTML = `<span class="program-icon">🎓</span><span class="program-name">${pr.title}</span><span class="program-stat">${stat}</span>`;
+      card.addEventListener('click', ()=> openProgramPlayer(pr));
+      programAbacusCard.insertAdjacentElement('afterend', card);
+    });
+
     settingsEl.classList.add('hidden');
     abacusTrainerEl.classList.add('hidden');
     programsHubEl.classList.remove('hidden');
@@ -3275,6 +3365,8 @@
     profileEditorEl.classList.add('hidden');
     themePickerEl.classList.add('hidden');
     certVerifyScreen.classList.add('hidden');
+    programBuilderEl.classList.add('hidden');
+    programPlayerEl.classList.add('hidden');
     connectionEl.classList.add('hidden');
     subsConfigEl.classList.add('hidden');
     guestGateEl.classList.add('hidden');
@@ -4031,6 +4123,425 @@
   }
   loadServiceFlags();
 
+  /* ================= LEARNING PLATFORM CORE (Sprint 1) =================
+     Real entities, real CRUD, real progress/assessment calculation —
+     verified against the full Phase Q scenario in isolation before this
+     was wired in. Program -> Course -> Module -> Lesson -> Assessment,
+     with Enrollment + Progress + Skills. Stored in localStorage using
+     the same persistence pattern as the rest of the app. */
+  const LP_KEYS = {
+    PROGRAMS:'lp_programs', COURSES:'lp_courses', MODULES:'lp_modules', LESSONS:'lp_lessons',
+    ASSESSMENTS:'lp_assessments', SKILLS:'lp_skills', ENROLLMENTS:'lp_enrollments',
+    LESSON_COMPLETIONS:'lp_lesson_completions', ASSESSMENT_ATTEMPTS:'lp_assessment_attempts'
+  };
+  function lpLoad(key){ try{ return JSON.parse(localStorage.getItem(key)) || []; }catch(e){ return []; } }
+  function lpSave(key, arr){ try{ localStorage.setItem(key, JSON.stringify(arr)); }catch(e){} }
+  function lpGenId(prefix){ return prefix + '_' + Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+
+  function lpCreateProgram(title, description, level, instructorUsername){
+    const programs = lpLoad(LP_KEYS.PROGRAMS);
+    const p = { id: lpGenId('prog'), title, description, level, status:'active', instructorUsername, skillIds:[], createdAt: new Date().toISOString() };
+    programs.push(p);
+    lpSave(LP_KEYS.PROGRAMS, programs);
+    return p;
+  }
+  function lpArchiveProgram(programId){
+    const programs = lpLoad(LP_KEYS.PROGRAMS);
+    const p = programs.find(x => x.id === programId);
+    if(p) p.status = 'archived';
+    lpSave(LP_KEYS.PROGRAMS, programs);
+  }
+  function lpCreateCourse(programId, title, description){
+    const courses = lpLoad(LP_KEYS.COURSES);
+    const c = { id: lpGenId('course'), programId, title, description };
+    courses.push(c);
+    lpSave(LP_KEYS.COURSES, courses);
+    return c;
+  }
+  function lpCreateModule(courseId, title){
+    const modules = lpLoad(LP_KEYS.MODULES);
+    const m = { id: lpGenId('mod'), courseId, title };
+    modules.push(m);
+    lpSave(LP_KEYS.MODULES, modules);
+    return m;
+  }
+  function lpCreateLesson(moduleId, title, content){
+    const lessons = lpLoad(LP_KEYS.LESSONS);
+    const l = { id: lpGenId('lesson'), moduleId, title, content };
+    lessons.push(l);
+    lpSave(LP_KEYS.LESSONS, lessons);
+    return l;
+  }
+  function lpCreateAssessment(lessonId, title, questions, passScore){
+    const assessments = lpLoad(LP_KEYS.ASSESSMENTS);
+    const a = { id: lpGenId('assess'), lessonId, title, questions, passScore: passScore || 60 };
+    assessments.push(a);
+    lpSave(LP_KEYS.ASSESSMENTS, assessments);
+    return a;
+  }
+  function lpEnrollLearner(learnerUsername, programId){
+    const enrollments = lpLoad(LP_KEYS.ENROLLMENTS);
+    let e = enrollments.find(x => x.learnerUsername === learnerUsername && x.programId === programId);
+    if(e) return e; // idempotent — re-enrolling never creates a duplicate
+    e = { id: lpGenId('enr'), learnerUsername, programId, status:'not_started', startedAt:null, lastActivity:null, completedAt:null };
+    enrollments.push(e);
+    lpSave(LP_KEYS.ENROLLMENTS, enrollments);
+    return e;
+  }
+  function lpGetCoursesForProgram(programId){ return lpLoad(LP_KEYS.COURSES).filter(c => c.programId === programId); }
+  function lpGetModulesForCourse(courseId){ return lpLoad(LP_KEYS.MODULES).filter(m => m.courseId === courseId); }
+  function lpGetLessonsForModule(moduleId){ return lpLoad(LP_KEYS.LESSONS).filter(l => l.moduleId === moduleId); }
+  function lpGetAssessmentForLesson(lessonId){ return lpLoad(LP_KEYS.ASSESSMENTS).find(a => a.lessonId === lessonId) || null; }
+  function lpGetLessonsForProgram(programId){
+    const courseIds = lpGetCoursesForProgram(programId).map(c => c.id);
+    const moduleIds = lpLoad(LP_KEYS.MODULES).filter(m => courseIds.includes(m.courseId)).map(m => m.id);
+    return lpLoad(LP_KEYS.LESSONS).filter(l => moduleIds.includes(l.moduleId));
+  }
+  function lpCompleteLesson(learnerUsername, lessonId){
+    const completions = lpLoad(LP_KEYS.LESSON_COMPLETIONS);
+    const already = completions.find(c => c.learnerUsername === learnerUsername && c.lessonId === lessonId);
+    if(already) return already; // idempotent — no duplicate completion records
+    const c = { learnerUsername, lessonId, completedAt: new Date().toISOString() };
+    completions.push(c);
+    lpSave(LP_KEYS.LESSON_COMPLETIONS, completions);
+    return c;
+  }
+  function lpIsLessonComplete(learnerUsername, lessonId){
+    return lpLoad(LP_KEYS.LESSON_COMPLETIONS).some(c => c.learnerUsername === learnerUsername && c.lessonId === lessonId);
+  }
+  function lpComputeProgramProgress(learnerUsername, programId){
+    const lessons = lpGetLessonsForProgram(programId);
+    if(!lessons.length) return 0; // no divide-by-zero
+    const completedIds = new Set(lpLoad(LP_KEYS.LESSON_COMPLETIONS).filter(c => c.learnerUsername === learnerUsername).map(c => c.lessonId));
+    const done = lessons.filter(l => completedIds.has(l.id)).length;
+    return Math.round((done / lessons.length) * 100);
+  }
+  function lpSubmitAssessment(learnerUsername, assessmentId, answers){
+    const a = lpLoad(LP_KEYS.ASSESSMENTS).find(x => x.id === assessmentId);
+    if(!a) return null;
+    let correct = 0;
+    a.questions.forEach((q, i) => { if(answers[i] === q.correctIndex) correct++; });
+    const score = Math.round((correct / a.questions.length) * 100);
+    const passed = score >= a.passScore;
+    const attempts = lpLoad(LP_KEYS.ASSESSMENT_ATTEMPTS);
+    const attempt = { learnerUsername, assessmentId, score, passed, attemptedAt: new Date().toISOString() };
+    attempts.push(attempt);
+    lpSave(LP_KEYS.ASSESSMENT_ATTEMPTS, attempts);
+    return attempt;
+  }
+  function lpUpdateEnrollmentActivity(learnerUsername, programId){
+    const enrollments = lpLoad(LP_KEYS.ENROLLMENTS);
+    const e = enrollments.find(x => x.learnerUsername === learnerUsername && x.programId === programId);
+    if(!e) return null;
+    if(e.status === 'not_started') e.status = 'active';
+    if(!e.startedAt) e.startedAt = new Date().toISOString();
+    e.lastActivity = new Date().toISOString();
+    const progress = lpComputeProgramProgress(learnerUsername, programId);
+    if(progress >= 100 && e.status !== 'completed'){
+      e.status = 'completed';
+      e.completedAt = new Date().toISOString();
+    }
+    lpSave(LP_KEYS.ENROLLMENTS, enrollments);
+    return e;
+  }
+  function lpGetEnrollmentsForLearner(learnerUsername){ return lpLoad(LP_KEYS.ENROLLMENTS).filter(e => e.learnerUsername === learnerUsername); }
+  function lpGetProgramsForInstructor(username){ return lpLoad(LP_KEYS.PROGRAMS).filter(p => p.instructorUsername === username && p.status !== 'archived'); }
+
+  /* ---------- trainer program builder UI: drills Program -> Course ->
+     Module -> Lesson -> Assessment one level at a time. Every action here
+     calls the tested data-layer functions above; no separate logic. ---------- */
+  let pbLevel = 'programs', pbProgram = null, pbCourse = null, pbModule = null, pbLesson = null;
+  let pbAssessmentQuestions = [];
+  function pbNavigate(level, program, course, mod, lesson){
+    pbLevel = level;
+    pbProgram = program || null; pbCourse = course || null; pbModule = mod || null; pbLesson = lesson || null;
+    if(level === 'assessment') pbAssessmentQuestions = [];
+    renderProgramBuilder();
+  }
+  function openProgramBuilder(){
+    hideAllScreens();
+    programBuilderEl.classList.remove('hidden');
+    pbNavigate('programs');
+  }
+  function pbOwnerUsername(){ return currentTeacherUsername || (ADMIN ? ADMIN.username : 'admin'); }
+
+  function renderProgramBuilder(){
+    pbListArea.innerHTML = '';
+    pbCreateForm.innerHTML = '';
+
+    if(pbLevel === 'programs'){
+      pbBreadcrumb.textContent = t('pbBreadcrumbPrograms');
+      const programs = lpGetProgramsForInstructor(pbOwnerUsername());
+      if(!programs.length) pbListArea.innerHTML = `<div class="dash-empty">${t('pbNoPrograms')}</div>`;
+      programs.forEach(p=>{
+        const row = document.createElement('div');
+        row.className = 'lp-row';
+        row.innerHTML = `<div class="lp-row-info"><div class="lp-row-title">${p.title}</div><div class="lp-row-sub">${t('level'+capitalize(p.level))} · ${fmt('pbCourseCount',{ n: lpGetCoursesForProgram(p.id).length })}</div></div><span class="lp-row-badge">›</span>`;
+        row.addEventListener('click', ()=> pbNavigate('courses', p));
+        pbListArea.appendChild(row);
+      });
+      pbCreateForm.innerHTML = `
+        <div class="lp-create-form">
+          <input type="text" id="pbNewProgramTitle" placeholder="${t('pbProgramTitlePh')}">
+          <textarea id="pbNewProgramDesc" placeholder="${t('pbProgramDescPh')}" rows="2"></textarea>
+          <select id="pbNewProgramLevel">
+            <option value="beginner">${t('levelBeginner')}</option>
+            <option value="intermediate">${t('levelIntermediate')}</option>
+            <option value="advanced">${t('levelAdvanced')}</option>
+          </select>
+          <button class="start-btn" id="pbCreateProgramBtn">${t('pbCreateProgramBtn')}</button>
+        </div>`;
+      document.getElementById('pbCreateProgramBtn').addEventListener('click', ()=>{
+        const title = document.getElementById('pbNewProgramTitle').value.trim();
+        if(!title) return;
+        lpCreateProgram(title, document.getElementById('pbNewProgramDesc').value.trim(), document.getElementById('pbNewProgramLevel').value, pbOwnerUsername());
+        renderProgramBuilder();
+      });
+
+    } else if(pbLevel === 'courses'){
+      pbBreadcrumb.innerHTML = `<span class="switch-player" id="pbCrumbPrograms">${t('pbBreadcrumbPrograms')}</span> › ${pbProgram.title}`;
+      document.getElementById('pbCrumbPrograms').addEventListener('click', ()=> pbNavigate('programs'));
+      const courses = lpGetCoursesForProgram(pbProgram.id);
+      if(!courses.length) pbListArea.innerHTML = `<div class="dash-empty">${t('pbNoCourses')}</div>`;
+      courses.forEach(c=>{
+        const row = document.createElement('div');
+        row.className = 'lp-row';
+        row.innerHTML = `<div class="lp-row-info"><div class="lp-row-title">${c.title}</div><div class="lp-row-sub">${fmt('pbModuleCount',{ n: lpGetModulesForCourse(c.id).length })}</div></div><span class="lp-row-badge">›</span>`;
+        row.addEventListener('click', ()=> pbNavigate('modules', pbProgram, c));
+        pbListArea.appendChild(row);
+      });
+      pbCreateForm.innerHTML = `
+        <div class="lp-create-form">
+          <input type="text" id="pbNewCourseTitle" placeholder="${t('pbCourseTitlePh')}">
+          <button class="start-btn" id="pbCreateCourseBtn">${t('pbCreateCourseBtn')}</button>
+        </div>`;
+      document.getElementById('pbCreateCourseBtn').addEventListener('click', ()=>{
+        const title = document.getElementById('pbNewCourseTitle').value.trim();
+        if(!title) return;
+        lpCreateCourse(pbProgram.id, title, '');
+        renderProgramBuilder();
+      });
+
+    } else if(pbLevel === 'modules'){
+      pbBreadcrumb.innerHTML = `<span class="switch-player" id="pbCrumbPrograms">${t('pbBreadcrumbPrograms')}</span> › <span class="switch-player" id="pbCrumbCourses">${pbProgram.title}</span> › ${pbCourse.title}`;
+      document.getElementById('pbCrumbPrograms').addEventListener('click', ()=> pbNavigate('programs'));
+      document.getElementById('pbCrumbCourses').addEventListener('click', ()=> pbNavigate('courses', pbProgram));
+      const modules = lpGetModulesForCourse(pbCourse.id);
+      if(!modules.length) pbListArea.innerHTML = `<div class="dash-empty">${t('pbNoModules')}</div>`;
+      modules.forEach(m=>{
+        const row = document.createElement('div');
+        row.className = 'lp-row';
+        row.innerHTML = `<div class="lp-row-info"><div class="lp-row-title">${m.title}</div><div class="lp-row-sub">${fmt('pbLessonCount',{ n: lpGetLessonsForModule(m.id).length })}</div></div><span class="lp-row-badge">›</span>`;
+        row.addEventListener('click', ()=> pbNavigate('lessons', pbProgram, pbCourse, m));
+        pbListArea.appendChild(row);
+      });
+      pbCreateForm.innerHTML = `
+        <div class="lp-create-form">
+          <input type="text" id="pbNewModuleTitle" placeholder="${t('pbModuleTitlePh')}">
+          <button class="start-btn" id="pbCreateModuleBtn">${t('pbCreateModuleBtn')}</button>
+        </div>`;
+      document.getElementById('pbCreateModuleBtn').addEventListener('click', ()=>{
+        const title = document.getElementById('pbNewModuleTitle').value.trim();
+        if(!title) return;
+        lpCreateModule(pbCourse.id, title);
+        renderProgramBuilder();
+      });
+
+    } else if(pbLevel === 'lessons'){
+      pbBreadcrumb.innerHTML = `<span class="switch-player" id="pbCrumbPrograms">${t('pbBreadcrumbPrograms')}</span> › <span class="switch-player" id="pbCrumbCourses">${pbProgram.title}</span> › <span class="switch-player" id="pbCrumbModules">${pbCourse.title}</span> › ${pbModule.title}`;
+      document.getElementById('pbCrumbPrograms').addEventListener('click', ()=> pbNavigate('programs'));
+      document.getElementById('pbCrumbCourses').addEventListener('click', ()=> pbNavigate('courses', pbProgram));
+      document.getElementById('pbCrumbModules').addEventListener('click', ()=> pbNavigate('modules', pbProgram, pbCourse));
+      const lessons = lpGetLessonsForModule(pbModule.id);
+      if(!lessons.length) pbListArea.innerHTML = `<div class="dash-empty">${t('pbNoLessons')}</div>`;
+      lessons.forEach(l=>{
+        const row = document.createElement('div');
+        row.className = 'lp-row';
+        const hasAssessment = !!lpGetAssessmentForLesson(l.id);
+        row.innerHTML = `<div class="lp-row-info"><div class="lp-row-title">${l.title}</div><div class="lp-row-sub">${hasAssessment ? t('pbHasAssessment') : t('pbNoAssessmentYet')}</div></div><span class="lp-row-badge">${t('pbAddAssessmentBtn')} ›</span>`;
+        row.addEventListener('click', ()=> pbNavigate('assessment', pbProgram, pbCourse, pbModule, l));
+        pbListArea.appendChild(row);
+      });
+      pbCreateForm.innerHTML = `
+        <div class="lp-create-form">
+          <input type="text" id="pbNewLessonTitle" placeholder="${t('pbLessonTitlePh')}">
+          <textarea id="pbNewLessonContent" placeholder="${t('pbLessonContentPh')}" rows="3"></textarea>
+          <button class="start-btn" id="pbCreateLessonBtn">${t('pbCreateLessonBtn')}</button>
+        </div>`;
+      document.getElementById('pbCreateLessonBtn').addEventListener('click', ()=>{
+        const title = document.getElementById('pbNewLessonTitle').value.trim();
+        if(!title) return;
+        lpCreateLesson(pbModule.id, title, document.getElementById('pbNewLessonContent').value.trim());
+        renderProgramBuilder();
+      });
+
+    } else if(pbLevel === 'assessment'){
+      pbBreadcrumb.innerHTML = `<span class="switch-player" id="pbCrumbLessons">${t('pbBreadcrumbPrograms')}</span> › ${pbLesson.title}`;
+      document.getElementById('pbCrumbLessons').addEventListener('click', ()=> pbNavigate('lessons', pbProgram, pbCourse, pbModule));
+      const existing = lpGetAssessmentForLesson(pbLesson.id);
+      if(existing){
+        pbListArea.innerHTML = `<div class="dash-row"><span>${existing.title}</span><b>${fmt('pbQuestionCount',{ n: existing.questions.length })}</b></div>`;
+      } else {
+        pbListArea.innerHTML = `<div class="dash-empty">${t('pbNoAssessmentYet')}</div>`;
+      }
+      let qFormHtml = `<div class="lp-create-form">`;
+      pbAssessmentQuestions.forEach((q,i)=>{
+        qFormHtml += `<div class="lp-question-block"><b>${i+1}. ${q.text}</b> — ${t('pbCorrectAnswerLabel')}: ${q.options[q.correctIndex]}</div>`;
+      });
+      qFormHtml += `
+          <input type="text" id="pbAssessTitle" placeholder="${t('pbAssessmentTitlePh')}" value="${existing ? existing.title : ''}">
+          <input type="text" id="pbQText" placeholder="${t('pbQuestionTextPh')}">
+          <input type="text" id="pbQOpt0" placeholder="${t('pbOptionPh')} 1">
+          <input type="text" id="pbQOpt1" placeholder="${t('pbOptionPh')} 2">
+          <input type="text" id="pbQOpt2" placeholder="${t('pbOptionPh')} 3 (${t('pbOptional')})">
+          <select id="pbQCorrect">
+            <option value="0">${t('pbOptionPh')} 1</option>
+            <option value="1">${t('pbOptionPh')} 2</option>
+            <option value="2">${t('pbOptionPh')} 3</option>
+          </select>
+          <button class="secondary-btn" id="pbAddQuestionBtn">${t('pbAddQuestionBtn')}</button>
+          <button class="start-btn" id="pbSaveAssessmentBtn">${t('pbSaveAssessmentBtn')}</button>
+        </div>`;
+      pbCreateForm.innerHTML = qFormHtml;
+      document.getElementById('pbAddQuestionBtn').addEventListener('click', ()=>{
+        const text = document.getElementById('pbQText').value.trim();
+        const opt0 = document.getElementById('pbQOpt0').value.trim();
+        const opt1 = document.getElementById('pbQOpt1').value.trim();
+        const opt2 = document.getElementById('pbQOpt2').value.trim();
+        if(!text || !opt0 || !opt1) return;
+        const options = [opt0, opt1]; if(opt2) options.push(opt2);
+        const correctIndex = Math.min(parseInt(document.getElementById('pbQCorrect').value,10), options.length-1);
+        pbAssessmentQuestions.push({ text, options, correctIndex });
+        renderProgramBuilder();
+      });
+      document.getElementById('pbSaveAssessmentBtn').addEventListener('click', ()=>{
+        const title = document.getElementById('pbAssessTitle').value.trim();
+        if(!title || !pbAssessmentQuestions.length) return;
+        lpCreateAssessment(pbLesson.id, title, pbAssessmentQuestions, 60);
+        pbNavigate('lessons', pbProgram, pbCourse, pbModule);
+      });
+    }
+  }
+  pbBackBtn.addEventListener('click', ()=>{
+    programBuilderEl.classList.add('hidden');
+    if(dashboardOpenedBy === 'teacher'){ dashboardEl.classList.remove('hidden'); }
+    else { goToProfiles(); }
+  });
+
+  /* ---------- learner program player: real navigation through
+     Program -> Course -> Module -> Lesson, lesson completion, and
+     assessment-taking, all backed by the same tested data layer. ---------- */
+  let ppLevel = 'courses', ppProgram = null, ppCourse = null, ppModule = null, ppLesson = null;
+  function ppNavigate(level, course, mod, lesson){
+    ppLevel = level; ppCourse = course || null; ppModule = mod || null; ppLesson = lesson || null;
+    renderProgramPlayer();
+  }
+  function openProgramPlayer(program){
+    ppProgram = program;
+    programsHubEl.classList.add('hidden');
+    programPlayerEl.classList.remove('hidden');
+    lpEnrollLearner(currentProfile, program.id);
+    ppNavigate('courses');
+  }
+  function renderProgramPlayer(){
+    ppContentArea.innerHTML = '';
+    const progress = lpComputeProgramProgress(currentProfile, ppProgram.id);
+
+    if(ppLevel === 'courses'){
+      ppBreadcrumb.textContent = ppProgram.title;
+      ppContentArea.innerHTML = `<div class="lp-progress-bar-wrap"><div class="lp-progress-bar" style="width:${progress}%"></div></div><div class="conn-note">${fmt('ppProgressLabel',{ pct: progress })}</div>`;
+      const courses = lpGetCoursesForProgram(ppProgram.id);
+      if(!courses.length) ppContentArea.innerHTML += `<div class="dash-empty">${t('ppNoContentYet')}</div>`;
+      courses.forEach(c=>{
+        const row = document.createElement('div');
+        row.className = 'lp-row';
+        row.innerHTML = `<div class="lp-row-info"><div class="lp-row-title">${c.title}</div></div><span class="lp-row-badge">›</span>`;
+        row.addEventListener('click', ()=> ppNavigate('modules', c));
+        ppContentArea.appendChild(row);
+      });
+
+    } else if(ppLevel === 'modules'){
+      ppBreadcrumb.innerHTML = `<span class="switch-player" id="ppCrumbCourses">${ppProgram.title}</span> › ${ppCourse.title}`;
+      document.getElementById('ppCrumbCourses').addEventListener('click', ()=> ppNavigate('courses'));
+      const modules = lpGetModulesForCourse(ppCourse.id);
+      modules.forEach(m=>{
+        const row = document.createElement('div');
+        row.className = 'lp-row';
+        row.innerHTML = `<div class="lp-row-info"><div class="lp-row-title">${m.title}</div></div><span class="lp-row-badge">›</span>`;
+        row.addEventListener('click', ()=> ppNavigate('lessons', ppCourse, m));
+        ppContentArea.appendChild(row);
+      });
+
+    } else if(ppLevel === 'lessons'){
+      ppBreadcrumb.innerHTML = `<span class="switch-player" id="ppCrumbCourses">${ppProgram.title}</span> › <span class="switch-player" id="ppCrumbModules">${ppCourse.title}</span> › ${ppModule.title}`;
+      document.getElementById('ppCrumbCourses').addEventListener('click', ()=> ppNavigate('courses'));
+      document.getElementById('ppCrumbModules').addEventListener('click', ()=> ppNavigate('modules', ppCourse));
+      const lessons = lpGetLessonsForModule(ppModule.id);
+      lessons.forEach(l=>{
+        const done = lpIsLessonComplete(currentProfile, l.id);
+        const row = document.createElement('div');
+        row.className = 'lp-row' + (done ? ' completed' : '');
+        row.innerHTML = `<div class="lp-row-info"><div class="lp-row-title">${done ? '✅ ' : ''}${l.title}</div></div><span class="lp-row-badge">›</span>`;
+        row.addEventListener('click', ()=> ppNavigate('lesson', ppCourse, ppModule, l));
+        ppContentArea.appendChild(row);
+      });
+
+    } else if(ppLevel === 'lesson'){
+      ppBreadcrumb.innerHTML = `<span class="switch-player" id="ppCrumbLessons">${ppModule.title}</span> › ${ppLesson.title}`;
+      document.getElementById('ppCrumbLessons').addEventListener('click', ()=> ppNavigate('lessons', ppCourse, ppModule));
+      const done = lpIsLessonComplete(currentProfile, ppLesson.id);
+      const assessment = lpGetAssessmentForLesson(ppLesson.id);
+      let html = `<div class="lp-row"><div class="lp-row-info"><div class="lp-row-title">${ppLesson.title}</div><div class="lp-row-sub" style="margin-top:8px; line-height:1.7;">${ppLesson.content || ''}</div></div></div>`;
+      html += `<button class="start-btn" id="ppCompleteLessonBtn" ${done ? 'disabled' : ''}>${done ? t('ppLessonDone') : t('ppMarkCompleteBtn')}</button>`;
+      if(assessment){
+        html += `<button class="secondary-btn" id="ppTakeAssessmentBtn">📝 ${assessment.title}</button>`;
+      }
+      ppContentArea.innerHTML = html;
+      document.getElementById('ppCompleteLessonBtn').addEventListener('click', ()=>{
+        lpCompleteLesson(currentProfile, ppLesson.id);
+        lpUpdateEnrollmentActivity(currentProfile, ppProgram.id);
+        const prof = PROFILES[currentProfile];
+        if(prof) showToast(fmt('toastLessonComplete', { lesson: ppLesson.title }), '📘', 'learning');
+        renderProgramPlayer();
+      });
+      if(assessment){
+        document.getElementById('ppTakeAssessmentBtn').addEventListener('click', ()=> ppNavigate('assessment', ppCourse, ppModule, ppLesson));
+      }
+
+    } else if(ppLevel === 'assessment'){
+      const assessment = lpGetAssessmentForLesson(ppLesson.id);
+      ppBreadcrumb.textContent = assessment.title;
+      let html = '<div class="lp-create-form">';
+      assessment.questions.forEach((q,i)=>{
+        html += `<div class="lp-question-block"><b>${i+1}. ${q.text}</b>`;
+        q.options.forEach((opt,oi)=>{
+          html += `<div style="margin-top:6px;"><label><input type="radio" name="ppq${i}" value="${oi}"> ${opt}</label></div>`;
+        });
+        html += `</div>`;
+      });
+      html += `<button class="start-btn" id="ppSubmitAssessmentBtn">${t('ppSubmitAssessmentBtn')}</button></div>`;
+      ppContentArea.innerHTML = html;
+      document.getElementById('ppSubmitAssessmentBtn').addEventListener('click', ()=>{
+        const answers = assessment.questions.map((q,i)=>{
+          const sel = document.querySelector(`input[name="ppq${i}"]:checked`);
+          return sel ? parseInt(sel.value,10) : -1;
+        });
+        const attempt = lpSubmitAssessment(currentProfile, assessment.id, answers);
+        ppContentArea.innerHTML = `
+          <div class="cert-verify-result ${attempt.passed ? 'valid' : 'invalid'}">
+            <div class="cvr-row"><b>${attempt.passed ? '✅' : '❌'} ${fmt('ppScoreResult', { score: attempt.score })}</b></div>
+          </div>
+          <button class="secondary-btn" id="ppBackToLessonBtn">${t('closeBtn')}</button>`;
+        showToast(fmt('toastAssessmentResult', { score: attempt.score }), attempt.passed ? '✅' : '📝', 'learning');
+        document.getElementById('ppBackToLessonBtn').addEventListener('click', ()=> ppNavigate('lesson', ppCourse, ppModule, ppLesson));
+      });
+    }
+  }
+  ppBackBtn.addEventListener('click', ()=>{
+    programPlayerEl.classList.add('hidden');
+    showProgramsHub();
+  });
+
   /* ---------- application shell navigation: real sidebar (desktop) +
      bottom nav (mobile), populated per role. Every item is a thin wrapper
      around an already-existing, already-tested action — zero new
@@ -4059,6 +4570,7 @@
       return [
         { icon:'📊', label:t('shellNavOverview'), run: ()=>{ dashboardOpenedBy = 'teacher'; renderDashboard(); dashboardEl.classList.remove('hidden'); } },
         { icon:'🏫', label:t('shellNavClasses'), run: ()=> teacherClassesBtn.click() },
+        { icon:'🎓', label:t('shellNavProgramBuilder'), run: ()=> openProgramBuilder() },
         { icon:'🚪', label:t('shellNavLogout'), run: ()=> goToLoginGate() }
       ];
     }
