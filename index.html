@@ -1649,6 +1649,10 @@
       <div class="group-label" data-i18n="speechLabel">نطق المسألة صوتيًا</div>
       <button class="switch on" id="speechSwitch" aria-label="تبديل النطق"></button>
     </div>
+    <div class="toggle-row">
+      <div class="group-label" data-i18n="mascotToggleLabel">عرض شخصية تفاعلية أثناء التمرين (اختياري)</div>
+      <button class="switch" id="mascotSwitch" aria-label="تبديل الشخصية التفاعلية"></button>
+    </div>
     </div>
     <button class="start-btn" id="startBtn" data-i18n="startBtn">ابدأ التمرين</button>
   </div>
@@ -1659,7 +1663,7 @@
       <span class="avatar-sm" id="playAvatar">👧</span>
       <span id="playPlayerName">جوري</span>
     </div>
-    <div class="mascot-wrap"><span class="mascot" id="mascotEl">🦉</span></div>
+    <div class="mascot-wrap hidden" id="mascotWrapEl"><span class="mascot" id="mascotEl">🦉</span></div>
     <button class="enable-camera-btn hidden" id="enableCameraBtn" data-i18n="enableCameraBtn">📷 تفعيل الكاميرا لرؤية صديقتك</button>
     <div class="video-call-status hidden" id="videoCallStatus"></div>
     <div class="video-call-panel hidden" id="videoCallPanel">
@@ -2042,6 +2046,8 @@
   const bestVal = document.getElementById('bestVal');
   const progressLabel = document.getElementById('progressLabel');
   const mascotEl = document.getElementById('mascotEl');
+  const mascotWrapEl = document.getElementById('mascotWrapEl');
+  const mascotSwitch = document.getElementById('mascotSwitch');
   const levelLabel = document.getElementById('levelLabel');
   const xpBar = document.getElementById('xpBar');
   const streakFlame = document.getElementById('streakFlame');
@@ -2387,6 +2393,7 @@
       modeLabel:'طريقة الإجابة', modeType:'كتابة الناتج', modeChoice:'اختيار من متعدد',
       vibrateLabel:'الاهتزاز عند الإجابة (الجوال)', vibrateAria:'تبديل الاهتزاز',
       speechLabel:'نطق المسألة صوتيًا', speechAria:'تبديل النطق', replayAria:'إعادة الاستماع',
+      mascotToggleLabel:'عرض شخصية تفاعلية أثناء التمرين (اختياري)',
       startBtn:'ابدأ التمرين',
       statScore:'النقاط', statStreak:'متتالية', statBest:'أفضل متتالية',
       answerPlaceholder:'اكتب الناتج', submitBtn:'تحقق',
@@ -2591,6 +2598,7 @@
       modeLabel:'Answer method', modeType:'Type the answer', modeChoice:'Multiple choice',
       vibrateLabel:'Vibrate on answer (mobile)', vibrateAria:'Toggle vibration',
       speechLabel:'Read problem aloud', speechAria:'Toggle speech', replayAria:'Replay',
+      mascotToggleLabel:'Show an interactive character during practice (optional)',
       startBtn:'Start practice',
       statScore:'Score', statStreak:'Streak', statBest:'Best streak',
       answerPlaceholder:'Type the result', submitBtn:'Check',
@@ -2949,6 +2957,15 @@
   if(!('vibrate' in navigator)){
     vibrateSwitch.closest('.toggle-row').style.display = 'none';
   }
+  let mascotEnabled = false; // OFF by default — a professional first impression; students who want the character can opt in
+  try{ mascotEnabled = localStorage.getItem('mm_mascot_enabled') === 'true'; }catch(e){}
+  mascotSwitch.classList.toggle('on', mascotEnabled);
+  mascotSwitch.addEventListener('click', ()=>{
+    mascotEnabled = !mascotEnabled;
+    mascotSwitch.classList.toggle('on', mascotEnabled);
+    try{ localStorage.setItem('mm_mascot_enabled', String(mascotEnabled)); }catch(e){}
+    mascotWrapEl.classList.toggle('hidden', !mascotEnabled);
+  });
   speechSwitch.addEventListener('click', ()=>{
     speechOn = !speechOn;
     speechSwitch.classList.toggle('on', speechOn);
@@ -5506,6 +5523,7 @@
     summaryEl.classList.add('hidden');
     quitLink.classList.remove('hidden');
     leaveRaceLink.classList.add('hidden');
+    mascotWrapEl.classList.toggle('hidden', !mascotEnabled);
     playEl.classList.remove('hidden');
     if(quizLen === 'minute') startMinuteTimer();
     nextProblem();
@@ -5555,6 +5573,7 @@
     const p = PROFILES['jory'];
     setAvatarElement(playAvatar, p, 22);
     playPlayerName.textContent = profileDisplayName('jory');
+    mascotWrapEl.classList.toggle('hidden', !mascotEnabled);
     playEl.classList.remove('hidden');
     nextProblem();
   }
@@ -6029,6 +6048,7 @@
     raceLastLeader = null;
     resetStats();
     count = 0;
+    mascotWrapEl.classList.toggle('hidden', !mascotEnabled);
     opponentPanel.classList.remove('hidden');
     opponentName.textContent = raceOpponentName || '';
     opponentBar.style.width = '0%';
