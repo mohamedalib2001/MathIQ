@@ -290,6 +290,30 @@
   .my-class-card button{
     font-size:11.5px; font-weight:700; padding:6px 12px; border-radius:8px; border:none; background:var(--mint); color:#173124; cursor:pointer;
   }
+
+  /* today's mission — calm, premium "smart dashboard" hero card */
+  .mission-card{
+    background:var(--input-bg);
+    border:1px solid var(--chip-border); border-radius:16px; padding:18px 16px; margin-bottom:16px;
+    box-shadow:0 10px 28px rgba(0,0,0,0.18);
+  }
+  .mission-greeting{ font-family:'Cairo',sans-serif; font-weight:800; font-size:17px; margin-bottom:12px; }
+  .mission-goal-row{ display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+  .mission-goal-bar-wrap{ flex:1; height:8px; border-radius:6px; background:var(--bg); overflow:hidden; }
+  .mission-goal-bar{ height:100%; background:linear-gradient(90deg, var(--mint), var(--yellow)); border-radius:6px; transition:width .4s ease; }
+  .mission-goal-text{ font-size:12px; color:var(--ink-dim); white-space:nowrap; flex:none; }
+  .mission-recommend{
+    display:flex; align-items:center; gap:8px; font-size:13px; color:var(--ink); background:var(--bg);
+    border-radius:10px; padding:9px 12px; margin-bottom:14px; line-height:1.5;
+  }
+  .mission-start-btn{
+    width:100%; font-family:'Cairo',sans-serif; font-weight:800; font-size:16px; padding:14px;
+    border-radius:12px; border:none; cursor:pointer; color:#1a2e1f;
+    background:linear-gradient(135deg, var(--mint), #a8dcbb);
+    box-shadow:0 6px 16px rgba(143,201,172,0.35); transition:transform .12s ease;
+  }
+  .mission-start-btn:active{ transform:scale(0.97); }
+
   .enable-camera-btn{
     width:100%; font-family:'Cairo',sans-serif; font-weight:700; font-size:13px; padding:11px;
     border-radius:10px; border:1.5px dashed var(--yellow); background:transparent; color:var(--yellow);
@@ -1148,6 +1172,15 @@
 
   <!-- SETTINGS SCREEN -->
   <div id="settings" class="panel hidden">
+    <div class="mission-card hidden" id="todayMissionCard">
+      <div class="mission-greeting" id="missionGreeting"></div>
+      <div class="mission-goal-row">
+        <div class="mission-goal-bar-wrap"><div class="mission-goal-bar" id="missionGoalBar"></div></div>
+        <span class="mission-goal-text" id="missionGoalText"></span>
+      </div>
+      <div class="mission-recommend" id="missionRecommend"></div>
+      <button class="mission-start-btn" id="missionStartBtn" data-i18n="missionStartBtn">▶ ابدئي تدريب اليوم</button>
+    </div>
     <div class="smart-notif hidden" id="smartNotifBox"><span class="bell">🔔</span><span id="smartNotifText"></span></div>
     <div id="myClassesSection" class="hidden">
       <div class="group-label" data-i18n="myClassesLabel">📚 فصولي</div>
@@ -1570,6 +1603,12 @@
   const switchPlayerLink = document.getElementById('switchPlayerLink');
   const settingsProfileHeader = document.getElementById('settingsProfileHeader');
   const smartNotifBox = document.getElementById('smartNotifBox');
+  const todayMissionCard = document.getElementById('todayMissionCard');
+  const missionGreeting = document.getElementById('missionGreeting');
+  const missionGoalBar = document.getElementById('missionGoalBar');
+  const missionGoalText = document.getElementById('missionGoalText');
+  const missionRecommend = document.getElementById('missionRecommend');
+  const missionStartBtn = document.getElementById('missionStartBtn');
   const smartNotifText = document.getElementById('smartNotifText');
   const settingsBigAvatar = document.getElementById('settingsBigAvatar');
   const logoutTextLink = document.getElementById('logoutTextLink');
@@ -1661,7 +1700,8 @@
       isCustom: !!isCustom,
       disabled: false,          // admin can suspend a specific account
       trialStart: null,         // set at self-registration — this account's own 30-day clock
-      subscriptionUntil: null   // ISO date | null — set by admin (custom duration) or via unlock code
+      subscriptionUntil: null,  // ISO date | null — set by admin (custom duration) or via unlock code
+      dailyGoal: { target: 10, date: null, answered: 0 } // resets automatically each new day
     };
   }
 
@@ -1685,7 +1725,8 @@
       totalAnswered: p.totalAnswered, totalCorrect: p.totalCorrect,
       badges: Array.from(p.badges), opStats: p.opStats, isCustom: p.isCustom,
       recentMistakes: p.recentMistakes || [], certificatesIssued: p.certificatesIssued || [],
-      disabled: !!p.disabled, trialStart: p.trialStart || null, subscriptionUntil: p.subscriptionUntil || null
+      disabled: !!p.disabled, trialStart: p.trialStart || null, subscriptionUntil: p.subscriptionUntil || null,
+      dailyGoal: p.dailyGoal || { target:10, date:null, answered:0 }
     };
   }
   function saveProfilesToStorage(){
@@ -1982,6 +2023,8 @@
       studentUsernamePh:'اسم مستخدم الطالبة', addBtn:'إضافة', assignmentNotePh:'ملاحظة للواجب (اختياري)',
       setAssignmentBtn:'📌 تحديد كواجب لهذا الفصل', classNameRequired:'اكتبي اسم الفصل أولًا', classCreateFailed:'تعذّر إنشاء الفصل',
       myClassesLabel:'📚 فصولي', classAssignmentLine:'واجب: {op}', startAssignmentBtn:'ابدئي الواجب الآن', noAssignmentYet:'لا يوجد واجب محدّد حاليًا.',
+      missionGreeting:'مرحبًا {name} 👋', missionGoalComplete:'🎉 اكتمل هدف اليوم!', missionGoalProgress:'{done} / {target} أسئلة اليوم',
+      missionRecommendWeak:'ركّزي اليوم على {op} — هتحسّني فيها بسرعة!', missionRecommendFresh:'جاهزة لبداية تمرين جديد؟', missionStartBtn:'▶ ابدئي تدريب اليوم',
       enableCameraBtn:'📷 تفعيل الكاميرا لرؤية صديقتك', youLabel:'أنتِ',
       cameraNeedsHttps:'⚠️ الكاميرا تحتاج استضافة الملف على الإنترنت (https) — لن تعمل من ملف مفتوح مباشرة على الجهاز.',
       cameraPermissionDenied:'تعذّر الوصول للكاميرا — تأكدي من السماح لها من إعدادات المتصفح.',
@@ -2137,6 +2180,8 @@
       studentUsernamePh:"Student's username", addBtn:'Add', assignmentNotePh:'Note for the assignment (optional)',
       setAssignmentBtn:'📌 Set as this class assignment', classNameRequired:'Enter a class name first', classCreateFailed:'Could not create the class',
       myClassesLabel:'📚 My classes', classAssignmentLine:'Assignment: {op}', startAssignmentBtn:'Start the assignment now', noAssignmentYet:'No assignment set right now.',
+      missionGreeting:'Hi {name} 👋', missionGoalComplete:"🎉 Today's goal complete!", missionGoalProgress:'{done} / {target} questions today',
+      missionRecommendWeak:"Focus on {op} today — you'll improve fast!", missionRecommendFresh:'Ready to start a fresh practice?', missionStartBtn:"▶ Start today's training",
       enableCameraBtn:'📷 Enable camera to see your friend', youLabel:'You',
       cameraNeedsHttps:'⚠️ The camera needs the file to be hosted online (https) — it will not work from a file opened directly on the device.',
       cameraPermissionDenied:'Could not access the camera — check that it is allowed in your browser settings.',
@@ -2569,6 +2614,7 @@
     settingsEl.classList.remove('hidden');
     if(typeof loadSmartNotification === 'function') loadSmartNotification();
     if(typeof loadMyClasses === 'function') loadMyClasses();
+    if(typeof renderTodayMission === 'function') renderTodayMission();
   }
 
   function applyProfileDefaults(key){
@@ -3231,6 +3277,7 @@
     playPlayerName.textContent = profileDisplayName('guest');
     usernameLoginEl.classList.add('hidden');
     settingsEl.classList.remove('hidden');
+    renderTodayMission();
   });
 
   registerNowBtn.addEventListener('click', ()=>{
@@ -3990,6 +4037,7 @@
         prof.opStats[bucket].time += elapsed;
         if(isCorrect) prof.opStats[bucket].c += 1;
       }
+      incrementDailyGoalProgress(prof);
     }
 
     if(currentProblemOp && wrongStreakByOp[currentProblemOp] !== undefined){
@@ -4399,6 +4447,7 @@
     currentProfile = 'jory';
     applyProfileDefaults('jory');
     settingsProfileHeader.classList.add('hidden');
+    todayMissionCard.classList.add('hidden');
     profilesEl.classList.add('hidden');
     settingsEl.classList.remove('hidden');
   });
@@ -4555,6 +4604,60 @@
       aiEncourageCard.classList.remove('hidden');
     });
   }
+
+  /* ---------- daily goal + "today's mission" smart dashboard card ---------- */
+  function todayStr(){ return new Date().toISOString().slice(0,10); }
+  function ensureDailyGoalFresh(p){
+    if(!p.dailyGoal) p.dailyGoal = { target:10, date:null, answered:0 };
+    if(p.dailyGoal.date !== todayStr()){
+      p.dailyGoal.date = todayStr();
+      p.dailyGoal.answered = 0;
+    }
+    return p.dailyGoal;
+  }
+  function incrementDailyGoalProgress(p){
+    if(!p) return;
+    const goal = ensureDailyGoalFresh(p);
+    goal.answered += 1;
+    saveProfilesToStorage();
+    if(!settingsEl.classList.contains('hidden')) renderTodayMission();
+  }
+
+  function renderTodayMission(){
+    const p = PROFILES[currentProfile];
+    if(!p || challengeMode || raceMode){ todayMissionCard.classList.add('hidden'); return; }
+    todayMissionCard.classList.remove('hidden');
+
+    missionGreeting.textContent = fmt('missionGreeting', { name: profileDisplayName(currentProfile) });
+
+    const goal = ensureDailyGoalFresh(p);
+    const pct = Math.min(100, Math.round((goal.answered / goal.target) * 100));
+    missionGoalBar.style.width = pct + '%';
+    if(goal.answered >= goal.target){
+      missionGoalText.textContent = t('missionGoalComplete');
+    } else {
+      missionGoalText.textContent = fmt('missionGoalProgress', { done: goal.answered, target: goal.target });
+    }
+
+    const weak = computeWeakestBucket(p);
+    if(weak){
+      missionRecommend.innerHTML = `🧠 ${fmt('missionRecommendWeak', { op: t('bucket'+capitalize(weak.bucket)) })}`;
+      missionStartBtn.dataset.recommendOp = weak.bucket;
+    } else {
+      missionRecommend.innerHTML = `🌟 ${t('missionRecommendFresh')}`;
+      missionStartBtn.dataset.recommendOp = '';
+    }
+  }
+
+  missionStartBtn.addEventListener('click', ()=>{
+    const recommendOp = missionStartBtn.dataset.recommendOp;
+    if(recommendOp && ['add','sub','mul','div','percent','exponent','sqrt'].includes(recommendOp)){
+      selectChip(opChips, 'op', recommendOp, v=>op=v);
+      updateTableFocusVisibility();
+    }
+    settingsEl.classList.add('hidden');
+    startBtn.click();
+  });
 
   /* ---------- smart notification banner (top of student screen) ----------
      Always shows SOMETHING useful, computed locally from the student's own
