@@ -202,6 +202,15 @@
   }
   .ai-insight.visible{ opacity:1; height:auto; }
 
+  .ai-toggle-row{
+    background:linear-gradient(135deg, rgba(231,196,104,0.12), rgba(143,201,172,0.08));
+    border:1px solid rgba(231,196,104,0.3); border-radius:10px; padding:10px 12px;
+  }
+  .ai-toggle-label{ display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600; cursor:pointer; }
+  .ai-toggle-label input{ width:16px; height:16px; flex:none; cursor:pointer; }
+  .ai-toggle-row .conn-note{ margin-top:6px; margin-bottom:0; }
+  .ai-toggle-row.disabled-row{ opacity:0.45; pointer-events:none; }
+
   /* live camera panel during a race */
   .video-call-panel{ display:flex; gap:8px; margin-bottom:14px; position:relative; }
   .video-call-panel.hidden{ display:none; }
@@ -1142,6 +1151,14 @@
         <button class="chip" data-len="minute" data-i18n="lenMinute">تحدي الدقيقة</button>
       </div>
     </div>
+    <div class="ai-toggle-row" id="aiPracticeRow">
+      <label class="ai-toggle-label">
+        <input type="checkbox" id="aiPracticeToggle">
+        <span data-i18n="aiPracticeToggleLabel">🤖 تمرين ذكي مولّد ومخصّص بالذكاء الاصطناعي (تجريبي)</span>
+      </label>
+      <div class="conn-note" data-i18n="aiPracticeToggleNote">كل مسألة تُتحقق رياضيًا قبل عرضها. متاح فقط مع عدد أسئلة ثابت (غير متاح مع "بلا نهاية" أو "تحدي الدقيقة").</div>
+      <div class="feedback wrong hidden" id="aiPracticeFailNote" style="margin-top:6px;"></div>
+    </div>
     <div>
       <div class="group-label" data-i18n="modeLabel">طريقة الإجابة</div>
       <div class="chips" id="modeChips">
@@ -1446,6 +1463,9 @@
   const speechSwitch = document.getElementById('speechSwitch');
   const replaySpeechBtn = document.getElementById('replaySpeechBtn');
   const startBtn = document.getElementById('startBtn');
+  const aiPracticeToggle = document.getElementById('aiPracticeToggle');
+  const aiPracticeRow = document.getElementById('aiPracticeRow');
+  const aiPracticeFailNote = document.getElementById('aiPracticeFailNote');
 
   const themeBtn = document.getElementById('themeBtn');
   const soundBtn = document.getElementById('soundBtn');
@@ -1807,6 +1827,9 @@
       myStatsMistakes:'آخر الأخطاء (للمراجعة)', myStatsCerts:'الشهادات المُصدرة', noCertsYet:'لم تُصدري أي شهادة بعد.',
       notifWelcome:'يومك مبارك! جاهزة لتمرين ممتع اليوم؟', notifWeakBucket:'ركّزي اليوم على {op} — دقتك فيها {acc}%، تقدري تحسّنيها! 💪',
       explainBtn:'اشرحيلي', explainLoading:'جارٍ الشرح...', explainNoAi:'الذكاء الاصطناعي غير متاح', explainFailed:'حاولي مرة أخرى',
+      aiPracticeToggleLabel:'🤖 تمرين ذكي مولّد ومخصّص بالذكاء الاصطناعي (تجريبي)',
+      aiPracticeToggleNote:'كل مسألة تُتحقق رياضيًا قبل عرضها. متاح فقط مع عدد أسئلة ثابت (غير متاح مع "بلا نهاية" أو "تحدي الدقيقة").',
+      aiPracticeLoading:'جارٍ توليد تمرين ذكي...', aiPracticeFailed:'تعذّر توليد التمرين الذكي — تم استخدام التمرين العادي بدلًا منه.',
       enableCameraBtn:'📷 تفعيل الكاميرا لرؤية صديقتك', youLabel:'أنتِ',
       cameraNeedsHttps:'⚠️ الكاميرا تحتاج استضافة الملف على الإنترنت (https) — لن تعمل من ملف مفتوح مباشرة على الجهاز.',
       cameraPermissionDenied:'تعذّر الوصول للكاميرا — تأكدي من السماح لها من إعدادات المتصفح.',
@@ -1946,6 +1969,9 @@
       myStatsMistakes:'Recent mistakes (for review)', myStatsCerts:'Certificates issued', noCertsYet:"You haven't issued a certificate yet.",
       notifWelcome:'Happy to see you! Ready for a fun practice today?', notifWeakBucket:"Focus on {op} today — you're at {acc}% accuracy, you can improve it! 💪",
       explainBtn:'Explain it to me', explainLoading:'Explaining...', explainNoAi:'AI is not available', explainFailed:'Try again',
+      aiPracticeToggleLabel:'🤖 AI-generated personalized practice (experimental)',
+      aiPracticeToggleNote:'Every question is math-verified before it\'s shown. Only available with a fixed question count (not with "Endless" or "One-minute challenge").',
+      aiPracticeLoading:'Generating a smart practice set...', aiPracticeFailed:'Could not generate the AI practice set — using the regular practice instead.',
       enableCameraBtn:'📷 Enable camera to see your friend', youLabel:'You',
       cameraNeedsHttps:'⚠️ The camera needs the file to be hosted online (https) — it will not work from a file opened directly on the device.',
       cameraPermissionDenied:'Could not access the camera — check that it is allowed in your browser settings.',
@@ -2194,7 +2220,17 @@
     if(DIFF_ORDER.includes(diff)){ adaptiveIndex = DIFF_ORDER.indexOf(diff); adaptiveStreak = 0; }
   }));
   timeChips.forEach(c=> c.addEventListener('click', ()=> selectChip(timeChips,'time',c.dataset.time, v=>timeLimit=parseInt(v,10))));
-  lenChips.forEach(c=> c.addEventListener('click', ()=> selectChip(lenChips,'len',c.dataset.len, v=>quizLen = (v==='minute') ? 'minute' : parseInt(v,10))));
+  function updateAiPracticeAvailability(){
+    const available = typeof quizLen === 'number' && quizLen > 0;
+    aiPracticeToggle.disabled = !available;
+    aiPracticeRow.classList.toggle('disabled-row', !available);
+    if(!available) aiPracticeToggle.checked = false;
+  }
+  lenChips.forEach(c=> c.addEventListener('click', ()=>{
+    selectChip(lenChips,'len',c.dataset.len, v=>quizLen = (v==='minute') ? 'minute' : parseInt(v,10));
+    updateAiPracticeAvailability();
+  }));
+  updateAiPracticeAvailability();
   modeChips.forEach(c=> c.addEventListener('click', ()=> selectChip(modeChips,'mode',c.dataset.mode, v=>answerMode=v)));
   typeChips.forEach(c=> c.addEventListener('click', ()=>{
     selectChip(typeChips,'type',c.dataset.type, v=>problemType=v);
@@ -3403,6 +3439,7 @@
   const OP_SYMBOL = { add:'+', sub:'−', mul:'×', div:'÷' };
 
   function genProblem(){
+    if(aiQuizQueue.length){ return aiQuizQueue.shift(); } // AI-authored, already math-verified server-side
     if(diff === 'decimals'){ const p = genDecimalProblem(); p.bucket = 'decimals'; return p; }
     if(diff === 'fractions'){ const p = genFractionProblem(); p.bucket = 'fractions'; return p; }
     if(problemType === 'compound'){ const p = genCompoundProblem(compoundSteps); p.bucket = 'compound'; return p; }
@@ -3964,12 +4001,41 @@
     equationEl.classList.remove('pop-correct','shake-wrong');
   }
 
-  startBtn.addEventListener('click', ()=>{
+  let aiQuizQueue = [];
+  startBtn.addEventListener('click', async ()=>{
     ensureAudio();
+    if(challengeMode){
+      resetStats();
+      settingsEl.classList.add('hidden');
+      summaryEl.classList.add('hidden');
+      startChallenge();
+      return;
+    }
+
+    aiQuizQueue = [];
+    const useAiPractice = aiPracticeToggle.checked && SHEET_API_URL && typeof quizLen === 'number' && quizLen > 0;
+    if(useAiPractice){
+      const originalLabel = startBtn.textContent;
+      startBtn.disabled = true;
+      startBtn.textContent = '⏳ ' + t('aiPracticeLoading');
+      aiPracticeFailNote.classList.add('hidden');
+      const res = await postToSheet('ai_practice', { username: currentProfile, count: quizLen, operation: op, difficulty: diff });
+      startBtn.disabled = false;
+      startBtn.textContent = originalLabel;
+      if(res && res.ok && Array.isArray(res.questions) && res.questions.length){
+        aiQuizQueue = res.questions.map(q => ({
+          text: q.text, ans: q.answer, bucket: q.operation || op || 'mix',
+          compactText: q.text, isWord: false, isFraction: false, isDecimal: !Number.isInteger(q.answer)
+        }));
+      } else {
+        aiPracticeFailNote.textContent = t('aiPracticeFailed');
+        aiPracticeFailNote.classList.remove('hidden');
+      }
+    }
+
     resetStats();
     settingsEl.classList.add('hidden');
     summaryEl.classList.add('hidden');
-    if(challengeMode){ startChallenge(); return; }
     quitLink.classList.remove('hidden');
     leaveRaceLink.classList.add('hidden');
     playEl.classList.remove('hidden');
