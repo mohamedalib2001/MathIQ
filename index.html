@@ -168,6 +168,46 @@
   .skill-card .skill-bar-wrap{ height:8px; border-radius:6px; background:var(--bg); overflow:hidden; }
   .skill-card .skill-bar{ height:100%; background:var(--yellow); border-radius:6px; }
   .skill-card .skill-level-text{ font-size:11px; color:var(--ink-dim); margin-top:4px; }
+
+  /* professional course player: real sidebar + main + bottom bar on
+     desktop; header + content + fixed bottom nav on mobile — not the
+     same layout just resized. */
+  .cp-shell{ display:flex; gap:14px; align-items:flex-start; }
+  .cp-sidebar{ display:none; }
+  @media (min-width:768px){
+    .cp-sidebar{
+      display:block; flex:none; width:230px; max-height:520px; overflow-y:auto;
+      background:var(--input-bg); border:1.5px solid var(--input-border); border-radius:14px; padding:12px;
+      position:sticky; top:0;
+    }
+  }
+  .cp-sidebar-course-title{ font-family:'Cairo',sans-serif; font-weight:800; font-size:13.5px; margin-bottom:6px; }
+  .cp-sidebar-progress-wrap{ height:6px; border-radius:5px; background:var(--bg); overflow:hidden; margin-bottom:14px; }
+  .cp-sidebar-progress{ height:100%; background:var(--mint); }
+  .cp-sidebar-module{ font-family:'Cairo',sans-serif; font-weight:700; font-size:11.5px; color:var(--ink-dim); margin:12px 0 4px; text-transform:uppercase; letter-spacing:0.3px; }
+  .cp-sidebar-lesson{
+    display:flex; align-items:center; gap:8px; padding:7px 8px; border-radius:8px; cursor:pointer; font-size:12px;
+  }
+  .cp-sidebar-lesson:hover{ background:rgba(231,196,104,0.1); }
+  .cp-sidebar-lesson.current{ background:rgba(99,102,241,0.14); font-weight:700; }
+  .cp-sidebar-lesson.done .cp-lesson-dot{ background:var(--mint); border-color:var(--mint); }
+  .cp-lesson-dot{ width:8px; height:8px; border-radius:50%; border:1.5px solid var(--ink-dim); flex:none; }
+  .cp-mobile-header{ display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+  @media (min-width:768px){ .cp-mobile-header{ display:none; } }
+  .cp-mobile-header .cp-mobile-back{ cursor:pointer; font-size:14px; }
+  .cp-mobile-header .cp-mobile-info{ flex:1; }
+  .cp-mobile-header .cp-mobile-course-title{ font-family:'Cairo',sans-serif; font-weight:700; font-size:12.5px; }
+  .cp-main{ flex:1; min-width:0; }
+  .cp-bottom-bar{
+    display:flex; align-items:center; gap:8px; margin-top:16px; padding-top:12px; border-top:1.5px solid var(--input-border);
+  }
+  .cp-bottom-bar .cp-nav-btn{
+    font-size:12px; font-weight:700; padding:9px 12px; border-radius:9px; border:1.5px solid var(--chip-border);
+    background:transparent; color:var(--ink); cursor:pointer; flex:none;
+  }
+  .cp-bottom-bar .cp-nav-btn:disabled{ opacity:0.35; cursor:default; }
+  .cp-bottom-bar .cp-complete-btn{ flex:1; }
+  .cp-bottom-bar .cp-progress-text{ font-size:10.5px; color:var(--ink-dim); flex:none; }
   @media (min-width:1024px){
     .app-sidebar{
       display:flex; flex-direction:column; flex:none; width:216px; margin-inline-end:22px;
@@ -2525,6 +2565,7 @@
       errUnauthorizedTitle:'الوصول مقيّد', errUnauthorizedText:'ليس لديكِ صلاحية لعرض هذا المحتوى.', errBackToDashboard:'العودة للوحة الرئيسية',
       modDetailsProgress:'التقدّم: {pct}%', modDetailsLessonCount:'عدد الدروس', modDetailsAssessCount:'عدد التقييمات',
       modDetailsCompletedCount:'المكتمل', modDetailsStartBtn:'ابدئي الوحدة', modDetailsContinueBtn:'واصلي الوحدة',
+      cpPrevious:'السابق', cpNext:'التالي', cpProgressOfCourse:'{done} من {total} درسًا مكتملًا في هذه الدورة',
       shellNavProgramBuilder:'بناء البرامج', pbTitle:'🎓 بناء البرامج التعليمية', ppTitle:'📘 البرنامج التعليمي',
       pbBreadcrumbPrograms:'برامجي', pbNoPrograms:'لا توجد برامج بعد. أنشئي أول برنامج.', pbCourseCount:'{n} دورة',
       pbProgramTitlePh:'عنوان البرنامج', pbProgramDescPh:'وصف مختصر (اختياري)',
@@ -2766,6 +2807,7 @@
       errUnauthorizedTitle:'Access Restricted', errUnauthorizedText:"You don't have permission to view this content.", errBackToDashboard:'Back to Dashboard',
       modDetailsProgress:'Progress: {pct}%', modDetailsLessonCount:'Lessons', modDetailsAssessCount:'Assessments',
       modDetailsCompletedCount:'Completed', modDetailsStartBtn:'Start Module', modDetailsContinueBtn:'Continue Module',
+      cpPrevious:'Previous', cpNext:'Next', cpProgressOfCourse:'{done} of {total} lessons complete in this course',
       shellNavProgramBuilder:'Program Builder', pbTitle:'🎓 Program Builder', ppTitle:'📘 Learning Program',
       pbBreadcrumbPrograms:'My Programs', pbNoPrograms:'No programs yet. Create your first program.', pbCourseCount:'{n} courses',
       pbProgramTitlePh:'Program title', pbProgramDescPh:'Short description (optional)',
@@ -4325,6 +4367,21 @@
     const moduleIds = lpLoad(LP_KEYS.MODULES).filter(m => courseIds.includes(m.courseId)).map(m => m.id);
     return lpLoad(LP_KEYS.LESSONS).filter(l => moduleIds.includes(l.moduleId));
   }
+  function lpGetOrderedLessonsForCourse(courseId){
+    const modules = lpGetModulesForCourse(courseId);
+    let all = [];
+    modules.forEach(m => {
+      lpGetLessonsForModule(m.id).forEach(l => all.push(Object.assign({}, l, { moduleTitle: m.title })));
+    });
+    return all;
+  }
+  function lpGetAdjacentLesson(courseId, currentLessonId, direction){
+    const ordered = lpGetOrderedLessonsForCourse(courseId);
+    const idx = ordered.findIndex(l => l.id === currentLessonId);
+    if(idx === -1) return null;
+    const targetIdx = direction === 'next' ? idx + 1 : idx - 1;
+    return ordered[targetIdx] || null;
+  }
   function lpCompleteLesson(learnerUsername, lessonId){
     if(!can(lpCurrentRole(), 'lesson.complete')) return lpDenyAndNotify('lesson.complete');
     const completions = lpLoad(LP_KEYS.LESSON_COMPLETIONS);
@@ -4839,22 +4896,78 @@
       document.getElementById('ppCrumbLessons').addEventListener('click', ()=> ppNavigate('lessons', ppCourse, ppModule));
       const done = lpIsLessonComplete(currentProfile, ppLesson.id);
       const assessment = lpGetAssessmentForLesson(ppLesson.id);
-      let html = `<div class="lp-row"><div class="lp-row-info"><div class="lp-row-title">${ppLesson.title}</div><div class="lp-row-sub" style="margin-top:8px; line-height:1.7;">${ppLesson.content || ''}</div></div></div>`;
-      html += `<button class="start-btn" id="ppCompleteLessonBtn" ${done ? 'disabled' : ''}>${done ? t('ppLessonDone') : t('ppMarkCompleteBtn')}</button>`;
-      if(assessment){
-        html += `<button class="secondary-btn" id="ppTakeAssessmentBtn">📝 ${assessment.title}</button>`;
-      }
-      ppContentArea.innerHTML = html;
+      const orderedLessons = lpGetOrderedLessonsForCourse(ppCourse.id);
+      const completedIds = new Set(lpLoad(LP_KEYS.LESSON_COMPLETIONS).filter(c=>c.learnerUsername===currentProfile).map(c=>c.lessonId));
+      const doneCount = orderedLessons.filter(l=>completedIds.has(l.id)).length;
+      const coursePct = orderedLessons.length ? Math.round((doneCount/orderedLessons.length)*100) : 0;
+      const prevLesson = lpGetAdjacentLesson(ppCourse.id, ppLesson.id, 'prev');
+      const nextLesson = lpGetAdjacentLesson(ppCourse.id, ppLesson.id, 'next');
+
+      // sidebar: full module/lesson tree for this course, grouped, with done/current markers
+      let sidebarHtml = `
+        <div class="cp-sidebar-course-title">${ppCourse.title}</div>
+        <div class="cp-sidebar-progress-wrap"><div class="cp-sidebar-progress" style="width:${coursePct}%"></div></div>`;
+      lpGetModulesForCourse(ppCourse.id).forEach(m=>{
+        sidebarHtml += `<div class="cp-sidebar-module">${m.title}</div>`;
+        lpGetLessonsForModule(m.id).forEach(l=>{
+          const isDone = completedIds.has(l.id);
+          const isCurrent = l.id === ppLesson.id;
+          sidebarHtml += `<div class="cp-sidebar-lesson ${isDone?'done':''} ${isCurrent?'current':''}" data-lesson-id="${l.id}" data-module-id="${m.id}"><span class="cp-lesson-dot"></span><span>${l.title}</span></div>`;
+        });
+      });
+
+      ppContentArea.innerHTML = `
+        <div class="cp-mobile-header">
+          <span class="cp-mobile-back" id="cpMobileBack">‹</span>
+          <div class="cp-mobile-info">
+            <div class="cp-mobile-course-title">${ppCourse.title}</div>
+            <div class="cp-sidebar-progress-wrap" style="margin:4px 0 0;"><div class="cp-sidebar-progress" style="width:${coursePct}%"></div></div>
+          </div>
+        </div>
+        <div class="cp-shell">
+          <div class="cp-sidebar">${sidebarHtml}</div>
+          <div class="cp-main">
+            <div class="lp-row-title" style="font-size:15px; margin-bottom:8px;">${ppLesson.title}</div>
+            <div class="lp-row-sub" style="line-height:1.7; font-size:13px;">${ppLesson.content || ''}</div>
+            ${assessment ? `<button class="secondary-btn" id="ppTakeAssessmentBtn" style="margin-top:14px;">${assessment.title}</button>` : ''}
+            <div class="cp-bottom-bar">
+              <button class="cp-nav-btn" id="cpPrevBtn" ${!prevLesson ? 'disabled' : ''}>‹ ${t('cpPrevious')}</button>
+              <button class="start-btn cp-complete-btn" id="ppCompleteLessonBtn" ${done ? 'disabled' : ''}>${done ? t('ppLessonDone') : t('ppMarkCompleteBtn')}</button>
+              <button class="cp-nav-btn" id="cpNextBtn" ${!nextLesson ? 'disabled' : ''}>${t('cpNext')} ›</button>
+            </div>
+            <div class="cp-progress-text" style="text-align:center; margin-top:6px;">${fmt('cpProgressOfCourse', { done: doneCount, total: orderedLessons.length })}</div>
+          </div>
+        </div>`;
+
+      document.getElementById('cpMobileBack').addEventListener('click', ()=> ppNavigate('moduleDetails', ppCourse, ppModule));
+      document.querySelectorAll('.cp-sidebar-lesson').forEach(el=>{
+        el.addEventListener('click', ()=>{
+          const lid = el.dataset.lessonId, mid = el.dataset.moduleId;
+          const targetModule = lpGetModulesForCourse(ppCourse.id).find(m=>m.id===mid);
+          const targetLesson = lpGetLessonsForModule(mid).find(l=>l.id===lid);
+          if(targetModule && targetLesson) ppNavigate('lesson', ppCourse, targetModule, targetLesson);
+        });
+      });
       document.getElementById('ppCompleteLessonBtn').addEventListener('click', ()=>{
         lpCompleteLesson(currentProfile, ppLesson.id);
         lpUpdateEnrollmentActivity(currentProfile, ppProgram.id);
         const prof = PROFILES[currentProfile];
-        if(prof) showToast(fmt('toastLessonComplete', { lesson: ppLesson.title }), '📘', 'learning');
+        if(prof) showToast(fmt('toastLessonComplete', { lesson: ppLesson.title }), '', 'learning');
         renderProgramPlayer();
       });
       if(assessment){
         document.getElementById('ppTakeAssessmentBtn').addEventListener('click', ()=> ppNavigate('assessment', ppCourse, ppModule, ppLesson));
       }
+      const prevBtn = document.getElementById('cpPrevBtn');
+      if(prevLesson) prevBtn.addEventListener('click', ()=>{
+        const targetModule = lpGetModulesForCourse(ppCourse.id).find(m=>lpGetLessonsForModule(m.id).some(l=>l.id===prevLesson.id));
+        ppNavigate('lesson', ppCourse, targetModule, prevLesson);
+      });
+      const nextBtn = document.getElementById('cpNextBtn');
+      if(nextLesson) nextBtn.addEventListener('click', ()=>{
+        const targetModule = lpGetModulesForCourse(ppCourse.id).find(m=>lpGetLessonsForModule(m.id).some(l=>l.id===nextLesson.id));
+        ppNavigate('lesson', ppCourse, targetModule, nextLesson);
+      });
 
     } else if(ppLevel === 'assessment'){
       const assessment = lpGetAssessmentForLesson(ppLesson.id);
