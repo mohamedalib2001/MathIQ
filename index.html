@@ -109,6 +109,15 @@
   .notif-panel-item .notif-icon{ font-size:15px; flex:none; margin-top:1px; }
   .notif-panel-item .notif-msg{ line-height:1.5; }
   .notif-panel-item .notif-date{ font-size:10px; color:var(--ink-dim); margin-top:2px; }
+
+  .cert-verify-result{ margin-top:14px; }
+  .cert-verify-result.valid{
+    background:rgba(16,185,129,0.1); border:1.5px solid rgba(16,185,129,0.35); border-radius:12px; padding:14px;
+  }
+  .cert-verify-result.invalid{
+    background:rgba(239,68,68,0.1); border:1.5px solid rgba(239,68,68,0.35); border-radius:12px; padding:14px;
+  }
+  .cert-verify-result .cvr-row{ display:flex; justify-content:space-between; font-size:13px; padding:4px 0; }
   @media (min-width:1024px){
     .app-sidebar{
       display:flex; flex-direction:column; flex:none; width:216px; margin-inline-end:22px;
@@ -1299,6 +1308,21 @@
     </div>
     <div class="guest-note" id="guestNote"></div>
     <div class="link-line subtle-link" id="adminLink" data-i18n="adminLink">🛠️ إدارة الحسابات (لصاحب التطبيق)</div>
+    <div class="link-line subtle-link" id="certVerifyLink" data-i18n="certVerifyLink">🔍 التحقق من شهادة</div>
+  </div>
+
+  <!-- CERTIFICATE VERIFICATION — real lookup against locally-stored issued
+       certificates, not a fake QR/backend claim. -->
+  <div id="certVerifyScreen" class="panel hidden">
+    <div class="group-label" style="text-align:center;" data-i18n="certVerifyTitle">🔍 التحقق من شهادة</div>
+    <div class="conn-note" data-i18n="certVerifyNote">أدخلي رقم الشهادة الظاهر عليها للتحقق من صحتها.</div>
+    <div class="field-icon-wrap">
+      <span class="field-icon">#</span>
+      <input type="text" id="certVerifyInput" class="ltr-input" placeholder="NEXORA-XXXXXXX-XX">
+    </div>
+    <button class="start-btn" id="certVerifyBtn" data-i18n="certVerifyBtn">تحقّق</button>
+    <div id="certVerifyResult"></div>
+    <div class="link-line subtle-link" id="certVerifyBackLink" data-i18n="backToLoginLink">🔒 رجوع لتسجيل الدخول</div>
   </div>
 
   <!-- LIVE RACE LOBBY -->
@@ -1875,6 +1899,12 @@
   const notifBellBadge = document.getElementById('notifBellBadge');
   const notifPanel = document.getElementById('notifPanel');
   const notifPanelList = document.getElementById('notifPanelList');
+  const certVerifyLink = document.getElementById('certVerifyLink');
+  const certVerifyScreen = document.getElementById('certVerifyScreen');
+  const certVerifyInput = document.getElementById('certVerifyInput');
+  const certVerifyBtn = document.getElementById('certVerifyBtn');
+  const certVerifyResult = document.getElementById('certVerifyResult');
+  const certVerifyBackLink = document.getElementById('certVerifyBackLink');
   const commandPaletteOverlay = document.getElementById('commandPaletteOverlay');
   const cmdkInput = document.getElementById('cmdkInput');
   const cmdkResults = document.getElementById('cmdkResults');
@@ -2386,6 +2416,10 @@
       shellNavAllStudents:'كل المتعلّمين', shellNavServices:'الخدمات', shellNavBilling:'الاشتراك',
       shellNavClasses:'فصولي',
       notifCenterTitle:'مركز الإشعارات', notifEmptyState:'لا يوجد إشعارات بعد.',
+      certVerifyLink:'🔍 التحقق من شهادة', certVerifyTitle:'🔍 التحقق من شهادة',
+      certVerifyNote:'أدخلي رقم الشهادة الظاهر عليها للتحقق من صحتها.', certVerifyBtn:'تحقّق',
+      certVerifyValid:'شهادة حقيقية وموثّقة', certVerifyInvalid:'رقم الشهادة غير صحيح أو غير موجود في السجلّات.',
+      certVerifyName:'اسم المتعلّم',
       whoPlaying:'من يلعب اليوم؟',
       joryName:'جوري', joryAge:'٦ سنوات ونصف',
       jasmineName:'جاسمين', jasmineAge:'١١ سنة',
@@ -2592,6 +2626,10 @@
       shellNavAllStudents:'All Learners', shellNavServices:'Services', shellNavBilling:'Billing',
       shellNavClasses:'My Classes',
       notifCenterTitle:'Notification Center', notifEmptyState:'No notifications yet.',
+      certVerifyLink:'🔍 Verify a Certificate', certVerifyTitle:'🔍 Verify a Certificate',
+      certVerifyNote:'Enter the certificate number shown on it to verify its authenticity.', certVerifyBtn:'Verify',
+      certVerifyValid:'Genuine, verified certificate', certVerifyInvalid:'This certificate number is invalid or not on record.',
+      certVerifyName:'Learner name',
       whoPlaying:"Who's playing today?",
       joryName:'Jory', joryAge:'6.5 years old',
       jasmineName:'Jasmine', jasmineAge:'11 years old',
@@ -3236,6 +3274,7 @@
     dashboardEl.classList.add('hidden');
     profileEditorEl.classList.add('hidden');
     themePickerEl.classList.add('hidden');
+    certVerifyScreen.classList.add('hidden');
     connectionEl.classList.add('hidden');
     subsConfigEl.classList.add('hidden');
     guestGateEl.classList.add('hidden');
@@ -3630,6 +3669,31 @@
     adminLoginGateEl.classList.remove('hidden');
   }
   adminLink.addEventListener('click', openAdminGate);
+  certVerifyLink.addEventListener('click', ()=>{
+    hideAllScreens();
+    certVerifyScreen.classList.remove('hidden');
+    certVerifyInput.value = '';
+    certVerifyResult.innerHTML = '';
+  });
+  certVerifyBackLink.addEventListener('click', goToLoginGate);
+  function runCertVerification(){
+    const result = lookupCertificate(certVerifyInput.value);
+    if(result.found){
+      const dateStr = new Date(result.date).toLocaleDateString(currentLang === 'ar' ? 'ar-EG' : 'en-US');
+      certVerifyResult.innerHTML = `
+        <div class="cert-verify-result valid">
+          <div class="cvr-row"><b>✅ ${t('certVerifyValid')}</b></div>
+          <div class="cvr-row"><span>${t('certVerifyName')}</span><b>${result.name}</b></div>
+          <div class="cvr-row"><span>${t('statScore')}</span><b>${result.score}</b></div>
+          <div class="cvr-row"><span>${t('sumAccLabel')}</span><b>${result.accuracy}%</b></div>
+          <div class="cvr-row"><span>${t('certDate')}</span><b>${dateStr}</b></div>
+        </div>`;
+    } else {
+      certVerifyResult.innerHTML = `<div class="cert-verify-result invalid">❌ ${t('certVerifyInvalid')}</div>`;
+    }
+  }
+  certVerifyBtn.addEventListener('click', runCertVerification);
+  certVerifyInput.addEventListener('keydown', e=>{ if(e.key === 'Enter') runCertVerification(); });
   adminLoginCancelBtn.addEventListener('click', ()=>{
     adminLoginGateEl.classList.add('hidden');
     profilesEl.classList.remove('hidden');
@@ -5465,6 +5529,35 @@
   const certSealEl = document.getElementById('certSealEl');
   const certNumEl = document.getElementById('certNumEl');
 
+  /* ---------- certificate verification: a real, honest check against
+     locally-stored issued certificates (not a fake QR/backend claim —
+     genuinely verifies the checksum AND looks up the actual record). ---------- */
+  function generateCertId(profileKey, timestamp){
+    const base = profileKey.slice(0,3).toUpperCase() + timestamp.toString(36).toUpperCase();
+    let sum = 0;
+    for(let i=0;i<base.length;i++) sum += base.charCodeAt(i);
+    const checksum = (sum % 97).toString(36).toUpperCase().padStart(2,'0');
+    return `NEXORA-${base}-${checksum}`;
+  }
+  function verifyCertChecksum(certId){
+    const m = /^NEXORA-(.+)-([0-9A-Z]{2})$/.exec((certId||'').trim().toUpperCase());
+    if(!m) return false;
+    const base = m[1], checksum = m[2];
+    let sum = 0;
+    for(let i=0;i<base.length;i++) sum += base.charCodeAt(i);
+    return (sum % 97).toString(36).toUpperCase().padStart(2,'0') === checksum;
+  }
+  function lookupCertificate(certId){
+    const clean = (certId||'').trim().toUpperCase();
+    if(!verifyCertChecksum(clean)) return { found:false, reason:'invalid' };
+    for(const key of Object.keys(PROFILES)){
+      const p = PROFILES[key];
+      const record = (p.certificatesIssued || []).find(c => (c.certId||'').toUpperCase() === clean);
+      if(record) return { found:true, name: profileDisplayName(key), score: record.score, accuracy: record.accuracy, date: record.date };
+    }
+    return { found:false, reason:'not_found' };
+  }
+
   function downloadCertificate(){
     if(typeof html2canvas !== 'function' || certBtn.disabled) return;
     const prof = PROFILES[currentProfile];
@@ -5482,7 +5575,8 @@
     certBestLabelEl.textContent = t('statBest');
     certDateEl.textContent = `${t('certDate')}: ${new Date().toLocaleDateString(currentLang === 'ar' ? 'ar-EG' : 'en-US')}`;
     certSealEl.textContent = t('certIssuedBy');
-    certNumEl.textContent = `${t('certNumLabel')}: ${Date.now().toString().slice(-8)}`;
+    const certId = generateCertId(currentProfile, Date.now());
+    certNumEl.textContent = `${t('certNumLabel')}: ${certId}`;
     setAvatarElement(certPhotoEl, prof, 110);
     if(!prof.photo) certPhotoEl.style.fontSize = '52px';
 
@@ -5498,7 +5592,7 @@
       if(!prof.certificatesIssued) prof.certificatesIssued = [];
       prof.certificatesIssued.push({
         score: parseInt(sumScore.textContent,10)||0, accuracy: parseInt(sumAcc.textContent,10)||0,
-        date: new Date().toISOString()
+        date: new Date().toISOString(), certId
       });
       if(prof.certificatesIssued.length > 20) prof.certificatesIssued.shift();
       saveProfilesToStorage();
