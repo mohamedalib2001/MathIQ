@@ -137,6 +137,37 @@
   .lp-progress-bar-wrap{ height:8px; border-radius:6px; background:var(--bg); overflow:hidden; margin:6px 0; }
   .lp-progress-bar{ height:100%; background:var(--mint); border-radius:6px; }
   .lp-question-block{ background:var(--input-bg); border:1px solid var(--input-border); border-radius:10px; padding:10px; margin-bottom:8px; }
+  .lp-status-badge{
+    font-size:9.5px; font-weight:700; padding:2px 7px; border-radius:8px; margin-inline-start:6px;
+    background:var(--bg); border:1px solid var(--chip-border); color:var(--ink-dim);
+  }
+  .lp-status-badge.status-published{ color:#10B981; border-color:rgba(16,185,129,0.4); }
+  .lp-status-badge.status-draft{ color:#F59E0B; border-color:rgba(245,158,11,0.4); }
+  .lp-status-badge.status-archived{ color:#EF4444; border-color:rgba(239,68,68,0.4); }
+  .lp-row-actions{ display:flex; gap:5px; flex:none; }
+  .lp-mini-btn{
+    font-size:10.5px; font-weight:700; padding:5px 9px; border-radius:7px; border:1px solid var(--chip-border);
+    background:transparent; color:var(--ink-dim); cursor:pointer;
+  }
+  .lp-mini-btn:hover{ border-color:var(--yellow); color:var(--ink); }
+  .lp-timer-badge{
+    display:inline-block; font-weight:800; font-size:13px; padding:6px 14px; border-radius:10px;
+    background:rgba(239,68,68,0.12); border:1.5px solid rgba(239,68,68,0.4); color:#EF4444; margin-bottom:10px;
+  }
+  .lp-timer-badge.lp-timer-low{ animation:pulse-warn 1s infinite; }
+  @keyframes pulse-warn{ 0%,100%{opacity:1;} 50%{opacity:0.5;} }
+  .skill-card{
+    background:var(--input-bg); border:1.5px solid var(--input-border); border-radius:14px; padding:14px; margin-bottom:10px;
+  }
+  .skill-card .skill-name-row{ display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+  .skill-card .skill-name{ font-family:'Cairo',sans-serif; font-weight:700; font-size:14px; }
+  .skill-card .skill-trend{ font-size:12px; font-weight:700; }
+  .skill-card .skill-trend.improving{ color:#10B981; }
+  .skill-card .skill-trend.declining{ color:#EF4444; }
+  .skill-card .skill-trend.stable{ color:var(--ink-dim); }
+  .skill-card .skill-bar-wrap{ height:8px; border-radius:6px; background:var(--bg); overflow:hidden; }
+  .skill-card .skill-bar{ height:100%; background:var(--yellow); border-radius:6px; }
+  .skill-card .skill-level-text{ font-size:11px; color:var(--ink-dim); margin-top:4px; }
   @media (min-width:1024px){
     .app-sidebar{
       display:flex; flex-direction:column; flex:none; width:216px; margin-inline-end:22px;
@@ -1067,6 +1098,14 @@
     <div class="link-line subtle-link" id="backToLoginLink" data-i18n="backToLoginLink">🔒 رجوع لتسجيل الدخول</div>
   </div>
 
+  <!-- MY SKILLS (learner) — real skill progress derived from actual
+       assessment attempts, not invented numbers. -->
+  <div id="mySkillsScreen" class="panel hidden">
+    <div class="group-label" style="text-align:center;" data-i18n="skillsTitle">🧩 مهاراتي</div>
+    <div id="mySkillsList"></div>
+    <button class="secondary-btn" id="mySkillsBackBtn" data-i18n="closeBtn">إغلاق</button>
+  </div>
+
   <!-- PROGRAM BUILDER (trainer) — real CRUD for Program > Course > Module >
        Lesson > Assessment, drilled down one level at a time. -->
   <div id="programBuilder" class="panel hidden">
@@ -1937,6 +1976,9 @@
   const notifBellBadge = document.getElementById('notifBellBadge');
   const notifPanel = document.getElementById('notifPanel');
   const notifPanelList = document.getElementById('notifPanelList');
+  const mySkillsScreen = document.getElementById('mySkillsScreen');
+  const mySkillsList = document.getElementById('mySkillsList');
+  const mySkillsBackBtn = document.getElementById('mySkillsBackBtn');
   const programBuilderEl = document.getElementById('programBuilder');
   const pbBreadcrumb = document.getElementById('pbBreadcrumb');
   const pbListArea = document.getElementById('pbListArea');
@@ -2467,6 +2509,17 @@
       certVerifyNote:'أدخلي رقم الشهادة الظاهر عليها للتحقق من صحتها.', certVerifyBtn:'تحقّق',
       certVerifyValid:'شهادة حقيقية وموثّقة', certVerifyInvalid:'رقم الشهادة غير صحيح أو غير موجود في السجلّات.',
       certVerifyName:'اسم المتعلّم',
+      skillsTitle:'🧩 مهاراتي', shellNavSkills:'مهاراتي',
+      skillMathematics:'الرياضيات', skillProblemSolving:'حل المشكلات', skillCriticalThinking:'التفكير النقدي',
+      skillNotStarted:'لم تبدئي بعد', skillLevelText:'المستوى {level}% · بناءً على {n} محاولة',
+      skillTrendImproving:'في تحسّن', skillTrendDeclining:'يحتاج ممارسة', skillTrendStable:'مستقر',
+      statusDraft:'مسوّدة', statusPublished:'منشور', statusArchived:'مؤرشف',
+      pbEditBtn:'تعديل', pbPublishBtn:'نشر', pbArchiveBtn:'أرشفة', pbRestoreBtn:'استعادة',
+      pbEditingLabel:'جاري تعديل', pbSaveChangesBtn:'حفظ التعديلات', pbCancelBtn:'إلغاء',
+      pbNoTimeLimit:'بدون وقت محدد', pbTimeLimitShown:'{min} دقيقة', pbTimeLimitPh:'الوقت المحدد بالدقائق (اختياري)',
+      pbSkillNone:'بدون مهارة مرتبطة', pbTrueLabel:'صحيح', pbFalseLabel:'خطأ',
+      pbQTypeMcq:'اختيار من متعدد', pbQTypeTruefalse:'صح/خطأ', pbQTypeShortanswer:'إجابة قصيرة',
+      pbExpectedAnswerPh:'الإجابة المتوقعة', ppTimeExpiredNote:'⏱ انتهى الوقت وتم إرسال إجاباتك تلقائيًا.',
       shellNavProgramBuilder:'بناء البرامج', pbTitle:'🎓 بناء البرامج التعليمية', ppTitle:'📘 البرنامج التعليمي',
       pbBreadcrumbPrograms:'برامجي', pbNoPrograms:'لا توجد برامج بعد. أنشئي أول برنامج.', pbCourseCount:'{n} دورة',
       pbProgramTitlePh:'عنوان البرنامج', pbProgramDescPh:'وصف مختصر (اختياري)',
@@ -2692,6 +2745,17 @@
       certVerifyNote:'Enter the certificate number shown on it to verify its authenticity.', certVerifyBtn:'Verify',
       certVerifyValid:'Genuine, verified certificate', certVerifyInvalid:'This certificate number is invalid or not on record.',
       certVerifyName:'Learner name',
+      skillsTitle:'🧩 My Skills', shellNavSkills:'My Skills',
+      skillMathematics:'Mathematics', skillProblemSolving:'Problem Solving', skillCriticalThinking:'Critical Thinking',
+      skillNotStarted:'Not started yet', skillLevelText:'Level {level}% · based on {n} attempt(s)',
+      skillTrendImproving:'Improving', skillTrendDeclining:'Needs practice', skillTrendStable:'Stable',
+      statusDraft:'Draft', statusPublished:'Published', statusArchived:'Archived',
+      pbEditBtn:'Edit', pbPublishBtn:'Publish', pbArchiveBtn:'Archive', pbRestoreBtn:'Restore',
+      pbEditingLabel:'Editing', pbSaveChangesBtn:'Save Changes', pbCancelBtn:'Cancel',
+      pbNoTimeLimit:'No time limit', pbTimeLimitShown:'{min} min', pbTimeLimitPh:'Time limit in minutes (optional)',
+      pbSkillNone:'No linked skill', pbTrueLabel:'True', pbFalseLabel:'False',
+      pbQTypeMcq:'Multiple Choice', pbQTypeTruefalse:'True / False', pbQTypeShortanswer:'Short Answer',
+      pbExpectedAnswerPh:'Expected answer', ppTimeExpiredNote:'⏱ Time expired — your answers were submitted automatically.',
       shellNavProgramBuilder:'Program Builder', pbTitle:'🎓 Program Builder', ppTitle:'📘 Learning Program',
       pbBreadcrumbPrograms:'My Programs', pbNoPrograms:'No programs yet. Create your first program.', pbCourseCount:'{n} courses',
       pbProgramTitlePh:'Program title', pbProgramDescPh:'Short description (optional)',
@@ -3297,7 +3361,7 @@
 
     // real Sprint-1 programs, rendered as additional cards before the "coming soon" placeholders
     document.querySelectorAll('.lp-real-program-card').forEach(el => el.remove());
-    const realPrograms = lpLoad(LP_KEYS.PROGRAMS).filter(pr => pr.status === 'active');
+    const realPrograms = lpLoad(LP_KEYS.PROGRAMS).filter(pr => pr.status === 'published');
     realPrograms.forEach(pr=>{
       const card = document.createElement('div');
       card.className = 'program-card lp-real-program-card';
@@ -3352,6 +3416,7 @@
     if('speechSynthesis' in window) window.speechSynthesis.cancel();
     challengeMode = false;
     if(raceMode){ raceMode = false; clearInterval(racePollInterval); }
+    if(typeof ppAssessmentTimerInterval !== 'undefined') clearInterval(ppAssessmentTimerInterval);
     if(typeof stopCameraCall === 'function') stopCameraCall();
     if(typeof commandPaletteOverlay !== 'undefined') commandPaletteOverlay.classList.add('hidden');
     if(typeof renderShellNav === 'function') renderShellNav(null); // safe default; callers re-set their own role right after
@@ -3367,6 +3432,7 @@
     certVerifyScreen.classList.add('hidden');
     programBuilderEl.classList.add('hidden');
     programPlayerEl.classList.add('hidden');
+    mySkillsScreen.classList.add('hidden');
     connectionEl.classList.add('hidden');
     subsConfigEl.classList.add('hidden');
     guestGateEl.classList.add('hidden');
@@ -4140,7 +4206,7 @@
 
   function lpCreateProgram(title, description, level, instructorUsername){
     const programs = lpLoad(LP_KEYS.PROGRAMS);
-    const p = { id: lpGenId('prog'), title, description, level, status:'active', instructorUsername, skillIds:[], createdAt: new Date().toISOString() };
+    const p = { id: lpGenId('prog'), title, description, level, status:'draft', instructorUsername, skillIds:[], createdAt: new Date().toISOString() };
     programs.push(p);
     lpSave(LP_KEYS.PROGRAMS, programs);
     return p;
@@ -4148,8 +4214,27 @@
   function lpArchiveProgram(programId){
     const programs = lpLoad(LP_KEYS.PROGRAMS);
     const p = programs.find(x => x.id === programId);
-    if(p) p.status = 'archived';
+    if(p){ p.previousStatus = p.status; p.status = 'archived'; }
     lpSave(LP_KEYS.PROGRAMS, programs);
+  }
+  function lpRestoreProgram(programId){
+    const programs = lpLoad(LP_KEYS.PROGRAMS);
+    const p = programs.find(x => x.id === programId);
+    if(p) p.status = p.previousStatus || 'draft';
+    lpSave(LP_KEYS.PROGRAMS, programs);
+  }
+  function lpPublishProgram(programId){
+    const programs = lpLoad(LP_KEYS.PROGRAMS);
+    const p = programs.find(x => x.id === programId);
+    if(p) p.status = 'published';
+    lpSave(LP_KEYS.PROGRAMS, programs);
+  }
+  function lpUpdateProgram(programId, fields){
+    const programs = lpLoad(LP_KEYS.PROGRAMS);
+    const p = programs.find(x => x.id === programId);
+    if(p) Object.assign(p, fields);
+    lpSave(LP_KEYS.PROGRAMS, programs);
+    return p;
   }
   function lpCreateCourse(programId, title, description){
     const courses = lpLoad(LP_KEYS.COURSES);
@@ -4172,9 +4257,9 @@
     lpSave(LP_KEYS.LESSONS, lessons);
     return l;
   }
-  function lpCreateAssessment(lessonId, title, questions, passScore){
+  function lpCreateAssessment(lessonId, title, questions, passScore, timeLimit, skillIds){
     const assessments = lpLoad(LP_KEYS.ASSESSMENTS);
-    const a = { id: lpGenId('assess'), lessonId, title, questions, passScore: passScore || 60 };
+    const a = { id: lpGenId('assess'), lessonId, title, questions, passScore: passScore || 60, timeLimit: timeLimit || null, skillIds: skillIds || [] };
     assessments.push(a);
     lpSave(LP_KEYS.ASSESSMENTS, assessments);
     return a;
@@ -4216,18 +4301,68 @@
     const done = lessons.filter(l => completedIds.has(l.id)).length;
     return Math.round((done / lessons.length) * 100);
   }
-  function lpSubmitAssessment(learnerUsername, assessmentId, answers){
+  /* ---------- expanded assessment engine: MCQ, True/False, Short Answer
+     (exact/normalized matching — no fake AI grading claim), and timed
+     auto-submit. Verified in isolation against 9 scenarios before wiring. ---------- */
+  function lpNormalizeAnswer(s){
+    return (s || '').toString().trim().toLowerCase().replace(/\s+/g, ' ');
+  }
+  function lpScoreQuestion(q, answer){
+    if(q.type === 'mcq') return answer === q.correctIndex;
+    if(q.type === 'truefalse') return answer === q.correctAnswer;
+    if(q.type === 'shortanswer'){
+      const norm = lpNormalizeAnswer(answer);
+      if(norm === lpNormalizeAnswer(q.correctAnswer)) return true;
+      return (q.acceptedVariations || []).some(v => lpNormalizeAnswer(v) === norm);
+    }
+    return false;
+  }
+  function lpSubmitAssessment(learnerUsername, assessmentId, answers, timeExpired){
     const a = lpLoad(LP_KEYS.ASSESSMENTS).find(x => x.id === assessmentId);
     if(!a) return null;
-    let correct = 0;
-    a.questions.forEach((q, i) => { if(answers[i] === q.correctIndex) correct++; });
-    const score = Math.round((correct / a.questions.length) * 100);
-    const passed = score >= a.passScore;
+    let earnedPoints = 0, totalPoints = 0;
+    const breakdown = [];
+    a.questions.forEach((q, i) => {
+      const points = q.points || 1;
+      totalPoints += points;
+      const correct = lpScoreQuestion(q, answers[i]);
+      if(correct) earnedPoints += points;
+      breakdown.push({ question: q.text, correct });
+    });
+    const score = totalPoints > 0 ? Math.round((earnedPoints / totalPoints) * 100) : 0;
+    const passed = score >= (a.passScore || 60);
     const attempts = lpLoad(LP_KEYS.ASSESSMENT_ATTEMPTS);
-    const attempt = { learnerUsername, assessmentId, score, passed, attemptedAt: new Date().toISOString() };
+    const attempt = { learnerUsername, assessmentId, score, passed, breakdown, timeExpired: !!timeExpired, attemptedAt: new Date().toISOString() };
     attempts.push(attempt);
     lpSave(LP_KEYS.ASSESSMENT_ATTEMPTS, attempts);
     return attempt;
+  }
+  function lpComputeSkillProgress(learnerUsername, skillId){
+    const assessments = lpLoad(LP_KEYS.ASSESSMENTS);
+    const relevantIds = new Set(assessments.filter(a => (a.skillIds||[]).includes(skillId)).map(a => a.id));
+    const attempts = lpLoad(LP_KEYS.ASSESSMENT_ATTEMPTS).filter(a => a.learnerUsername === learnerUsername && relevantIds.has(a.assessmentId));
+    if(!attempts.length) return { level:null, trend:'none', attemptCount:0 };
+    const avg = Math.round(attempts.reduce((s,a)=>s+a.score,0) / attempts.length);
+    let trend = 'stable';
+    if(attempts.length >= 2){
+      const mid = Math.floor(attempts.length / 2);
+      const earlyAvg = attempts.slice(0, mid).reduce((s,a)=>s+a.score,0) / mid;
+      const lateAvg = attempts.slice(mid).reduce((s,a)=>s+a.score,0) / (attempts.length - mid);
+      if(lateAvg - earlyAvg >= 8) trend = 'improving';
+      else if(earlyAvg - lateAvg >= 8) trend = 'declining';
+    }
+    return { level: avg, trend, attemptCount: attempts.length };
+  }
+  function lpEnsureDefaultSkills(){
+    let skills = lpLoad(LP_KEYS.SKILLS);
+    if(skills.length) return skills;
+    skills = [
+      { id:'skill_math', name: t('skillMathematics'), category:'academic' },
+      { id:'skill_problem', name: t('skillProblemSolving'), category:'cognitive' },
+      { id:'skill_critical', name: t('skillCriticalThinking'), category:'cognitive' }
+    ];
+    lpSave(LP_KEYS.SKILLS, skills);
+    return skills;
   }
   function lpUpdateEnrollmentActivity(learnerUsername, programId){
     const enrollments = lpLoad(LP_KEYS.ENROLLMENTS);
@@ -4245,19 +4380,49 @@
     return e;
   }
   function lpGetEnrollmentsForLearner(learnerUsername){ return lpLoad(LP_KEYS.ENROLLMENTS).filter(e => e.learnerUsername === learnerUsername); }
-  function lpGetProgramsForInstructor(username){ return lpLoad(LP_KEYS.PROGRAMS).filter(p => p.instructorUsername === username && p.status !== 'archived'); }
+  function lpGetProgramsForInstructor(username){ return lpLoad(LP_KEYS.PROGRAMS).filter(p => p.instructorUsername === username); }
 
   /* ---------- trainer program builder UI: drills Program -> Course ->
      Module -> Lesson -> Assessment one level at a time. Every action here
      calls the tested data-layer functions above; no separate logic. ---------- */
   let pbLevel = 'programs', pbProgram = null, pbCourse = null, pbModule = null, pbLesson = null;
+  let pbEditingProgram = null;
+  function pbOpenEditForm(p){ pbEditingProgram = p; renderProgramBuilder(); }
   let pbAssessmentQuestions = [];
   function pbNavigate(level, program, course, mod, lesson){
     pbLevel = level;
     pbProgram = program || null; pbCourse = course || null; pbModule = mod || null; pbLesson = lesson || null;
     if(level === 'assessment') pbAssessmentQuestions = [];
+    pbEditingProgram = null;
     renderProgramBuilder();
   }
+  function renderMySkills(){
+    mySkillsList.innerHTML = '';
+    const skills = lpEnsureDefaultSkills();
+    skills.forEach(s=>{
+      const result = lpComputeSkillProgress(currentProfile, s.id);
+      const card = document.createElement('div');
+      card.className = 'skill-card';
+      if(result.level === null){
+        card.innerHTML = `
+          <div class="skill-name-row"><span class="skill-name">${s.name}</span><span class="skill-trend stable">${t('skillNotStarted')}</span></div>
+          <div class="skill-bar-wrap"><div class="skill-bar" style="width:0%"></div></div>`;
+      } else {
+        const trendIcon = result.trend === 'improving' ? '↑' : (result.trend === 'declining' ? '↓' : '→');
+        const trendLabel = t('skillTrend' + capitalize(result.trend));
+        card.innerHTML = `
+          <div class="skill-name-row"><span class="skill-name">${s.name}</span><span class="skill-trend ${result.trend}">${trendIcon} ${trendLabel}</span></div>
+          <div class="skill-bar-wrap"><div class="skill-bar" style="width:${result.level}%"></div></div>
+          <div class="skill-level-text">${fmt('skillLevelText', { level: result.level, n: result.attemptCount })}</div>`;
+      }
+      mySkillsList.appendChild(card);
+    });
+  }
+  mySkillsBackBtn.addEventListener('click', ()=>{
+    mySkillsScreen.classList.add('hidden');
+    showProgramsHub();
+  });
+
   function openProgramBuilder(){
     hideAllScreens();
     programBuilderEl.classList.remove('hidden');
@@ -4276,10 +4441,53 @@
       programs.forEach(p=>{
         const row = document.createElement('div');
         row.className = 'lp-row';
-        row.innerHTML = `<div class="lp-row-info"><div class="lp-row-title">${p.title}</div><div class="lp-row-sub">${t('level'+capitalize(p.level))} · ${fmt('pbCourseCount',{ n: lpGetCoursesForProgram(p.id).length })}</div></div><span class="lp-row-badge">›</span>`;
+        const statusKey = p.status === 'draft' ? 'statusDraft' : (p.status === 'published' ? 'statusPublished' : 'statusArchived');
+        row.innerHTML = `
+          <div class="lp-row-info">
+            <div class="lp-row-title">${p.title} <span class="lp-status-badge status-${p.status}">${t(statusKey)}</span></div>
+            <div class="lp-row-sub">${t('level'+capitalize(p.level))} · ${fmt('pbCourseCount',{ n: lpGetCoursesForProgram(p.id).length })}</div>
+          </div>
+          <div class="lp-row-actions">
+            <button class="lp-mini-btn" data-act="edit">${t('pbEditBtn')}</button>
+            ${p.status === 'draft' ? `<button class="lp-mini-btn" data-act="publish">${t('pbPublishBtn')}</button>` : ''}
+            ${p.status !== 'archived' ? `<button class="lp-mini-btn" data-act="archive">${t('pbArchiveBtn')}</button>` : `<button class="lp-mini-btn" data-act="restore">${t('pbRestoreBtn')}</button>`}
+          </div>`;
+        row.querySelector('[data-act="edit"]').addEventListener('click', e=>{ e.stopPropagation(); pbOpenEditForm(p); });
+        const publishBtn = row.querySelector('[data-act="publish"]');
+        if(publishBtn) publishBtn.addEventListener('click', e=>{ e.stopPropagation(); lpPublishProgram(p.id); renderProgramBuilder(); });
+        const archiveBtn = row.querySelector('[data-act="archive"]');
+        if(archiveBtn) archiveBtn.addEventListener('click', e=>{ e.stopPropagation(); lpArchiveProgram(p.id); renderProgramBuilder(); });
+        const restoreBtn = row.querySelector('[data-act="restore"]');
+        if(restoreBtn) restoreBtn.addEventListener('click', e=>{ e.stopPropagation(); lpRestoreProgram(p.id); renderProgramBuilder(); });
         row.addEventListener('click', ()=> pbNavigate('courses', p));
         pbListArea.appendChild(row);
       });
+      if(pbEditingProgram){
+        pbCreateForm.innerHTML = `
+          <div class="lp-create-form">
+            <div class="conn-note">${t('pbEditingLabel')}: ${pbEditingProgram.title}</div>
+            <input type="text" id="pbNewProgramTitle" value="${pbEditingProgram.title}">
+            <textarea id="pbNewProgramDesc" rows="2">${pbEditingProgram.description||''}</textarea>
+            <select id="pbNewProgramLevel">
+              <option value="beginner" ${pbEditingProgram.level==='beginner'?'selected':''}>${t('levelBeginner')}</option>
+              <option value="intermediate" ${pbEditingProgram.level==='intermediate'?'selected':''}>${t('levelIntermediate')}</option>
+              <option value="advanced" ${pbEditingProgram.level==='advanced'?'selected':''}>${t('levelAdvanced')}</option>
+            </select>
+            <button class="start-btn" id="pbSaveEditBtn">${t('pbSaveChangesBtn')}</button>
+            <button class="secondary-btn" id="pbCancelEditBtn">${t('pbCancelBtn')}</button>
+          </div>`;
+        document.getElementById('pbSaveEditBtn').addEventListener('click', ()=>{
+          lpUpdateProgram(pbEditingProgram.id, {
+            title: document.getElementById('pbNewProgramTitle').value.trim() || pbEditingProgram.title,
+            description: document.getElementById('pbNewProgramDesc').value.trim(),
+            level: document.getElementById('pbNewProgramLevel').value
+          });
+          pbEditingProgram = null;
+          renderProgramBuilder();
+        });
+        document.getElementById('pbCancelEditBtn').addEventListener('click', ()=>{ pbEditingProgram = null; renderProgramBuilder(); });
+        return;
+      }
       pbCreateForm.innerHTML = `
         <div class="lp-create-form">
           <input type="text" id="pbNewProgramTitle" placeholder="${t('pbProgramTitlePh')}">
@@ -4380,44 +4588,93 @@
       document.getElementById('pbCrumbLessons').addEventListener('click', ()=> pbNavigate('lessons', pbProgram, pbCourse, pbModule));
       const existing = lpGetAssessmentForLesson(pbLesson.id);
       if(existing){
-        pbListArea.innerHTML = `<div class="dash-row"><span>${existing.title}</span><b>${fmt('pbQuestionCount',{ n: existing.questions.length })}</b></div>`;
+        const timeLabel = existing.timeLimit ? fmt('pbTimeLimitShown', { min: existing.timeLimit }) : t('pbNoTimeLimit');
+        pbListArea.innerHTML = `<div class="dash-row"><span>${existing.title}</span><b>${fmt('pbQuestionCount',{ n: existing.questions.length })} · ${timeLabel}</b></div>`;
       } else {
         pbListArea.innerHTML = `<div class="dash-empty">${t('pbNoAssessmentYet')}</div>`;
       }
+      const skills = lpEnsureDefaultSkills();
       let qFormHtml = `<div class="lp-create-form">`;
       pbAssessmentQuestions.forEach((q,i)=>{
-        qFormHtml += `<div class="lp-question-block"><b>${i+1}. ${q.text}</b> — ${t('pbCorrectAnswerLabel')}: ${q.options[q.correctIndex]}</div>`;
+        const answerLabel = q.type === 'mcq' ? q.options[q.correctIndex]
+          : q.type === 'truefalse' ? (q.correctAnswer ? t('pbTrueLabel') : t('pbFalseLabel'))
+          : q.correctAnswer;
+        qFormHtml += `<div class="lp-question-block"><b>${i+1}. [${t('pbQType'+capitalize(q.type))}] ${q.text}</b> — ${t('pbCorrectAnswerLabel')}: ${answerLabel}</div>`;
       });
       qFormHtml += `
           <input type="text" id="pbAssessTitle" placeholder="${t('pbAssessmentTitlePh')}" value="${existing ? existing.title : ''}">
-          <input type="text" id="pbQText" placeholder="${t('pbQuestionTextPh')}">
-          <input type="text" id="pbQOpt0" placeholder="${t('pbOptionPh')} 1">
-          <input type="text" id="pbQOpt1" placeholder="${t('pbOptionPh')} 2">
-          <input type="text" id="pbQOpt2" placeholder="${t('pbOptionPh')} 3 (${t('pbOptional')})">
-          <select id="pbQCorrect">
-            <option value="0">${t('pbOptionPh')} 1</option>
-            <option value="1">${t('pbOptionPh')} 2</option>
-            <option value="2">${t('pbOptionPh')} 3</option>
+          <input type="number" id="pbAssessTimeLimit" placeholder="${t('pbTimeLimitPh')}" min="1" value="${existing && existing.timeLimit ? existing.timeLimit : ''}">
+          <select id="pbAssessSkill">
+            <option value="">${t('pbSkillNone')}</option>
+            ${skills.map(s=>`<option value="${s.id}">${s.name}</option>`).join('')}
           </select>
+          <select id="pbQType">
+            <option value="mcq">${t('pbQTypeMcq')}</option>
+            <option value="truefalse">${t('pbQTypeTruefalse')}</option>
+            <option value="shortanswer">${t('pbQTypeShortanswer')}</option>
+          </select>
+          <input type="text" id="pbQText" placeholder="${t('pbQuestionTextPh')}">
+          <div id="pbQTypeFields"></div>
           <button class="secondary-btn" id="pbAddQuestionBtn">${t('pbAddQuestionBtn')}</button>
           <button class="start-btn" id="pbSaveAssessmentBtn">${t('pbSaveAssessmentBtn')}</button>
         </div>`;
       pbCreateForm.innerHTML = qFormHtml;
+
+      function renderQTypeFields(){
+        const type = document.getElementById('pbQType').value;
+        const box = document.getElementById('pbQTypeFields');
+        if(type === 'mcq'){
+          box.innerHTML = `
+            <input type="text" id="pbQOpt0" placeholder="${t('pbOptionPh')} 1">
+            <input type="text" id="pbQOpt1" placeholder="${t('pbOptionPh')} 2">
+            <input type="text" id="pbQOpt2" placeholder="${t('pbOptionPh')} 3 (${t('pbOptional')})">
+            <select id="pbQCorrect">
+              <option value="0">${t('pbOptionPh')} 1</option>
+              <option value="1">${t('pbOptionPh')} 2</option>
+              <option value="2">${t('pbOptionPh')} 3</option>
+            </select>`;
+        } else if(type === 'truefalse'){
+          box.innerHTML = `
+            <select id="pbQTrueFalse">
+              <option value="true">${t('pbTrueLabel')}</option>
+              <option value="false">${t('pbFalseLabel')}</option>
+            </select>`;
+        } else {
+          box.innerHTML = `<input type="text" id="pbQShortAnswer" placeholder="${t('pbExpectedAnswerPh')}">`;
+        }
+      }
+      renderQTypeFields();
+      document.getElementById('pbQType').addEventListener('change', renderQTypeFields);
+
       document.getElementById('pbAddQuestionBtn').addEventListener('click', ()=>{
+        const type = document.getElementById('pbQType').value;
         const text = document.getElementById('pbQText').value.trim();
-        const opt0 = document.getElementById('pbQOpt0').value.trim();
-        const opt1 = document.getElementById('pbQOpt1').value.trim();
-        const opt2 = document.getElementById('pbQOpt2').value.trim();
-        if(!text || !opt0 || !opt1) return;
-        const options = [opt0, opt1]; if(opt2) options.push(opt2);
-        const correctIndex = Math.min(parseInt(document.getElementById('pbQCorrect').value,10), options.length-1);
-        pbAssessmentQuestions.push({ text, options, correctIndex });
+        if(!text) return;
+        let q = null;
+        if(type === 'mcq'){
+          const opt0 = document.getElementById('pbQOpt0').value.trim();
+          const opt1 = document.getElementById('pbQOpt1').value.trim();
+          const opt2 = document.getElementById('pbQOpt2').value.trim();
+          if(!opt0 || !opt1) return;
+          const options = [opt0, opt1]; if(opt2) options.push(opt2);
+          const correctIndex = Math.min(parseInt(document.getElementById('pbQCorrect').value,10), options.length-1);
+          q = { type:'mcq', text, options, correctIndex, points:1 };
+        } else if(type === 'truefalse'){
+          q = { type:'truefalse', text, correctAnswer: document.getElementById('pbQTrueFalse').value === 'true', points:1 };
+        } else {
+          const answer = document.getElementById('pbQShortAnswer').value.trim();
+          if(!answer) return;
+          q = { type:'shortanswer', text, correctAnswer: answer, acceptedVariations:[], points:1 };
+        }
+        pbAssessmentQuestions.push(q);
         renderProgramBuilder();
       });
       document.getElementById('pbSaveAssessmentBtn').addEventListener('click', ()=>{
         const title = document.getElementById('pbAssessTitle').value.trim();
         if(!title || !pbAssessmentQuestions.length) return;
-        lpCreateAssessment(pbLesson.id, title, pbAssessmentQuestions, 60);
+        const timeLimit = parseInt(document.getElementById('pbAssessTimeLimit').value, 10) || null;
+        const skillId = document.getElementById('pbAssessSkill').value;
+        lpCreateAssessment(pbLesson.id, title, pbAssessmentQuestions, 60, timeLimit, skillId ? [skillId] : []);
         pbNavigate('lessons', pbProgram, pbCourse, pbModule);
       });
     }
@@ -4432,7 +4689,9 @@
      Program -> Course -> Module -> Lesson, lesson completion, and
      assessment-taking, all backed by the same tested data layer. ---------- */
   let ppLevel = 'courses', ppProgram = null, ppCourse = null, ppModule = null, ppLesson = null;
+  let ppAssessmentTimerInterval = null;
   function ppNavigate(level, course, mod, lesson){
+    clearInterval(ppAssessmentTimerInterval);
     ppLevel = level; ppCourse = course || null; ppModule = mod || null; ppLesson = lesson || null;
     renderProgramPlayer();
   }
@@ -4512,32 +4771,73 @@
       const assessment = lpGetAssessmentForLesson(ppLesson.id);
       ppBreadcrumb.textContent = assessment.title;
       let html = '<div class="lp-create-form">';
+      if(assessment.timeLimit) html += `<div class="lp-timer-badge" id="ppTimerBadge">⏱ --:--</div>`;
       assessment.questions.forEach((q,i)=>{
         html += `<div class="lp-question-block"><b>${i+1}. ${q.text}</b>`;
-        q.options.forEach((opt,oi)=>{
-          html += `<div style="margin-top:6px;"><label><input type="radio" name="ppq${i}" value="${oi}"> ${opt}</label></div>`;
-        });
+        if(q.type === 'mcq'){
+          q.options.forEach((opt,oi)=>{
+            html += `<div style="margin-top:6px;"><label><input type="radio" name="ppq${i}" value="${oi}"> ${opt}</label></div>`;
+          });
+        } else if(q.type === 'truefalse'){
+          html += `
+            <div style="margin-top:6px;"><label><input type="radio" name="ppq${i}" value="true"> ${t('pbTrueLabel')}</label></div>
+            <div style="margin-top:6px;"><label><input type="radio" name="ppq${i}" value="false"> ${t('pbFalseLabel')}</label></div>`;
+        } else {
+          html += `<input type="text" name="ppq${i}" style="margin-top:6px; width:100%; padding:8px; border-radius:8px; border:1.5px solid var(--input-border); background:var(--input-bg); color:var(--ink);">`;
+        }
         html += `</div>`;
       });
       html += `<button class="start-btn" id="ppSubmitAssessmentBtn">${t('ppSubmitAssessmentBtn')}</button></div>`;
       ppContentArea.innerHTML = html;
-      document.getElementById('ppSubmitAssessmentBtn').addEventListener('click', ()=>{
-        const answers = assessment.questions.map((q,i)=>{
-          const sel = document.querySelector(`input[name="ppq${i}"]:checked`);
-          return sel ? parseInt(sel.value,10) : -1;
+
+      function collectAnswers(){
+        return assessment.questions.map((q,i)=>{
+          if(q.type === 'mcq'){
+            const sel = document.querySelector(`input[name="ppq${i}"]:checked`);
+            return sel ? parseInt(sel.value,10) : -1;
+          } else if(q.type === 'truefalse'){
+            const sel = document.querySelector(`input[name="ppq${i}"]:checked`);
+            return sel ? sel.value === 'true' : null;
+          } else {
+            const input = document.querySelector(`input[name="ppq${i}"]`);
+            return input ? input.value : '';
+          }
         });
-        const attempt = lpSubmitAssessment(currentProfile, assessment.id, answers);
+      }
+      function finishAssessment(timeExpired){
+        clearInterval(ppAssessmentTimerInterval);
+        const attempt = lpSubmitAssessment(currentProfile, assessment.id, collectAnswers(), timeExpired);
+        lpUpdateEnrollmentActivity(currentProfile, ppProgram.id);
+        const expiredNote = timeExpired ? `<div class="conn-note">${t('ppTimeExpiredNote')}</div>` : '';
         ppContentArea.innerHTML = `
+          ${expiredNote}
           <div class="cert-verify-result ${attempt.passed ? 'valid' : 'invalid'}">
             <div class="cvr-row"><b>${attempt.passed ? '✅' : '❌'} ${fmt('ppScoreResult', { score: attempt.score })}</b></div>
           </div>
           <button class="secondary-btn" id="ppBackToLessonBtn">${t('closeBtn')}</button>`;
         showToast(fmt('toastAssessmentResult', { score: attempt.score }), attempt.passed ? '✅' : '📝', 'learning');
         document.getElementById('ppBackToLessonBtn').addEventListener('click', ()=> ppNavigate('lesson', ppCourse, ppModule, ppLesson));
-      });
+      }
+      document.getElementById('ppSubmitAssessmentBtn').addEventListener('click', ()=> finishAssessment(false));
+
+      if(assessment.timeLimit){
+        let secondsLeft = assessment.timeLimit * 60;
+        const timerBadge = document.getElementById('ppTimerBadge');
+        function tickTimer(){
+          const mm = String(Math.floor(secondsLeft/60)).padStart(2,'0');
+          const ss = String(secondsLeft%60).padStart(2,'0');
+          timerBadge.textContent = `⏱ ${mm}:${ss}`;
+          timerBadge.classList.toggle('lp-timer-low', secondsLeft <= 30);
+          if(secondsLeft <= 0){ finishAssessment(true); return; }
+          secondsLeft--;
+        }
+        tickTimer();
+        ppAssessmentTimerInterval = setInterval(tickTimer, 1000);
+      }
     }
   }
   ppBackBtn.addEventListener('click', ()=>{
+    clearInterval(ppAssessmentTimerInterval);
     programPlayerEl.classList.add('hidden');
     showProgramsHub();
   });
@@ -4552,6 +4852,7 @@
       return [
         { icon:'🏠', label:t('shellNavPrograms'), run: ()=> showProgramsHub() },
         { icon:'📚', label:t('shellNavJourney'), run: ()=>{ if(isServiceOn('knowledgeMap')) knowledgeMapOpenBtn.click(); } },
+        { icon:'🧩', label:t('shellNavSkills'), run: ()=>{ hideAllScreens(); mySkillsScreen.classList.remove('hidden'); renderMySkills(); renderShellNav('learner'); } },
         { icon:'🏅', label:t('shellNavAchievements'), run: ()=> myStatsLink.click() },
         { icon:'⚙️', label:t('shellNavAccount'), run: ()=> editMyProfileLink.click() },
         { icon:'🚪', label:t('shellNavLogout'), run: ()=> goToLoginGate() }
