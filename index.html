@@ -1074,6 +1074,9 @@
         <button class="chip" data-op="mul" data-i18n="opMul">ضرب ×</button>
         <button class="chip" data-op="div" data-i18n="opDiv">قسمة ÷</button>
         <button class="chip" data-op="mix" data-i18n="opMix">منوّع</button>
+        <button class="chip" data-op="percent" data-i18n="opPercent">نسبة مئوية %</button>
+        <button class="chip" data-op="exponent" data-i18n="opExponent">أُسس xⁿ</button>
+        <button class="chip" data-op="sqrt" data-i18n="opSqrt">جذر تربيعي √</button>
       </div>
     </div>
     <div id="tableFocusGroup" class="hidden">
@@ -1086,7 +1089,7 @@
         <option value="11">11</option><option value="12">12</option>
       </select>
     </div>
-    <div>
+    <div id="diffMagnitudeGroup">
       <div class="group-label" data-i18n="diffLabel">فئة الأرقام (منازل العدد)</div>
       <div class="chips" id="diffChips">
         <button class="chip active" data-diff="units" data-i18n="diffUnits">آحاد</button>
@@ -1457,6 +1460,7 @@
   const displayChips = document.querySelectorAll('#displayChips .chip');
   const stepsGroup = document.getElementById('stepsGroup');
   const tableFocusGroup = document.getElementById('tableFocusGroup');
+  const diffMagnitudeGroup = document.getElementById('diffMagnitudeGroup');
   const tableFocusSelect = document.getElementById('tableFocusSelect');
   const adaptiveSwitch = document.getElementById('adaptiveSwitch');
   const vibrateSwitch = document.getElementById('vibrateSwitch');
@@ -1522,7 +1526,8 @@
       totalAnswered:0, totalCorrect:0,
       badges: new Set(),
       opStats:{ add:{c:0,t:0,time:0}, sub:{c:0,t:0,time:0}, mul:{c:0,t:0,time:0}, div:{c:0,t:0,time:0},
-                compound:{c:0,t:0,time:0}, decimals:{c:0,t:0,time:0}, fractions:{c:0,t:0,time:0} },
+                compound:{c:0,t:0,time:0}, decimals:{c:0,t:0,time:0}, fractions:{c:0,t:0,time:0},
+                percent:{c:0,t:0,time:0}, exponent:{c:0,t:0,time:0}, sqrt:{c:0,t:0,time:0} },
       recentMistakes: [],     // rolling log across sessions: { text, correct, date }
       certificatesIssued: [], // rolling log: { score, accuracy, date }
       isCustom: !!isCustom,
@@ -1576,6 +1581,13 @@
         }
         Object.assign(PROFILES[k], saved);
         PROFILES[k].badges = new Set(saved.badges || []);
+        // backfill any opStats buckets added in later app versions (e.g. percent/exponent/sqrt)
+        // that wouldn't exist yet in an older saved profile's opStats object
+        const freshBuckets = freshProfile(null,null,null,null,false).opStats;
+        PROFILES[k].opStats = PROFILES[k].opStats || {};
+        Object.keys(freshBuckets).forEach(bucket=>{
+          if(!PROFILES[k].opStats[bucket]) PROFILES[k].opStats[bucket] = { c:0, t:0, time:0 };
+        });
       });
       if(Array.isArray(data.profileOrder)){
         profileOrder = data.profileOrder.filter(k=> PROFILES[k]);
@@ -1741,7 +1753,7 @@
   let mistakes = [];
   let audioCtx = null;
   let currentProblemSpeechText = '';
-  let wrongStreakByOp = { add:0, sub:0, mul:0, div:0 };
+  let wrongStreakByOp = { add:0, sub:0, mul:0, div:0, percent:0, exponent:0, sqrt:0 };
 
   let adaptiveIndex = 0;
   let adaptiveStreak = 0;
@@ -1766,6 +1778,8 @@
       jasmineName:'جاسمين', jasmineAge:'١١ سنة',
       switchPlayer:'(تبديل اللاعب)',
       opLabel:'العملية الحسابية', opAdd:'جمع +', opSub:'طرح −', opMul:'ضرب ×', opDiv:'قسمة ÷', opMix:'منوّع',
+      opPercent:'نسبة مئوية %', opExponent:'أُسس xⁿ', opSqrt:'جذر تربيعي √',
+      hintPercent:'💡 اقسمي على 100 ثم اضربي في العدد', hintExponent:'💡 اضربي العدد في نفسه بعدد مرات الأُس', hintSqrt:'💡 دوّري على عدد مضروب في نفسه يساوي الرقم',
       tableFocusLabel:'التركيز على جدول', tableAll:'الكل',
       diffLabel:'فئة الأرقام (منازل العدد)',
       diffUnits:'آحاد', diffTens:'عشرات', diffHundreds:'مئات', diffThousands:'آلاف',
@@ -1899,7 +1913,8 @@
       dashboardTitle:'لوحة جميع الطلاب', dashOperation:'العملية', dashAccuracy:'الدقة', dashAvgTime:'متوسط الوقت',
       dashNoData:'لا توجد بيانات بعد', closeBtn:'إغلاق', secLabel:'ث',
       bucketAdd:'جمع', bucketSub:'طرح', bucketMul:'ضرب', bucketDiv:'قسمة',
-      bucketCompound:'المسائل المركبة', bucketDecimals:'الأعداد العشرية', bucketFractions:'الكسور'
+      bucketCompound:'المسائل المركبة', bucketDecimals:'الأعداد العشرية', bucketFractions:'الكسور',
+      bucketPercent:'النسبة المئوية', bucketExponent:'الأُسس', bucketSqrt:'الجذر التربيعي'
     },
     en: {
       eyebrow:'Daily practice', title:'Mental Math',
@@ -1908,6 +1923,8 @@
       jasmineName:'Jasmine', jasmineAge:'11 years old',
       switchPlayer:'(Switch player)',
       opLabel:'Operation', opAdd:'Addition +', opSub:'Subtraction −', opMul:'Multiplication ×', opDiv:'Division ÷', opMix:'Mixed',
+      opPercent:'Percentage %', opExponent:'Exponents xⁿ', opSqrt:'Square root √',
+      hintPercent:'💡 Divide by 100, then multiply by the number', hintExponent:'💡 Multiply the number by itself the exponent number of times', hintSqrt:'💡 Find a number multiplied by itself that equals this',
       tableFocusLabel:'Focus on times table', tableAll:'All',
       diffLabel:'Number range',
       diffUnits:'Units', diffTens:'Tens', diffHundreds:'Hundreds', diffThousands:'Thousands',
@@ -2041,7 +2058,8 @@
       dashboardTitle:'All students dashboard', dashOperation:'Operation', dashAccuracy:'Accuracy', dashAvgTime:'Avg time',
       dashNoData:'No data yet', closeBtn:'Close', secLabel:'s',
       bucketAdd:'Addition', bucketSub:'Subtraction', bucketMul:'Multiplication', bucketDiv:'Division',
-      bucketCompound:'Compound', bucketDecimals:'Decimals', bucketFractions:'Fractions'
+      bucketCompound:'Compound', bucketDecimals:'Decimals', bucketFractions:'Fractions',
+      bucketPercent:'Percentage', bucketExponent:'Exponents', bucketSqrt:'Square root'
     }
   };
 
@@ -2209,6 +2227,7 @@
   }
   function updateTableFocusVisibility(){
     tableFocusGroup.classList.toggle('hidden', !(op==='mul' || op==='div' || op==='mix'));
+    diffMagnitudeGroup.classList.toggle('hidden', op==='percent' || op==='exponent' || op==='sqrt');
   }
   opChips.forEach(c=> c.addEventListener('click', ()=>{
     selectChip(opChips,'op',c.dataset.op, v=>op=v);
@@ -2418,7 +2437,7 @@
     adaptiveOn = false; adaptiveSwitch.classList.remove('on');
     if(DIFF_ORDER.includes(diff)){ adaptiveIndex = DIFF_ORDER.indexOf(diff); adaptiveStreak = 0; }
     stepsGroup.classList.add('hidden');
-    wrongStreakByOp = { add:0, sub:0, mul:0, div:0 };
+    wrongStreakByOp = { add:0, sub:0, mul:0, div:0, percent:0, exponent:0, sqrt:0 };
   }
 
   function hideAllScreens(){
@@ -3324,6 +3343,32 @@
     return { text, ans: ansStr, op:chosenOp, isFraction:true };
   }
 
+  function genPercentProblem(){
+    const percents = [5,10,15,20,25,30,40,50,60,70,75,80,90];
+    const p = percents[randInt(0, percents.length-1)];
+    const g = gcd(p, 100);
+    const step = 100 / g; // base must be a multiple of this to guarantee a whole-number result
+    const base = step * randInt(1, 20);
+    const ans = (base * p) / 100;
+    const text = currentLang === 'ar' ? `${p}% من ${base}` : `${p}% of ${base}`;
+    return { text, ans, op:'percent' };
+  }
+
+  function genExponentProblem(){
+    const exponent = Math.random() < 0.7 ? 2 : 3;
+    const base = exponent === 3 ? randInt(2,9) : randInt(2,15);
+    const ans = Math.pow(base, exponent);
+    const supMap = { 2:'²', 3:'³' };
+    const text = `${base}${supMap[exponent]}`;
+    return { text, ans, op:'exponent' };
+  }
+
+  function genSqrtProblem(){
+    const n = randInt(2, 20);
+    const text = `√${n*n}`;
+    return { text, ans:n, op:'sqrt' };
+  }
+
   function allowedOpsForCompound(){
     if(op === 'add') return ['+'];
     if(op === 'sub') return ['−'];
@@ -3442,6 +3487,9 @@
     if(aiQuizQueue.length){ return aiQuizQueue.shift(); } // AI-authored, already math-verified server-side
     if(diff === 'decimals'){ const p = genDecimalProblem(); p.bucket = 'decimals'; return p; }
     if(diff === 'fractions'){ const p = genFractionProblem(); p.bucket = 'fractions'; return p; }
+    if(op === 'percent'){ const p = genPercentProblem(); p.bucket = 'percent'; p.compactText = p.text; return p; }
+    if(op === 'exponent'){ const p = genExponentProblem(); p.bucket = 'exponent'; p.compactText = p.text; return p; }
+    if(op === 'sqrt'){ const p = genSqrtProblem(); p.bucket = 'sqrt'; p.compactText = p.text; return p; }
     if(problemType === 'compound'){ const p = genCompoundProblem(compoundSteps); p.bucket = 'compound'; return p; }
     const p = genSimpleProblem();
     p.bucket = p.op;
@@ -3992,7 +4040,7 @@
   function resetStats(){
     score = 0; streak = 0; bestStreak = 0; count = 0; correctCount = 0; mistakes = [];
     scoreVal.textContent = 0; streakVal.textContent = 0; bestVal.textContent = 0;
-    wrongStreakByOp = { add:0, sub:0, mul:0, div:0 };
+    wrongStreakByOp = { add:0, sub:0, mul:0, div:0, percent:0, exponent:0, sqrt:0 };
     previousLevel = 1;
     updateLevelDisplay();
     updateStreakFlame();
