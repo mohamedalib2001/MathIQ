@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1">
-<title>مسائل ذهنية — تمرين الحساب الذهني</title>
+<title>NEXORA — Intelligent Learning & Development</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Tajawal:wght@400;500;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
   :root{
@@ -16,16 +16,16 @@
     --frame-max-w:680px;
   }
   html[data-theme="dark"], html[data-theme="chalkboard"]{
-    --bg:#243b34; --rail:#0f1b17; --ink:#f2ede2; --ink-dim:#c8d6cd;
-    --input-bg:rgba(0,0,0,0.22); --input-border:rgba(242,237,226,0.25); --chip-border:rgba(242,237,226,0.25);
-    --card-shadow:0 30px 60px rgba(0,0,0,0.45), inset 0 0 60px rgba(0,0,0,0.25); --line-op:0.4;
-    --yellow:#e7c468; --mint:#8fc9ac; --coral:#e08370;
+    --bg:#0B1220; --rail:#111827; --ink:#F1F5F9; --ink-dim:#94A3B8;
+    --input-bg:rgba(255,255,255,0.05); --input-border:rgba(148,163,184,0.18); --chip-border:rgba(148,163,184,0.18);
+    --card-shadow:0 30px 60px rgba(0,0,0,0.5), inset 0 0 60px rgba(0,0,0,0.2); --line-op:0.25;
+    --yellow:#6366F1; --mint:#10B981; --coral:#EF4444;
   }
   html[data-theme="light"], html[data-theme="paper"]{
-    --bg:#eef0e4; --rail:#cdd2bd; --ink:#20302a; --ink-dim:#5a6a5f;
-    --input-bg:rgba(255,255,255,0.6); --input-border:rgba(32,48,42,0.2); --chip-border:rgba(32,48,42,0.22);
-    --card-shadow:0 20px 40px rgba(80,90,70,0.18); --line-op:0.5;
-    --yellow:#c9932e; --mint:#4f9d74; --coral:#c9573f;
+    --bg:#F8FAFC; --rail:#E2E8F0; --ink:#0F172A; --ink-dim:#64748B;
+    --input-bg:rgba(255,255,255,0.9); --input-border:rgba(15,23,42,0.12); --chip-border:rgba(15,23,42,0.14);
+    --card-shadow:0 20px 40px rgba(15,23,42,0.08); --line-op:0.3;
+    --yellow:#6366F1; --mint:#10B981; --coral:#EF4444;
   }
   html[data-theme="sunset"]{
     --bg:#3a2145; --rail:#1c0f22; --ink:#fbeef7; --ink-dim:#dcb8d6;
@@ -65,7 +65,7 @@
   body{
     min-height:100dvh;
     background: radial-gradient(1200px 600px at 50% -10%, rgba(255,255,255,0.05), transparent 60%), var(--bg);
-    color:var(--ink); font-family:'Tajawal', sans-serif;
+    color:var(--ink); font-family:'IBM Plex Sans Arabic','Tajawal',sans-serif;
     display:flex; align-items:flex-start; justify-content:center;
     padding: clamp(10px, 4vw, 24px);
     padding-top: max(env(safe-area-inset-top), clamp(10px,4vw,24px));
@@ -104,7 +104,7 @@
   .sidebar-nav{ display:flex; flex-direction:column; gap:3px; }
   .sidebar-nav-item{
     display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:9px; cursor:pointer;
-    font-family:'Tajawal',sans-serif; font-size:13px; font-weight:600; color:var(--ink-dim);
+    font-family:'IBM Plex Sans Arabic','Tajawal',sans-serif; font-size:13px; font-weight:600; color:var(--ink-dim);
     transition:background .15s ease, color .15s ease;
   }
   .sidebar-nav-item:hover{ background:rgba(231,196,104,0.1); color:var(--ink); }
@@ -158,7 +158,7 @@
   header{ text-align:center; margin-bottom:22px; position:relative; }
   .eyebrow{ font-family:'Cairo', sans-serif; font-size:13px; letter-spacing:1px; color:var(--yellow); opacity:0.9; margin-bottom:6px; }
   .brand-tagline{
-    font-family:'Tajawal',sans-serif; font-size:12.5px; color:var(--ink-dim); margin-top:6px; letter-spacing:0.2px;
+    font-family:'IBM Plex Sans Arabic','Tajawal',sans-serif; font-size:12.5px; color:var(--ink-dim); margin-top:6px; letter-spacing:0.2px;
   }
   .ai-powered-badge{
     display:inline-flex; align-items:center; gap:5px; font-size:10.5px; font-weight:700; color:var(--ink);
@@ -172,13 +172,13 @@
   .group-label{ font-family:'Cairo', sans-serif; font-size:13.5px; font-weight:700; color:var(--ink-dim); margin-bottom:9px; }
   .chips{ display:flex; flex-wrap:wrap; gap:8px; }
   .chip{
-    font-family:'Tajawal', sans-serif; font-size:14px; padding: 10px 15px; min-height:40px;
+    font-family:'IBM Plex Sans Arabic','Tajawal',sans-serif; font-size:14px; padding: 10px 15px; min-height:40px;
     border-radius:8px; border:1.5px solid var(--chip-border); background:transparent; color:var(--ink);
     cursor:pointer; transition:all .15s ease;
   }
   .chip.active{ background:var(--yellow); border-color:var(--yellow); color:#26210f; font-weight:700; }
   .select-like{
-    font-family:'Tajawal', sans-serif; font-size:14px; padding:10px 14px; border-radius:8px;
+    font-family:'IBM Plex Sans Arabic','Tajawal',sans-serif; font-size:14px; padding:10px 14px; border-radius:8px;
     border:1.5px solid var(--chip-border); background:var(--input-bg); color:var(--ink); min-height:40px;
   }
 
@@ -250,7 +250,7 @@
   .stat{ text-align:center; flex:1; }
   .stat b{ color:var(--yellow); font-size: clamp(15px,4vw,17px); display:block; }
   .progress-label{ text-align:center; font-family:'Cairo',sans-serif; font-size:12.5px; color:var(--ink-dim); margin-bottom:4px; }
-  .adaptive-label{ text-align:center; font-family:'Tajawal',sans-serif; font-size:11.5px; color:var(--yellow); margin-bottom:4px; }
+  .adaptive-label{ text-align:center; font-family:'IBM Plex Sans Arabic','Tajawal',sans-serif; font-size:11.5px; color:var(--yellow); margin-bottom:4px; }
   .timerbar-wrap{ height:5px; background:rgba(120,120,120,0.18); border-radius:4px; overflow:hidden; margin-bottom:22px; }
   .timerbar{ height:100%; width:100%; background:var(--yellow); transition: width .1s linear, background .2s ease; }
 
@@ -265,7 +265,7 @@
   .replay-btn{ position:absolute; inset-inline-end:0; top:0; flex:none; }
 
   .hint-line{
-    text-align:center; font-size:13px; color:var(--yellow); margin:-8px 0 14px; min-height:16px; font-family:'Tajawal',sans-serif;
+    text-align:center; font-size:13px; color:var(--yellow); margin:-8px 0 14px; min-height:16px; font-family:'IBM Plex Sans Arabic','Tajawal',sans-serif;
   }
 
   .answer-row{ display:flex; gap:10px; }
@@ -296,7 +296,7 @@
   .chalk-mark path{ stroke-dasharray:40; stroke-dashoffset:40; animation:draw .35s ease forwards; }
   @keyframes draw{ to{ stroke-dashoffset:0; } }
 
-  .quit-link{ font-family:'Tajawal', sans-serif; font-size:13px; color:var(--ink-dim); opacity:0.75; text-align:center; cursor:pointer; margin-top:16px; text-decoration:underline; }
+  .quit-link{ font-family:'IBM Plex Sans Arabic','Tajawal',sans-serif; font-size:13px; color:var(--ink-dim); opacity:0.75; text-align:center; cursor:pointer; margin-top:16px; text-decoration:underline; }
 
   .summary-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:14px; }
   .sum-card{ background:var(--input-bg); border:1.5px solid var(--input-border); border-radius:10px; padding:12px 6px; text-align:center; }
@@ -439,7 +439,7 @@
   .toast-item{
     display:flex; align-items:center; gap:10px; background:var(--card, var(--input-bg)); border:1.5px solid var(--chip-border);
     border-radius:12px; padding:11px 14px; box-shadow:0 10px 26px rgba(0,0,0,0.28);
-    font-family:'Tajawal',sans-serif; font-size:13px; font-weight:600; color:var(--ink);
+    font-family:'IBM Plex Sans Arabic','Tajawal',sans-serif; font-size:13px; font-weight:600; color:var(--ink);
     animation:toastIn .3s ease forwards; pointer-events:auto;
   }
   .toast-item.leaving{ animation:toastOut .3s ease forwards; }
@@ -482,7 +482,7 @@
   .cmdk-input-row{ display:flex; align-items:center; gap:10px; padding:14px 16px; border-bottom:1.5px solid var(--chip-border); }
   .cmdk-icon{ font-size:16px; opacity:0.6; flex:none; }
   .cmdk-input{
-    flex:1; border:none; background:transparent; color:var(--ink); font-family:'Tajawal',sans-serif;
+    flex:1; border:none; background:transparent; color:var(--ink); font-family:'IBM Plex Sans Arabic','Tajawal',sans-serif;
     font-size:15px; outline:none;
   }
   .cmdk-hint{
@@ -600,7 +600,7 @@
   .admin-tools-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:8px; }
   .admin-tool-tile{
     display:flex; flex-direction:column; align-items:center; gap:4px; text-align:center;
-    font-family:'Tajawal',sans-serif; font-size:12px; font-weight:600; color:var(--ink);
+    font-family:'IBM Plex Sans Arabic','Tajawal',sans-serif; font-size:12px; font-weight:600; color:var(--ink);
     background:var(--input-bg); border:1.5px solid var(--input-border); border-radius:12px; padding:14px 8px; cursor:pointer;
     transition:border-color .15s ease, transform .1s ease;
   }
@@ -627,7 +627,7 @@
   /* mini editor */
   .mini-editor{ display:flex; flex-direction:column; gap:12px; padding:16px; border-radius:12px; border:1.5px solid var(--chip-border); background:var(--input-bg); }
   .mini-editor input[type="text"], .mini-editor input[type="date"]{
-    font-family:'Tajawal',sans-serif; font-size:14px; padding:10px 12px; border-radius:8px; border:1.5px solid var(--input-border);
+    font-family:'IBM Plex Sans Arabic','Tajawal',sans-serif; font-size:14px; padding:10px 12px; border-radius:8px; border:1.5px solid var(--input-border);
     background:var(--bg); color:var(--ink); outline:none;
   }
 
@@ -657,7 +657,7 @@
   .secondary-options{ display:flex; gap:8px; }
   .secondary-link-btn{
     flex:1; display:flex; align-items:center; justify-content:center; gap:5px;
-    font-family:'Tajawal',sans-serif; font-size:12px; font-weight:600; color:var(--ink);
+    font-family:'IBM Plex Sans Arabic','Tajawal',sans-serif; font-size:12px; font-weight:600; color:var(--ink);
     background:var(--input-bg); border:1.5px solid var(--input-border); border-radius:20px;
     padding:9px 8px; cursor:pointer; text-align:center; transition:border-color .15s ease, transform .1s ease;
   }
@@ -699,7 +699,7 @@
   .photo-preview img{ width:100%; height:100%; object-fit:cover; }
   .photo-actions{ display:flex; flex-direction:column; gap:6px; }
   .photo-btn{
-    font-family:'Tajawal',sans-serif; font-size:12.5px; padding:8px 12px; border-radius:8px;
+    font-family:'IBM Plex Sans Arabic','Tajawal',sans-serif; font-size:12.5px; padding:8px 12px; border-radius:8px;
     border:1.5px solid var(--chip-border); background:transparent; color:var(--ink); cursor:pointer;
   }
   .photo-note{ font-size:11px; color:var(--ink-dim); line-height:1.5; }
@@ -880,7 +880,7 @@
   .theme-grid{ display:flex; flex-wrap:wrap; gap:12px; justify-content:center; }
   .theme-swatch{
     display:flex; flex-direction:column; align-items:center; gap:6px; cursor:pointer;
-    border:none; background:transparent; padding:4px; font-family:'Tajawal',sans-serif; color:var(--ink); font-size:11.5px;
+    border:none; background:transparent; padding:4px; font-family:'IBM Plex Sans Arabic','Tajawal',sans-serif; color:var(--ink); font-size:11.5px;
   }
   .theme-swatch .dot{
     width:44px; height:44px; border-radius:50%; border:3px solid transparent; position:relative;
@@ -905,7 +905,7 @@
     position:fixed; top:0; inset-inline-start:-99999px;
     width:1000px; height:700px;
     background: linear-gradient(160deg, #fdf8ec 0%, #f7f0da 100%);
-    font-family:'Tajawal', sans-serif;
+    font-family:'IBM Plex Sans Arabic','Tajawal',sans-serif;
     color:#2b3a2f;
     padding:34px;
   }
@@ -952,7 +952,7 @@
 
 <div class="app-shell" id="appShell">
   <aside class="app-sidebar" id="appSidebar">
-    <div class="sidebar-brand">MathIQ</div>
+    <div class="sidebar-brand">NEXORA</div>
     <nav class="sidebar-nav" id="sidebarNav"></nav>
   </aside>
   <div class="app-main">
@@ -987,8 +987,8 @@
   </div>
 
   <header>
-    <div class="eyebrow">MathIQ</div>
-    <h1 data-i18n="title">مسائل ذهنية</h1>
+    <div class="eyebrow">NEXORA</div>
+    <h1 data-i18n="title">نِكسورا</h1>
     <div class="brand-tagline" data-i18n="brandTagline">منصة التعلّم الذكي للحساب الذهني والأباكوس</div>
     <div class="ai-powered-badge"><span>✦</span><span data-i18n="aiPoweredBadge">مدعوم بالذكاء الاصطناعي</span></div>
     <div class="rule"></div>
@@ -1434,7 +1434,7 @@
       </div>
       <div class="cert-footer">
         <div id="certDateEl"></div>
-        <div class="cert-seal" id="certSealEl">مسائل ذهنية</div>
+        <div class="cert-seal" id="certSealEl">NEXORA</div>
         <div id="certNumEl"></div>
       </div>
     </div>
@@ -2334,8 +2334,8 @@
   /* ---------- i18n ---------- */
   const TRANSLATIONS = {
     ar: {
-      eyebrow:'تمرين يوميّ', title:'مسائل ذهنية',
-      brandTagline:'منصة التعلّم الذكي للحساب الذهني والأباكوس', aiPoweredBadge:'مدعوم بالذكاء الاصطناعي',
+      eyebrow:'تمرين يوميّ', title:'نِكسورا',
+      brandTagline:'منصة ذكية للتعلم والتطوير — تعلّم. تطوّر. أنجز.', aiPoweredBadge:'مدعوم بالذكاء الاصطناعي',
       hubGreeting:'مرحبًا {name} 👋', hubSubtitle:'اختاري برنامجًا لتبدئي',
       programMentalMathName:'الحساب الذهني', programAbacusName:'الأباكوس',
       programEnglishName:'اللغة الإنجليزية', programCodingName:'البرمجة', comingSoonBadge:'قريبًا',
@@ -2410,7 +2410,7 @@
       birthDateLabel:'تاريخ الميلاد', photoLabel:'الصورة الشخصية',
       uploadPhoto:'رفع صورة', removePhoto:'إزالة الصورة',
       photoPrivacyNote:'تبقى الصورة على متصفحك فقط ولا تُرفع لأي خادم.',
-      certAgeLabel:'العمر', certNumLabel:'رقم الشهادة', certIssuedBy:'مسائل ذهنية',
+      certAgeLabel:'العمر', certNumLabel:'رقم الشهادة', certIssuedBy:'نِكسورا',
       certGenerating:'جارٍ التحضير...',
       connectionLink:'🔗 ربط جوجل شيت', connectionTitle:'ربط جوجل شيت',
       connectionNote:'الصق رابط "Web app" الذي حصلت عليه بعد نشر كود Apps Script في جدولك، ثم اختبر الاتصال.',
@@ -2510,7 +2510,7 @@
       trialActive:'نشطة — تبقّى {n} يوم', trialNone:'لم تبدأ بعد', trialExpired:'انتهت',
       accountDisabledTitle:'هذا الحساب معطّل حاليًا', accountDisabledBody:'تواصلي مع صاحب التطبيق لإعادة تفعيل الحساب.',
       perStudentSubNote:'حالة الاشتراك والتفعيل الآن لكل حساب على حدة — راجعيها من قائمة الطلاب في لوحة الإدارة الرئيسية.',
-      adminDashTitle:'لوحة تحكم المالك', adminDashStudents:'الطلاب', adminDashTools:'الأدوات والإعدادات',
+      adminDashTitle:'مركز تحكّم نِكسورا', adminDashStudents:'المتعلّمون', adminDashTools:'الأدوات والإعدادات',
       statusExempt:'حساب عائلي (دائم)', statusDisabled:'🚫 معطّل', statusSubscribed:'✅ مشترك حتى {date}',
       statusTrialDays:'⏳ تجربة — {n} يوم متبقٍ', statusTrialExpiredShort:'⚠️ التجربة منتهية', statusNoTrial:'لم يبدأ بعد',
       disableAccountBtn:'🚫 تعطيل', enableAccountBtn:'✅ تفعيل',
@@ -2538,8 +2538,8 @@
       bucketNumberRecognition:'التعرّف على الأرقام'
     },
     en: {
-      eyebrow:'Daily practice', title:'Mental Math',
-      brandTagline:'The smart learning platform for mental math and abacus', aiPoweredBadge:'AI-Powered',
+      eyebrow:'Daily practice', title:'NEXORA',
+      brandTagline:'Intelligent Learning & Development — Learn. Grow. Perform.', aiPoweredBadge:'AI-Powered',
       hubGreeting:'Hi {name} 👋', hubSubtitle:'Choose a program to get started',
       programMentalMathName:'Mental Math', programAbacusName:'Abacus',
       programEnglishName:'English Language', programCodingName:'Programming', comingSoonBadge:'Coming Soon',
@@ -2614,7 +2614,7 @@
       birthDateLabel:'Birth date', photoLabel:'Profile photo',
       uploadPhoto:'Upload photo', removePhoto:'Remove photo',
       photoPrivacyNote:'The photo stays only on your device and is never uploaded anywhere.',
-      certAgeLabel:'Age', certNumLabel:'Certificate No.', certIssuedBy:'Mental Math',
+      certAgeLabel:'Age', certNumLabel:'Certificate No.', certIssuedBy:'NEXORA',
       certGenerating:'Preparing...',
       connectionLink:'🔗 Connect Google Sheet', connectionTitle:'Connect Google Sheet',
       connectionNote:'Paste the "Web app" URL you got after deploying the Apps Script code in your sheet, then test the connection.',
@@ -2714,7 +2714,7 @@
       trialActive:'Active — {n} days left', trialNone:'Not started yet', trialExpired:'Expired',
       accountDisabledTitle:'This account is currently disabled', accountDisabledBody:'Contact the app owner to reactivate it.',
       perStudentSubNote:'Subscription and activation are now tracked per account — check the student list in the main admin dashboard.',
-      adminDashTitle:'Owner Dashboard', adminDashStudents:'Students', adminDashTools:'Tools & Settings',
+      adminDashTitle:'NEXORA Command Center', adminDashStudents:'Learners', adminDashTools:'Tools & Settings',
       statusExempt:'Family account (permanent)', statusDisabled:'🚫 Disabled', statusSubscribed:'✅ Subscribed until {date}',
       statusTrialDays:'⏳ Trial — {n} days left', statusTrialExpiredShort:'⚠️ Trial expired', statusNoTrial:'Not started yet',
       disableAccountBtn:'🚫 Disable', enableAccountBtn:'✅ Enable',
