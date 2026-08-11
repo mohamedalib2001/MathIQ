@@ -8,7 +8,13 @@
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
-  :root{ --yellow:#e7c468; --mint:#8fc9ac; --coral:#e08370; }
+  :root{
+    --yellow:#e7c468; --mint:#8fc9ac; --coral:#e08370;
+    /* consistent spacing scale */
+    --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:16px; --sp-5:24px; --sp-6:32px; --sp-7:48px;
+    /* frame width per breakpoint — overridden by media queries below */
+    --frame-max-w:680px;
+  }
   html[data-theme="dark"], html[data-theme="chalkboard"]{
     --bg:#243b34; --rail:#0f1b17; --ink:#f2ede2; --ink-dim:#c8d6cd;
     --input-bg:rgba(0,0,0,0.22); --input-border:rgba(242,237,226,0.25); --chip-border:rgba(242,237,226,0.25);
@@ -68,12 +74,22 @@
     overflow-x:hidden;
   }
   .frame{
-    width:100%; max-width:680px; background:var(--bg);
+    width:100%; max-width:var(--frame-max-w); background:var(--bg);
     border: clamp(6px,1.6vw,10px) solid var(--rail); border-radius:14px;
     box-shadow: var(--card-shadow);
     padding: clamp(18px,5vw,32px) clamp(14px,4.5vw,28px) clamp(16px,4vw,24px);
     position:relative; overflow:hidden;
-    transition: background .25s ease, border-color .25s ease;
+    transition: background .25s ease, border-color .25s ease, max-width .2s ease;
+  }
+  /* ===== responsive breakpoints (mobile-first; each tier widens the frame
+     so desktop content isn't a stretched mobile card, but never goes
+     full-bleed edge-to-edge either) ===== */
+  @media (min-width:768px)  { :root{ --frame-max-w:760px; } }   /* tablet */
+  @media (min-width:1200px) { :root{ --frame-max-w:1040px; } }  /* desktop */
+  @media (min-width:1600px) { :root{ --frame-max-w:1320px; } }  /* large desktop */
+  /* mobile touch targets — never smaller than the 44px accessibility minimum */
+  @media (max-width:767px){
+    .chip, .icon-btn, button{ min-height:44px; }
   }
   .frame::before{
     content:""; position:absolute; inset:0;
@@ -126,6 +142,16 @@
   }
   .start-btn:active{ transform:scale(0.99); }
   .hidden{ display:none !important; }
+
+  .advanced-settings-toggle{
+    width:100%; display:flex; align-items:center; justify-content:center; gap:6px;
+    font-family:'Cairo',sans-serif; font-weight:700; font-size:13.5px; color:var(--ink-dim);
+    background:transparent; border:1.5px dashed var(--chip-border); border-radius:10px;
+    padding:11px; cursor:pointer; margin-bottom:var(--sp-4); transition:border-color .15s ease, color .15s ease;
+  }
+  .advanced-settings-toggle:hover{ border-color:var(--yellow); color:var(--ink); }
+  .advanced-settings-toggle[aria-expanded="true"]::after{ content:" ▲"; }
+  .advanced-settings-toggle[aria-expanded="false"]::after{ content:" ▼"; }
 
   .stats-row{ display:flex; justify-content:space-between; align-items:center; font-family:'Cairo', sans-serif; font-size:12.5px; color:var(--ink-dim); margin-bottom:14px; gap:6px; }
   .stat{ text-align:center; flex:1; }
@@ -240,7 +266,9 @@
     box-shadow:0 8px 24px rgba(0,0,0,0.3), inset 0 2px 4px rgba(255,255,255,0.15);
     overflow-x:auto; margin-bottom:14px;
   }
-  .abacus-svg{ display:block; margin:0 auto; }
+  .abacus-svg{ display:block; margin:0 auto; width:100%; max-width:380px; height:auto; }
+  @media (min-width:768px)  { .abacus-svg{ max-width:480px; } }  /* tablet: medium */
+  @media (min-width:1200px) { .abacus-svg{ max-width:560px; } }  /* desktop: large */
   .abacus-bead{ cursor:pointer; transition:transform 0.15s ease; }
   .abacus-bead:hover{ filter:brightness(1.15); }
   .abacus-value-display{
@@ -1303,6 +1331,8 @@
       <span class="switch-player" id="editMyProfileLink" data-i18n="editMyProfileLink">✏️ تعديل بياناتي</span>
       <span class="switch-player" id="myStatsLink" data-i18n="myStatsLink">🏅 إنجازاتي وسجلي</span>
     </div>
+    <button class="advanced-settings-toggle" id="advancedSettingsToggle" aria-expanded="false" data-i18n="advancedSettingsToggle">⚙️ تدريب مخصّص / إعدادات متقدمة</button>
+    <div id="advancedSettingsBody" class="hidden">
     <div>
       <div class="group-label" data-i18n="opLabel">العملية الحسابية</div>
       <div class="chips" id="opChips">
@@ -1414,6 +1444,7 @@
     <div class="toggle-row">
       <div class="group-label" data-i18n="speechLabel">نطق المسألة صوتيًا</div>
       <button class="switch on" id="speechSwitch" aria-label="تبديل النطق"></button>
+    </div>
     </div>
     <button class="start-btn" id="startBtn" data-i18n="startBtn">ابدأ التمرين</button>
   </div>
@@ -1590,6 +1621,8 @@
   const logoutBtn = document.getElementById('logoutBtn');
   const toastStack = document.getElementById('toastStack');
   const printReportArea = document.getElementById('printReportArea');
+  const advancedSettingsToggle = document.getElementById('advancedSettingsToggle');
+  const advancedSettingsBody = document.getElementById('advancedSettingsBody');
   const loginPromptEl = document.getElementById('loginPrompt');
   const loginPromptTitle = document.getElementById('loginPromptTitle');
   const loginPinInput = document.getElementById('loginPinInput');
@@ -2080,6 +2113,7 @@
       hintPercent:'💡 اقسمي على 100 ثم اضربي في العدد', hintExponent:'💡 اضربي العدد في نفسه بعدد مرات الأُس', hintSqrt:'💡 دوّري على عدد مضروب في نفسه يساوي الرقم',
       hintNumberRecognition:'💡 عدّي على أصابعك ببطء وأنتِ بتقولي كل رقم',
       printReportBtn:'طباعة / حفظ PDF', printReportTitle:'تقرير الأداء',
+      advancedSettingsToggle:'⚙️ تدريب مخصّص / إعدادات متقدمة',
       tableFocusLabel:'التركيز على جدول', tableAll:'الكل',
       diffLabel:'فئة الأرقام (منازل العدد)',
       diffUnits:'آحاد', diffTens:'عشرات', diffHundreds:'مئات', diffThousands:'آلاف',
@@ -2257,6 +2291,7 @@
       hintPercent:'💡 Divide by 100, then multiply by the number', hintExponent:'💡 Multiply the number by itself the exponent number of times', hintSqrt:'💡 Find a number multiplied by itself that equals this',
       hintNumberRecognition:'💡 Count slowly on your fingers as you say each number',
       printReportBtn:'Print / Save as PDF', printReportTitle:'Performance Report',
+      advancedSettingsToggle:'⚙️ Custom Training / Advanced Settings',
       tableFocusLabel:'Focus on times table', tableAll:'All',
       diffLabel:'Number range',
       diffUnits:'Units', diffTens:'Tens', diffHundreds:'Hundreds', diffThousands:'Thousands',
@@ -5965,6 +6000,12 @@
     el.addEventListener('keydown', e=>{
       if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); el.click(); }
     });
+  });
+
+  advancedSettingsToggle.addEventListener('click', ()=>{
+    const isOpen = advancedSettingsToggle.getAttribute('aria-expanded') === 'true';
+    advancedSettingsToggle.setAttribute('aria-expanded', String(!isOpen));
+    advancedSettingsBody.classList.toggle('hidden', isOpen);
   });
 
   applyLanguage('ar');
