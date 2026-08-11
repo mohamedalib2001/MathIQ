@@ -154,6 +154,30 @@
   .service-item .service-desc{ font-size:11px; color:var(--ink-dim); margin-top:2px; }
   .service-item.disabled-service{ opacity:0.6; }
 
+  /* programs hub — the real landing point; mental math + abacus are
+     Programs, not the whole product identity */
+  .hub-greeting{ font-family:'Cairo',sans-serif; font-weight:800; font-size:18px; text-align:center; margin-bottom:4px; }
+  .hub-subtitle{ text-align:center; font-size:13px; color:var(--ink-dim); margin-bottom:18px; }
+  .programs-grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px; }
+  @media (min-width:600px){ .programs-grid{ grid-template-columns:repeat(4, 1fr); } }
+  .program-card{
+    display:flex; flex-direction:column; align-items:center; gap:6px; text-align:center;
+    background:var(--input-bg); border:1.5px solid var(--input-border); border-radius:14px;
+    padding:20px 10px; cursor:pointer; transition:border-color .15s ease, transform .1s ease;
+    position:relative; min-height:110px; justify-content:center;
+  }
+  .program-card:hover{ border-color:var(--yellow); }
+  .program-card:active{ transform:scale(0.97); }
+  .program-card .program-icon{ font-size:30px; }
+  .program-card .program-name{ font-family:'Cairo',sans-serif; font-weight:700; font-size:13px; }
+  .program-card .program-stat{ font-size:10.5px; color:var(--ink-dim); }
+  .program-card.coming-soon{ cursor:default; opacity:0.55; }
+  .program-card.coming-soon:hover{ border-color:var(--input-border); }
+  .program-card .program-badge{
+    position:absolute; top:8px; inset-inline-end:8px; font-size:9px; font-weight:700; color:var(--ink-dim);
+    background:var(--bg); border:1px solid var(--chip-border); border-radius:8px; padding:2px 7px;
+  }
+
   .start-btn{
     margin-top:4px; font-family:'Cairo', sans-serif; font-weight:700; font-size:17px;
     padding:15px; min-height:50px; border-radius:10px; border:none; background:var(--mint); color:#173124; cursor:pointer;
@@ -1375,6 +1399,42 @@
     <button class="secondary-btn" id="classManageBackBtn" data-i18n="closeBtn">إغلاق</button>
   </div>
 
+  <!-- PROGRAMS HUB — the real landing point after login. Mental Math and
+       Abacus are Programs within the platform, not the platform's whole
+       identity. New programs can be added here later without touching
+       any core system logic — this data-driven card list IS the
+       extensibility mechanism the architecture change was about. -->
+  <div id="programsHub" class="panel hidden">
+    <div class="hub-greeting" id="programsHubGreeting"></div>
+    <div class="hub-subtitle" data-i18n="hubSubtitle">اختاري برنامجًا لتبدئي</div>
+    <div class="programs-grid" id="programsGrid">
+      <div class="program-card" id="programMentalMathCard">
+        <span class="program-icon">🧠</span>
+        <span class="program-name" data-i18n="programMentalMathName">الحساب الذهني</span>
+        <span class="program-stat" id="programMentalMathStat"></span>
+      </div>
+      <div class="program-card" id="programAbacusCard">
+        <span class="program-icon">🧮</span>
+        <span class="program-name" data-i18n="programAbacusName">الأباكوس</span>
+        <span class="program-stat" id="programAbacusStat"></span>
+      </div>
+      <div class="program-card coming-soon">
+        <span class="program-icon">🔤</span>
+        <span class="program-name" data-i18n="programEnglishName">اللغة الإنجليزية</span>
+        <span class="program-badge" data-i18n="comingSoonBadge">قريبًا</span>
+      </div>
+      <div class="program-card coming-soon">
+        <span class="program-icon">💻</span>
+        <span class="program-name" data-i18n="programCodingName">البرمجة</span>
+        <span class="program-badge" data-i18n="comingSoonBadge">قريبًا</span>
+      </div>
+    </div>
+    <div class="pin-row" style="justify-content:center; margin-top:6px;">
+      <span class="switch-player" id="hubSwitchPlayerLink" data-i18n="switchPlayer">(تبديل اللاعب)</span>
+      <span class="logout-text-link" id="hubLogoutLink" data-i18n="logoutLinkText">🚪 تسجيل الخروج</span>
+    </div>
+  </div>
+
   <!-- SETTINGS SCREEN -->
   <div id="settings" class="panel hidden">
     <div class="mission-card hidden" id="todayMissionCard">
@@ -1397,6 +1457,7 @@
         <span class="name" id="settingsPlayerName">جوري</span>
       </div>
       <div class="name-row">
+        <span class="switch-player" id="backToProgramsLink" data-i18n="backToProgramsLink">🏠 كل البرامج</span>
         <span class="switch-player" id="switchPlayerLink" data-i18n="switchPlayer">(تبديل اللاعب)</span>
         <span class="logout-text-link" id="logoutTextLink" data-i18n="logoutLinkText">🚪 تسجيل الخروج</span>
       </div>
@@ -1712,6 +1773,15 @@
   const serviceActivationEl = document.getElementById('serviceActivation');
   const serviceActivationList = document.getElementById('serviceActivationList');
   const serviceActivationBackBtn = document.getElementById('serviceActivationBackBtn');
+  const programsHubEl = document.getElementById('programsHub');
+  const programsHubGreeting = document.getElementById('programsHubGreeting');
+  const programMentalMathCard = document.getElementById('programMentalMathCard');
+  const programMentalMathStat = document.getElementById('programMentalMathStat');
+  const programAbacusCard = document.getElementById('programAbacusCard');
+  const programAbacusStat = document.getElementById('programAbacusStat');
+  const backToProgramsLink = document.getElementById('backToProgramsLink');
+  const hubSwitchPlayerLink = document.getElementById('hubSwitchPlayerLink');
+  const hubLogoutLink = document.getElementById('hubLogoutLink');
   const loginPromptEl = document.getElementById('loginPrompt');
   const loginPromptTitle = document.getElementById('loginPromptTitle');
   const loginPinInput = document.getElementById('loginPinInput');
@@ -2193,6 +2263,10 @@
     ar: {
       eyebrow:'تمرين يوميّ', title:'مسائل ذهنية',
       brandTagline:'منصة التعلّم الذكي للحساب الذهني والأباكوس', aiPoweredBadge:'مدعوم بالذكاء الاصطناعي',
+      hubGreeting:'مرحبًا {name} 👋', hubSubtitle:'اختاري برنامجًا لتبدئي',
+      programMentalMathName:'الحساب الذهني', programAbacusName:'الأباكوس',
+      programEnglishName:'اللغة الإنجليزية', programCodingName:'البرمجة', comingSoonBadge:'قريبًا',
+      programAccuracyStat:'الدقة {acc}%', programNotStartedStat:'لم تبدئي بعد', backToProgramsLink:'🏠 كل البرامج',
       whoPlaying:'من يلعب اليوم؟',
       joryName:'جوري', joryAge:'٦ سنوات ونصف',
       jasmineName:'جاسمين', jasmineAge:'١١ سنة',
@@ -2388,6 +2462,10 @@
     en: {
       eyebrow:'Daily practice', title:'Mental Math',
       brandTagline:'The smart learning platform for mental math and abacus', aiPoweredBadge:'AI-Powered',
+      hubGreeting:'Hi {name} 👋', hubSubtitle:'Choose a program to get started',
+      programMentalMathName:'Mental Math', programAbacusName:'Abacus',
+      programEnglishName:'English Language', programCodingName:'Programming', comingSoonBadge:'Coming Soon',
+      programAccuracyStat:'{acc}% accuracy', programNotStartedStat:'Not started yet', backToProgramsLink:'🏠 All Programs',
       whoPlaying:"Who's playing today?",
       joryName:'Jory', joryAge:'6.5 years old',
       jasmineName:'Jasmine', jasmineAge:'11 years old',
@@ -2937,12 +3015,53 @@
     setAvatarElement(playAvatar, p, 22);
     playPlayerName.textContent = profileDisplayName(key);
     updateDailyStreak();
-    settingsEl.classList.remove('hidden');
     if(typeof loadSmartNotification === 'function') loadSmartNotification();
     if(typeof loadMyClasses === 'function') loadMyClasses();
     if(typeof renderTodayMission === 'function') renderTodayMission();
     applyServiceFlags();
+    showProgramsHub();
   }
+
+  function overallAccuracyFor(p, buckets){
+    let c = 0, t = 0;
+    buckets.forEach(b=>{ const st = p.opStats[b]; if(st){ c += st.c; t += st.t; } });
+    return t > 0 ? Math.round((c/t)*100) : null;
+  }
+  function showProgramsHub(){
+    const p = PROFILES[currentProfile];
+    if(!p) return;
+    programsHubGreeting.textContent = fmt('hubGreeting', { name: profileDisplayName(currentProfile) });
+
+    const mathBuckets = ['add','sub','mul','div','decimals','fractions','percent','exponent','sqrt','compound','numberRecognition'];
+    const mathAcc = overallAccuracyFor(p, mathBuckets);
+    programMentalMathStat.textContent = mathAcc !== null ? fmt('programAccuracyStat', { acc: mathAcc }) : t('programNotStartedStat');
+
+    const abacusOn = isServiceOn('abacus');
+    programAbacusCard.classList.toggle('hidden', !abacusOn);
+    if(abacusOn){
+      const abacusAcc = overallAccuracyFor(p, ['abacus']);
+      programAbacusStat.textContent = abacusAcc !== null ? fmt('programAccuracyStat', { acc: abacusAcc }) : t('programNotStartedStat');
+    }
+
+    settingsEl.classList.add('hidden');
+    abacusTrainerEl.classList.add('hidden');
+    programsHubEl.classList.remove('hidden');
+  }
+  programMentalMathCard.addEventListener('click', ()=>{
+    programsHubEl.classList.add('hidden');
+    settingsEl.classList.remove('hidden');
+  });
+  programAbacusCard.addEventListener('click', ()=>{
+    if(!isServiceOn('abacus')) return; // guards a programmatic click even though the card is hidden when off
+    programsHubEl.classList.add('hidden');
+    abacusOpenBtn.click();
+  });
+  backToProgramsLink.addEventListener('click', ()=>{
+    settingsEl.classList.add('hidden');
+    showProgramsHub();
+  });
+  hubSwitchPlayerLink.addEventListener('click', goToLoginGate);
+  hubLogoutLink.addEventListener('click', goToLoginGate);
 
   function applyProfileDefaults(key){
     const p = PROFILES[key];
@@ -2994,6 +3113,7 @@
     abacusTrainerEl.classList.add('hidden');
     classManagementEl.classList.add('hidden');
     serviceActivationEl.classList.add('hidden');
+    programsHubEl.classList.add('hidden');
     knowledgeMapEl.classList.add('hidden');
     placementTestEl.classList.add('hidden');
     raceLobbyEl.classList.add('hidden');
@@ -3607,9 +3727,9 @@
     setAvatarElement(playAvatar, PROFILES.guest, 22);
     playPlayerName.textContent = profileDisplayName('guest');
     usernameLoginEl.classList.add('hidden');
-    settingsEl.classList.remove('hidden');
     renderTodayMission();
     applyServiceFlags();
+    showProgramsHub();
   });
 
   registerNowBtn.addEventListener('click', ()=>{
@@ -6017,7 +6137,7 @@
   });
   abacusCloseBtn.addEventListener('click', ()=>{
     abacusTrainerEl.classList.add('hidden');
-    settingsEl.classList.remove('hidden');
+    showProgramsHub();
   });
   abacusModeFree.addEventListener('click', ()=> switchAbacusMode('free'));
   abacusModeRead.addEventListener('click', ()=> switchAbacusMode('read'));
