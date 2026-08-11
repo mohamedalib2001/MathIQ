@@ -2123,6 +2123,7 @@
       myClassesLabel:'📚 فصولي', classAssignmentLine:'واجب: {op}', startAssignmentBtn:'ابدئي الواجب الآن', noAssignmentYet:'لا يوجد واجب محدّد حاليًا.',
       missionGreeting:'مرحبًا {name} 👋', missionGoalComplete:'🎉 اكتمل هدف اليوم!', missionGoalProgress:'{done} / {target} أسئلة اليوم',
       missionRecommendWeak:'ركّزي اليوم على {op} — هتحسّني فيها بسرعة!', missionRecommendFresh:'جاهزة لبداية تمرين جديد؟', missionStartBtn:'▶ ابدئي تدريب اليوم',
+      missionComebackGreeting:'مرحبًا بعودتك يا {name}! 😊', missionComebackText:'غبتِ {days} يوم — يلا نبدأ بتمرين خفيف وممتع لنرجع للأجواء تدريجيًا.',
       myStatsErrorPatterns:'أنماط أخطائك', noErrorPatternsYet:'لا يوجد بيانات كافية بعد.',
       errTypeNoAnswer:'⏱️ لم تُجب في الوقت', errTypePlaceValueError:'🔢 خطأ في القيمة المكانية (منزلة العدد)',
       errTypeSignError:'➕➖ خطأ في الإشارة', errTypeCarrySlip:'✍️ خطأ بسيط قريب من الصحيح', errTypeCalculationError:'🧮 خطأ حسابي عام',
@@ -2295,6 +2296,7 @@
       myClassesLabel:'📚 My classes', classAssignmentLine:'Assignment: {op}', startAssignmentBtn:'Start the assignment now', noAssignmentYet:'No assignment set right now.',
       missionGreeting:'Hi {name} 👋', missionGoalComplete:"🎉 Today's goal complete!", missionGoalProgress:'{done} / {target} questions today',
       missionRecommendWeak:"Focus on {op} today — you'll improve fast!", missionRecommendFresh:'Ready to start a fresh practice?', missionStartBtn:"▶ Start today's training",
+      missionComebackGreeting:'Welcome back, {name}! 😊', missionComebackText:"It's been {days} days — let's ease back in with a light, fun practice.",
       myStatsErrorPatterns:'Your mistake patterns', noErrorPatternsYet:'Not enough data yet.',
       errTypeNoAnswer:"⏱️ Didn't answer in time", errTypePlaceValueError:'🔢 Place-value error (digit position)',
       errTypeSignError:'➕➖ Sign error', errTypeCarrySlip:'✍️ Small slip, close to correct', errTypeCalculationError:'🧮 General calculation error',
@@ -3754,11 +3756,32 @@
     return tableFocus === 'all' ? randInt(r.mulSide.min, r.mulSide.max) : parseInt(tableFocus,10);
   }
 
+  /* ---------- adaptive question selection: in 'mix' mode, weight toward
+     the student's weaker operations instead of picking uniformly at
+     random — weaker accuracy gets practiced more often, but every
+     operation still appears sometimes so it never feels repetitive. ---------- */
+  function weightedOpChoice(){
+    const opts = ['add','sub','mul','div'];
+    const prof = PROFILES[currentProfile];
+    const weights = opts.map(o=>{
+      const st = prof && prof.opStats && prof.opStats[o];
+      if(!st || st.t < 3) return 3; // not enough data yet — moderate exploration weight
+      const acc = (st.c/st.t)*100;
+      return Math.max(1, (100-acc)/10 + 1); // weaker accuracy -> higher weight, floor at 1
+    });
+    const total = weights.reduce((a,b)=>a+b, 0);
+    let r = Math.random() * total;
+    for(let i=0;i<opts.length;i++){
+      r -= weights[i];
+      if(r <= 0) return opts[i];
+    }
+    return opts[opts.length-1];
+  }
+
   function genSimpleProblem(){
     let chosenOp = op;
     if(op === 'mix'){
-      const opts = ['add','sub','mul','div'];
-      chosenOp = opts[randInt(0,3)];
+      chosenOp = weightedOpChoice();
     }
     const r = rangeFor(effectiveDiff());
     let a,b,text,ans;
@@ -5058,12 +5081,17 @@
     if(!settingsEl.classList.contains('hidden')) renderTodayMission();
   }
 
+  function daysSinceLastPractice(p){
+    const log = p.sessionLog || [];
+    if(!log.length) return null;
+    const lastDate = new Date(log[log.length-1].date).getTime();
+    return Math.floor((Date.now() - lastDate) / (24*60*60*1000));
+  }
+
   function renderTodayMission(){
     const p = PROFILES[currentProfile];
     if(!p || challengeMode || raceMode){ todayMissionCard.classList.add('hidden'); return; }
     todayMissionCard.classList.remove('hidden');
-
-    missionGreeting.textContent = fmt('missionGreeting', { name: profileDisplayName(currentProfile) });
 
     const goal = ensureDailyGoalFresh(p);
     const pct = Math.min(100, Math.round((goal.answered / goal.target) * 100));
@@ -5074,6 +5102,16 @@
       missionGoalText.textContent = fmt('missionGoalProgress', { done: goal.answered, target: goal.target });
     }
 
+    const daysSince = daysSinceLastPractice(p);
+    if(daysSince !== null && daysSince >= 3){
+      // gentle comeback — no weak-area pressure, just a warm welcome back
+      missionGreeting.textContent = fmt('missionComebackGreeting', { name: profileDisplayName(currentProfile) });
+      missionRecommend.innerHTML = `😊 ${fmt('missionComebackText', { days: daysSince })}`;
+      missionStartBtn.dataset.recommendOp = '';
+      return;
+    }
+
+    missionGreeting.textContent = fmt('missionGreeting', { name: profileDisplayName(currentProfile) });
     const weak = computeWeakestBucket(p);
     if(weak){
       missionRecommend.innerHTML = `🧠 ${fmt('missionRecommendWeak', { op: t('bucket'+capitalize(weak.bucket)) })}`;
