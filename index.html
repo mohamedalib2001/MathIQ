@@ -106,6 +106,14 @@
 
   header{ text-align:center; margin-bottom:22px; position:relative; }
   .eyebrow{ font-family:'Cairo', sans-serif; font-size:13px; letter-spacing:1px; color:var(--yellow); opacity:0.9; margin-bottom:6px; }
+  .brand-tagline{
+    font-family:'Tajawal',sans-serif; font-size:12.5px; color:var(--ink-dim); margin-top:6px; letter-spacing:0.2px;
+  }
+  .ai-powered-badge{
+    display:inline-flex; align-items:center; gap:5px; font-size:10.5px; font-weight:700; color:var(--ink);
+    background:linear-gradient(135deg, rgba(231,196,104,0.16), rgba(143,201,172,0.12));
+    border:1px solid rgba(231,196,104,0.35); border-radius:20px; padding:4px 12px; margin-top:10px;
+  }
   h1{ font-family:'Cairo', sans-serif; font-weight:800; font-size: clamp(22px, 6vw, 30px); margin:0; color:var(--ink); }
   .rule{ width:70px; height:3px; margin:14px auto 0; background:var(--ink-dim); opacity:0.3; border-radius:2px; }
 
@@ -893,8 +901,10 @@
   </div>
 
   <header>
-    <div class="eyebrow" data-i18n="eyebrow">تمرين يوميّ</div>
+    <div class="eyebrow">MathIQ</div>
     <h1 data-i18n="title">مسائل ذهنية</h1>
+    <div class="brand-tagline" data-i18n="brandTagline">منصة التعلّم الذكي للحساب الذهني والأباكوس</div>
+    <div class="ai-powered-badge"><span>✦</span><span data-i18n="aiPoweredBadge">مدعوم بالذكاء الاصطناعي</span></div>
     <div class="rule"></div>
   </header>
 
@@ -2182,6 +2192,7 @@
   const TRANSLATIONS = {
     ar: {
       eyebrow:'تمرين يوميّ', title:'مسائل ذهنية',
+      brandTagline:'منصة التعلّم الذكي للحساب الذهني والأباكوس', aiPoweredBadge:'مدعوم بالذكاء الاصطناعي',
       whoPlaying:'من يلعب اليوم؟',
       joryName:'جوري', joryAge:'٦ سنوات ونصف',
       jasmineName:'جاسمين', jasmineAge:'١١ سنة',
@@ -2376,6 +2387,7 @@
     },
     en: {
       eyebrow:'Daily practice', title:'Mental Math',
+      brandTagline:'The smart learning platform for mental math and abacus', aiPoweredBadge:'AI-Powered',
       whoPlaying:"Who's playing today?",
       joryName:'Jory', joryAge:'6.5 years old',
       jasmineName:'Jasmine', jasmineAge:'11 years old',
