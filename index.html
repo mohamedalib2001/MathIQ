@@ -230,6 +230,28 @@
     display:flex; align-items:center; justify-content:center;
   }
   .video-call-status{ text-align:center; font-size:11px; color:var(--ink-dim); margin-bottom:8px; }
+
+  /* abacus trainer */
+  .abacus-frame{
+    background:linear-gradient(180deg, #6b4423, #4a2f18); border-radius:14px; padding:18px 12px;
+    box-shadow:0 8px 24px rgba(0,0,0,0.3), inset 0 2px 4px rgba(255,255,255,0.15);
+    overflow-x:auto; margin-bottom:14px;
+  }
+  .abacus-svg{ display:block; margin:0 auto; }
+  .abacus-bead{ cursor:pointer; transition:transform 0.15s ease; }
+  .abacus-bead:hover{ filter:brightness(1.15); }
+  .abacus-value-display{
+    text-align:center; font-family:'Cairo',sans-serif; font-weight:800; font-size:28px;
+    color:var(--yellow); margin-bottom:10px; letter-spacing:2px;
+  }
+  .abacus-mode-tabs{ display:flex; gap:8px; margin-bottom:12px; }
+  .abacus-mode-tab{
+    flex:1; text-align:center; padding:9px; border-radius:10px; border:1.5px solid var(--input-border);
+    background:var(--input-bg); color:var(--ink-dim); font-weight:700; font-size:13px; cursor:pointer;
+  }
+  .abacus-mode-tab.active{ background:var(--yellow); color:#3a2a05; border-color:var(--yellow); }
+  .abacus-target{ text-align:center; font-size:15px; font-weight:700; margin-bottom:10px; }
+  .abacus-target b{ color:var(--yellow); font-size:22px; }
   .enable-camera-btn{
     width:100%; font-family:'Cairo',sans-serif; font-weight:700; font-size:13px; padding:11px;
     border-radius:10px; border:1.5px dashed var(--yellow); background:transparent; color:var(--yellow);
@@ -712,6 +734,31 @@
     <button class="secondary-btn" id="parentDashboardLogoutBtn" data-i18n="logoutLinkText">🚪 تسجيل الخروج</button>
   </div>
 
+  <!-- ABACUS TRAINER -->
+  <div id="abacusTrainer" class="panel hidden">
+    <div class="group-label" style="text-align:center;" data-i18n="abacusTitle">🧮 مدرّب الأباكوس</div>
+    <div class="abacus-mode-tabs">
+      <div class="abacus-mode-tab active" id="abacusModeFree" data-i18n="abacusModeFree">تدريب حر</div>
+      <div class="abacus-mode-tab" id="abacusModeRead" data-i18n="abacusModeRead">اقرئي الرقم</div>
+      <div class="abacus-mode-tab" id="abacusModeSet" data-i18n="abacusModeSet">مثّلي الرقم</div>
+    </div>
+    <div class="abacus-target hidden" id="abacusTargetLine"></div>
+    <div class="abacus-value-display" id="abacusValueDisplay">0</div>
+    <div class="abacus-frame">
+      <div id="abacusSvgWrap"></div>
+    </div>
+    <div id="abacusReadInputRow" class="pin-row hidden" style="justify-content:center;">
+      <input type="number" id="abacusReadInput" class="ltr-input" style="flex:1; max-width:160px; text-align:center; font-family:'Cairo',sans-serif; font-weight:800; font-size:18px;" placeholder="؟">
+      <button class="secondary-btn" id="abacusCheckBtn" data-i18n="submitBtn" style="flex:none;">تحقق</button>
+    </div>
+    <div class="feedback" id="abacusFeedback"></div>
+    <div class="editor-actions" style="margin-top:10px;">
+      <button class="secondary-btn" id="abacusResetBtn" data-i18n="abacusResetBtn">🔄 صفّري الأباكوس</button>
+      <button class="secondary-btn" id="abacusNewBtn" data-i18n="abacusNewBtn">🎲 رقم جديد</button>
+    </div>
+    <button class="secondary-btn" id="abacusCloseBtn" data-i18n="closeBtn" style="margin-top:8px;">إغلاق</button>
+  </div>
+
   <!-- MY PROFILE / ACHIEVEMENTS (student's own view) -->
   <div id="myStatsScreen" class="panel hidden">
     <div class="profile-header">
@@ -1062,6 +1109,7 @@
     </div>
     <div class="daily-streak-badge hidden" id="dailyStreakBadge"></div>
     <button class="challenge-btn" id="raceLobbyOpenBtn" data-i18n="raceLobbyOpenBtn">🏁 سباق مباشر مع صديقة</button>
+    <button class="challenge-btn" id="abacusOpenBtn" data-i18n="abacusOpenBtn">🧮 مدرّب الأباكوس (Abacus)</button>
     <div class="pin-row" style="justify-content:center; gap:16px; margin-bottom:10px;">
       <span class="switch-player" id="editMyProfileLink" data-i18n="editMyProfileLink">✏️ تعديل بياناتي</span>
       <span class="switch-player" id="myStatsLink" data-i18n="myStatsLink">🏅 إنجازاتي وسجلي</span>
@@ -1387,6 +1435,21 @@
   const aiEncourageCard = document.getElementById('aiEncourageCard');
 
   const raceLobbyOpenBtn = document.getElementById('raceLobbyOpenBtn');
+  const abacusOpenBtn = document.getElementById('abacusOpenBtn');
+  const abacusTrainerEl = document.getElementById('abacusTrainer');
+  const abacusModeFree = document.getElementById('abacusModeFree');
+  const abacusModeRead = document.getElementById('abacusModeRead');
+  const abacusModeSet = document.getElementById('abacusModeSet');
+  const abacusTargetLine = document.getElementById('abacusTargetLine');
+  const abacusValueDisplay = document.getElementById('abacusValueDisplay');
+  const abacusSvgWrap = document.getElementById('abacusSvgWrap');
+  const abacusReadInputRow = document.getElementById('abacusReadInputRow');
+  const abacusReadInput = document.getElementById('abacusReadInput');
+  const abacusCheckBtn = document.getElementById('abacusCheckBtn');
+  const abacusFeedback = document.getElementById('abacusFeedback');
+  const abacusResetBtn = document.getElementById('abacusResetBtn');
+  const abacusNewBtn = document.getElementById('abacusNewBtn');
+  const abacusCloseBtn = document.getElementById('abacusCloseBtn');
   const raceLobbyEl = document.getElementById('raceLobby');
   const createRaceBtn = document.getElementById('createRaceBtn');
   const raceOpChips = document.querySelectorAll('#raceOpChips .chip');
@@ -1527,7 +1590,7 @@
       badges: new Set(),
       opStats:{ add:{c:0,t:0,time:0}, sub:{c:0,t:0,time:0}, mul:{c:0,t:0,time:0}, div:{c:0,t:0,time:0},
                 compound:{c:0,t:0,time:0}, decimals:{c:0,t:0,time:0}, fractions:{c:0,t:0,time:0},
-                percent:{c:0,t:0,time:0}, exponent:{c:0,t:0,time:0}, sqrt:{c:0,t:0,time:0} },
+                percent:{c:0,t:0,time:0}, exponent:{c:0,t:0,time:0}, sqrt:{c:0,t:0,time:0}, abacus:{c:0,t:0,time:0} },
       recentMistakes: [],     // rolling log across sessions: { text, correct, date }
       certificatesIssued: [], // rolling log: { score, accuracy, date }
       isCustom: !!isCustom,
@@ -1844,6 +1907,9 @@
       aiPracticeToggleLabel:'🤖 تمرين ذكي مولّد ومخصّص بالذكاء الاصطناعي (تجريبي)',
       aiPracticeToggleNote:'كل مسألة تُتحقق رياضيًا قبل عرضها. متاح فقط مع عدد أسئلة ثابت (غير متاح مع "بلا نهاية" أو "تحدي الدقيقة").',
       aiPracticeLoading:'جارٍ توليد تمرين ذكي...', aiPracticeFailed:'تعذّر توليد التمرين الذكي — تم استخدام التمرين العادي بدلًا منه.',
+      abacusOpenBtn:'🧮 مدرّب الأباكوس (Abacus)', abacusTitle:'🧮 مدرّب الأباكوس',
+      abacusModeFree:'تدريب حر', abacusModeRead:'اقرئي الرقم', abacusModeSet:'مثّلي الرقم',
+      abacusSetTargetPrefix:'مثّلي الرقم:', abacusResetBtn:'🔄 صفّري الأباكوس', abacusNewBtn:'🎲 رقم جديد',
       enableCameraBtn:'📷 تفعيل الكاميرا لرؤية صديقتك', youLabel:'أنتِ',
       cameraNeedsHttps:'⚠️ الكاميرا تحتاج استضافة الملف على الإنترنت (https) — لن تعمل من ملف مفتوح مباشرة على الجهاز.',
       cameraPermissionDenied:'تعذّر الوصول للكاميرا — تأكدي من السماح لها من إعدادات المتصفح.',
@@ -1914,7 +1980,7 @@
       dashNoData:'لا توجد بيانات بعد', closeBtn:'إغلاق', secLabel:'ث',
       bucketAdd:'جمع', bucketSub:'طرح', bucketMul:'ضرب', bucketDiv:'قسمة',
       bucketCompound:'المسائل المركبة', bucketDecimals:'الأعداد العشرية', bucketFractions:'الكسور',
-      bucketPercent:'النسبة المئوية', bucketExponent:'الأُسس', bucketSqrt:'الجذر التربيعي'
+      bucketPercent:'النسبة المئوية', bucketExponent:'الأُسس', bucketSqrt:'الجذر التربيعي', bucketAbacus:'الأباكوس'
     },
     en: {
       eyebrow:'Daily practice', title:'Mental Math',
@@ -1989,6 +2055,9 @@
       aiPracticeToggleLabel:'🤖 AI-generated personalized practice (experimental)',
       aiPracticeToggleNote:'Every question is math-verified before it\'s shown. Only available with a fixed question count (not with "Endless" or "One-minute challenge").',
       aiPracticeLoading:'Generating a smart practice set...', aiPracticeFailed:'Could not generate the AI practice set — using the regular practice instead.',
+      abacusOpenBtn:'🧮 Abacus Trainer', abacusTitle:'🧮 Abacus Trainer',
+      abacusModeFree:'Free practice', abacusModeRead:'Read the number', abacusModeSet:'Set the number',
+      abacusSetTargetPrefix:'Set the number:', abacusResetBtn:'🔄 Reset abacus', abacusNewBtn:'🎲 New number',
       enableCameraBtn:'📷 Enable camera to see your friend', youLabel:'You',
       cameraNeedsHttps:'⚠️ The camera needs the file to be hosted online (https) — it will not work from a file opened directly on the device.',
       cameraPermissionDenied:'Could not access the camera — check that it is allowed in your browser settings.',
@@ -2059,7 +2128,7 @@
       dashNoData:'No data yet', closeBtn:'Close', secLabel:'s',
       bucketAdd:'Addition', bucketSub:'Subtraction', bucketMul:'Multiplication', bucketDiv:'Division',
       bucketCompound:'Compound', bucketDecimals:'Decimals', bucketFractions:'Fractions',
-      bucketPercent:'Percentage', bucketExponent:'Exponents', bucketSqrt:'Square root'
+      bucketPercent:'Percentage', bucketExponent:'Exponents', bucketSqrt:'Square root', bucketAbacus:'Abacus'
     }
   };
 
@@ -2468,6 +2537,7 @@
     parentDashboardScreenEl.classList.add('hidden');
     myStatsScreenEl.classList.add('hidden');
     adminLoginGateEl.classList.add('hidden');
+    abacusTrainerEl.classList.add('hidden');
     raceLobbyEl.classList.add('hidden');
     raceWaitingEl.classList.add('hidden');
     raceResultScreenEl.classList.add('hidden');
@@ -4653,6 +4723,152 @@
     unmuteRemoteBtn.classList.add('hidden');
     unmuteRemoteBtn.textContent = '🔇';
   }
+
+  /* ================= Abacus (Soroban) trainer =================
+     Standard Soroban layout: each rod has one "heaven" bead (worth 5,
+     active when pushed DOWN toward the bar) and four "earth" beads
+     (worth 1 each, active when pushed UP toward the bar). Rods run
+     left-to-right, most significant to least significant, regardless
+     of page text direction — numerals are always written LTR. */
+  const ABACUS_ROD_COUNT = 5; // supports values 0–99999
+  let abacusRods = [];
+  let abacusMode = 'free'; // 'free' | 'read' | 'set'
+  let abacusTargetValue = 0;
+
+  function freshAbacusRods(n){
+    return Array.from({ length: n }, () => ({ heaven: false, earth: 0 }));
+  }
+  function computeAbacusValue(rods){
+    let value = 0;
+    for(let i=0;i<rods.length;i++){
+      const place = rods.length - 1 - i;
+      const rodVal = (rods[i].heaven ? 5 : 0) + rods[i].earth;
+      value += rodVal * Math.pow(10, place);
+    }
+    return value;
+  }
+  function rodsFromNumber(num, n){
+    const digits = String(Math.max(0, Math.floor(num))).padStart(n, '0').slice(-n).split('').map(Number);
+    return digits.map(d => ({ heaven: d >= 5, earth: d >= 5 ? d - 5 : d }));
+  }
+  function toggleHeavenBead(rodIdx){
+    if(abacusMode === 'read') return; // fixed display in read mode — not interactive
+    abacusRods[rodIdx].heaven = !abacusRods[rodIdx].heaven;
+    renderAbacus();
+  }
+  function toggleEarthBead(rodIdx, beadIdx){
+    if(abacusMode === 'read') return;
+    const rod = abacusRods[rodIdx];
+    rod.earth = (beadIdx < rod.earth) ? beadIdx : beadIdx + 1;
+    renderAbacus();
+  }
+
+  function renderAbacus(){
+    const rodWidth = 46;
+    const width = abacusRods.length * rodWidth + 20;
+    const height = 220;
+    const barY = 90;
+    let svg = `<svg class="abacus-svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">`;
+    svg += `<rect x="4" y="${barY-3}" width="${width-8}" height="6" fill="#2a1a0a" rx="2"/>`;
+    abacusRods.forEach((rod, i)=>{
+      const cx = 20 + i*rodWidth + rodWidth/2 - 10;
+      svg += `<line x1="${cx}" y1="14" x2="${cx}" y2="${height-14}" stroke="#3a2a15" stroke-width="3"/>`;
+      const heavenY = rod.heaven ? barY - 17 : 28;
+      svg += `<ellipse class="abacus-bead" data-rod="${i}" data-type="heaven" cx="${cx}" cy="${heavenY}" rx="15" ry="10" fill="#d9ac5c" stroke="#8a6320" stroke-width="1.5"/>`;
+      for(let e=0;e<4;e++){
+        const active = e < rod.earth;
+        const restY = height - 24 - (3-e)*23;
+        const activeY = barY + 17 + e*23;
+        const y = active ? activeY : restY;
+        svg += `<ellipse class="abacus-bead" data-rod="${i}" data-type="earth" data-idx="${e}" cx="${cx}" cy="${y}" rx="15" ry="10" fill="#c97b4a" stroke="#7a4420" stroke-width="1.5"/>`;
+      }
+    });
+    svg += `</svg>`;
+    abacusSvgWrap.innerHTML = svg;
+
+    abacusSvgWrap.querySelectorAll('.abacus-bead').forEach(el=>{
+      el.addEventListener('click', ()=>{
+        const rodIdx = parseInt(el.dataset.rod, 10);
+        if(el.dataset.type === 'heaven') toggleHeavenBead(rodIdx);
+        else toggleEarthBead(rodIdx, parseInt(el.dataset.idx, 10));
+      });
+    });
+
+    const value = computeAbacusValue(abacusRods);
+    if(abacusMode === 'read'){
+      abacusValueDisplay.textContent = '❓';
+    } else {
+      abacusValueDisplay.textContent = value;
+    }
+    if(abacusMode === 'set' && value === abacusTargetValue){
+      abacusFeedback.textContent = t('correctFeedback');
+      abacusFeedback.className = 'feedback correct';
+      recordAbacusResult(true);
+      setTimeout(()=> switchAbacusMode('set'), 1200);
+    }
+  }
+
+  function switchAbacusMode(mode){
+    abacusMode = mode;
+    [abacusModeFree, abacusModeRead, abacusModeSet].forEach(el=> el.classList.remove('active'));
+    abacusFeedback.textContent = '';
+    abacusFeedback.className = 'feedback';
+    if(mode === 'free'){
+      abacusModeFree.classList.add('active');
+      abacusTargetLine.classList.add('hidden');
+      abacusReadInputRow.classList.add('hidden');
+      abacusRods = freshAbacusRods(ABACUS_ROD_COUNT);
+    } else if(mode === 'read'){
+      abacusModeRead.classList.add('active');
+      abacusTargetLine.classList.add('hidden');
+      abacusReadInputRow.classList.remove('hidden');
+      abacusReadInput.value = '';
+      abacusTargetValue = randInt(0, Math.pow(10, ABACUS_ROD_COUNT) - 1);
+      abacusRods = rodsFromNumber(abacusTargetValue, ABACUS_ROD_COUNT);
+    } else if(mode === 'set'){
+      abacusModeSet.classList.add('active');
+      abacusReadInputRow.classList.add('hidden');
+      abacusTargetValue = randInt(0, Math.pow(10, ABACUS_ROD_COUNT) - 1);
+      abacusTargetLine.innerHTML = `${t('abacusSetTargetPrefix')} <b>${abacusTargetValue}</b>`;
+      abacusTargetLine.classList.remove('hidden');
+      abacusRods = freshAbacusRods(ABACUS_ROD_COUNT);
+    }
+    renderAbacus();
+  }
+
+  abacusOpenBtn.addEventListener('click', ()=>{
+    settingsEl.classList.add('hidden');
+    abacusTrainerEl.classList.remove('hidden');
+    switchAbacusMode('free');
+  });
+  abacusCloseBtn.addEventListener('click', ()=>{
+    abacusTrainerEl.classList.add('hidden');
+    settingsEl.classList.remove('hidden');
+  });
+  abacusModeFree.addEventListener('click', ()=> switchAbacusMode('free'));
+  abacusModeRead.addEventListener('click', ()=> switchAbacusMode('read'));
+  abacusModeSet.addEventListener('click', ()=> switchAbacusMode('set'));
+  abacusResetBtn.addEventListener('click', ()=>{
+    abacusRods = freshAbacusRods(ABACUS_ROD_COUNT);
+    renderAbacus();
+  });
+  abacusNewBtn.addEventListener('click', ()=> switchAbacusMode(abacusMode === 'free' ? 'free' : abacusMode));
+
+  function recordAbacusResult(correct){
+    const p = PROFILES[currentProfile];
+    if(!p || !p.opStats.abacus) return;
+    p.opStats.abacus.t++;
+    if(correct) p.opStats.abacus.c++;
+    saveProfilesToStorage();
+  }
+  abacusCheckBtn.addEventListener('click', ()=>{
+    const entered = parseInt(abacusReadInput.value, 10);
+    const correct = entered === abacusTargetValue;
+    abacusFeedback.textContent = correct ? t('correctFeedback') : fmt('wrongFeedback', { ans: abacusTargetValue });
+    abacusFeedback.className = 'feedback ' + (correct ? 'correct' : 'wrong');
+    recordAbacusResult(correct);
+    if(correct) setTimeout(()=> switchAbacusMode('read'), 1200);
+  });
 
   function postRaceProgress(done, left){
     if(!raceMode || !raceCode) return;
