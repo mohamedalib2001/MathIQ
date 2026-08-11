@@ -3674,6 +3674,18 @@
     }
 
     // real Sprint-1 programs, rendered as additional cards before the "coming soon" placeholders
+    renderRealProgramCards();
+    if(SHEET_API_URL){
+      lpRefreshAllPublishedPrograms().then(changed=>{
+        if(changed && !programsHubEl.classList.contains('hidden')) renderRealProgramCards();
+      });
+    }
+
+    settingsEl.classList.add('hidden');
+    abacusTrainerEl.classList.add('hidden');
+    programsHubEl.classList.remove('hidden');
+  }
+  function renderRealProgramCards(){
     document.querySelectorAll('.lp-real-program-card').forEach(el => el.remove());
     const realPrograms = lpLoad(LP_KEYS.PROGRAMS).filter(pr => pr.status === 'published');
     realPrograms.forEach(pr=>{
@@ -3685,10 +3697,25 @@
       card.addEventListener('click', ()=> openProgramPlayer(pr));
       programAbacusCard.insertAdjacentElement('afterend', card);
     });
-
-    settingsEl.classList.add('hidden');
-    abacusTrainerEl.classList.add('hidden');
-    programsHubEl.classList.remove('hidden');
+  }
+  async function lpRefreshAllPublishedPrograms(){
+    if(!SHEET_API_URL) return false;
+    const result = await LP_API.programs.list(); // no filter — every instructor's published programs are visible to learners
+    if(!result || !result.ok || !Array.isArray(result.items)) return false;
+    const remoteById = {};
+    result.items.forEach(item=>{
+      remoteById[item.ProgramID] = {
+        id: item.ProgramID, title: item.Title, description: item.Description, level: item.Level,
+        status: item.Status, previousStatus: item.PreviousStatus, instructorUsername: item.InstructorUsername,
+        skillIds: item.SkillIdsJSON ? (()=>{ try{ return JSON.parse(item.SkillIdsJSON); }catch(e){ return []; } })() : [],
+        createdAt: item.CreatedAt, updatedAt: item.UpdatedAt
+      };
+    });
+    const localPrograms = lpLoad(LP_KEYS.PROGRAMS);
+    const merged = localPrograms.filter(p => !remoteById[p.id]);
+    Object.values(remoteById).forEach(p => merged.push(p));
+    lpSave(LP_KEYS.PROGRAMS, merged);
+    return true;
   }
   programMentalMathCard.addEventListener('click', ()=>{
     programsHubEl.classList.add('hidden');
@@ -4675,13 +4702,43 @@
     lpSave(LP_KEYS.PROGRAMS, programs);
     return p;
   }
-  function lpCreateCourse(programId, title, description){
+  async function lpCreateCourse(programId, title, description){
     if(!can(lpCurrentRole(), 'course.create')) return lpDenyAndNotify('course.create');
+    if(SHEET_API_URL){
+      const result = await LP_API.courses.create({ ProgramID: programId, Title: title, Description: description });
+      if(!result || !result.ok){
+        showToast(t('lpSyncCreateFailed'), nxIcon('alertTriangle'), 'system');
+        return null;
+      }
+      const courses = lpLoad(LP_KEYS.COURSES);
+      const c = { id: result.id, programId, title, description, level:null, duration:null, skillIds:[], archived:false };
+      courses.push(c);
+      lpSave(LP_KEYS.COURSES, courses);
+      return c;
+    }
     const courses = lpLoad(LP_KEYS.COURSES);
     const c = { id: lpGenId('course'), programId, title, description, level:null, duration:null, skillIds:[], archived:false };
     courses.push(c);
     lpSave(LP_KEYS.COURSES, courses);
     return c;
+  }
+  async function lpRefreshCoursesForProgram(programId){
+    if(!SHEET_API_URL || !programId) return false;
+    const result = await LP_API.courses.list('ProgramID', programId);
+    if(!result || !result.ok || !Array.isArray(result.items)) return false;
+    const remoteById = {};
+    result.items.forEach(item=>{
+      remoteById[item.CourseID] = {
+        id: item.CourseID, programId: item.ProgramID, title: item.Title, description: item.Description,
+        archived: item.Archived === true || item.Archived === 'TRUE', level:null, duration:null, skillIds:[],
+        createdAt: item.CreatedAt, updatedAt: item.UpdatedAt
+      };
+    });
+    const localCourses = lpLoad(LP_KEYS.COURSES);
+    const merged = localCourses.filter(c => c.programId !== programId || !remoteById[c.id]);
+    Object.values(remoteById).forEach(c => merged.push(c));
+    lpSave(LP_KEYS.COURSES, merged);
+    return true;
   }
   function lpUpdateCourse(courseId, fields){
     if(!can(lpCurrentRole(), 'course.update')) return lpDenyAndNotify('course.update');
@@ -4942,6 +4999,31 @@
   function lpGetEnrollmentsForLearner(learnerUsername){ return lpLoad(LP_KEYS.ENROLLMENTS).filter(e => e.learnerUsername === learnerUsername); }
   function lpGetProgramsForInstructor(username){ return lpLoad(LP_KEYS.PROGRAMS).filter(p => p.instructorUsername === username); }
 
+  /* ---------- Sprint 8: background sync — shows the local cache instantly
+     (never a blank/fake-loading screen), then silently upgrades once the
+     real backend list arrives. Same proven pattern as loadSmartNotification
+     (Sprint 4). Remote is authoritative for items it knows about; anything
+     purely local (not yet synced, e.g. created while offline) is kept. ---------- */
+  async function lpRefreshProgramsFromBackend(instructorUsername){
+    if(!SHEET_API_URL || !instructorUsername) return false;
+    const result = await LP_API.programs.list('InstructorUsername', instructorUsername);
+    if(!result || !result.ok || !Array.isArray(result.items)) return false; // silent — local cache stays valid, no data wiped
+    const remoteById = {};
+    result.items.forEach(item=>{
+      remoteById[item.ProgramID] = {
+        id: item.ProgramID, title: item.Title, description: item.Description, level: item.Level,
+        status: item.Status, previousStatus: item.PreviousStatus, instructorUsername: item.InstructorUsername,
+        skillIds: item.SkillIdsJSON ? (()=>{ try{ return JSON.parse(item.SkillIdsJSON); }catch(e){ return []; } })() : [],
+        createdAt: item.CreatedAt, updatedAt: item.UpdatedAt
+      };
+    });
+    const localPrograms = lpLoad(LP_KEYS.PROGRAMS);
+    const merged = localPrograms.filter(p => p.instructorUsername !== instructorUsername || !remoteById[p.id]);
+    Object.values(remoteById).forEach(p => merged.push(p));
+    lpSave(LP_KEYS.PROGRAMS, merged);
+    return true;
+  }
+
   /* ---------- trainer program builder UI: drills Program -> Course ->
      Module -> Lesson -> Assessment one level at a time. Every action here
      calls the tested data-layer functions above; no separate logic. ---------- */
@@ -5001,6 +5083,15 @@
       pbBreadcrumb.textContent = t('pbBreadcrumbPrograms');
       const programs = lpGetProgramsForInstructor(pbOwnerUsername());
       if(!programs.length) pbListArea.innerHTML = `<div class="dash-empty">${t('pbNoPrograms')}</div>`;
+      // background sync: local cache renders instantly above; if a real
+      // backend is configured, silently refresh and re-render only if the
+      // trainer is still on this screen when it resolves.
+      if(SHEET_API_URL){
+        const ownerAtFetchTime = pbOwnerUsername();
+        lpRefreshProgramsFromBackend(ownerAtFetchTime).then(changed=>{
+          if(changed && pbLevel === 'programs' && pbOwnerUsername() === ownerAtFetchTime) renderProgramBuilder();
+        });
+      }
       programs.forEach(p=>{
         const row = document.createElement('div');
         row.className = 'lp-row';
@@ -5077,6 +5168,12 @@
       document.getElementById('pbCrumbPrograms').addEventListener('click', ()=> pbNavigate('programs'));
       const courses = lpGetCoursesForProgram(pbProgram.id);
       if(!courses.length) pbListArea.innerHTML = `<div class="dash-empty">${t('pbNoCourses')}</div>`;
+      if(SHEET_API_URL){
+        const programIdAtFetchTime = pbProgram.id;
+        lpRefreshCoursesForProgram(programIdAtFetchTime).then(changed=>{
+          if(changed && pbLevel === 'courses' && pbProgram && pbProgram.id === programIdAtFetchTime) renderProgramBuilder();
+        });
+      }
       courses.forEach(c=>{
         const row = document.createElement('div');
         row.className = 'lp-row' + (c.archived ? ' disabled-service' : '');
@@ -5122,10 +5219,12 @@
           <input type="text" id="pbNewCourseTitle" placeholder="${t('pbCourseTitlePh')}">
           <button class="start-btn" id="pbCreateCourseBtn">${t('pbCreateCourseBtn')}</button>
         </div>`;
-      document.getElementById('pbCreateCourseBtn').addEventListener('click', ()=>{
+      document.getElementById('pbCreateCourseBtn').addEventListener('click', async ()=>{
         const title = document.getElementById('pbNewCourseTitle').value.trim();
         if(!title) return;
-        lpCreateCourse(pbProgram.id, title, '');
+        const btn = document.getElementById('pbCreateCourseBtn');
+        btn.disabled = true; btn.textContent = t('pbSavingLabel');
+        await lpCreateCourse(pbProgram.id, title, '');
         renderProgramBuilder();
       });
 
@@ -5415,6 +5514,12 @@
       ppContentArea.innerHTML = `<div class="lp-progress-bar-wrap"><div class="lp-progress-bar" style="width:${progress}%"></div></div><div class="conn-note">${fmt('ppProgressLabel',{ pct: progress })}</div>`;
       const courses = lpGetActiveCoursesForProgram(ppProgram.id);
       if(!courses.length) ppContentArea.innerHTML += `<div class="dash-empty">${t('ppNoContentYet')}</div>`;
+      if(SHEET_API_URL){
+        const programIdAtFetchTime = ppProgram.id;
+        lpRefreshCoursesForProgram(programIdAtFetchTime).then(changed=>{
+          if(changed && ppLevel === 'courses' && ppProgram && ppProgram.id === programIdAtFetchTime) renderProgramPlayer();
+        });
+      }
       courses.forEach(c=>{
         const row = document.createElement('div');
         row.className = 'lp-row';
