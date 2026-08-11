@@ -291,6 +291,22 @@
     font-size:11.5px; font-weight:700; padding:6px 12px; border-radius:8px; border:none; background:var(--mint); color:#173124; cursor:pointer;
   }
 
+  /* knowledge map */
+  .knowledge-level-row{
+    display:flex; align-items:center; gap:10px; background:var(--input-bg); border:1.5px solid var(--input-border);
+    border-radius:12px; padding:10px 12px; margin-bottom:8px;
+  }
+  .knowledge-level-row.mastered{ border-color:rgba(143,201,172,0.5); background:rgba(143,201,172,0.08); }
+  .knowledge-level-row.in-progress{ border-color:rgba(231,196,104,0.5); }
+  .knowledge-level-row .level-status-icon{ font-size:16px; flex:none; }
+  .knowledge-level-row .level-icon{ font-size:18px; flex:none; }
+  .knowledge-level-row .level-name{ flex:1; font-family:'Cairo',sans-serif; font-weight:700; font-size:13.5px; }
+  .knowledge-level-row .level-mastery{ font-size:11px; color:var(--ink-dim); flex:none; }
+  .knowledge-level-row .level-practice-btn{
+    flex:none; font-size:11px; font-weight:700; padding:6px 10px; border-radius:7px; border:none;
+    background:var(--yellow); color:#3a2a05; cursor:pointer;
+  }
+
   /* today's mission — calm, premium "smart dashboard" hero card */
   .mission-card{
     background:var(--input-bg);
@@ -796,6 +812,14 @@
     <button class="secondary-btn" id="parentDashboardLogoutBtn" data-i18n="logoutLinkText">🚪 تسجيل الخروج</button>
   </div>
 
+  <!-- KNOWLEDGE MAP -->
+  <div id="knowledgeMap" class="panel hidden">
+    <div class="group-label" style="text-align:center;" data-i18n="knowledgeMapTitle">📚 رحلتي التعليمية</div>
+    <div class="conn-note" id="knowledgeMapProgress" style="text-align:center;"></div>
+    <div id="knowledgeMapList"></div>
+    <button class="secondary-btn" id="knowledgeMapCloseBtn" data-i18n="closeBtn">إغلاق</button>
+  </div>
+
   <!-- ABACUS TRAINER -->
   <div id="abacusTrainer" class="panel hidden">
     <div class="group-label" style="text-align:center;" data-i18n="abacusTitle">🧮 مدرّب الأباكوس</div>
@@ -1203,6 +1227,7 @@
     <div class="daily-streak-badge hidden" id="dailyStreakBadge"></div>
     <button class="challenge-btn" id="raceLobbyOpenBtn" data-i18n="raceLobbyOpenBtn">🏁 سباق مباشر مع صديقة</button>
     <button class="challenge-btn" id="abacusOpenBtn" data-i18n="abacusOpenBtn">🧮 مدرّب الأباكوس (Abacus)</button>
+    <button class="challenge-btn" id="knowledgeMapOpenBtn" data-i18n="knowledgeMapOpenBtn">📚 رحلتي التعليمية</button>
     <div class="pin-row" style="justify-content:center; gap:16px; margin-bottom:10px;">
       <span class="switch-player" id="editMyProfileLink" data-i18n="editMyProfileLink">✏️ تعديل بياناتي</span>
       <span class="switch-player" id="myStatsLink" data-i18n="myStatsLink">🏅 إنجازاتي وسجلي</span>
@@ -1553,6 +1578,11 @@
   const abacusResetBtn = document.getElementById('abacusResetBtn');
   const abacusNewBtn = document.getElementById('abacusNewBtn');
   const abacusCloseBtn = document.getElementById('abacusCloseBtn');
+  const knowledgeMapOpenBtn = document.getElementById('knowledgeMapOpenBtn');
+  const knowledgeMapEl = document.getElementById('knowledgeMap');
+  const knowledgeMapList = document.getElementById('knowledgeMapList');
+  const knowledgeMapProgress = document.getElementById('knowledgeMapProgress');
+  const knowledgeMapCloseBtn = document.getElementById('knowledgeMapCloseBtn');
   const raceLobbyEl = document.getElementById('raceLobby');
   const createRaceBtn = document.getElementById('createRaceBtn');
   const raceOpChips = document.querySelectorAll('#raceOpChips .chip');
@@ -2039,6 +2069,11 @@
       errTypeSignError:'➕➖ خطأ في الإشارة', errTypeCarrySlip:'✍️ خطأ بسيط قريب من الصحيح', errTypeCalculationError:'🧮 خطأ حسابي عام',
       weeklyReportTitle:'تقرير هذا الأسبوع', weeklySessions:'عدد الجلسات', weeklyQuestions:'الأسئلة المُجابة',
       weeklyAvgAccuracy:'متوسط الدقة', weeklyTrend:'التغيّر عن الأسبوع الماضي', noWeeklyDataYet:'لا يوجد تدريب هذا الأسبوع بعد.',
+      knowledgeMapOpenBtn:'📚 رحلتي التعليمية', knowledgeMapTitle:'📚 رحلتي التعليمية',
+      levelNameAdd:'الجمع', levelNameSub:'الطرح', levelNameMul:'الضرب', levelNameDiv:'القسمة',
+      levelNameDecimals:'الأعداد العشرية', levelNameFractions:'الكسور', levelNamePercent:'النسبة المئوية',
+      levelNameExponent:'الأُسس', levelNameSqrt:'الجذر التربيعي', levelNameCompound:'المسائل المركبة', levelNameAbacus:'الأباكوس',
+      levelNotStarted:'لم تبدئي بعد', levelMasteryScore:'إتقان {n}%', levelPracticeBtn:'تدرّبي', levelsCompleted:'أتقنتِ {done} من {total} مستوى',
       enableCameraBtn:'📷 تفعيل الكاميرا لرؤية صديقتك', youLabel:'أنتِ',
       cameraNeedsHttps:'⚠️ الكاميرا تحتاج استضافة الملف على الإنترنت (https) — لن تعمل من ملف مفتوح مباشرة على الجهاز.',
       cameraPermissionDenied:'تعذّر الوصول للكاميرا — تأكدي من السماح لها من إعدادات المتصفح.',
@@ -2201,6 +2236,11 @@
       errTypeSignError:'➕➖ Sign error', errTypeCarrySlip:'✍️ Small slip, close to correct', errTypeCalculationError:'🧮 General calculation error',
       weeklyReportTitle:"This week's report", weeklySessions:'Sessions', weeklyQuestions:'Questions answered',
       weeklyAvgAccuracy:'Average accuracy', weeklyTrend:'Change from last week', noWeeklyDataYet:'No practice yet this week.',
+      knowledgeMapOpenBtn:'📚 My Learning Journey', knowledgeMapTitle:'📚 My Learning Journey',
+      levelNameAdd:'Addition', levelNameSub:'Subtraction', levelNameMul:'Multiplication', levelNameDiv:'Division',
+      levelNameDecimals:'Decimals', levelNameFractions:'Fractions', levelNamePercent:'Percentage',
+      levelNameExponent:'Exponents', levelNameSqrt:'Square root', levelNameCompound:'Compound problems', levelNameAbacus:'Abacus',
+      levelNotStarted:'Not started yet', levelMasteryScore:'{n}% mastery', levelPracticeBtn:'Practice', levelsCompleted:'Mastered {done} of {total} levels',
       enableCameraBtn:'📷 Enable camera to see your friend', youLabel:'You',
       cameraNeedsHttps:'⚠️ The camera needs the file to be hosted online (https) — it will not work from a file opened directly on the device.',
       cameraPermissionDenied:'Could not access the camera — check that it is allowed in your browser settings.',
@@ -2684,6 +2724,7 @@
     adminLoginGateEl.classList.add('hidden');
     abacusTrainerEl.classList.add('hidden');
     classManagementEl.classList.add('hidden');
+    knowledgeMapEl.classList.add('hidden');
     raceLobbyEl.classList.add('hidden');
     raceWaitingEl.classList.add('hidden');
     raceResultScreenEl.classList.add('hidden');
@@ -3960,6 +4001,83 @@
       <div class="dash-row"><span>${t('weeklyAvgAccuracy')}</span><b>${report.thisWeek.avgAccuracy}%</b></div>
       ${trendHtml}
     `;
+  }
+
+  /* ---------- knowledge map: 11 levels, each mapped to one real tracked
+     bucket (no invented per-difficulty stats that don't actually exist).
+     Mastery = 70% accuracy + 30% speed-vs-target, needs 3+ attempts to show. ---------- */
+  const KNOWLEDGE_LEVELS = [
+    { id:1,  bucket:'add',       icon:'➕', nameKey:'levelNameAdd' },
+    { id:2,  bucket:'sub',       icon:'➖', nameKey:'levelNameSub' },
+    { id:3,  bucket:'mul',       icon:'✖️', nameKey:'levelNameMul' },
+    { id:4,  bucket:'div',       icon:'➗', nameKey:'levelNameDiv' },
+    { id:5,  bucket:'decimals',  icon:'🔟', nameKey:'levelNameDecimals' },
+    { id:6,  bucket:'fractions', icon:'🍰', nameKey:'levelNameFractions' },
+    { id:7,  bucket:'percent',   icon:'💯', nameKey:'levelNamePercent' },
+    { id:8,  bucket:'exponent',  icon:'📐', nameKey:'levelNameExponent' },
+    { id:9,  bucket:'sqrt',      icon:'√',  nameKey:'levelNameSqrt' },
+    { id:10, bucket:'compound',  icon:'🧩', nameKey:'levelNameCompound' },
+    { id:11, bucket:'abacus',    icon:'🧮', nameKey:'levelNameAbacus' }
+  ];
+  const LEVEL_TARGET_TIME = { add:6, sub:6, mul:8, div:8, decimals:10, fractions:10, compound:15, percent:10, exponent:10, sqrt:10, abacus:12 };
+  const MASTERY_THRESHOLD = 75;
+
+  function computeLevelMastery(p, bucket){
+    const st = p.opStats && p.opStats[bucket];
+    if(!st || st.t < 3) return null; // not enough attempts yet to judge fairly
+    const accuracy = (st.c/st.t)*100;
+    const avgTime = st.time/st.t;
+    const target = LEVEL_TARGET_TIME[bucket] || 8;
+    const speedScore = Math.min(100, Math.max(0, (target/avgTime)*100));
+    return Math.round(accuracy*0.7 + speedScore*0.3);
+  }
+
+  function renderKnowledgeMap(){
+    const p = PROFILES[currentProfile];
+    if(!p){ return; }
+    knowledgeMapList.innerHTML = '';
+    KNOWLEDGE_LEVELS.forEach(level=>{
+      const mastery = computeLevelMastery(p, level.bucket);
+      let statusIcon, statusClass, masteryText;
+      if(mastery === null){
+        statusIcon = '⚪'; statusClass = 'not-started'; masteryText = t('levelNotStarted');
+      } else if(mastery >= MASTERY_THRESHOLD){
+        statusIcon = '✅'; statusClass = 'mastered'; masteryText = fmt('levelMasteryScore', { n: mastery });
+      } else {
+        statusIcon = '🔵'; statusClass = 'in-progress'; masteryText = fmt('levelMasteryScore', { n: mastery });
+      }
+      const row = document.createElement('div');
+      row.className = 'knowledge-level-row ' + statusClass;
+      row.innerHTML = `
+        <span class="level-status-icon">${statusIcon}</span>
+        <span class="level-icon">${level.icon}</span>
+        <span class="level-name">${t(level.nameKey)}</span>
+        <span class="level-mastery">${masteryText}</span>
+        <button class="level-practice-btn" data-level-bucket="${level.bucket}">${t('levelPracticeBtn')}</button>
+      `;
+      row.querySelector('.level-practice-btn').addEventListener('click', ()=>{
+        if(['add','sub','mul','div','percent','exponent','sqrt'].includes(level.bucket)){
+          selectChip(opChips, 'op', level.bucket, v=>op=v);
+          updateTableFocusVisibility();
+        } else if(level.bucket === 'decimals' || level.bucket === 'fractions'){
+          selectChip(diffChips, 'diff', level.bucket, v=>diff=v);
+        } else if(level.bucket === 'compound'){
+          selectChip(typeChips, 'type', 'compound', v=>problemType=v);
+          stepsGroup.classList.remove('hidden');
+        } else if(level.bucket === 'abacus'){
+          knowledgeMapEl.classList.add('hidden');
+          settingsEl.classList.remove('hidden');
+          abacusOpenBtn.click();
+          return;
+        }
+        knowledgeMapEl.classList.add('hidden');
+        settingsEl.classList.remove('hidden');
+        startBtn.click();
+      });
+      knowledgeMapList.appendChild(row);
+    });
+    const masteredCount = KNOWLEDGE_LEVELS.filter(l => { const m = computeLevelMastery(p, l.bucket); return m !== null && m >= MASTERY_THRESHOLD; }).length;
+    knowledgeMapProgress.textContent = fmt('levelsCompleted', { done: masteredCount, total: KNOWLEDGE_LEVELS.length });
   }
 
   /* ---------- hints ---------- */
@@ -5258,6 +5376,16 @@
     }
     renderAbacus();
   }
+
+  knowledgeMapOpenBtn.addEventListener('click', ()=>{
+    settingsEl.classList.add('hidden');
+    knowledgeMapEl.classList.remove('hidden');
+    renderKnowledgeMap();
+  });
+  knowledgeMapCloseBtn.addEventListener('click', ()=>{
+    knowledgeMapEl.classList.add('hidden');
+    settingsEl.classList.remove('hidden');
+  });
 
   abacusOpenBtn.addEventListener('click', ()=>{
     settingsEl.classList.add('hidden');
