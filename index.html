@@ -330,6 +330,24 @@
     *{ scroll-behavior:auto !important; }
   }
 
+  /* printable weekly report: hidden on screen, shown only when printing */
+  .print-only{ display:none; }
+  .print-report-header{ text-align:center; margin-bottom:20px; }
+  .print-report-header h2{ font-family:'Cairo',sans-serif; margin:0 0 4px; }
+  .print-report-header .sub{ color:#555; font-size:13px; }
+  .print-report-section{ margin-bottom:18px; page-break-inside:avoid; }
+  .print-report-section h3{ font-family:'Cairo',sans-serif; font-size:15px; border-bottom:2px solid #ccc; padding-bottom:4px; margin-bottom:8px; }
+  .print-report-row{ display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid #eee; font-size:13px; }
+  .print-report-badges{ display:flex; flex-wrap:wrap; gap:8px; }
+  .print-report-badge{ border:1px solid #ccc; border-radius:8px; padding:4px 10px; font-size:12px; }
+  @media print{
+    body *{ visibility:hidden; }
+    #printReportArea, #printReportArea *{ visibility:visible; }
+    #printReportArea{ display:block; position:absolute; top:0; left:0; width:100%; padding:20px;
+      color:#111; background:#fff; direction:rtl; }
+    html[dir="ltr"] #printReportArea{ direction:ltr; }
+  }
+
   /* today's mission — calm, premium "smart dashboard" hero card */
   .mission-card{
     background:var(--input-bg);
@@ -782,6 +800,8 @@
   </div>
 
   <div id="toastStack" class="toast-stack"></div>
+
+  <div id="printReportArea" class="print-only"></div>
 
   <header>
     <div class="eyebrow" data-i18n="eyebrow">تمرين يوميّ</div>
@@ -1569,6 +1589,7 @@
   const closeConnBtn = document.getElementById('closeConnBtn');
   const logoutBtn = document.getElementById('logoutBtn');
   const toastStack = document.getElementById('toastStack');
+  const printReportArea = document.getElementById('printReportArea');
   const loginPromptEl = document.getElementById('loginPrompt');
   const loginPromptTitle = document.getElementById('loginPromptTitle');
   const loginPinInput = document.getElementById('loginPinInput');
@@ -2058,6 +2079,7 @@
       levelNameNumberRecognition:'التعرّف على الأرقام',
       hintPercent:'💡 اقسمي على 100 ثم اضربي في العدد', hintExponent:'💡 اضربي العدد في نفسه بعدد مرات الأُس', hintSqrt:'💡 دوّري على عدد مضروب في نفسه يساوي الرقم',
       hintNumberRecognition:'💡 عدّي على أصابعك ببطء وأنتِ بتقولي كل رقم',
+      printReportBtn:'طباعة / حفظ PDF', printReportTitle:'تقرير الأداء',
       tableFocusLabel:'التركيز على جدول', tableAll:'الكل',
       diffLabel:'فئة الأرقام (منازل العدد)',
       diffUnits:'آحاد', diffTens:'عشرات', diffHundreds:'مئات', diffThousands:'آلاف',
@@ -2234,6 +2256,7 @@
       levelNameNumberRecognition:'Number recognition',
       hintPercent:'💡 Divide by 100, then multiply by the number', hintExponent:'💡 Multiply the number by itself the exponent number of times', hintSqrt:'💡 Find a number multiplied by itself that equals this',
       hintNumberRecognition:'💡 Count slowly on your fingers as you say each number',
+      printReportBtn:'Print / Save as PDF', printReportTitle:'Performance Report',
       tableFocusLabel:'Focus on times table', tableAll:'All',
       diffLabel:'Number range',
       diffUnits:'Units', diffTens:'Tens', diffHundreds:'Hundreds', diffThousands:'Thousands',
@@ -3648,7 +3671,9 @@
           <div class="dash-table">${weeklyReportHtml(p)}</div>
         </div>
         <div class="ai-insight" id="${insightId}"></div>
+        <button class="secondary-btn" data-print-report="${key}" style="margin-top:8px; font-size:12px;">🖨️ ${t('printReportBtn')}</button>
       `;
+      box.querySelector('[data-print-report]').addEventListener('click', ()=> printChildReport(key));
       dashboardBody.appendChild(box);
       if(any) loadDashboardInsight(key, document.getElementById(insightId));
     });
@@ -3719,7 +3744,9 @@
           <div class="dash-table">${weeklyReportHtml(p)}</div>
         </div>
         <div class="ai-insight" id="${insightId}"></div>
+        <button class="secondary-btn" data-print-report="${key}" style="margin-top:8px; font-size:12px;">🖨️ ${t('printReportBtn')}</button>
       `;
+      box.querySelector('[data-print-report]').addEventListener('click', ()=> printChildReport(key));
       parentChildrenList.appendChild(box);
       if(any) loadDashboardInsight(key, document.getElementById(insightId));
     });
@@ -4121,6 +4148,80 @@
       <div class="dash-row"><span>${t('weeklyAvgAccuracy')}</span><b>${report.thisWeek.avgAccuracy}%</b></div>
       ${trendHtml}
     `;
+  }
+
+  /* ---------- printable full report (uses window.print(), no external
+     PDF library needed — the browser's own "save as PDF" print target
+     produces a real PDF file for the parent to keep). ---------- */
+  function printChildReport(key){
+    const p = PROFILES[key];
+    if(!p) return;
+    const report = computeWeeklyReport(p);
+    const dateStr = new Date().toLocaleDateString(currentLang === 'ar' ? 'ar-EG' : 'en-US');
+
+    let opRowsHtml = '';
+    Object.keys(p.opStats).forEach(bucket=>{
+      const st = p.opStats[bucket];
+      if(st.t > 0){
+        const acc = Math.round((st.c/st.t)*100);
+        const avgTime = (st.time/st.t).toFixed(1);
+        opRowsHtml += `<div class="print-report-row"><span>${t('bucket'+capitalize(bucket))}</span><span><b>${acc}%</b> · ${avgTime}${t('secLabel')}</span></div>`;
+      }
+    });
+    if(!opRowsHtml) opRowsHtml = `<div class="print-report-row"><span>${t('dashNoData')}</span></div>`;
+
+    let weeklyRowsHtml = `<div class="print-report-row"><span>${t('noWeeklyDataYet')}</span></div>`;
+    if(report.thisWeek){
+      weeklyRowsHtml = `
+        <div class="print-report-row"><span>${t('weeklySessions')}</span><b>${report.thisWeek.sessionsCount}</b></div>
+        <div class="print-report-row"><span>${t('weeklyQuestions')}</span><b>${report.thisWeek.totalQuestions}</b></div>
+        <div class="print-report-row"><span>${t('weeklyAvgAccuracy')}</span><b>${report.thisWeek.avgAccuracy}%</b></div>
+      `;
+    }
+
+    let badgesHtml = '';
+    BADGES.forEach(b=>{
+      if(p.badges.has(b.id)){
+        badgesHtml += `<span class="print-report-badge">${b.icon} ${t(b.key)}</span>`;
+      }
+    });
+    if(!badgesHtml) badgesHtml = `<span style="font-size:12px; color:#777;">${t('dashNoData')}</span>`;
+
+    let errRowsHtml = '';
+    const errCounts = p.errorTypeCounts || {};
+    const errTotal = Object.values(errCounts).reduce((a,b)=>a+b, 0);
+    if(errTotal > 0){
+      Object.keys(errCounts).sort((a,b)=> errCounts[b]-errCounts[a]).forEach(type=>{
+        if(!errCounts[type]) return;
+        errRowsHtml += `<div class="print-report-row"><span>${t('errType'+capitalize(type))}</span><b>${errCounts[type]}</b></div>`;
+      });
+    } else {
+      errRowsHtml = `<div class="print-report-row"><span>${t('noErrorPatternsYet')}</span></div>`;
+    }
+
+    printReportArea.innerHTML = `
+      <div class="print-report-header">
+        <h2>${t('title')} — ${t('printReportTitle')}</h2>
+        <div class="sub">${profileDisplayName(key)} · ${dateStr}</div>
+      </div>
+      <div class="print-report-section">
+        <h3>📅 ${t('weeklyReportTitle')}</h3>
+        ${weeklyRowsHtml}
+      </div>
+      <div class="print-report-section">
+        <h3>📊 ${t('myStatsOpBreakdown')}</h3>
+        ${opRowsHtml}
+      </div>
+      <div class="print-report-section">
+        <h3>🎖️ ${t('achievementsTitle')}</h3>
+        <div class="print-report-badges">${badgesHtml}</div>
+      </div>
+      <div class="print-report-section">
+        <h3>🧠 ${t('myStatsErrorPatterns')}</h3>
+        ${errRowsHtml}
+      </div>
+    `;
+    window.print();
   }
 
   /* ---------- knowledge map: each level maps to one real tracked
