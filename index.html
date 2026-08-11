@@ -830,6 +830,29 @@
     <button class="secondary-btn" id="parentDashboardLogoutBtn" data-i18n="logoutLinkText">🚪 تسجيل الخروج</button>
   </div>
 
+  <!-- PLACEMENT TEST -->
+  <div id="placementTest" class="panel hidden">
+    <div class="group-label" style="text-align:center;" data-i18n="placementTitle">📝 اختبار تحديد المستوى</div>
+    <div id="placementIntro">
+      <div class="conn-note" data-i18n="placementIntroText">اختبار قصير من 8 أسئلة يساعدنا نحدد أفضل نقطة بداية مناسبة لكِ. جاوبي بأفضل ما تقدري — مفيش وقت محدد.</div>
+      <button class="start-btn" id="placementStartBtn" data-i18n="placementStartBtn">▶ ابدئي الاختبار</button>
+      <button class="secondary-btn" id="placementSkipBtn" data-i18n="placementSkipBtn">تخطّي والبدء العادي</button>
+    </div>
+    <div id="placementQuizBody" class="hidden">
+      <div class="conn-note" id="placementProgressLabel" style="text-align:center;"></div>
+      <div class="equation" id="placementEquation"></div>
+      <div class="answer-row">
+        <input type="text" id="placementAnswerInput" class="ltr-input" inputmode="numeric" style="flex:1; text-align:center; font-size:20px; font-weight:800;">
+        <button class="submit-btn" id="placementSubmitBtn" data-i18n="submitBtn">تحقق</button>
+      </div>
+    </div>
+    <div id="placementResult" class="hidden">
+      <div class="mission-recommend" id="placementResultText" style="margin-top:10px;"></div>
+      <button class="start-btn" id="placementApplyBtn" data-i18n="placementApplyBtn">▶ ابدئي بهذا المستوى</button>
+      <button class="secondary-btn" id="placementCloseBtn" data-i18n="closeBtn">إغلاق</button>
+    </div>
+  </div>
+
   <!-- KNOWLEDGE MAP -->
   <div id="knowledgeMap" class="panel hidden">
     <div class="group-label" style="text-align:center;" data-i18n="knowledgeMapTitle">📚 رحلتي التعليمية</div>
@@ -1246,6 +1269,9 @@
     <button class="challenge-btn" id="raceLobbyOpenBtn" data-i18n="raceLobbyOpenBtn">🏁 سباق مباشر مع صديقة</button>
     <button class="challenge-btn" id="abacusOpenBtn" data-i18n="abacusOpenBtn">🧮 مدرّب الأباكوس (Abacus)</button>
     <button class="challenge-btn" id="knowledgeMapOpenBtn" data-i18n="knowledgeMapOpenBtn">📚 رحلتي التعليمية</button>
+    <div class="pin-row" style="justify-content:center; margin-bottom:10px;">
+      <span class="switch-player" id="placementOpenLink" data-i18n="placementOpenLink">📝 اختبار تحديد المستوى</span>
+    </div>
     <div class="pin-row" style="justify-content:center; gap:16px; margin-bottom:10px;">
       <span class="switch-player" id="editMyProfileLink" data-i18n="editMyProfileLink">✏️ تعديل بياناتي</span>
       <span class="switch-player" id="myStatsLink" data-i18n="myStatsLink">🏅 إنجازاتي وسجلي</span>
@@ -1598,10 +1624,24 @@
   const abacusNewBtn = document.getElementById('abacusNewBtn');
   const abacusCloseBtn = document.getElementById('abacusCloseBtn');
   const knowledgeMapOpenBtn = document.getElementById('knowledgeMapOpenBtn');
+  const placementOpenLink = document.getElementById('placementOpenLink');
   const knowledgeMapEl = document.getElementById('knowledgeMap');
   const knowledgeMapList = document.getElementById('knowledgeMapList');
   const knowledgeMapProgress = document.getElementById('knowledgeMapProgress');
   const knowledgeMapCloseBtn = document.getElementById('knowledgeMapCloseBtn');
+  const placementTestEl = document.getElementById('placementTest');
+  const placementIntro = document.getElementById('placementIntro');
+  const placementStartBtn = document.getElementById('placementStartBtn');
+  const placementSkipBtn = document.getElementById('placementSkipBtn');
+  const placementQuizBody = document.getElementById('placementQuizBody');
+  const placementProgressLabel = document.getElementById('placementProgressLabel');
+  const placementEquation = document.getElementById('placementEquation');
+  const placementAnswerInput = document.getElementById('placementAnswerInput');
+  const placementSubmitBtn = document.getElementById('placementSubmitBtn');
+  const placementResult = document.getElementById('placementResult');
+  const placementResultText = document.getElementById('placementResultText');
+  const placementApplyBtn = document.getElementById('placementApplyBtn');
+  const placementCloseBtn = document.getElementById('placementCloseBtn');
   const raceLobbyEl = document.getElementById('raceLobby');
   const createRaceBtn = document.getElementById('createRaceBtn');
   const raceOpChips = document.querySelectorAll('#raceOpChips .chip');
@@ -2094,6 +2134,10 @@
       levelNameExponent:'الأُسس', levelNameSqrt:'الجذر التربيعي', levelNameCompound:'المسائل المركبة', levelNameAbacus:'الأباكوس',
       levelNotStarted:'لم تبدئي بعد', levelMasteryScore:'إتقان {n}%', levelPracticeBtn:'تدرّبي', levelsCompleted:'أتقنتِ {done} من {total} مستوى',
       toastBadgeEarned:'🎖️ حصلتِ على شارة: {badge}', toastLevelMastered:'✅ أتقنتِ مستوى: {level}', toastDailyGoalDone:'🎉 اكتمل هدف اليوم!',
+      placementOpenLink:'📝 اختبار تحديد المستوى', placementTitle:'📝 اختبار تحديد المستوى',
+      placementIntroText:'اختبار قصير من 8 أسئلة يساعدنا نحدد أفضل نقطة بداية مناسبة لكِ. جاوبي بأفضل ما تقدري — مفيش وقت محدد.',
+      placementStartBtn:'▶ ابدئي الاختبار', placementSkipBtn:'تخطّي والبدء العادي', placementApplyBtn:'▶ ابدئي بهذا المستوى',
+      placementResultDiff:'تم تحديد مستواك المناسب: <b>{diff}</b>', placementResultWeak:'💡 ننصح كمان بالتركيز على: {op}',
       enableCameraBtn:'📷 تفعيل الكاميرا لرؤية صديقتك', youLabel:'أنتِ',
       cameraNeedsHttps:'⚠️ الكاميرا تحتاج استضافة الملف على الإنترنت (https) — لن تعمل من ملف مفتوح مباشرة على الجهاز.',
       cameraPermissionDenied:'تعذّر الوصول للكاميرا — تأكدي من السماح لها من إعدادات المتصفح.',
@@ -2262,6 +2306,10 @@
       levelNameExponent:'Exponents', levelNameSqrt:'Square root', levelNameCompound:'Compound problems', levelNameAbacus:'Abacus',
       levelNotStarted:'Not started yet', levelMasteryScore:'{n}% mastery', levelPracticeBtn:'Practice', levelsCompleted:'Mastered {done} of {total} levels',
       toastBadgeEarned:'🎖️ You earned a badge: {badge}', toastLevelMastered:'✅ You mastered: {level}', toastDailyGoalDone:"🎉 Today's goal complete!",
+      placementOpenLink:'📝 Placement test', placementTitle:'📝 Placement test',
+      placementIntroText:"A short 8-question test to help us find the best starting point for you. Answer as best you can — no time limit.",
+      placementStartBtn:'▶ Start the test', placementSkipBtn:'Skip and start normally', placementApplyBtn:'▶ Start at this level',
+      placementResultDiff:'Your recommended starting level: <b>{diff}</b>', placementResultWeak:'💡 We also recommend focusing on: {op}',
       enableCameraBtn:'📷 Enable camera to see your friend', youLabel:'You',
       cameraNeedsHttps:'⚠️ The camera needs the file to be hosted online (https) — it will not work from a file opened directly on the device.',
       cameraPermissionDenied:'Could not access the camera — check that it is allowed in your browser settings.',
@@ -2746,6 +2794,7 @@
     abacusTrainerEl.classList.add('hidden');
     classManagementEl.classList.add('hidden');
     knowledgeMapEl.classList.add('hidden');
+    placementTestEl.classList.add('hidden');
     raceLobbyEl.classList.add('hidden');
     raceWaitingEl.classList.add('hidden');
     raceResultScreenEl.classList.add('hidden');
@@ -4052,6 +4101,121 @@
     const speedScore = Math.min(100, Math.max(0, (target/avgTime)*100));
     return Math.round(accuracy*0.7 + speedScore*0.3);
   }
+
+  /* ---------- placement test: 8 fixed questions across increasing
+     difficulty, recommends a starting difficulty + flags the weakest
+     operation. Reuses the same tested genSimpleProblem() generator by
+     temporarily swapping the global op/diff/adaptive/tableFocus state. ---------- */
+  const PLACEMENT_SEQUENCE = [
+    { op:'add', diff:'units' }, { op:'sub', diff:'units' },
+    { op:'add', diff:'tens' },  { op:'sub', diff:'tens' },
+    { op:'mul', diff:'tens' },  { op:'div', diff:'tens' },
+    { op:'add', diff:'hundreds' }, { op:'mul', diff:'hundreds' }
+  ];
+  let placementIndex = 0;
+  let placementResults = [];
+  let placementCurrentProblem = null;
+
+  function genPlacementProblem(opVal, diffVal){
+    const savedOp = op, savedDiff = diff, savedAdaptive = adaptiveOn, savedTableFocus = tableFocus;
+    op = opVal; diff = diffVal; adaptiveOn = false; tableFocus = 'all';
+    const p = genSimpleProblem();
+    op = savedOp; diff = savedDiff; adaptiveOn = savedAdaptive; tableFocus = savedTableFocus;
+    return p;
+  }
+
+  function computePlacementRecommendation(results){
+    const byDiff = {};
+    results.forEach(r=>{
+      if(!byDiff[r.diff]) byDiff[r.diff] = { c:0, t:0 };
+      byDiff[r.diff].t++;
+      if(r.correct) byDiff[r.diff].c++;
+    });
+    const tierOrder = ['units','tens','hundreds'];
+    let recommendedDiff = 'units';
+    for(const tier of tierOrder){
+      if(byDiff[tier] && (byDiff[tier].c/byDiff[tier].t) >= 0.7) recommendedDiff = tier;
+      else break;
+    }
+    const byOp = {};
+    results.forEach(r=>{
+      if(!byOp[r.op]) byOp[r.op] = { c:0, t:0 };
+      byOp[r.op].t++;
+      if(r.correct) byOp[r.op].c++;
+    });
+    let weakestOp = null, weakestAcc = 101;
+    Object.keys(byOp).forEach(o=>{
+      const acc = (byOp[o].c/byOp[o].t)*100;
+      if(acc < weakestAcc){ weakestAcc = acc; weakestOp = o; }
+    });
+    return { recommendedDiff, weakestOp, weakestAcc: Math.round(weakestAcc) };
+  }
+
+  function openPlacementTest(){
+    placementIndex = 0;
+    placementResults = [];
+    placementIntro.classList.remove('hidden');
+    placementQuizBody.classList.add('hidden');
+    placementResult.classList.add('hidden');
+    settingsEl.classList.add('hidden');
+    placementTestEl.classList.remove('hidden');
+  }
+  placementSkipBtn.addEventListener('click', ()=>{
+    placementTestEl.classList.add('hidden');
+    settingsEl.classList.remove('hidden');
+  });
+  placementCloseBtn.addEventListener('click', ()=>{
+    placementTestEl.classList.add('hidden');
+    settingsEl.classList.remove('hidden');
+  });
+  placementStartBtn.addEventListener('click', ()=>{
+    placementIntro.classList.add('hidden');
+    placementQuizBody.classList.remove('hidden');
+    showPlacementQuestion();
+  });
+  function showPlacementQuestion(){
+    const step = PLACEMENT_SEQUENCE[placementIndex];
+    placementCurrentProblem = genPlacementProblem(step.op, step.diff);
+    placementEquation.textContent = placementCurrentProblem.text + (currentLang === 'ar' ? ' = ؟' : ' = ?');
+    placementAnswerInput.value = '';
+    placementProgressLabel.textContent = fmt('questionOf', { n: placementIndex+1, total: PLACEMENT_SEQUENCE.length });
+    placementAnswerInput.focus();
+  }
+  function submitPlacementAnswer(){
+    const step = PLACEMENT_SEQUENCE[placementIndex];
+    const entered = parseFloat(placementAnswerInput.value);
+    const correct = entered === placementCurrentProblem.ans;
+    placementResults.push({ op: step.op, diff: step.diff, correct });
+    placementIndex++;
+    if(placementIndex < PLACEMENT_SEQUENCE.length){
+      showPlacementQuestion();
+    } else {
+      finishPlacementTest();
+    }
+  }
+  placementSubmitBtn.addEventListener('click', submitPlacementAnswer);
+  placementAnswerInput.addEventListener('keydown', e=>{ if(e.key === 'Enter') submitPlacementAnswer(); });
+
+  let placementRecommendedDiff = null;
+  function finishPlacementTest(){
+    const rec = computePlacementRecommendation(placementResults);
+    placementRecommendedDiff = rec.recommendedDiff;
+    placementQuizBody.classList.add('hidden');
+    placementResult.classList.remove('hidden');
+    let text = fmt('placementResultDiff', { diff: t('diff'+capitalize(rec.recommendedDiff)) });
+    if(rec.weakestOp && rec.weakestAcc < 70){
+      text += '<br>' + fmt('placementResultWeak', { op: t('op'+capitalize(rec.weakestOp)) });
+    }
+    placementResultText.innerHTML = '🎓 ' + text;
+  }
+  placementApplyBtn.addEventListener('click', ()=>{
+    if(placementRecommendedDiff){
+      selectChip(diffChips, 'diff', placementRecommendedDiff, v=>diff=v);
+    }
+    placementTestEl.classList.add('hidden');
+    settingsEl.classList.remove('hidden');
+    startBtn.click();
+  });
 
   function renderKnowledgeMap(){
     const p = PROFILES[currentProfile];
@@ -5436,6 +5600,7 @@
     renderAbacus();
   }
 
+  placementOpenLink.addEventListener('click', openPlacementTest);
   knowledgeMapOpenBtn.addEventListener('click', ()=>{
     settingsEl.classList.add('hidden');
     knowledgeMapEl.classList.remove('hidden');
