@@ -1601,6 +1601,7 @@
     <div class="group-label" data-i18n="adminDashTools">الأدوات والإعدادات</div>
     <div class="admin-tools-grid">
       <div class="admin-tool-tile" id="dashboardLink"><span class="tile-icon">📊</span><span data-i18n="dashboardLink">لوحة جميع الطلاب</span></div>
+      <div class="admin-tool-tile" id="programBuilderLink"><span class="tile-icon">🎓</span><span data-i18n="programBuilderLink">بناء البرامج التعليمية</span></div>
       <div class="admin-tool-tile" id="addTeacherLink"><span class="tile-icon">➕</span><span data-i18n="addTeacherLink">إضافة حساب معلم</span></div>
       <div class="admin-tool-tile" id="connectionLink"><span class="tile-icon">🔗</span><span data-i18n="connectionLink">ربط جوجل شيت</span></div>
       <div class="admin-tool-tile" id="subscriptionLink"><span class="tile-icon">💳</span><span data-i18n="subscriptionLink">الاشتراك والتفعيل</span></div>
@@ -2489,6 +2490,7 @@
   const guestBtn = document.getElementById('guestBtn');
   const guestNote = document.getElementById('guestNote');
   const dashboardLink = document.getElementById('dashboardLink');
+  const programBuilderLink = document.getElementById('programBuilderLink');
   const dashboardBody = document.getElementById('dashboardBody');
   const closeDashboardBtn = document.getElementById('closeDashboardBtn');
   const teacherClassesBtn = document.getElementById('teacherClassesBtn');
@@ -3312,6 +3314,8 @@
       pbSeedLogicSuccess:'تم إنشاء البرنامج: {courses} دورة، {modules} وحدة، {lessons} درس، {assessments} اختبار.', pbSeedLogicFailed:'تعذّر إنشاء البرنامج بالكامل. راجعي شيت الأخطاء للتفاصيل.',
       pbSeedMemoryBtn:'🌱 إنشاء برنامج تنشيط العقل والذاكرة', pbSeedMemoryConfirm:'هذا سينشئ برنامج "تنشيط العقل والذاكرة" كاملًا وينشره فورًا. متابعة؟',
       pbSeedMemorySuccess:'تم إنشاء البرنامج: {courses} دورة، {modules} وحدة، {lessons} درس، {assessments} اختبار.', pbSeedMemoryFailed:'تعذّر إنشاء البرنامج بالكامل. راجعي شيت الأخطاء للتفاصيل.',
+      pbSeedCognitiveBtn:'🌱 إنشاء برنامج الذكاء والقدرات العقلية', pbSeedCognitiveConfirm:'هذا سينشئ برنامج "الذكاء والقدرات العقلية" كاملًا وينشره فورًا. متابعة؟',
+      pbSeedCognitiveSuccess:'تم إنشاء البرنامج: {courses} دورة، {modules} وحدة، {lessons} درس، {assessments} اختبار.', pbSeedCognitiveFailed:'تعذّر إنشاء البرنامج بالكامل. راجعي شيت الأخطاء للتفاصيل.',
       pbCourseTitlePh:'عنوان الدورة', pbCreateCourseBtn:'+ إضافة دورة',
       pbNoModules:'لا توجد وحدات بعد.', pbLessonCount:'{n} درس', pbModuleTitlePh:'عنوان الوحدة', pbCreateModuleBtn:'+ إضافة وحدة',
       pbNoLessons:'لا توجد دروس بعد.', pbHasAssessment:'يوجد تقييم', pbNoAssessmentYet:'لا يوجد تقييم بعد',
@@ -3379,7 +3383,7 @@
       summaryHeadingTemplate:'{praise} يا {name}! 🎉',
       bestScoreLabel:'أفضل نتيجة', pointsWord:'نقطة',
       minuteTimeLeft:'الوقت المتبقي',
-      challengeBtn:'🏆 تحدي بين لاعبَين', dashboardLink:'📊 لوحة جميع الطلاب',
+      challengeBtn:'🏆 تحدي بين لاعبَين', dashboardLink:'📊 لوحة جميع الطلاب', programBuilderLink:'🎓 بناء البرامج التعليمية',
       addPlayerCard:'+ إضافة لاعب', editProfile:'تعديل',
       savePlayer:'حفظ', cancelBtn:'إلغاء',
       newPlayerNamePh:'الاسم', newPlayerAgePh:'العمر',
@@ -3692,6 +3696,8 @@
       pbSeedLogicSuccess:'Program created: {courses} courses, {modules} modules, {lessons} lessons, {assessments} assessments.', pbSeedLogicFailed:'Could not create the full program. Check the error log for details.',
       pbSeedMemoryBtn:'🌱 Create Full Brain & Memory Program', pbSeedMemoryConfirm:'This will create the complete "Brain & Memory Activation" program and publish it immediately. Continue?',
       pbSeedMemorySuccess:'Program created: {courses} courses, {modules} modules, {lessons} lessons, {assessments} assessments.', pbSeedMemoryFailed:'Could not create the full program. Check the error log for details.',
+      pbSeedCognitiveBtn:'🌱 Create Full Intelligence & Cognitive Skills Program', pbSeedCognitiveConfirm:'This will create the complete "Intelligence & Cognitive Skills" program and publish it immediately. Continue?',
+      pbSeedCognitiveSuccess:'Program created: {courses} courses, {modules} modules, {lessons} lessons, {assessments} assessments.', pbSeedCognitiveFailed:'Could not create the full program. Check the error log for details.',
       pbCourseTitlePh:'Course title', pbCreateCourseBtn:'+ Add Course',
       pbNoModules:'No modules yet.', pbLessonCount:'{n} lessons', pbModuleTitlePh:'Module title', pbCreateModuleBtn:'+ Add Module',
       pbNoLessons:'No lessons yet.', pbHasAssessment:'Has an assessment', pbNoAssessmentYet:'No assessment yet',
@@ -3759,7 +3765,7 @@
       summaryHeadingTemplate:'{praise}, {name}! 🎉',
       bestScoreLabel:'Best score', pointsWord:'points',
       minuteTimeLeft:'Time left',
-      challengeBtn:'🏆 Two-player challenge', dashboardLink:'📊 All students dashboard',
+      challengeBtn:'🏆 Two-player challenge', dashboardLink:'📊 All students dashboard', programBuilderLink:'🎓 Program Builder',
       addPlayerCard:'+ Add player', editProfile:'Edit',
       savePlayer:'Save', cancelBtn:'Cancel',
       newPlayerNamePh:'Name', newPlayerAgePh:'Age',
@@ -7244,6 +7250,77 @@
     ]
   };
 
+  /* ==================== INTELLIGENCE & COGNITIVE SKILLS PROGRAM SEED ==================== */
+  const COGNITIVE_PROGRAM_SEED = {
+    title: 'الذكاء والقدرات العقلية | Intelligence & Cognitive Skills',
+    description: 'فهم أنواع الذكاء المتعددة، وبناء مهارات الاستدلال المكاني واللفظي والمرونة الذهنية — قدرات أساسية تدعم كل مجالات التعلّم.',
+    level: 'beginner',
+    courses: [
+      {
+        title: 'أنواع الذكاء المتعددة — Multiple Intelligences',
+        description: 'الذكاء ليس نوعًا واحدًا — فهم التنوّع الحقيقي في القدرات العقلية.',
+        modules: [
+          { title: 'أكثر من طريقة للذكاء — More Than One Way to Be Smart', lessons: [
+            { title: 'نظرية الذكاءات المتعددة — The Theory of Multiple Intelligences', content:'لفترة طويلة، ظنّ الناس أن "الذكاء" شيء واحد يُقاس برقم. لكن العالم هوارد جاردنر اقترح أن هناك أنواعًا مختلفة من الذكاء، ولكل شخص نقاط قوة مختلفة:\n\n• الذكاء المنطقي-الرياضي: حل المسائل والأنماط\n• الذكاء اللغوي: القراءة والكتابة والتعبير\n• الذكاء المكاني: تخيّل الأشكال والاتجاهات\n• الذكاء الجسدي-الحركي: التحكّم بالجسم (رياضة، رقص)\n• الذكاء الموسيقي: الإحساس بالإيقاع والنغمات\n• الذكاء الاجتماعي: فهم مشاعر الآخرين والتعامل معهم\n• الذكاء الذاتي: فهم النفس ومشاعرها\n\nلا يوجد شخص "غير ذكي" — كل شخص لديه مزيج فريد من نقاط القوة هذه.', assessment:{ title:'اختبار: الذكاءات المتعددة', passScore:60, timeLimit:300, questions:[
+              { type:'mcq', text:'الشخص القادر على تخيّل الأشكال والاتجاهات بسهولة يمتلك ذكاءً قويًا في أي نوع؟', options:['الذكاء الموسيقي','الذكاء المكاني','الذكاء الاجتماعي','لا علاقة للذكاء بهذا'], correctIndex:1 },
+              { type:'truefalse', text:'حسب نظرية الذكاءات المتعددة، يوجد نوع واحد فقط من الذكاء يقاس برقم.', correctAnswer:false },
+              { type:'shortanswer', text:'ما اسم العالم الذي اقترح نظرية الذكاءات المتعددة؟ (اسم العائلة فقط)', correctAnswer:'جاردنر', acceptedVariations:['Gardner','جارندر'] }
+            ]}},
+            { title: 'اكتشاف نقاط قوّتك — Discovering Your Strengths', content:'معرفة نوع ذكائك الأقوى يساعدك على التعلّم بطريقة تناسبك أكثر.\n\nأسئلة للتفكير:\n• هل تفضّلين حل الألغاز الرياضية، أم كتابة قصة، أم رسم لوحة؟\n• هل تتذكّرين الاتجاهات بسهولة، أم الأغاني، أم مشاعر أصدقائك؟\n• متى تشعرين بالحماس أكثر أثناء التعلّم؟\n\nملاحظة مهمة: امتلاك ذكاء قوي في مجال لا يعني ضعفًا في المجالات الأخرى — يمكن تنمية كل الأنواع بالتمرين، تمامًا مثل أي مهارة أخرى.', assessment:{ title:'اختبار: اكتشاف نقاط القوة', passScore:60, timeLimit:300, questions:[
+              { type:'mcq', text:'هل امتلاك ذكاء قوي في مجال معيّن يعني ضعفًا حتميًا في مجالات أخرى؟', options:['نعم دائمًا','لا، يمكن تنمية كل الأنواع بالتمرين','فقط في الرياضيات','لا علاقة بينهما إطلاقًا'], correctIndex:1 },
+              { type:'truefalse', text:'كل أنواع الذكاء يمكن تنميتها بالتمرين.', correctAnswer:true }
+            ]}}
+          ]}
+        ]
+      },
+      {
+        title: 'المرونة الذهنية وسرعة المعالجة — Cognitive Flexibility & Processing Speed',
+        description: 'القدرة على التبديل بين الأفكار بسرعة، والتكيّف مع مواقف جديدة.',
+        modules: [
+          { title: 'التفكير المرن — Flexible Thinking', lessons: [
+            { title: 'ماذا لو نظرنا من زاوية أخرى؟ — What If We Looked From Another Angle?', content:'المرونة الذهنية هي القدرة على التبديل بين طرق تفكير مختلفة، بدل التمسّك بطريقة واحدة فقط.\n\nتمرين: فكّري في 3 استخدامات مختلفة وغير عادية لمشبك ورق (غير تثبيت الأوراق!). مثال: خطّاف صغير، أداة لفتح قفل بسيط، زخرفة معدنية صغيرة.\n\nكلما تدرّبتِ على توليد أفكار متعددة لنفس الشيء، زادت مرونتك الذهنية — وهذا يساعدك في حل المشكلات بطرق إبداعية عندما لا تنجح الطريقة "المعتادة".', assessment:{ title:'اختبار: التفكير المرن', passScore:60, timeLimit:300, questions:[
+              { type:'mcq', text:'ماذا نسمّي القدرة على التبديل بين طرق تفكير مختلفة؟', options:['المرونة الذهنية','النسيان','الملل','التكرار'], correctIndex:0 },
+              { type:'truefalse', text:'التمرين على توليد أفكار متعددة لنفس الشيء يُنمّي المرونة الذهنية.', correctAnswer:true }
+            ]}},
+            { title: 'سرعة اتخاذ القرار — Quick Decision Speed', content:'سرعة المعالجة الذهنية هي مدى سرعة استيعابنا للمعلومات واتخاذ القرار بشأنها، دون التسرّع الذي يؤدي لأخطاء.\n\nتمرين تدريجي: انظري لسلسلة أشكال (مربّع، دائرة، دائرة، مربّع، مربّع) وحدّدي بأسرع وقت ممكن: هل عدد المربّعات أكبر من عدد الدوائر؟\n\nالتوازن المهم: السرعة يجب أن تترافق مع الدقة، لا أن تكون على حسابها. الهدف هو "سريع وصحيح"، لا "سريع وخاطئ".', assessment:{ title:'اختبار: سرعة اتخاذ القرار', passScore:60, timeLimit:300, questions:[
+              { type:'mcq', text:'ما التوازن المهم في سرعة المعالجة الذهنية؟', options:['السرعة فقط بغض النظر عن الدقة','السرعة مع الحفاظ على الدقة','الدقة فقط بدون أي سرعة','لا علاقة بين السرعة والدقة'], correctIndex:1 },
+              { type:'truefalse', text:'الهدف من تمارين سرعة المعالجة هو "سريع وخاطئ" دائمًا.', correctAnswer:false }
+            ]}}
+          ]}
+        ]
+      },
+      {
+        title: 'الاستدلال المكاني واللفظي — Spatial & Verbal Reasoning',
+        description: 'قدرتان أساسيتان في أي اختبار قدرات عقلية: التعامل مع الأشكال، والتعامل مع الكلمات والمعاني.',
+        modules: [
+          { title: 'التفكير بالأشكال والكلمات — Thinking in Shapes and Words', lessons: [
+            { title: 'الاستدلال المكاني: الدوران والتخيّل — Spatial Reasoning: Rotation & Visualization', content:'الاستدلال المكاني هو القدرة على تخيّل الأشكال وهي تتحرّك أو تدور في الذهن، دون رؤيتها فعليًا متحرّكة.\n\nتمرين: تخيّلي حرف "L" مكتوبًا على ورقة. لو أدرنا الورقة 90 درجة في اتجاه عقارب الساعة، كيف سيبدو الحرف الآن؟ (تلميح: سيبدو مثل خط أفقي مع خط عمودي يتّجه للأعلى من طرفه الأيسر)\n\nهذه المهارة مهمة جدًا في: قراءة الخرائط، تركيب الأثاث، الهندسة، وحتى ركن السيارة!', assessment:{ title:'اختبار: الاستدلال المكاني', passScore:60, timeLimit:300, questions:[
+              { type:'mcq', text:'الاستدلال المكاني مفيد بشكل خاص في أي من التالي؟', options:['حفظ الأغاني','قراءة الخرائط','حفظ الكلمات','لا فائدة عملية له'], correctIndex:1 },
+              { type:'truefalse', text:'الاستدلال المكاني هو القدرة على تخيّل الأشكال وهي تتحرّك في الذهن.', correctAnswer:true }
+            ]}},
+            { title: 'الاستدلال اللفظي: العلاقات بين الكلمات — Verbal Reasoning: Word Relationships', content:'الاستدلال اللفظي هو القدرة على فهم العلاقات بين الكلمات والمعاني، لا حفظها فقط.\n\nمثال تناظر لفظي (Analogy): "طائر : يطير :: سمكة : ___"\nالعلاقة: الطائر يتحرّك بالطيران، فماذا تفعل السمكة؟ (تسبح)\n\nمثال آخر: "معلّم : مدرسة :: طبيب : ___"\nالعلاقة: كل شخص يعمل في مكان معيّن. (مستشفى)\n\nهذه المهارة تقوّي الفهم القرائي، وتساعد على اكتشاف معاني كلمات جديدة من السياق.', assessment:{ title:'اختبار: الاستدلال اللفظي', passScore:60, timeLimit:300, questions:[
+              { type:'shortanswer', text:'أكملي التناظر: "طائر : يطير :: سمكة : ___"', correctAnswer:'تسبح', acceptedVariations:['سباحة','يسبح','السباحة'] },
+              { type:'mcq', text:'أكملي التناظر: "معلّم : مدرسة :: طبيب : ___"', options:['مطعم','مستشفى','ملعب','متجر'], correctIndex:1 },
+              { type:'truefalse', text:'الاستدلال اللفظي يعتمد على حفظ الكلمات فقط دون فهم العلاقة بينها.', correctAnswer:false }
+            ]}}
+          ]}
+        ]
+      },
+      {
+        title: 'تحدي القدرات العقلية الختامي — Final Cognitive Challenge',
+        description: 'اختبار متكامل يجمع الذكاءات المتعددة والاستدلال المكاني واللفظي والمرونة الذهنية.',
+        modules: [
+          { title: 'تحدّي قدراتي الشامل — My Complete Cognitive Challenge', lessons: [
+            { title: 'اختبار قدرات متكامل — A Complete Cognitive Assessment', content:'المشروع الختامي: تحدٍّ يجمع كل ما تعلّمتِه في هذا البرنامج.\n\nالخطوات:\n1. اكتبي أي نوعين من الذكاءات المتعددة تشعرين أنهما أقوى نقاط قوّتك، ولماذا.\n2. حلّي تناظرًا لفظيًا من اختراعك الخاص (مثال: "قلم : كتابة :: مقص : ___").\n3. تخيّلي شكلًا بسيطًا (مثلث) وهو يدور 180 درجة، وصفي كيف سيبدو.\n4. اذكري موقفًا حقيقيًا في حياتك احتجتِ فيه للمرونة الذهنية (تغيير طريقة تفكيرك في شيء ما).\n\nهذا التحدي يُظهر كيف أن كل هذه المهارات (الذكاءات المتعددة، الاستدلال، المرونة) تعمل معًا في الحياة الواقعية، لا كمهارات منفصلة.', assessment:{ title:'اختبار: التحدي الختامي', passScore:60, timeLimit:300, questions:[
+              { type:'mcq', text:'ما الهدف من التحدي الختامي في هذا البرنامج؟', options:['حفظ تعريفات فقط','ربط كل المهارات المتعلّمة بمواقف حقيقية','لا هدف محدد','اختبار الذاكرة فقط'], correctIndex:1 },
+              { type:'truefalse', text:'الذكاءات المتعددة والاستدلال والمرونة الذهنية مهارات منفصلة تمامًا ولا تتفاعل معًا أبدًا في الحياة الواقعية.', correctAnswer:false }
+            ]}}
+          ]}
+        ]
+      }
+    ]
+  };
+
   async function seedEnglishLanguageProgram(){
     if(!can(lpCurrentRole(), 'program.create')) return lpDenyAndNotify('program.create');
     if(!SHEET_API_URL){
@@ -7289,6 +7366,11 @@
     if(!can(lpCurrentRole(), 'program.create')) return lpDenyAndNotify('program.create');
     if(!SHEET_API_URL){ showToast(t('lpSeedNoBackend'), nxIcon('alertTriangle'), 'system'); return { ok:false, reason:'no_backend' }; }
     return seedProgramFromSeedData(MEMORY_PROGRAM_SEED);
+  }
+  async function seedCognitiveProgram(){
+    if(!can(lpCurrentRole(), 'program.create')) return lpDenyAndNotify('program.create');
+    if(!SHEET_API_URL){ showToast(t('lpSeedNoBackend'), nxIcon('alertTriangle'), 'system'); return { ok:false, reason:'no_backend' }; }
+    return seedProgramFromSeedData(COGNITIVE_PROGRAM_SEED);
   }
   // Wires a "seed the full program" button: confirm → run → toast → re-render.
   // Used by the 5 newest programs to avoid repeating this sequence 5 times.
@@ -7439,6 +7521,7 @@
           <button class="secondary-btn" id="pbSeedStemBtn" style="margin-top:6px;">${t('pbSeedStemBtn')}</button>
           <button class="secondary-btn" id="pbSeedLogicBtn" style="margin-top:6px;">${t('pbSeedLogicBtn')}</button>
           <button class="secondary-btn" id="pbSeedMemoryBtn" style="margin-top:6px;">${t('pbSeedMemoryBtn')}</button>
+          <button class="secondary-btn" id="pbSeedCognitiveBtn" style="margin-top:6px;">${t('pbSeedCognitiveBtn')}</button>
         </div>`;
       document.getElementById('pbCreateProgramBtn').addEventListener('click', async ()=>{
         const title = document.getElementById('pbNewProgramTitle').value.trim();
@@ -7483,6 +7566,7 @@
       wireSeedProgramBtn('pbSeedStemBtn', seedStemProgram, 'pbSeedStemConfirm', 'pbSeedStemSuccess', 'pbSeedStemFailed');
       wireSeedProgramBtn('pbSeedLogicBtn', seedLogicProgram, 'pbSeedLogicConfirm', 'pbSeedLogicSuccess', 'pbSeedLogicFailed');
       wireSeedProgramBtn('pbSeedMemoryBtn', seedMemoryProgram, 'pbSeedMemoryConfirm', 'pbSeedMemorySuccess', 'pbSeedMemoryFailed');
+      wireSeedProgramBtn('pbSeedCognitiveBtn', seedCognitiveProgram, 'pbSeedCognitiveConfirm', 'pbSeedCognitiveSuccess', 'pbSeedCognitiveFailed');
 
     } else if(pbLevel === 'courses'){
       pbBreadcrumb.innerHTML = `<span class="switch-player" id="pbCrumbPrograms">${t('pbBreadcrumbPrograms')}</span> › ${pbProgram.title}`;
@@ -8269,6 +8353,15 @@
     renderDashboard();
     profilesEl.classList.add('hidden');
     dashboardEl.classList.remove('hidden');
+  });
+  programBuilderLink.addEventListener('click', ()=>{
+    // Program Builder previously required a separate teacher login — the
+    // owner/admin account had no route to it at all. This wires the SAME
+    // existing openProgramBuilder()/pbOwnerUsername() (which already
+    // anticipated an admin caller) directly from the admin dashboard.
+    dashboardOpenedBy = 'admin';
+    profilesEl.classList.add('hidden');
+    openProgramBuilder();
   });
   closeDashboardBtn.addEventListener('click', ()=>{
     dashboardEl.classList.add('hidden');
