@@ -2783,7 +2783,7 @@
     emailVerifyError.textContent = '';
     if(!email || !username){ emailVerifyError.textContent = t('enterEmailAndUsernameFirst'); return; }
     if(!SHEET_API_URL){ emailVerifyError.textContent = t('forgotAccountNoBackend'); return; }
-    setBtnSaving(emailSendCodeBtn, true);
+    setBtnSaving(emailSendCodeBtn, true, t('sendingVerifyCodeLabel'));
     const res = await postToSheet('request_email_verification', { username, email });
     setBtnSaving(emailSendCodeBtn, false);
     if(res && res.ok){
@@ -3249,6 +3249,10 @@
       oauthComingSoon:'قريبًا — غير متصل بعد', oauthComingSoonBadge:'قريبًا', securityNoteText:'اتصال آمن — بياناتكِ محمية داخل أكاديمية نِكسورا',
       loginBrandTagline:'ضمن منظومة INFRA ENGINE', loginBrandHeadline:'تعلّم أذكى.\nتطوّر أسرع.',
       lpSyncCreateFailed:'تعذّر الحفظ على الخادم. حاولي مرة أخرى.', pbSavingLabel:'جارٍ الحفظ...',
+      sendingLoginCodeLabel:'جارٍ إرسال كود الدخول إلى بريدك الإلكتروني...',
+      sendingResetLinkLabel:'جارٍ إرسال رابط الاستعادة إلى بريدك الإلكتروني...',
+      sendingUsernameLabel:'جارٍ إرسال اسم المستخدم إلى بريدك الإلكتروني...',
+      sendingVerifyCodeLabel:'جارٍ إرسال كود التحقق إلى بريدك الإلكتروني...',
       lpSyncUpdateFailed:'تعذّر تحديث البيانات على الخادم. لم يتم حفظ التعديل.',
       lpSyncArchiveFailed:'تعذّر الأرشفة على الخادم. حاولي مرة أخرى.',
       lpSyncRestoreFailed:'تعذّرت الاستعادة من الخادم. حاولي مرة أخرى.',
@@ -3637,6 +3641,10 @@
       oauthComingSoon:'Coming soon — not connected yet', oauthComingSoonBadge:'Coming soon', securityNoteText:'Secure connection — your data is protected inside NEXORA Academy',
       loginBrandTagline:'Part of the INFRA ENGINE Ecosystem', loginBrandHeadline:'Learn smarter.\nGrow faster.',
       lpSyncCreateFailed:'Could not save to the server. Please try again.', pbSavingLabel:'Saving...',
+      sendingLoginCodeLabel:'Sending login code to your email...',
+      sendingResetLinkLabel:'Sending reset link to your email...',
+      sendingUsernameLabel:'Sending your username to your email...',
+      sendingVerifyCodeLabel:'Sending verification code to your email...',
       lpSyncUpdateFailed:'Could not update on the server. Your change was not saved.',
       lpSyncArchiveFailed:'Could not archive on the server. Please try again.',
       lpSyncRestoreFailed:'Could not restore from the server. Please try again.',
@@ -5134,12 +5142,12 @@
   // with a real spinner + label, and restores the button's exact original
   // content on completion (success or failure) instead of assuming a
   // fixed label to go back to.
-  function setBtnSaving(btn, saving){
+  function setBtnSaving(btn, saving, customLabel){
     if(!btn) return;
     if(saving){
       if(btn.dataset.savingOriginal === undefined) btn.dataset.savingOriginal = btn.innerHTML;
       btn.disabled = true;
-      btn.innerHTML = `<span class="login-btn-spinner" style="margin:0 6px 0 0;"><svg class="nx-icon nx-spin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-dasharray="42" stroke-dashoffset="14"/></svg></span>${t('pbSavingLabel')}`;
+      btn.innerHTML = `<span class="login-btn-spinner" style="margin:0 6px 0 0;"><svg class="nx-icon nx-spin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-dasharray="42" stroke-dashoffset="14"/></svg></span>${customLabel || t('pbSavingLabel')}`;
     } else {
       btn.disabled = false;
       if(btn.dataset.savingOriginal !== undefined){
@@ -5366,7 +5374,7 @@
     forgotAccountError.textContent = '';
     if(!username){ forgotAccountError.textContent = t('enterUsernameOnly'); return; }
     if(!SHEET_API_URL){ forgotAccountError.textContent = t('forgotAccountNoBackend'); return; }
-    setBtnSaving(forgotAccountSendBtn, true);
+    setBtnSaving(forgotAccountSendBtn, true, t('sendingResetLinkLabel'));
     const res = await postToSheet('request_password_reset', { username });
     setBtnSaving(forgotAccountSendBtn, false);
     // Always show the same success message regardless of the actual result —
@@ -5383,7 +5391,7 @@
     forgotUsernameError.textContent = '';
     if(!email){ forgotUsernameError.textContent = t('enterEmailOnly'); return; }
     if(!SHEET_API_URL){ forgotUsernameError.textContent = t('forgotAccountNoBackend'); return; }
-    setBtnSaving(forgotUsernameSendBtn, true);
+    setBtnSaving(forgotUsernameSendBtn, true, t('sendingUsernameLabel'));
     const res = await postToSheet('request_username_reminder', { email });
     setBtnSaving(forgotUsernameSendBtn, false);
     // Same no-enumeration principle: always show success regardless of a real match.
@@ -5408,7 +5416,7 @@
     loginCodeStep1Error.textContent = '';
     if(!username){ loginCodeStep1Error.textContent = t('enterUsernameOnly'); return; }
     if(!SHEET_API_URL){ loginCodeStep1Error.textContent = t('forgotAccountNoBackend'); return; }
-    setBtnSaving(loginCodeSendBtn, true);
+    setBtnSaving(loginCodeSendBtn, true, t('sendingLoginCodeLabel'));
     const res = await postToSheet('request_login_code', { username });
     setBtnSaving(loginCodeSendBtn, false);
     // Generic success regardless of match — same no-enumeration principle as everywhere else.
