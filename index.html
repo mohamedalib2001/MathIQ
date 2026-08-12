@@ -3351,6 +3351,11 @@
       pbSeedAllPartial:'اكتمل جزئيًا: {succeeded} من 9 برامج نجحت. فشل: {failedNames}. راجعي شيت الأخطاء وحاولي تفعيل الفاشلة يدويًا من الأزرار أدناه.',
       pbSeedIndividualLabel:'أو فعّلي برنامجًا واحدًا بمفرده:',
       pbSeedAlreadyExists:'⚠️ هذا البرنامج موجود بالفعل — لم يتم إنشاء نسخة مكرَّرة. راجعي القائمة، ولو محتاجة نسخة جديدة احذفي القديمة أولًا من Program Builder.',
+      pbCleanupBtn:'🧹 تنظيف البرامج المكرَّرة والفارغة',
+      pbCleanupConfirm:'سيتم فحص كل البرامج وأرشفة النسخ المكرَّرة والفارغة (بدون محتوى)، مع الإبقاء على أفضل نسخة لكل برنامج. الأرشفة قابلة للتراجع. متابعة؟',
+      pbCleanupRunning:'جارٍ الفحص والتنظيف...', pbCleanupProgressTpl:'جارٍ فحص البرنامج {current} من {total}...',
+      pbCleanupDone:'✓ تم التنظيف: أُرشِفت {archived} نسخة من أصل {scanned} برنامج تم فحصها.',
+      pbCleanupFailed:'تعذّر إتمام التنظيف.',
       pbCourseTitlePh:'عنوان الدورة', pbCreateCourseBtn:'+ إضافة دورة',
       pbNoModules:'لا توجد وحدات بعد.', pbLessonCount:'{n} درس', pbModuleTitlePh:'عنوان الوحدة', pbCreateModuleBtn:'+ إضافة وحدة',
       pbNoLessons:'لا توجد دروس بعد.', pbHasAssessment:'يوجد تقييم', pbNoAssessmentYet:'لا يوجد تقييم بعد',
@@ -3748,6 +3753,11 @@
       pbSeedAllPartial:'Partially complete: {succeeded} of 9 programs succeeded. Failed: {failedNames}. Check the error log and try activating the failed ones individually below.',
       pbSeedIndividualLabel:'Or activate one program at a time:',
       pbSeedAlreadyExists:'⚠️ This program already exists — no duplicate was created. Check the list, and if you need a fresh copy, delete the old one first from Program Builder.',
+      pbCleanupBtn:'🧹 Clean up duplicate & empty programs',
+      pbCleanupConfirm:'This will scan every program and archive duplicate or empty (no content) copies, keeping the best copy of each. Archiving is reversible. Continue?',
+      pbCleanupRunning:'Scanning and cleaning...', pbCleanupProgressTpl:'Scanning program {current} of {total}...',
+      pbCleanupDone:'✓ Cleanup done: archived {archived} copies out of {scanned} programs scanned.',
+      pbCleanupFailed:'Could not complete the cleanup.',
       pbCourseTitlePh:'Course title', pbCreateCourseBtn:'+ Add Course',
       pbNoModules:'No modules yet.', pbLessonCount:'{n} lessons', pbModuleTitlePh:'Module title', pbCreateModuleBtn:'+ Add Module',
       pbNoLessons:'No lessons yet.', pbHasAssessment:'Has an assessment', pbNoAssessmentYet:'No assessment yet',
@@ -7505,6 +7515,47 @@
   // display order requested. A failure on one program does NOT stop the
   // rest — each is independent, so partial success is still real progress,
   // not an all-or-nothing gate.
+  // Archives duplicate and empty seeded programs left behind by earlier
+  // retries (before the duplicate-guard existed). "Empty" means published
+  // but with zero courses — a program whose seeding failed partway. For
+  // each title, the copy WITH the most courses is kept; the rest archived.
+  // Archiving (not deleting) is deliberate: it's reversible, and it uses
+  // the existing setStatus API rather than inventing a delete path.
+  async function cleanupDuplicatePrograms(onProgress){
+    if(!SHEET_API_URL) return { ok:false, reason:'no_backend' };
+    const owner = pbOwnerUsername();
+    const listRes = await LP_API.programs.list();
+    if(!listRes || !listRes.ok || !Array.isArray(listRes.items)) return { ok:false, reason:'list_failed' };
+
+    const active = listRes.items.filter(p => p.Status === 'published' || p.Status === 'draft');
+    // Count real courses per program so "empty" is measured, never assumed.
+    const courseCounts = {};
+    for(let i = 0; i < active.length; i++){
+      if(onProgress) onProgress(i + 1, active.length);
+      const cRes = await LP_API.courses.list('ProgramID', active[i].ProgramID);
+      courseCounts[active[i].ProgramID] = (cRes && cRes.ok && Array.isArray(cRes.items)) ? cRes.items.length : 0;
+    }
+
+    const byTitle = {};
+    active.forEach(p => { (byTitle[p.Title] = byTitle[p.Title] || []).push(p); });
+
+    const toArchive = [];
+    Object.values(byTitle).forEach(group => {
+      const sorted = group.slice().sort((a, b) => courseCounts[b.ProgramID] - courseCounts[a.ProgramID]);
+      const keeper = sorted[0];
+      sorted.slice(1).forEach(p => toArchive.push(p));           // duplicates
+      if(courseCounts[keeper.ProgramID] === 0) toArchive.push(keeper); // sole copy but empty
+    });
+
+    let archived = 0;
+    for(const p of toArchive){
+      const res = await LP_API.programs.setStatus(p.ProgramID, 'archived', owner);
+      if(res && res.ok) archived++;
+    }
+    await lpRefreshAllPublishedPrograms();
+    return { ok:true, archived, scanned: active.length };
+  }
+
   async function seedAllPrograms(onProgress){
     const jobs = [
       ['اللغة الإنجليزية', seedEnglishLanguageProgram],
@@ -7684,6 +7735,8 @@
           </select>
           <button class="start-btn" id="pbCreateProgramBtn">${t('pbCreateProgramBtn')}</button>
           <button class="start-btn" id="pbSeedAllBtn" style="margin-top:14px; background:linear-gradient(135deg, #10B981, #059669);">${t('pbSeedAllBtn')}</button>
+          <button class="secondary-btn" id="pbCleanupBtn" style="margin-top:8px; border-color:rgba(239,68,68,0.4);">${t('pbCleanupBtn')}</button>
+          <div id="pbCleanupProgress" class="hidden" style="text-align:center; font-size:11.5px; color:var(--ink-dim); margin-top:6px;"></div>
           <div id="pbSeedAllProgress" class="hidden" style="text-align:center; font-size:11.5px; color:var(--ink-dim); margin-top:6px;"></div>
           <div style="text-align:center; font-size:10.5px; color:var(--ink-dim); opacity:0.7; margin:10px 0 4px;">${t('pbSeedIndividualLabel')}</div>
           <button class="secondary-btn" id="pbSeedEnglishBtn" style="margin-top:2px;">${t('pbSeedEnglishBtn')}</button>
@@ -7746,6 +7799,24 @@
       wireSeedProgramBtn('pbSeedLogicBtn', seedLogicProgram, 'pbSeedLogicConfirm', 'pbSeedLogicSuccess', 'pbSeedLogicFailed');
       wireSeedProgramBtn('pbSeedMemoryBtn', seedMemoryProgram, 'pbSeedMemoryConfirm', 'pbSeedMemorySuccess', 'pbSeedMemoryFailed');
       wireSeedProgramBtn('pbSeedCognitiveBtn', seedCognitiveProgram, 'pbSeedCognitiveConfirm', 'pbSeedCognitiveSuccess', 'pbSeedCognitiveFailed');
+      document.getElementById('pbCleanupBtn').addEventListener('click', async ()=>{
+        if(!window.confirm(t('pbCleanupConfirm'))) return;
+        const cleanBtn = document.getElementById('pbCleanupBtn');
+        const progressEl = document.getElementById('pbCleanupProgress');
+        setBtnSaving(cleanBtn, true, t('pbCleanupRunning'));
+        progressEl.classList.remove('hidden');
+        const result = await cleanupDuplicatePrograms((current, total)=>{
+          progressEl.textContent = fmt('pbCleanupProgressTpl', { current, total });
+        });
+        setBtnSaving(cleanBtn, false);
+        progressEl.classList.add('hidden');
+        if(result && result.ok){
+          showToast(fmt('pbCleanupDone', { archived: result.archived, scanned: result.scanned }), nxIcon('check'), 'system');
+        } else {
+          showToast(t('pbCleanupFailed') + (result && result.reason ? ` (${result.reason})` : ''), nxIcon('alertTriangle'), 'system');
+        }
+        renderProgramBuilder();
+      });
       document.getElementById('pbSeedAllBtn').addEventListener('click', async ()=>{
         if(!window.confirm(t('pbSeedAllConfirm'))) return;
         const allBtn = document.getElementById('pbSeedAllBtn');
