@@ -2811,6 +2811,7 @@
       lpSyncUpdateFailed:'تعذّر تحديث البيانات على الخادم. لم يتم حفظ التعديل.',
       lpSyncArchiveFailed:'تعذّر الأرشفة على الخادم. حاولي مرة أخرى.',
       lpSyncRestoreFailed:'تعذّرت الاستعادة من الخادم. حاولي مرة أخرى.',
+      lpSyncProgressFailed:'تعذّرت مزامنة تقدّمكِ مع الخادم. حاولي مرة أخرى.',
       loginBrandDesc:'منصة تعليمية ذكية تجمع التعلّم والتقييم والمهارات والتحليلات في تجربة واحدة.',
       forgotPasswordLink:'نسيت كلمة المرور؟', forgotPasswordMsg:'تواصلي مع معلّمتكِ أو ولي أمركِ لإعادة تعيين كلمة المرور.',
       footerPrivacy:'الخصوصية', footerTerms:'الشروط', footerHelp:'المساعدة',
@@ -3069,6 +3070,7 @@
       lpSyncUpdateFailed:'Could not update on the server. Your change was not saved.',
       lpSyncArchiveFailed:'Could not archive on the server. Please try again.',
       lpSyncRestoreFailed:'Could not restore from the server. Please try again.',
+      lpSyncProgressFailed:'Could not sync your progress with the server. Please try again.',
       loginBrandDesc:'An intelligent education platform bringing learning, assessment, skills and analytics into one experience.',
       forgotPasswordLink:'Forgot password?', forgotPasswordMsg:'Contact your teacher or guardian to reset your password.',
       footerPrivacy:'Privacy', footerTerms:'Terms', footerHelp:'Help',
@@ -5037,15 +5039,42 @@
     lpSave(LP_KEYS.ASSESSMENTS, assessments);
     return a;
   }
-  function lpEnrollLearner(learnerUsername, programId){
+  async function lpEnrollLearner(learnerUsername, programId){
     if(!can(lpCurrentRole(), 'program.enroll')) return lpDenyAndNotify('program.enroll');
     const enrollments = lpLoad(LP_KEYS.ENROLLMENTS);
     let e = enrollments.find(x => x.learnerUsername === learnerUsername && x.programId === programId);
-    if(e) return e; // idempotent — re-enrolling never creates a duplicate
+    if(e) return e; // idempotent — re-enrolling never creates a duplicate (local cache already has it)
+    if(SHEET_API_URL){
+      const result = await LP_API.enrollments.create(learnerUsername, programId);
+      if(!result || !result.ok){
+        // no false success — but enrollment is a background record here (Sprint 11: not
+        // access control), so we do not block the learner from continuing to use the
+        // program; we simply don't have a synced enrollment record yet.
+        return null;
+      }
+      e = { id: result.id, learnerUsername, programId, status:'not_started', startedAt:null, lastActivity:null, completedAt:null };
+      enrollments.push(e);
+      lpSave(LP_KEYS.ENROLLMENTS, enrollments);
+      return e;
+    }
     e = { id: lpGenId('enr'), learnerUsername, programId, status:'not_started', startedAt:null, lastActivity:null, completedAt:null };
     enrollments.push(e);
     lpSave(LP_KEYS.ENROLLMENTS, enrollments);
     return e;
+  }
+  async function lpRefreshEnrollmentsForLearner(learnerUsername){
+    if(!SHEET_API_URL || !learnerUsername) return false;
+    const result = await LP_API.enrollments.list(learnerUsername);
+    if(!result || !result.ok || !Array.isArray(result.items)) return false;
+    const remoteKeys = new Set(result.items.map(r => r.LearnerUsername + '::' + r.ProgramID));
+    const local = lpLoad(LP_KEYS.ENROLLMENTS);
+    const kept = local.filter(e => e.learnerUsername !== learnerUsername || !remoteKeys.has(e.learnerUsername + '::' + e.programId));
+    result.items.forEach(r => kept.push({
+      id: r.EnrollmentID, learnerUsername: r.LearnerUsername, programId: r.ProgramID,
+      status: r.Status, startedAt: r.StartedAt || null, lastActivity: r.LastActivity || null, completedAt: r.CompletedAt || null
+    }));
+    lpSave(LP_KEYS.ENROLLMENTS, kept);
+    return true;
   }
   function lpGetCoursesForProgram(programId){ return lpLoad(LP_KEYS.COURSES).filter(c => c.programId === programId); }
   function lpGetActiveCoursesForProgram(programId){ return lpGetCoursesForProgram(programId).filter(c => !c.archived); }
@@ -5074,11 +5103,22 @@
     const targetIdx = direction === 'next' ? idx + 1 : idx - 1;
     return ordered[targetIdx] || null;
   }
-  function lpCompleteLesson(learnerUsername, lessonId){
+  async function lpCompleteLesson(learnerUsername, lessonId){
     if(!can(lpCurrentRole(), 'lesson.complete')) return lpDenyAndNotify('lesson.complete');
     const completions = lpLoad(LP_KEYS.LESSON_COMPLETIONS);
     const already = completions.find(c => c.learnerUsername === learnerUsername && c.lessonId === lessonId);
     if(already) return already; // idempotent — no duplicate completion records
+    if(SHEET_API_URL){
+      const result = await LP_API.progress.completeLesson(learnerUsername, lessonId);
+      if(!result || !result.ok){
+        showToast(t('lpSyncProgressFailed'), nxIcon('alertTriangle'), 'system');
+        return null; // no false success
+      }
+      const c = { learnerUsername, lessonId, completedAt: new Date().toISOString() };
+      completions.push(c);
+      lpSave(LP_KEYS.LESSON_COMPLETIONS, completions);
+      return c;
+    }
     const c = { learnerUsername, lessonId, completedAt: new Date().toISOString() };
     completions.push(c);
     lpSave(LP_KEYS.LESSON_COMPLETIONS, completions);
@@ -5086,6 +5126,45 @@
   }
   function lpIsLessonComplete(learnerUsername, lessonId){
     return lpLoad(LP_KEYS.LESSON_COMPLETIONS).some(c => c.learnerUsername === learnerUsername && c.lessonId === lessonId);
+  }
+  /* ---------- PHASE 6: progress retrieval — additive merge (these are
+     append-only event logs, not updatable entities like Programs/Courses,
+     so the merge key is learner+lesson / learner+assessment, not a single
+     record ID; existing local records are never overwritten or removed). ---------- */
+  async function lpRefreshProgressForLearner(learnerUsername){
+    if(!SHEET_API_URL || !learnerUsername) return false;
+    const result = await LP_API.progress.get(learnerUsername);
+    if(!result || !result.ok) return false;
+    let changed = false;
+    if(Array.isArray(result.completions)){
+      const completions = lpLoad(LP_KEYS.LESSON_COMPLETIONS);
+      const existingLessonIds = new Set(completions.filter(c=>c.learnerUsername===learnerUsername).map(c=>c.lessonId));
+      result.completions.forEach(rc=>{
+        if(!existingLessonIds.has(rc.lessonId)){
+          completions.push({ learnerUsername, lessonId: rc.lessonId, completedAt: rc.completedAt });
+          existingLessonIds.add(rc.lessonId);
+          changed = true;
+        }
+      });
+      lpSave(LP_KEYS.LESSON_COMPLETIONS, completions);
+    }
+    if(Array.isArray(result.attempts)){
+      const attempts = lpLoad(LP_KEYS.ASSESSMENT_ATTEMPTS);
+      // attempts are a full history (a learner can retake an assessment), so
+      // dedup by the full tuple, not just learner+assessment, to avoid
+      // collapsing genuinely distinct attempts into one.
+      const existingKeys = new Set(attempts.filter(a=>a.learnerUsername===learnerUsername).map(a=>a.assessmentId+'::'+a.attemptedAt));
+      result.attempts.forEach(ra=>{
+        const key = ra.assessmentId+'::'+ra.attemptedAt;
+        if(!existingKeys.has(key)){
+          attempts.push({ learnerUsername, assessmentId: ra.assessmentId, score: ra.score, passed: ra.passed, timeExpired: ra.timeExpired, attemptedAt: ra.attemptedAt });
+          existingKeys.add(key);
+          changed = true;
+        }
+      });
+      lpSave(LP_KEYS.ASSESSMENT_ATTEMPTS, attempts);
+    }
+    return changed;
   }
   function lpComputeProgramProgress(learnerUsername, programId){
     const lessons = lpGetLessonsForProgram(programId);
@@ -5110,10 +5189,11 @@
     }
     return false;
   }
-  function lpSubmitAssessment(learnerUsername, assessmentId, answers, timeExpired){
+  async function lpSubmitAssessment(learnerUsername, assessmentId, answers, timeExpired){
     if(!can(lpCurrentRole(), 'assessment.submit')) return lpDenyAndNotify('assessment.submit');
     const a = lpLoad(LP_KEYS.ASSESSMENTS).find(x => x.id === assessmentId);
     if(!a) return null;
+    // scoring logic — UNCHANGED from the pre-Sprint-11 implementation
     let earnedPoints = 0, totalPoints = 0;
     const breakdown = [];
     a.questions.forEach((q, i) => {
@@ -5125,8 +5205,16 @@
     });
     const score = totalPoints > 0 ? Math.round((earnedPoints / totalPoints) * 100) : 0;
     const passed = score >= (a.passScore || 60);
+    const attemptedAt = new Date().toISOString();
+    if(SHEET_API_URL){
+      const result = await LP_API.progress.submitAssessment(learnerUsername, assessmentId, score, passed, !!timeExpired);
+      if(!result || !result.ok){
+        showToast(t('lpSyncProgressFailed'), nxIcon('alertTriangle'), 'system');
+        return null; // no false "synced" claim — the score was computed but NOT persisted
+      }
+    }
     const attempts = lpLoad(LP_KEYS.ASSESSMENT_ATTEMPTS);
-    const attempt = { learnerUsername, assessmentId, score, passed, breakdown, timeExpired: !!timeExpired, attemptedAt: new Date().toISOString() };
+    const attempt = { learnerUsername, assessmentId, score, passed, breakdown, timeExpired: !!timeExpired, attemptedAt };
     attempts.push(attempt);
     lpSave(LP_KEYS.ASSESSMENT_ATTEMPTS, attempts);
     return attempt;
@@ -5712,10 +5800,15 @@
     ppProgram = program;
     programsHubEl.classList.add('hidden');
     programPlayerEl.classList.remove('hidden');
-    const enrollment = lpEnrollLearner(currentProfile, program.id);
-    if(!enrollment){
-      renderErrorState(ppContentArea, 'unauthorized', ()=>{ programPlayerEl.classList.add('hidden'); showProgramsHub(); });
-      return;
+    // Sprint 11: enrollment is a data record (for Progress + future Analytics),
+    // NOT access control — creating/syncing it never blocks the learner from
+    // using the program, even if the backend call fails or is slow.
+    lpEnrollLearner(currentProfile, program.id);
+    if(SHEET_API_URL){
+      lpRefreshEnrollmentsForLearner(currentProfile);
+      lpRefreshProgressForLearner(currentProfile).then(changed=>{
+        if(changed && !programPlayerEl.classList.contains('hidden')) renderProgramPlayer();
+      });
     }
     ppNavigate('courses');
   }
@@ -5866,8 +5959,14 @@
           if(targetModule && targetLesson) ppNavigate('lesson', ppCourse, targetModule, targetLesson);
         });
       });
-      document.getElementById('ppCompleteLessonBtn').addEventListener('click', ()=>{
-        lpCompleteLesson(currentProfile, ppLesson.id);
+      document.getElementById('ppCompleteLessonBtn').addEventListener('click', async ()=>{
+        const btn = document.getElementById('ppCompleteLessonBtn');
+        btn.disabled = true; btn.textContent = t('pbSavingLabel');
+        const result = await lpCompleteLesson(currentProfile, ppLesson.id);
+        if(!result){
+          btn.disabled = false; btn.textContent = t('ppMarkCompleteBtn');
+          return; // no false success — button re-enabled for retry
+        }
         lpUpdateEnrollmentActivity(currentProfile, ppProgram.id);
         const prof = PROFILES[currentProfile];
         if(prof) showToast(fmt('toastLessonComplete', { lesson: ppLesson.title }), nxIcon('bookOpen'), 'learning');
@@ -5924,9 +6023,17 @@
           }
         });
       }
-      function finishAssessment(timeExpired){
+      async function finishAssessment(timeExpired){
         clearInterval(ppAssessmentTimerInterval);
-        const attempt = lpSubmitAssessment(currentProfile, assessment.id, collectAnswers(), timeExpired);
+        const submitBtn = document.getElementById('ppSubmitAssessmentBtn');
+        if(submitBtn){ submitBtn.disabled = true; submitBtn.textContent = t('pbSavingLabel'); }
+        const attempt = await lpSubmitAssessment(currentProfile, assessment.id, collectAnswers(), timeExpired);
+        if(!attempt){
+          // no false success — let the learner retry instead of showing a fake result
+          if(submitBtn){ submitBtn.disabled = false; submitBtn.textContent = t('ppSubmitAssessmentBtn'); }
+          showToast(t('lpSyncProgressFailed'), nxIcon('alertTriangle'), 'system');
+          return;
+        }
         lpUpdateEnrollmentActivity(currentProfile, ppProgram.id);
         const expiredNote = timeExpired ? `<div class="conn-note">${t('ppTimeExpiredNote')}</div>` : '';
         ppContentArea.innerHTML = `
