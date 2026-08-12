@@ -3825,6 +3825,31 @@
     buckets.forEach(b=>{ const st = p.opStats[b]; if(st){ c += st.c; t += st.t; } });
     return t > 0 ? Math.round((c/t)*100) : null;
   }
+  function hideLearnerShellScreens(){
+    // Every screen reachable from the learner sidebar (Programs/Journey/
+    // Skills/Achievements/Account) — hidden together before showing
+    // whichever one is being navigated to, so switching between them never
+    // leaves a previous screen visible underneath. Deliberately NOT using
+    // hideAllScreens() here — that helper also logs the session out
+    // (clears the "remember me" session), which must never happen from
+    // ordinary in-app navigation.
+    programsHubEl.classList.add('hidden');
+    mySkillsScreen.classList.add('hidden');
+    myStatsScreenEl.classList.add('hidden');
+    profileEditorEl.classList.add('hidden');
+    knowledgeMapEl.classList.add('hidden');
+    programPlayerEl.classList.add('hidden');
+    settingsEl.classList.add('hidden');
+    abacusTrainerEl.classList.add('hidden');
+  }
+  function hideTeacherShellScreens(){
+    // Same principle as hideLearnerShellScreens(), for the teacher role's
+    // three sidebar destinations (Overview/Classes/Program Builder) — never
+    // hideAllScreens(), which would also clear the session.
+    dashboardEl.classList.add('hidden');
+    classManagementEl.classList.add('hidden');
+    programBuilderEl.classList.add('hidden');
+  }
   function showProgramsHub(){
     const p = PROFILES[currentProfile];
     if(!p) return;
@@ -3849,8 +3874,7 @@
       });
     }
 
-    settingsEl.classList.add('hidden');
-    abacusTrainerEl.classList.add('hidden');
+    hideLearnerShellScreens();
     programsHubEl.classList.remove('hidden');
   }
   function renderRealProgramCards(){
@@ -4056,6 +4080,7 @@
     }
     profilesEl.classList.add('hidden');
     usernameLoginEl.classList.add('hidden');
+    if(returnTo === 'settings') hideLearnerShellScreens(); // opened from the learner shell (Account nav) — hide siblings the same safe way
     profileEditorEl.classList.remove('hidden');
   }
   clearMotherLink.addEventListener('click', ()=>{
@@ -5567,7 +5592,7 @@
   });
 
   function openProgramBuilder(){
-    hideAllScreens();
+    hideTeacherShellScreens();
     programBuilderEl.classList.remove('hidden');
     pbNavigate('programs');
   }
@@ -6312,7 +6337,7 @@
       return [
         { icon:nxIcon('home'), label:t('shellNavPrograms'), run: ()=> showProgramsHub() },
         { icon:nxIcon('book'), label:t('shellNavJourney'), run: ()=>{ if(isServiceOn('knowledgeMap')) knowledgeMapOpenBtn.click(); } },
-        { icon:nxIcon('puzzle'), label:t('shellNavSkills'), run: ()=>{ hideAllScreens(); mySkillsScreen.classList.remove('hidden'); renderMySkills(); renderShellNav('learner'); } },
+        { icon:nxIcon('puzzle'), label:t('shellNavSkills'), run: ()=>{ hideLearnerShellScreens(); mySkillsScreen.classList.remove('hidden'); renderMySkills(); renderShellNav('learner'); } },
         { icon:nxIcon('award'), label:t('shellNavAchievements'), run: ()=> myStatsLink.click() },
         { icon:nxIcon('settings'), label:t('shellNavAccount'), run: ()=> editMyProfileLink.click() },
         { icon:nxIcon('logout'), label:t('shellNavLogout'), run: ()=> goToLoginGate() }
@@ -6329,7 +6354,7 @@
     }
     if(role === 'teacher'){
       return [
-        { icon:nxIcon('chart'), label:t('shellNavOverview'), run: ()=>{ dashboardOpenedBy = 'teacher'; renderDashboard(); dashboardEl.classList.remove('hidden'); } },
+        { icon:nxIcon('chart'), label:t('shellNavOverview'), run: ()=>{ dashboardOpenedBy = 'teacher'; hideTeacherShellScreens(); renderDashboard(); dashboardEl.classList.remove('hidden'); } },
         { icon:nxIcon('school'), label:t('shellNavClasses'), run: ()=> teacherClassesBtn.click() },
         { icon:nxIcon('graduation'), label:t('shellNavProgramBuilder'), run: ()=> openProgramBuilder() },
         { icon:nxIcon('logout'), label:t('shellNavLogout'), run: ()=> goToLoginGate() }
@@ -6432,7 +6457,7 @@
 
   /* ---------- teacher: class management ---------- */
   teacherClassesBtn.addEventListener('click', ()=>{
-    dashboardEl.classList.add('hidden');
+    hideTeacherShellScreens();
     classManagementEl.classList.remove('hidden');
     newClassNameInput.value = '';
     classManageError.textContent = '';
@@ -8566,7 +8591,7 @@
   myStatsLink.addEventListener('click', ()=>{
     if(!currentProfile || !PROFILES[currentProfile]) return;
     renderMyStats();
-    settingsEl.classList.add('hidden');
+    hideLearnerShellScreens();
     myStatsScreenEl.classList.remove('hidden');
   });
   closeMyStatsBtn.addEventListener('click', ()=>{
@@ -8902,7 +8927,7 @@
 
   placementOpenLink.addEventListener('click', openPlacementTest);
   knowledgeMapOpenBtn.addEventListener('click', ()=>{
-    settingsEl.classList.add('hidden');
+    hideLearnerShellScreens();
     knowledgeMapEl.classList.remove('hidden');
     renderKnowledgeMap();
   });
