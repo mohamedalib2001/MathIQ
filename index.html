@@ -1236,6 +1236,32 @@
   </div>
 </div>
 
+<!-- Login transition overlay — reuses the boot-screen visual language,
+     shown only during the real async login work (password verification,
+     and for the remote-login path, the network round-trip). Never a fake
+     delay: hidden the moment the outcome (success/failure) is known. -->
+<div id="loginTransitionScreen" class="boot-screen hidden" role="status" aria-live="polite">
+  <div class="boot-visual" aria-hidden="true">
+    <svg viewBox="0 0 200 200" class="boot-graph">
+      <g class="boot-graph-lines">
+        <line x1="100" y1="100" x2="60" y2="55"></line>
+        <line x1="100" y1="100" x2="140" y2="55"></line>
+        <line x1="100" y1="100" x2="45" y2="120"></line>
+        <line x1="100" y1="100" x2="155" y2="120"></line>
+        <line x1="100" y1="100" x2="100" y2="155"></line>
+      </g>
+      <circle cx="100" cy="100" r="10" class="boot-node boot-node-core"></circle>
+      <circle cx="60" cy="55" r="5" class="boot-node"></circle>
+      <circle cx="140" cy="55" r="5" class="boot-node"></circle>
+      <circle cx="45" cy="120" r="5" class="boot-node"></circle>
+      <circle cx="155" cy="120" r="5" class="boot-node"></circle>
+      <circle cx="100" cy="155" r="5" class="boot-node"></circle>
+    </svg>
+  </div>
+  <div class="boot-brand">NEXORA</div>
+  <div class="boot-step-text" id="loginTransitionText"></div>
+  <div class="boot-progress-wrap"><div class="boot-progress-bar" id="loginTransitionBar"></div></div>
+</div>
 
 <div class="app-shell" id="appShell">
   <aside class="app-sidebar" id="appSidebar">
@@ -2812,6 +2838,7 @@
       lpSyncArchiveFailed:'تعذّر الأرشفة على الخادم. حاولي مرة أخرى.',
       lpSyncRestoreFailed:'تعذّرت الاستعادة من الخادم. حاولي مرة أخرى.',
       lpSyncProgressFailed:'تعذّرت مزامنة تقدّمكِ مع الخادم. حاولي مرة أخرى.',
+      loginStepVerifying:'جارٍ التحقق من الهوية', loginStepPreparing:'جارٍ تجهيز مساحة التعلّم...', loginStepSyncing:'جارٍ مزامنة بياناتكِ...',
       loginBrandDesc:'منصة تعليمية ذكية تجمع التعلّم والتقييم والمهارات والتحليلات في تجربة واحدة.',
       forgotPasswordLink:'نسيت كلمة المرور؟', forgotPasswordMsg:'تواصلي مع معلّمتكِ أو ولي أمركِ لإعادة تعيين كلمة المرور.',
       footerPrivacy:'الخصوصية', footerTerms:'الشروط', footerHelp:'المساعدة',
@@ -3071,6 +3098,7 @@
       lpSyncArchiveFailed:'Could not archive on the server. Please try again.',
       lpSyncRestoreFailed:'Could not restore from the server. Please try again.',
       lpSyncProgressFailed:'Could not sync your progress with the server. Please try again.',
+      loginStepVerifying:'Verifying your identity', loginStepPreparing:'Preparing your learning space...', loginStepSyncing:'Syncing your data...',
       loginBrandDesc:'An intelligent education platform bringing learning, assessment, skills and analytics into one experience.',
       forgotPasswordLink:'Forgot password?', forgotPasswordMsg:'Contact your teacher or guardian to reset your password.',
       footerPrivacy:'Privacy', footerTerms:'Terms', footerHelp:'Help',
@@ -4057,12 +4085,19 @@
     }
     saveProfilesToStorage();
     if(SHEET_API_URL){
-      postToSheet('signup', {
-        username: p.username || key, pin: p.pin, name: profileDisplayName(key),
-        birthDate: p.birthDate || '', avatar: p.avatar, color: p.color
-      });
+      const doSignupSync = (photoURL)=>{
+        postToSheet('signup', {
+          username: p.username || key, pin: p.pin, name: profileDisplayName(key),
+          birthDate: p.birthDate || '', avatar: p.avatar, color: p.color,
+          photoURL: photoURL || '' // sending ALL fields together — handleSignup_ overwrites the whole row,
+        });                        // so photoURL must travel with the rest, never in a separate call, or it wipes them.
+      };
       if(photoToSave){
-        postToSheet('photo', { username: p.username || key, imageBase64: photoToSave });
+        postToSheet('photo', { username: p.username || key, imageBase64: photoToSave }).then(photoRes=>{
+          doSignupSync(photoRes && photoRes.ok ? photoRes.url : '');
+        });
+      } else {
+        doSignupSync('');
       }
     }
 
@@ -4307,20 +4342,43 @@
     ulLoginBtn.disabled = loading;
     if(loginBtnSpinner) loginBtnSpinner.classList.toggle('hidden', !loading);
   }
+  const loginTransitionScreen = document.getElementById('loginTransitionScreen');
+  const loginTransitionText = document.getElementById('loginTransitionText');
+  const loginTransitionBar = document.getElementById('loginTransitionBar');
+  function showLoginTransition(stepText){
+    loginTransitionScreen.classList.remove('hidden', 'boot-done');
+    loginTransitionText.textContent = stepText;
+    loginTransitionBar.style.width = '40%';
+  }
+  function updateLoginTransitionStep(stepText, pct){
+    if(loginTransitionScreen.classList.contains('hidden')) return; // already dismissed — don't resurrect it
+    loginTransitionText.textContent = stepText;
+    if(pct) loginTransitionBar.style.width = pct + '%';
+  }
+  function hideLoginTransition(){
+    if(loginTransitionScreen.classList.contains('hidden')) return;
+    loginTransitionBar.style.width = '100%';
+    const reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    loginTransitionScreen.classList.add('boot-done');
+    setTimeout(()=> loginTransitionScreen.classList.add('hidden'), reducedMotion ? 0 : 300);
+  }
   async function doUsernameLogin(){
     const username = ulUsername.value.trim();
     const password = ulPassword.value;
     if(!username || !password){ ulError.textContent = t('enterBothFields'); return; }
     setLoginLoading(true);
+    showLoginTransition(t('loginStepVerifying'));
 
     // 0) Admin (app owner) — full permissions, same credentials as the dedicated gate.
     if(ADMIN && username.toLowerCase() === ADMIN.username.toLowerCase()){
       const hash = await computePasswordHash(ADMIN.username, password);
       setLoginLoading(false);
-      if(hash !== ADMIN.pin){ ulError.textContent = t('loginErrorMsg'); return; }
+      if(hash !== ADMIN.pin){ hideLoginTransition(); ulError.textContent = t('loginErrorMsg'); return; }
       ulError.textContent = '';
+      updateLoginTransitionStep(t('loginStepPreparing'), 80);
       hideAllScreens();
       goToProfiles();
+      hideLoginTransition();
       return;
     }
 
@@ -4329,8 +4387,9 @@
     if(teacherKey){
       const hash = await computePasswordHash(teacherKey, password);
       setLoginLoading(false);
-      if(hash !== TEACHERS[teacherKey].pin){ ulError.textContent = t('loginErrorMsg'); return; }
+      if(hash !== TEACHERS[teacherKey].pin){ hideLoginTransition(); ulError.textContent = t('loginErrorMsg'); return; }
       ulError.textContent = '';
+      updateLoginTransitionStep(t('loginStepPreparing'), 80);
       dashboardOpenedBy = 'teacher';
       currentTeacherUsername = teacherKey;
       hideAllScreens();
@@ -4338,6 +4397,7 @@
       teacherClassesBtn.classList.remove('hidden');
       dashboardEl.classList.remove('hidden');
       renderShellNav('teacher');
+      hideLoginTransition();
       return;
     }
 
@@ -4347,10 +4407,12 @@
       const p = PROFILES[localKey];
       const ok = await verifyPassword(p, p.username || localKey, password);
       setLoginLoading(false);
-      if(!ok){ ulError.textContent = t('loginErrorMsg'); return; } // generic message either way — no username enumeration
-      if(!checkStudentAccessGate(localKey)) { usernameLoginEl.classList.add('hidden'); return; }
+      if(!ok){ hideLoginTransition(); ulError.textContent = t('loginErrorMsg'); return; } // generic message either way — no username enumeration
+      if(!checkStudentAccessGate(localKey)) { hideLoginTransition(); usernameLoginEl.classList.add('hidden'); return; }
       ulError.textContent = '';
+      updateLoginTransitionStep(t('loginStepPreparing'), 80);
       selectProfileAndGoToSettings(localKey);
+      hideLoginTransition();
       return;
     }
 
@@ -4360,18 +4422,21 @@
       const hash = await computePasswordHash(username, password);
       setLoginLoading(false);
       const validLink = guardianLinks.find(l => l.pin === hash);
-      if(!validLink){ ulError.textContent = t('loginErrorMsg'); return; }
+      if(!validLink){ hideLoginTransition(); ulError.textContent = t('loginErrorMsg'); return; }
       ulError.textContent = '';
+      updateLoginTransitionStep(t('loginStepPreparing'), 80);
       const childKeys = [...new Set(guardianLinks.map(l => l.studentKey))];
       hideAllScreens();
       renderParentDashboard(childKeys);
       parentDashboardScreenEl.classList.remove('hidden');
+      hideLoginTransition();
       return;
     }
 
     // 4) Not found locally at all — try the remote Sheet (students only).
-    if(!SHEET_API_URL){ setLoginLoading(false); ulError.textContent = t('loginErrorMsg'); return; }
+    if(!SHEET_API_URL){ setLoginLoading(false); hideLoginTransition(); ulError.textContent = t('loginErrorMsg'); return; }
     ulError.textContent = '…';
+    updateLoginTransitionStep(t('loginStepSyncing'), 65);
     const hashedPin = await computePasswordHash(username, password);
     postToSheet('login', { username, pin: hashedPin }).then(res=>{
       setLoginLoading(false);
@@ -4380,13 +4445,17 @@
         PROFILES[key] = freshProfile(null, res.user.avatar || AVATAR_OPTIONS[0], res.user.color || COLOR_OPTIONS[0],
           { op:'add', diff:'units', time:'15', len:'10', mode:'type' }, true, res.user.name || username,
           res.user.birthDate || null, hashedPin, null, username);
+        if(res.user.photoURL) PROFILES[key].photo = res.user.photoURL; // real cross-device photo sync
         profileOrder.push(key);
         startTrialForStudent(key);
         saveProfilesToStorage();
-        if(!checkStudentAccessGate(key)){ usernameLoginEl.classList.add('hidden'); return; }
+        if(!checkStudentAccessGate(key)){ hideLoginTransition(); usernameLoginEl.classList.add('hidden'); return; }
         ulError.textContent = '';
+        updateLoginTransitionStep(t('loginStepPreparing'), 90);
         selectProfileAndGoToSettings(key);
+        hideLoginTransition();
       } else {
+        hideLoginTransition();
         ulError.textContent = t('loginErrorMsg'); // generic — never reveal whether the username exists
       }
     });
