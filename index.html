@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Tajawal:wght@400;500;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
   /* ==================== MODULE: DESIGN SYSTEM / TOKENS ====================
      :root custom properties are the single source of color/spacing truth.
@@ -2944,6 +2945,7 @@
       editMyProfileLink:'✏️ تعديل بياناتي', myStatsLink:'🏅 إنجازاتي وسجلي',
       statTotalAnswered:'مجموع الأسئلة', myStatsOpBreakdown:'أداؤك حسب نوع العملية',
       myStatsMistakes:'آخر الأخطاء (للمراجعة)', myStatsCerts:'الشهادات المُصدرة', noCertsYet:'لم تُصدري أي شهادة بعد.',
+      certOpenBtn:'فتح الشهادة (PDF)', certSavedToDrive:'تم حفظ الشهادة على Google Drive',
       notifWelcome:'يومك مبارك! جاهزة لتمرين ممتع اليوم؟', notifWeakBucket:'ركّزي اليوم على {op} — دقتك فيها {acc}%، تقدري تحسّنيها! 💪',
       explainBtn:'اشرحيلي', explainLoading:'جارٍ الشرح...', explainNoAi:'الذكاء الاصطناعي غير متاح', explainFailed:'حاولي مرة أخرى',
       aiPracticeToggleLabel:'🤖 تمرين ذكي مولّد ومخصّص بالذكاء الاصطناعي (تجريبي)',
@@ -3204,6 +3206,7 @@
       editMyProfileLink:'✏️ Edit my info', myStatsLink:'🏅 My achievements & history',
       statTotalAnswered:'Total questions', myStatsOpBreakdown:'Your performance by operation',
       myStatsMistakes:'Recent mistakes (for review)', myStatsCerts:'Certificates issued', noCertsYet:"You haven't issued a certificate yet.",
+      certOpenBtn:'Open certificate (PDF)', certSavedToDrive:'Certificate saved to Google Drive',
       notifWelcome:'Happy to see you! Ready for a fun practice today?', notifWeakBucket:"Focus on {op} today — you're at {acc}% accuracy, you can improve it! 💪",
       explainBtn:'Explain it to me', explainLoading:'Explaining...', explainNoAi:'AI is not available', explainFailed:'Try again',
       aiPracticeToggleLabel:'🤖 AI-generated personalized practice (experimental)',
@@ -3680,12 +3683,30 @@
     setAvatarElement(playAvatar, p, 22);
     playPlayerName.textContent = profileDisplayName(key);
     updateDailyStreak();
+    backfillProfilePhotoIfMissing(key); // this profile may already exist locally without ever having pulled its synced photo
     if(typeof loadSmartNotification === 'function') loadSmartNotification();
     if(typeof loadMyClasses === 'function') loadMyClasses();
     if(typeof renderTodayMission === 'function') renderTodayMission();
     applyServiceFlags();
     renderShellNav('learner');
     showProgramsHub();
+  }
+  // Covers the case Sprint-11's remote-login photo sync didn't: an EXISTING
+  // local profile (created before that fix, or on the original device
+  // before any photo existed) that still has no photo. Silent, best-effort,
+  // never blocks anything — just backfills the avatar if the server has one.
+  function backfillProfilePhotoIfMissing(key){
+    if(!SHEET_API_URL) return;
+    const p = PROFILES[key];
+    if(!p || p.photo || !(p.username || key)) return;
+    postToSheet('get_user_photo', { username: p.username || key }).then(res=>{
+      if(res && res.ok && res.photoURL && currentProfile === key){
+        p.photo = res.photoURL;
+        saveProfilesToStorage();
+        setAvatarElement(settingsBigAvatar, p, 64);
+        setAvatarElement(playAvatar, p, 22);
+      }
+    });
   }
 
   function overallAccuracyFor(p, buckets){
@@ -7743,7 +7764,28 @@
     return { found:false, reason:'not_found' };
   }
 
-  function downloadCertificate(){
+  // Converts a remote photo URL (e.g. a synced Google Drive link from
+  // another device) into a data: URL before it touches the certificate
+  // canvas — sidesteps the browser's CORS canvas-tainting restriction
+  // that can otherwise leave the photo blank in the exported PNG.
+  // Local base64 photos (the common case on the uploading device) already
+  // start with "data:" and skip this entirely — no behavior change there.
+  async function resolvePhotoForCanvas(photoUrl){
+    if(!photoUrl || photoUrl.indexOf('http') !== 0) return photoUrl;
+    try{
+      const res = await fetch(photoUrl);
+      const blob = await res.blob();
+      return await new Promise((resolve, reject)=>{
+        const reader = new FileReader();
+        reader.onload = ()=> resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+    }catch(e){
+      return photoUrl; // best effort — certificate still generates, just may show the fallback avatar
+    }
+  }
+  async function downloadCertificate(){
     if(typeof html2canvas !== 'function' || certBtn.disabled) return;
     const prof = PROFILES[currentProfile];
     certTemplateEl.setAttribute('dir', currentLang === 'ar' ? 'rtl' : 'ltr');
@@ -7762,17 +7804,32 @@
     certSealEl.textContent = t('certIssuedBy');
     const certId = generateCertId(currentProfile, Date.now());
     certNumEl.textContent = `${t('certNumLabel')}: ${certId}`;
-    setAvatarElement(certPhotoEl, prof, 110);
+    const safePhoto = await resolvePhotoForCanvas(prof.photo);
+    setAvatarElement(certPhotoEl, Object.assign({}, prof, { photo: safePhoto }), 110);
     if(!prof.photo) certPhotoEl.style.fontSize = '52px';
 
     const originalLabel = certBtn.textContent;
     certBtn.disabled = true;
     certBtn.textContent = t('certGenerating');
     html2canvas(certTemplateEl, { scale:2, backgroundColor:null, useCORS:true }).then(canvas=>{
-      const dataUrl = canvas.toDataURL('image/png');
+      const imgData = canvas.toDataURL('image/png');
+      // Build a real PDF sized to the certificate's actual proportions —
+      // scale:2 doubled the pixel density (sharper capture), so divide by
+      // 2 to convert back to the true physical size in mm.
+      const pxToMm = 0.264583; // 1 CSS px at 96dpi ≈ 0.264583mm
+      const pdfWidthMm = (canvas.width / 2) * pxToMm;
+      const pdfHeightMm = (canvas.height / 2) * pxToMm;
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({
+        orientation: pdfWidthMm >= pdfHeightMm ? 'landscape' : 'portrait',
+        unit: 'mm', format: [pdfWidthMm, pdfHeightMm]
+      });
+      doc.addImage(imgData, 'PNG', 0, 0, pdfWidthMm, pdfHeightMm);
+      const pdfDataUrl = doc.output('datauristring');
+
       const link = document.createElement('a');
-      link.download = 'certificate.png';
-      link.href = dataUrl;
+      link.download = 'certificate.pdf';
+      link.href = pdfDataUrl;
       link.click();
       if(!prof.certificatesIssued) prof.certificatesIssued = [];
       prof.certificatesIssued.push({
@@ -7784,7 +7841,10 @@
       if(SHEET_API_URL){
         postToSheet('certificate', {
           username: currentProfile, score: sumScore.textContent, accuracy: parseInt(sumAcc.textContent,10)||0,
-          imageBase64: dataUrl
+          pdfBase64: pdfDataUrl
+        }).then(res=>{
+          if(res && res.ok && res.url) showToast(t('certSavedToDrive'), nxIcon('check'), 'system');
+          // silent on failure — the local PDF download above already succeeded either way, no false "saved" claim
         });
       }
     }).finally(()=>{
@@ -8325,16 +8385,36 @@
     myStatsCertsList.innerHTML = '';
     const certLog = p.certificatesIssued || [];
     if(!certLog.length){
-      myStatsCertsList.innerHTML = `<div class="dash-empty">${t('noCertsYet')}</div>`;
+      myStatsCertsList.innerHTML = SHEET_API_URL ? nxSkeletonList(2) : `<div class="dash-empty">${t('noCertsYet')}</div>`;
     } else {
-      certLog.slice().reverse().forEach(c=>{
-        const row = document.createElement('div');
-        row.className = 'cert-log-item';
-        const dateStr = new Date(c.date).toLocaleDateString(currentLang === 'ar' ? 'ar-EG' : 'en-US');
-        row.innerHTML = `<span>📄 ${c.score} ${t('pointsWord')} — ${c.accuracy}%</span><span class="date">${dateStr}</span>`;
-        myStatsCertsList.appendChild(row);
+      renderCertLogRows(certLog.slice().reverse(), null);
+    }
+    if(SHEET_API_URL && currentProfile){
+      const profileAtFetchTime = currentProfile;
+      postToSheet('list_certificates', { username: profileAtFetchTime }).then(res=>{
+        if(!myStatsScreenEl || myStatsScreenEl.classList.contains('hidden') || currentProfile !== profileAtFetchTime) return; // stale — screen moved on
+        if(res && res.ok && Array.isArray(res.items) && res.items.length){
+          renderCertLogRows(res.items, 'remote');
+        } else if(!certLog.length){
+          myStatsCertsList.innerHTML = `<div class="dash-empty">${t('noCertsYet')}</div>`;
+        }
       });
     }
+  }
+  function renderCertLogRows(items, source){
+    myStatsCertsList.innerHTML = '';
+    items.forEach(c=>{
+      const row = document.createElement('div');
+      row.className = 'cert-log-item';
+      const dateStr = new Date(source === 'remote' ? c.timestamp : c.date).toLocaleDateString(currentLang === 'ar' ? 'ar-EG' : 'en-US');
+      const label = `${nxIcon('clipboard')} ${c.score} ${t('pointsWord')} — ${c.accuracy}%`;
+      if(source === 'remote' && c.fileURL){
+        row.innerHTML = `<span>${label}</span><a href="${c.fileURL}" target="_blank" rel="noopener" class="date" style="text-decoration:underline;">${t('certOpenBtn')}</a>`;
+      } else {
+        row.innerHTML = `<span>${label}</span><span class="date">${dateStr}</span>`;
+      }
+      myStatsCertsList.appendChild(row);
+    });
   }
   myStatsLink.addEventListener('click', ()=>{
     if(!currentProfile || !PROFILES[currentProfile]) return;
