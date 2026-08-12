@@ -228,6 +228,10 @@
     background:none; border:none; cursor:pointer; color:var(--ink-dim); font-size:11px; padding:2px 6px;
     text-decoration:underline; margin-inline-start:4px;
   }
+  .cert-issued-preview{
+    width:100%; border-radius:10px; border:1.5px solid var(--input-border); margin-top:6px; display:block;
+  }
+  .cert-issued-actions{ display:flex; flex-direction:column; gap:8px; margin-top:14px; }
 
   .lp-row{
     display:flex; align-items:center; gap:10px; background:var(--input-bg); border:1.5px solid var(--input-border);
@@ -1369,6 +1373,25 @@
      student up and resetting them via the existing admin profile editor. -->
 <!-- Login via a one-time code emailed to the account's registered address —
      a real alternative to password login, not a decorative option. -->
+<!-- Certificate issuance success — real preview, real download/share/verify/copy,
+     not just a silent PDF download + toast. -->
+<div id="certIssuedModal" class="hidden" role="dialog" aria-modal="true">
+  <div class="forgot-account-card">
+    <button class="forgot-account-close" id="certIssuedCloseBtn" aria-label="إغلاق">✕</button>
+    <div class="forgot-account-title" data-i18n="certIssuedTitle">✓ تم إصدار الشهادة بنجاح</div>
+    <img id="certIssuedPreview" class="cert-issued-preview" alt="">
+    <div class="forgot-account-text" style="text-align:center; margin:10px 0 4px;">
+      <span data-i18n="certNumLabel">رقم الشهادة</span>: <b id="certIssuedIdText" style="direction:ltr; display:inline-block;"></b>
+      <button type="button" class="cvr-copy-btn" id="certIssuedCopyBtn" data-i18n="certCopyIdBtn">نسخ</button>
+    </div>
+    <div class="cert-issued-actions">
+      <button class="start-btn" id="certIssuedDownloadBtn" data-i18n="certIssuedDownloadBtn">تنزيل PDF</button>
+      <button class="secondary-btn" id="certIssuedShareBtn" data-i18n="certIssuedShareBtn">مشاركة</button>
+      <button class="secondary-btn" id="certIssuedVerifyBtn" data-i18n="certIssuedVerifyBtn">فتح صفحة التحقق</button>
+    </div>
+  </div>
+</div>
+
 <div id="loginCodeModal" class="hidden" role="dialog" aria-modal="true">
   <div class="forgot-account-card">
     <button class="forgot-account-close" id="loginCodeCloseBtn" aria-label="إغلاق">✕</button>
@@ -3361,6 +3384,8 @@
       certVerifyChecking:'جارٍ التحقق...', certVerifyRevoked:'هذه الشهادة مُلغاة.',
       certVerifyBadges:'عدد الإنجازات', certVerifyProgram:'البرنامج',
       certCopyIdBtn:'نسخ', certCopiedLabel:'تم النسخ!',
+      certIssuedTitle:'✓ تم إصدار الشهادة بنجاح', certIssuedDownloadBtn:'تنزيل PDF',
+      certIssuedShareBtn:'مشاركة', certIssuedVerifyBtn:'فتح صفحة التحقق',
       certGenerating:'جارٍ التحضير...',
       connectionLink:'🔗 ربط جوجل شيت', connectionTitle:'ربط جوجل شيت',
       connectionNote:'الصق رابط "Web app" الذي حصلت عليه بعد نشر كود Apps Script في جدولك، ثم اختبر الاتصال.',
@@ -3721,6 +3746,8 @@
       certVerifyChecking:'Verifying...', certVerifyRevoked:'This certificate has been revoked.',
       certVerifyBadges:'Achievements', certVerifyProgram:'Program',
       certCopyIdBtn:'Copy', certCopiedLabel:'Copied!',
+      certIssuedTitle:'✓ Certificate issued successfully', certIssuedDownloadBtn:'Download PDF',
+      certIssuedShareBtn:'Share', certIssuedVerifyBtn:'Open verification page',
       certGenerating:'Preparing...',
       connectionLink:'🔗 Connect Google Sheet', connectionTitle:'Connect Google Sheet',
       connectionNote:'Paste the "Web app" URL you got after deploying the Apps Script code in your sheet, then test the connection.',
@@ -8637,6 +8664,47 @@
   const certNumEl = document.getElementById('certNumEl');
   const certQrWrap = document.getElementById('certQrWrap');
   const CERT_VERIFY_BASE_URL = 'https://mohamedalib2001.github.io/MathIQ/';
+  const certIssuedModal = document.getElementById('certIssuedModal');
+  const certIssuedCloseBtn = document.getElementById('certIssuedCloseBtn');
+  const certIssuedPreview = document.getElementById('certIssuedPreview');
+  const certIssuedIdText = document.getElementById('certIssuedIdText');
+  const certIssuedCopyBtn = document.getElementById('certIssuedCopyBtn');
+  const certIssuedDownloadBtn = document.getElementById('certIssuedDownloadBtn');
+  const certIssuedShareBtn = document.getElementById('certIssuedShareBtn');
+  const certIssuedVerifyBtn = document.getElementById('certIssuedVerifyBtn');
+  certIssuedCloseBtn.addEventListener('click', ()=> certIssuedModal.classList.add('hidden'));
+  // Real preview + real re-downloadable PDF + real share + real verify link —
+  // populated fresh each time by showCertIssuedModal(), called right after
+  // a certificate actually finishes generating.
+  function showCertIssuedModal(imgDataUrl, pdfDataUrl, certId){
+    certIssuedPreview.src = imgDataUrl;
+    certIssuedIdText.textContent = certId;
+    const verifyUrl = CERT_VERIFY_BASE_URL + '?verifyCert=' + encodeURIComponent(certId);
+    certIssuedCopyBtn.onclick = ()=>{
+      navigator.clipboard.writeText(certId).then(()=>{
+        certIssuedCopyBtn.textContent = t('certCopiedLabel');
+        setTimeout(()=>{ certIssuedCopyBtn.textContent = t('certCopyIdBtn'); }, 1500);
+      });
+    };
+    certIssuedDownloadBtn.onclick = ()=>{
+      const link = document.createElement('a');
+      link.download = 'certificate.pdf';
+      link.href = pdfDataUrl;
+      link.click();
+    };
+    certIssuedShareBtn.onclick = async ()=>{
+      if(navigator.share){
+        try{ await navigator.share({ title: t('certIssuedTitle'), text: certId, url: verifyUrl }); }catch(e){ /* user cancelled — not an error */ }
+      } else {
+        navigator.clipboard.writeText(verifyUrl).then(()=>{
+          certIssuedShareBtn.textContent = t('certCopiedLabel');
+          setTimeout(()=>{ certIssuedShareBtn.textContent = t('certIssuedShareBtn'); }, 1500);
+        });
+      }
+    };
+    certIssuedVerifyBtn.onclick = ()=> window.open(verifyUrl, '_blank', 'noopener');
+    certIssuedModal.classList.remove('hidden');
+  }
 
   /* ---------- certificate verification: server-authoritative when a
      backend is configured (the real source of truth — reflects revocation
@@ -8759,6 +8827,7 @@
       link.download = 'certificate.pdf';
       link.href = pdfDataUrl;
       link.click();
+      showCertIssuedModal(imgData, pdfDataUrl, certId); // real preview + share/verify/copy — not just a silent download
       if(!prof.certificatesIssued) prof.certificatesIssued = [];
       prof.certificatesIssued.push({
         score: parseInt(sumScore.textContent,10)||0, accuracy: parseInt(sumAcc.textContent,10)||0,
