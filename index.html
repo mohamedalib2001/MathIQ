@@ -927,6 +927,12 @@
   }
   .smart-notif .bell{ font-size:16px; flex:none; }
   .photo-picker{ display:flex; align-items:center; gap:14px; }
+  .gender-toggle-row{ display:flex; gap:8px; }
+  .gender-toggle-btn{
+    flex:1; padding:10px; border-radius:9px; border:1.5px solid var(--input-border); background:var(--input-bg);
+    color:var(--ink-dim); font-size:12.5px; cursor:pointer; font-weight:600;
+  }
+  .gender-toggle-btn.active{ border-color:var(--yellow); color:var(--ink); background:var(--input-bg); }
   .photo-preview{
     width:72px; height:72px; border-radius:50%; border:2px solid var(--chip-border);
     background:var(--bg); display:flex; align-items:center; justify-content:center;
@@ -1786,6 +1792,13 @@
       <div class="group-label" id="editorTitle" data-i18n="chooseAvatar">إضافة لاعب جديد</div>
       <input type="text" id="editName" data-i18n-placeholder="newPlayerNamePh" placeholder="الاسم">
       <div>
+        <div class="group-label" data-i18n="genderLabel">أخاطبكِ بصيغة</div>
+        <div class="gender-toggle-row">
+          <button type="button" class="gender-toggle-btn" id="genderFemaleBtn" data-i18n="genderFemale">مؤنّثة (أنتِ)</button>
+          <button type="button" class="gender-toggle-btn" id="genderMaleBtn" data-i18n="genderMale">مذكّرة (أنت)</button>
+        </div>
+      </div>
+      <div>
         <div class="group-label" data-i18n="usernameLabel">اسم المستخدم (لتسجيل الدخول)</div>
         <input type="text" id="editUsername" data-i18n-placeholder="usernamePlaceholder" placeholder="username" style="direction:ltr; text-align:left;">
       </div>
@@ -2429,6 +2442,16 @@
 
   const editorTitle = document.getElementById('editorTitle');
   const editNameInput = document.getElementById('editName');
+  const genderFemaleBtn = document.getElementById('genderFemaleBtn');
+  const genderMaleBtn = document.getElementById('genderMaleBtn');
+  let editingGender = 'female';
+  function setGenderToggle(g){
+    editingGender = g === 'male' ? 'male' : 'female';
+    genderFemaleBtn.classList.toggle('active', editingGender === 'female');
+    genderMaleBtn.classList.toggle('active', editingGender === 'male');
+  }
+  genderFemaleBtn.addEventListener('click', ()=> setGenderToggle('female'));
+  genderMaleBtn.addEventListener('click', ()=> setGenderToggle('male'));
   const editUsernameInput = document.getElementById('editUsername');
   const editorError = document.getElementById('editorError');
   const editBirthDateInput = document.getElementById('editBirthDate');
@@ -2533,7 +2556,7 @@
   function freshProfile(nameKey, avatar, color, defaults, isCustom, customName, birthDate, pin, theme, username){
     return {
       nameKey, customName: customName || null, avatar, color, photo:null, birthDate: birthDate || null, pin: pin || '',
-      theme: theme || 'chalkboard', username: username || null,
+      theme: theme || 'chalkboard', username: username || null, gender: null, // null = unset, defaults to feminine forms (historical default)
       guardians: { mother: null, father: null }, // { username, pin(hash) } | null — up to one per parent
       defaults,
       best:{ score:0, streak:0 },
@@ -2927,7 +2950,7 @@
       summaryHeadingTemplate:'{praise} يا {name}! 🎉',
       bestScoreLabel:'أفضل نتيجة', pointsWord:'نقطة',
       minuteTimeLeft:'الوقت المتبقي',
-      challengeBtn:'🏆 تحدي بين اللاعبتين', dashboardLink:'📊 لوحة جميع الطلاب',
+      challengeBtn:'🏆 تحدي بين لاعبَين', dashboardLink:'📊 لوحة جميع الطلاب',
       addPlayerCard:'+ إضافة لاعب', editProfile:'تعديل',
       savePlayer:'حفظ', cancelBtn:'إلغاء',
       newPlayerNamePh:'الاسم', newPlayerAgePh:'العمر',
@@ -3012,6 +3035,7 @@
       leaveRaceBtn:'🚩 مغادرة السباق', leaveRaceConfirm:'هل أنتِ متأكدة من مغادرة السباق؟ سيظهر لصديقتك أنك غادرتِ فورًا، وستفوز تلقائيًا بالنتيجة الحالية.',
       raceOpponentLeft:'🚩 غادرت {name} السباق — فزتِ تلقائيًا!',
       usernameLabel:'اسم المستخدم (لتسجيل الدخول)', usernamePlaceholder:'username',
+      genderLabel:'صيغة المخاطبة', genderFemale:'مؤنّثة (أنتِ)', genderMale:'مذكّرة (أنت)',
       passwordLabel:'كلمة المرور', usernameLoginLink:'🔑 دخول باسم مستخدم وكلمة مرور',
       usernameTaken:'اسم المستخدم مستخدم بالفعل، اختاري اسمًا آخر',
       userNotFound:'لا يوجد حساب بهذا الاسم', enterBothFields:'أدخلي اسم المستخدم وكلمة المرور',
@@ -3062,6 +3086,67 @@
       bucketCompound:'المسائل المركبة', bucketDecimals:'الأعداد العشرية', bucketFractions:'الكسور',
       bucketPercent:'النسبة المئوية', bucketExponent:'الأُسس', bucketSqrt:'الجذر التربيعي', bucketAbacus:'الأباكوس',
       bucketNumberRecognition:'التعرّف على الأرقام'
+    },
+    /* Masculine-form overrides — sparse overlay, only the strings that
+       actually contain a feminine verb/pronoun form. Looked up first when
+       the active profile's gender is 'male'; everything else falls
+       through to the (complete) `ar` block above unchanged. */
+    ar_m: {
+      loginWelcomeDesc:'سجّل الدخول للوصول إلى مساحة التعلّم الخاصة بك.',
+      securityNoteText:'اتصال آمن — بياناتك محمية داخل نِكسورا',
+      loginStepSyncing:'جارٍ مزامنة بياناتك...',
+      loginStepWelcome:'مرحبًا بعودتك، {name}',
+      forgotPasswordMsg:'تواصل مع معلّمك أو ولي أمرك لإعادة تعيين كلمة المرور.',
+      hubSubtitle:'اختر برنامجًا لتبدأ',
+      programNotStartedStat:'لم تبدأ بعد',
+      certVerifyNote:'أدخل رقم الشهادة الظاهر عليها للتحقق من صحتها.',
+      skillNotStarted:'لم تبدأ بعد',
+      errUnauthorizedText:'ليس لديك صلاحية لعرض هذا المحتوى.',
+      modDetailsStartBtn:'ابدأ الوحدة',
+      modDetailsContinueBtn:'واصل الوحدة',
+      lpSyncCreateFailed:'تعذّر الحفظ على الخادم. حاول مرة أخرى.',
+      lpSyncArchiveFailed:'تعذّر الأرشفة على الخادم. حاول مرة أخرى.',
+      lpSyncRestoreFailed:'تعذّرت الاستعادة من الخادم. حاول مرة أخرى.',
+      lpSyncProgressFailed:'تعذّرت مزامنة تقدّمك مع الخادم. حاول مرة أخرى.',
+      hintPercent:'اقسم على 100 ثم اضرب في العدد',
+      hintExponent:'اضرب العدد في نفسه بعدد مرات الأُس',
+      hintSqrt:'دوّر على عدد مضروب في نفسه يساوي الرقم',
+      hintNumberRecognition:'عدّ على أصابعك ببطء وأنت بتقول كل رقم',
+      cmdkPlaceholder:'اكتب أمرًا أو ابحث...',
+      cmdStartMission:'ابدأ تدريب اليوم',
+      explainBtn:'اشرحلي',
+      explainFailed:'حاول مرة أخرى',
+      abacusModeRead:'اقرأ الرقم',
+      abacusModeSet:'مثّل الرقم',
+      abacusSetTargetPrefix:'مثّل الرقم:',
+      abacusResetBtn:'🔄 صفّر الأباكوس',
+      startAssignmentBtn:'ابدأ الواجب الآن',
+      missionRecommendWeak:'ركّز اليوم على {op} — هتحسّن فيها بسرعة!',
+      missionStartBtn:'▶ ابدأ تدريب اليوم',
+      levelNotStarted:'لم تبدأ بعد',
+      levelPracticeBtn:'تدرّب',
+      placementIntroText:'اختبار قصير من 8 أسئلة يساعدنا نحدد أفضل نقطة بداية مناسبة لك. جاوب بأفضل ما تقدر — مفيش وقت محدد.',
+      placementStartBtn:'▶ ابدأ الاختبار',
+      cameraPermissionDenied:'تعذّر الوصول للكاميرا — تأكد من السماح لها من إعدادات المتصفح.',
+      usernameTaken:'اسم المستخدم مستخدم بالفعل، اختر اسمًا آخر',
+      enterBothFields:'أدخل اسم المستخدم وكلمة المرور',
+      themePickerTitle:'اختر المظهر المفضّل',
+      goToRegisterLink:'ليس لديك حساب؟ سجّل الآن',
+      registerNowBtn:'سجّل الآن',
+      notifWeakBucket:'ركّز اليوم على {op} — دقتك فيها {acc}%، تقدر تحسّنها! 💪',
+      raceWaitingTitle:'شارك هذا الكود مع صديقك',
+      raceWaitingBody:'بانتظار انضمامه... اترك الصفحة مفتوحة.',
+      raceJoinedTitle:'انضممت! جاري البدء...',
+      raceWaitingOpponent:'انتظر صديقك يخلّص الأسئلة...',
+      loginPromptTpl:'أدخل كلمة مرور {name}',
+      noCertsYet:'لم تُصدر أي شهادة بعد.',
+      placementApplyBtn:'▶ ابدأ بهذا المستوى',
+      raceJoinNote:'إعدادات السباق تُحدَّد بالكامل من ينشئه — فقط الصق الكود وانضم.',
+      raceOpponentWins:'🏆 فازت {name}! حاول مرة أخرى',
+      guestLimitBody:'استخدمت كل المحاولات المجانية كضيف. سجّل حسابًا للمتابعة والحصول على شهر مجاني كامل!',
+      accountDisabledBody:'تواصل مع صاحب التطبيق لإعادة تفعيل الحساب.',
+      handoffTitleTpl:'سلّم الجهاز لـ {name}',
+      pbNoPrograms:'لا توجد برامج بعد. أنشئ أول برنامج.'
     },
     en: {
       eyebrow:'Daily practice', title:'NEXORA',
@@ -3274,6 +3359,7 @@
       leaveRaceBtn:'🚩 Leave race', leaveRaceConfirm:"Are you sure you want to leave the race? Your friend will see immediately that you left, and she'll automatically win with the current score.",
       raceOpponentLeft:'🚩 {name} left the race — you win automatically!',
       usernameLabel:'Username (for login)', usernamePlaceholder:'username',
+      genderLabel:'Address me as', genderFemale:'Feminine (she/her)', genderMale:'Masculine (he/him)',
       passwordLabel:'Password', usernameLoginLink:'🔑 Log in with username & password',
       usernameTaken:'That username is already taken, pick another', 
       userNotFound:'No account found with that username', enterBothFields:'Enter both username and password',
@@ -3329,7 +3415,19 @@
 
   /* ==================== END MODULE: I18N ==================== */
 
-  function t(key){ return TRANSLATIONS[currentLang][key] ?? key; }
+  // Arabic grammatical gender agreement — only for the ~44 highest-visibility
+  // strings that actually contain a feminine verb/pronoun form (extracted
+  // by pattern-matching the real dictionary, not guessed). Anything not
+  // listed here silently falls back to the (complete) feminine dictionary —
+  // the historical default — so an unset/female profile behaves EXACTLY as
+  // before, zero regression.
+  let currentGender = 'female';
+  function t(key){
+    if(currentLang === 'ar' && currentGender === 'male' && TRANSLATIONS.ar_m && TRANSLATIONS.ar_m[key] !== undefined){
+      return TRANSLATIONS.ar_m[key];
+    }
+    return TRANSLATIONS[currentLang][key] ?? key;
+  }
   function fmt(key, vars){
     let s = t(key);
     Object.keys(vars || {}).forEach(k=>{ s = s.replace(`{${k}}`, vars[k]); });
@@ -3705,6 +3803,7 @@
     challengeMode = false;
     logSessionLogin(key);
     const p = PROFILES[key];
+    currentGender = p.gender === 'male' ? 'male' : 'female'; // unset/anything else defaults to the historical feminine forms — zero regression
     applyTheme(p.theme || 'chalkboard');
     applyProfileDefaults(key);
     settingsProfileHeader.classList.remove('hidden');
@@ -3933,6 +4032,7 @@
       editNameInput.value = profileDisplayName(key);
       editUsernameInput.value = p.username || '';
       editBirthDateInput.value = p.birthDate || '';
+      setGenderToggle(p.gender === 'male' ? 'male' : 'female');
       pinLabelEl.textContent = t('pinLabel');
       pinNoteEl.textContent = t('pinNoteEdit');
       removePinLink.classList.toggle('hidden', !p.pin);
@@ -3947,6 +4047,7 @@
       editNameInput.value = '';
       editUsernameInput.value = '';
       editBirthDateInput.value = '';
+      setGenderToggle('female'); // default — matches the app's historical baseline
       pinLabelEl.textContent = t('pinLabelRequired');
       pinNoteEl.textContent = t('pinNoteRequired');
       guardianMotherUser.value = ''; guardianFatherUser.value = '';
@@ -4081,7 +4182,7 @@
 
     if(key){
       const p = PROFILES[key];
-      p.avatar = avatar; p.color = colorHex; p.birthDate = birthDate;
+      p.avatar = avatar; p.color = colorHex; p.birthDate = birthDate; p.gender = editingGender;
       p.username = requestedUsername || p.username;
       if(clearPinFlag){ p.pin = ''; }
       else if(enteredPassword){ p.pin = await computePasswordHash(p.username || key, enteredPassword); }
@@ -4097,12 +4198,14 @@
       const hashedPin = enteredPassword ? await computePasswordHash(username, enteredPassword) : '';
       PROFILES[key] = freshProfile(null, avatar, colorHex,
         { op:'add', diff:'units', time:'15', len:'10', mode:'type' }, true, name, birthDate, hashedPin, null, username);
+      PROFILES[key].gender = editingGender;
       if(photoToSave) PROFILES[key].photo = photoToSave;
       profileOrder.push(key);
       startTrialForStudent(key); // registering a new (non-family) account starts this account's own 30-day trial
     }
 
     const p = PROFILES[key];
+    if(currentProfile === key) currentGender = editingGender === 'male' ? 'male' : 'female'; // reflect immediately if editing the active profile
     if(!p.guardians) p.guardians = { mother:null, father:null };
     if(clearMotherFlag){ p.guardians.mother = null; }
     else if(motherUser){
@@ -4543,6 +4646,7 @@
   function logSessionLogout(){
     if(loggedInKey && SHEET_API_URL) postToSheet('logout', { username: loggedInKey });
     loggedInKey = null;
+    currentGender = 'female'; // back to the default login-screen forms until a specific profile is active again
     logoutBtn.classList.add('hidden');
     clearCurrentSession();
   }
