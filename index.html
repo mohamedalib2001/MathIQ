@@ -1750,6 +1750,20 @@
   </div>
 
   <!-- MY PROFILE / ACHIEVEMENTS (student's own view) -->
+  <!-- FRIENDS — real server-backed friend list, invites, and requests.
+       Uses the existing Users sheet for identity; no new auth concept. -->
+  <div id="friendsScreen" class="panel hidden">
+    <div class="group-label" style="text-align:center;" data-i18n="friendsTitle">👫 أصدقائي</div>
+    <div class="pin-row" style="gap:8px; margin-bottom:10px;">
+      <input type="text" id="friendUsernameInput" placeholder="username" autocomplete="off" style="flex:1;">
+      <button class="secondary-btn" id="friendAddBtn" style="width:auto; padding:10px 16px;" data-i18n="friendAddBtn">إضافة</button>
+    </div>
+    <div class="feedback" id="friendsError" style="min-height:18px;"></div>
+    <div id="friendsIncomingArea"></div>
+    <div id="friendsListArea"></div>
+    <button class="secondary-btn" id="friendsBackBtn" data-i18n="closeBtn">إغلاق</button>
+  </div>
+
   <div id="myStatsScreen" class="panel hidden">
     <div class="profile-header">
       <div class="big-avatar" id="myStatsAvatar">👧</div>
@@ -2271,6 +2285,7 @@
     <div class="pin-row" style="justify-content:center; gap:16px; margin-bottom:10px;">
       <span class="switch-player" id="editMyProfileLink" data-i18n="editMyProfileLink">✏️ تعديل بياناتي</span>
       <span class="switch-player" id="myStatsLink" data-i18n="myStatsLink">🏅 إنجازاتي وسجلي</span>
+      <span class="switch-player" id="friendsLink" data-i18n="friendsLink">👫 أصدقائي</span>
     </div>
     <button class="advanced-settings-toggle" id="advancedSettingsToggle" aria-expanded="false" data-i18n="advancedSettingsToggle">⚙️ تدريب مخصّص / إعدادات متقدمة</button>
     <div id="advancedSettingsBody" class="hidden">
@@ -2543,6 +2558,14 @@
   const editMyProfileLink = document.getElementById('editMyProfileLink');
   const myStatsLink = document.getElementById('myStatsLink');
   const myStatsScreenEl = document.getElementById('myStatsScreen');
+  const friendsLink = document.getElementById('friendsLink');
+  const friendsScreen = document.getElementById('friendsScreen');
+  const friendUsernameInput = document.getElementById('friendUsernameInput');
+  const friendAddBtn = document.getElementById('friendAddBtn');
+  const friendsError = document.getElementById('friendsError');
+  const friendsIncomingArea = document.getElementById('friendsIncomingArea');
+  const friendsListArea = document.getElementById('friendsListArea');
+  const friendsBackBtn = document.getElementById('friendsBackBtn');
   const myStatsAvatar = document.getElementById('myStatsAvatar');
   const myStatsName = document.getElementById('myStatsName');
   const myStatsBestScore = document.getElementById('myStatsBestScore');
@@ -3456,6 +3479,16 @@
       parentBannerText:'👪 نتائج أبنائك فقط', teacherBannerText:'🏫 نتائج جميع الطلاب',
       noLinkedChildren:'لا يوجد أبناء مرتبطون بهذا الحساب بعد.',
       editMyProfileLink:'✏️ تعديل بياناتي', myStatsLink:'🏅 إنجازاتي وسجلي',
+      friendsLink:'👫 أصدقائي', friendsTitle:'👫 أصدقائي', friendAddBtn:'إضافة',
+      friendSending:'جارٍ الإرسال...', friendRequestSent:'✓ تم إرسال طلب الصداقة',
+      friendNotFound:'لا يوجد متعلّم بهذا الاسم.', friendAlreadyExists:'أنتما صديقان بالفعل أو هناك طلب معلَّق.',
+      friendSelfError:'لا يمكنكِ إضافة نفسك.', friendsIncomingLabel:'طلبات صداقة واردة',
+      friendsListLabel:'أصدقائي', friendsOutgoingLabel:'طلبات أرسلتِها (في انتظار الرد)',
+      friendsNone:'لا يوجد أصدقاء بعد. أضيفي صديقًا باسم المستخدم أعلاه!',
+      friendAcceptBtn:'قبول', friendDeclineBtn:'رفض', friendRemoveBtn:'إزالة',
+      friendRemoveConfirm:'هل تريدين إزالة هذا الصديق؟',
+      raceFullError:'هذا السباق ممتلئ بالفعل (لاعبان). جرّبي كودًا آخر أو أنشئي سباقًا جديدًا.',
+      raceJoinConnError:'تعذّر الاتصال بالخادم. تأكدي من الاتصال وحاولي مرة أخرى.',
       statTotalAnswered:'مجموع الأسئلة', myStatsOpBreakdown:'أداؤك حسب نوع العملية',
       myStatsMistakes:'آخر الأخطاء (للمراجعة)', myStatsCerts:'الشهادات المُصدرة', noCertsYet:'لم تُصدري أي شهادة بعد.',
       certOpenBtn:'فتح الشهادة (PDF)', certSavedToDrive:'تم حفظ الشهادة على Google Drive',
@@ -3858,6 +3891,16 @@
       parentBannerText:"👪 Your children's results only", teacherBannerText:"🏫 All students' results",
       noLinkedChildren:'No children are linked to this account yet.',
       editMyProfileLink:'✏️ Edit my info', myStatsLink:'🏅 My achievements & history',
+      friendsLink:'👫 My friends', friendsTitle:'👫 My friends', friendAddBtn:'Add',
+      friendSending:'Sending...', friendRequestSent:'✓ Friend request sent',
+      friendNotFound:'No learner with that username was found.', friendAlreadyExists:'You are already friends or a request is pending.',
+      friendSelfError:'You cannot add yourself.', friendsIncomingLabel:'Incoming friend requests',
+      friendsListLabel:'My friends', friendsOutgoingLabel:'Requests you sent (awaiting reply)',
+      friendsNone:'No friends yet. Add one by username above!',
+      friendAcceptBtn:'Accept', friendDeclineBtn:'Decline', friendRemoveBtn:'Remove',
+      friendRemoveConfirm:'Remove this friend?',
+      raceFullError:'This race is already full (two players). Try another code or create a new race.',
+      raceJoinConnError:'Could not reach the server. Check your connection and try again.',
       statTotalAnswered:'Total questions', myStatsOpBreakdown:'Your performance by operation',
       myStatsMistakes:'Recent mistakes (for review)', myStatsCerts:'Certificates issued', noCertsYet:"You haven't issued a certificate yet.",
       certOpenBtn:'Open certificate (PDF)', certSavedToDrive:'Certificate saved to Google Drive',
@@ -4435,6 +4478,7 @@
     programsHubEl.classList.add('hidden');
     mySkillsScreen.classList.add('hidden');
     myStatsScreenEl.classList.add('hidden');
+    friendsScreen.classList.add('hidden');
     profileEditorEl.classList.add('hidden');
     knowledgeMapEl.classList.add('hidden');
     programPlayerEl.classList.add('hidden');
@@ -10921,6 +10965,85 @@
     hideLearnerShellScreens();
     myStatsScreenEl.classList.remove('hidden');
   });
+  friendsLink.addEventListener('click', ()=>{
+    if(!currentProfile || !PROFILES[currentProfile]) return;
+    hideLearnerShellScreens();
+    friendsScreen.classList.remove('hidden');
+    friendUsernameInput.value = '';
+    friendsError.textContent = '';
+    renderFriends();
+  });
+  friendsBackBtn.addEventListener('click', ()=>{
+    friendsScreen.classList.add('hidden');
+    settingsEl.classList.remove('hidden');
+  });
+  friendAddBtn.addEventListener('click', async ()=>{
+    const toUsername = friendUsernameInput.value.trim();
+    if(!toUsername) return;
+    if(!SHEET_API_URL){ friendsError.className = 'feedback wrong'; friendsError.textContent = t('lpSeedNoBackend'); return; }
+    setBtnSaving(friendAddBtn, true, t('friendSending'));
+    const res = await postToSheet('send_friend_request', { fromUsername: currentProfile, toUsername });
+    setBtnSaving(friendAddBtn, false);
+    if(res && res.ok){
+      friendsError.className = 'feedback correct';
+      friendsError.textContent = t('friendRequestSent');
+      friendUsernameInput.value = '';
+      renderFriends();
+    } else {
+      friendsError.className = 'feedback wrong';
+      // Surface the real reason (not found / already friends / pending)
+      // rather than one generic failure message.
+      friendsError.textContent =
+        res && res.error === 'user_not_found' ? t('friendNotFound')
+        : res && res.error === 'already_exists' ? t('friendAlreadyExists')
+        : res && res.error === 'self_request' ? t('friendSelfError')
+        : describeSyncFailure(res, 'lpSyncCreateFailed');
+    }
+  });
+  async function renderFriends(){
+    friendsListArea.innerHTML = `<div class="dash-empty">${t('teachersLoading')}</div>`;
+    friendsIncomingArea.innerHTML = '';
+    if(!SHEET_API_URL){ friendsListArea.innerHTML = `<div class="dash-empty">${t('lpSeedNoBackend')}</div>`; return; }
+    const res = await postToSheet('list_friends', { username: currentProfile });
+    if(!res || !res.ok){
+      friendsListArea.innerHTML = `<div class="dash-empty">${describeSyncFailure(res, 'lpSyncCreateFailed')}</div>`;
+      return;
+    }
+    friendsIncomingArea.innerHTML = res.incoming.length
+      ? `<div class="group-label">${t('friendsIncomingLabel')}</div>` + res.incoming.map(f=>`
+          <div class="lp-row" style="cursor:default;">
+            <span>👤</span>
+            <div style="flex:1;"><div style="font-weight:700;">${f.name}</div><div style="font-size:11px; color:var(--ink-dim);">@${f.username}</div></div>
+            <button class="secondary-btn" data-accept="${f.username}" style="width:auto; padding:6px 12px; margin:0;">${t('friendAcceptBtn')}</button>
+            <button class="secondary-btn" data-decline="${f.username}" style="width:auto; padding:6px 12px; margin:0;">${t('friendDeclineBtn')}</button>
+          </div>`).join('')
+      : '';
+    friendsListArea.innerHTML = res.friends.length
+      ? `<div class="group-label">${t('friendsListLabel')}</div>` + res.friends.map(f=>`
+          <div class="lp-row" style="cursor:default;">
+            <span>👫</span>
+            <div style="flex:1;"><div style="font-weight:700;">${f.name}</div><div style="font-size:11px; color:var(--ink-dim);">@${f.username}</div></div>
+            <button class="secondary-btn" data-remove="${f.username}" style="width:auto; padding:6px 12px; margin:0;">${t('friendRemoveBtn')}</button>
+          </div>`).join('')
+      : `<div class="dash-empty">${t('friendsNone')}</div>`;
+    if(res.outgoing.length){
+      friendsListArea.innerHTML += `<div class="group-label">${t('friendsOutgoingLabel')}</div>` + res.outgoing.map(f=>`
+        <div class="lp-row" style="cursor:default; opacity:0.7;"><span>⏳</span><span>@${f.username}</span></div>`).join('');
+    }
+    friendsScreen.querySelectorAll('[data-accept]').forEach(b=> b.addEventListener('click', async ()=>{
+      await postToSheet('respond_friend_request', { username: currentProfile, fromUsername: b.dataset.accept, accept: true });
+      renderFriends();
+    }));
+    friendsScreen.querySelectorAll('[data-decline]').forEach(b=> b.addEventListener('click', async ()=>{
+      await postToSheet('respond_friend_request', { username: currentProfile, fromUsername: b.dataset.decline, accept: false });
+      renderFriends();
+    }));
+    friendsScreen.querySelectorAll('[data-remove]').forEach(b=> b.addEventListener('click', async ()=>{
+      if(!window.confirm(t('friendRemoveConfirm'))) return;
+      await postToSheet('remove_friend', { username: currentProfile, otherUsername: b.dataset.remove });
+      renderFriends();
+    }));
+  }
   closeMyStatsBtn.addEventListener('click', ()=>{
     myStatsScreenEl.classList.add('hidden');
     settingsEl.classList.remove('hidden');
@@ -10986,7 +11109,16 @@
     joinRaceBtn.disabled = true;
     postToSheet('join_race', { code, username: currentProfile, name: profileDisplayName(currentProfile) }).then(res=>{
       joinRaceBtn.disabled = false;
-      if(!res || !res.ok){ raceLobbyError.textContent = t('raceCodeInvalid'); return; }
+      if(!res || !res.ok){
+        // Distinguish the real reasons instead of blaming the code for
+        // everything — a full race and a wrong code are different problems
+        // with different fixes for the learner.
+        raceLobbyError.textContent =
+          res && res.error === 'race_full' ? t('raceFullError')
+          : res === null ? t('raceJoinConnError')
+          : t('raceCodeInvalid');
+        return;
+      }
       raceCode = code;
       raceProblems = res.problems;
       raceOpponentUsername = res.opponentUsername;
