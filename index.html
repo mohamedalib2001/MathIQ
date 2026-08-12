@@ -2780,7 +2780,7 @@
   }
 
   /* ---------- persistent login session (stay signed in like a real app) ---------- */
-  const SESSION_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes idle — a reasonable "educational session" default
+  const SESSION_TIMEOUT_MS = 60 * 60 * 1000; // 60 minutes idle — matches a full class/session length so genuine reading/thinking time (no clicks) never gets mistaken for abandonment
   function saveCurrentSession(key){
     try{
       if(key && key !== 'guest'){
