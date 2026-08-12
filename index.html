@@ -64,6 +64,24 @@
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
 
+  /* Forgot password/username — honest-guidance modal, no fake self-service flow. */
+  #forgotAccountModal{
+    position:fixed; inset:0; z-index:19500; display:flex; align-items:center; justify-content:center;
+    background:rgba(11,18,32,0.55); backdrop-filter:blur(3px); padding:20px;
+  }
+  .forgot-account-card{
+    position:relative; background:var(--bg); border:1.5px solid var(--input-border); border-radius:18px;
+    box-shadow:var(--card-shadow); max-width:380px; width:100%; padding:26px 22px; max-height:85vh; overflow-y:auto;
+  }
+  .forgot-account-close{
+    position:absolute; top:12px; inset-inline-end:12px; background:none; border:none; color:var(--ink-dim);
+    font-size:14px; cursor:pointer; padding:4px;
+  }
+  .forgot-account-title{ font-family:'Cairo',sans-serif; font-weight:800; font-size:15px; color:var(--ink); margin-bottom:16px; text-align:center; }
+  .forgot-account-section{ margin-bottom:14px; }
+  .forgot-account-subtitle{ font-weight:700; font-size:12.5px; color:var(--ink); margin-bottom:4px; }
+  .forgot-account-text{ font-size:11.5px; color:var(--ink-dim); line-height:1.7; }
+
   /* Session expiry warning — a calm, dismissible overlay (not a full-screen
      block like the boot/login transitions), since this appears mid-session
      and should feel like a gentle prompt, not an interruption. */
@@ -760,6 +778,7 @@
   .profile-card .avatar{ width:64px; height:64px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:32px; margin-bottom:6px; }
   .p-name{ font-family:'Cairo', sans-serif; font-weight:800; font-size:18px; }
   .p-age{ font-size:12.5px; color:var(--ink-dim); }
+  .p-username{ font-size:10.5px; color:var(--ink-dim); direction:ltr; opacity:0.75; }
   .p-best{ font-size:11.5px; color:var(--yellow); margin-top:4px; }
   .edit-fab{
     position:absolute; top:8px; inset-inline-end:8px; width:26px; height:26px; border-radius:50%;
@@ -798,6 +817,10 @@
   .toggle-disable-btn{
     width:100%; margin-top:6px; font-size:11px; padding:6px; border-radius:6px; border:1.5px solid var(--chip-border);
     background:transparent; color:var(--ink-dim); cursor:pointer;
+  }
+  .delete-profile-btn{
+    width:100%; margin-top:6px; font-size:11px; padding:6px; border-radius:6px; border:1.5px solid rgba(239,68,68,0.3);
+    background:transparent; color:#EF4444; cursor:pointer;
   }
   .admin-tools-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:8px; }
   .admin-tool-tile{
@@ -1297,6 +1320,36 @@
      shown only during the real async login work (password verification,
      and for the remote-login path, the network round-trip). Never a fake
      delay: hidden the moment the outcome (success/failure) is known. -->
+<!-- Forgot password / forgot username — honest guidance only. This app has
+     no email/SMS system, so there's no real self-service reset; the actual
+     working recovery path is the account owner (teacher/admin) looking the
+     student up and resetting them via the existing admin profile editor. -->
+<div id="forgotAccountModal" class="hidden" role="dialog" aria-modal="true">
+  <div class="forgot-account-card">
+    <button class="forgot-account-close" id="forgotAccountCloseBtn" aria-label="إغلاق">✕</button>
+    <div class="forgot-account-title" data-i18n="forgotAccountTitle">نسيت كلمة المرور أو اسم المستخدم؟</div>
+    <div class="forgot-account-section">
+      <div class="forgot-account-subtitle" data-i18n="forgotPasswordSectionTitle">نسيت كلمة المرور</div>
+      <div class="forgot-account-text" data-i18n="forgotAccountStudentText">
+        تطبيق نِكسورا لا يرسل رسائل استعادة تلقائيًا. تواصلي مع معلّمتكِ أو ولي أمركِ (صاحب/ة الحساب) — يقدر/تقدر يشوف/تشوف حسابك ويغيّر كلمة المرور من لوحة "إدارة الحسابات".
+      </div>
+    </div>
+    <div class="forgot-account-section">
+      <div class="forgot-account-subtitle" data-i18n="forgotUsernameSectionTitle">نسيت اسم المستخدم</div>
+      <div class="forgot-account-text" data-i18n="forgotUsernameText">
+        اطلبي من معلّمتكِ أو ولي أمركِ فتح "إدارة الحسابات" — اسم المستخدم بتاعك ظاهر تحت اسمك في كل بطاقة.
+      </div>
+    </div>
+    <div class="forgot-account-section">
+      <div class="forgot-account-subtitle" data-i18n="forgotAccountOwnerTitle">أنتِ صاحبة التطبيق ونسيتِ حساب الإدارة؟</div>
+      <div class="forgot-account-text" data-i18n="forgotAccountOwnerText">
+        حساب الإدارة محفوظ محليًا على هذا الجهاز فقط، وليس له استعادة تلقائية. لو فقدتِه فعلًا، الخيار الوحيد هو مسح بيانات الموقع من إعدادات المتصفح لهذا الرابط، ثم تسجيل حساب إدارة جديد — علمًا بأن هذا لن يمسح بيانات الطلاب المخزّنة، لكنه سيفصلك عن هوية الإدارة القديمة.
+      </div>
+    </div>
+    <button class="start-btn" id="forgotAccountOkBtn" data-i18n="forgotAccountOkBtn">فهمت</button>
+  </div>
+</div>
+
 <div id="loginTransitionScreen" class="boot-screen hidden" role="status" aria-live="polite">
   <div class="boot-visual" id="loginTransitionGraphWrap" aria-hidden="true">
     <svg viewBox="0 0 200 200" class="boot-graph">
@@ -2965,6 +3018,13 @@
       topbarIdentityStatsTpl:'{badges} · {mastered}/{total} مستوى',
       loginBrandDesc:'منصة تعليمية ذكية تجمع التعلّم والتقييم والمهارات والتحليلات في تجربة واحدة.',
       forgotPasswordLink:'نسيت كلمة المرور؟', forgotPasswordMsg:'تواصلي مع معلّمتكِ أو ولي أمركِ لإعادة تعيين كلمة المرور.',
+      forgotAccountTitle:'نسيت كلمة المرور أو اسم المستخدم؟', forgotPasswordSectionTitle:'نسيت كلمة المرور',
+      forgotAccountStudentText:'تطبيق نِكسورا لا يرسل رسائل استعادة تلقائيًا. تواصلي مع معلّمتكِ أو ولي أمركِ (صاحب/ة الحساب) — يقدر/تقدر يشوف/تشوف حسابك ويغيّر كلمة المرور من لوحة "إدارة الحسابات".',
+      forgotUsernameSectionTitle:'نسيت اسم المستخدم',
+      forgotUsernameText:'اطلبي من معلّمتكِ أو ولي أمركِ فتح "إدارة الحسابات" — اسم المستخدم بتاعك ظاهر تحت اسمك في كل بطاقة.',
+      forgotAccountOwnerTitle:'أنتِ صاحبة التطبيق ونسيتِ حساب الإدارة؟',
+      forgotAccountOwnerText:'حساب الإدارة محفوظ محليًا على هذا الجهاز فقط، وليس له استعادة تلقائية. لو فقدتِه فعلًا، الخيار الوحيد هو مسح بيانات الموقع من إعدادات المتصفح لهذا الرابط، ثم تسجيل حساب إدارة جديد — علمًا بأن هذا لن يمسح بيانات الطلاب المخزّنة، لكنه سيفصلك عن هوية الإدارة القديمة.',
+      forgotAccountOkBtn:'فهمت', deleteProfileBtn:'حذف الحساب', deleteProfileConfirm:'هل تريدين حذف حساب {name} نهائيًا من هذا الجهاز؟ لن يمكن التراجع.',
       footerPrivacy:'الخصوصية', footerTerms:'الشروط', footerHelp:'المساعدة',
       shellNavProgramBuilder:'بناء البرامج', pbTitle:'🎓 بناء البرامج التعليمية', ppTitle:'📘 البرنامج التعليمي',
       pbBreadcrumbPrograms:'برامجي', pbNoPrograms:'لا توجد برامج بعد. أنشئي أول برنامج.', pbCourseCount:'{n} دورة',
@@ -3292,6 +3352,13 @@
       topbarIdentityStatsTpl:'{badges} · {mastered}/{total} levels',
       loginBrandDesc:'An intelligent education platform bringing learning, assessment, skills and analytics into one experience.',
       forgotPasswordLink:'Forgot password?', forgotPasswordMsg:'Contact your teacher or guardian to reset your password.',
+      forgotAccountTitle:'Forgot your password or username?', forgotPasswordSectionTitle:'Forgot password',
+      forgotAccountStudentText:'NEXORA does not send automatic recovery messages. Contact your teacher or guardian (the account owner) — they can look up your account and change your password from "Manage Accounts".',
+      forgotUsernameSectionTitle:'Forgot username',
+      forgotUsernameText:'Ask your teacher or guardian to open "Manage Accounts" — your username is shown under your name on each card.',
+      forgotAccountOwnerTitle:'Are you the app owner and forgot the admin account?',
+      forgotAccountOwnerText:"The admin account is stored locally on this device only, with no automatic recovery. If it's truly lost, the only option is clearing this site's data in your browser settings, then registering a new admin account — this won't erase stored student data, but it will disconnect you from the old admin identity.",
+      forgotAccountOkBtn:'Got it', deleteProfileBtn:'Delete account', deleteProfileConfirm:'Permanently delete {name}\'s account from this device? This cannot be undone.',
       footerPrivacy:'Privacy', footerTerms:'Terms', footerHelp:'Help',
       shellNavProgramBuilder:'Program Builder', pbTitle:'🎓 Program Builder', ppTitle:'📘 Learning Program',
       pbBreadcrumbPrograms:'My Programs', pbNoPrograms:'No programs yet. Create your first program.', pbCourseCount:'{n} courses',
@@ -3800,18 +3867,20 @@
           <button class="grant-sub-btn" data-grant="${key}">${t('grantSubBtn')}</button>
         </div>
         <button class="toggle-disable-btn" data-toggle="${key}">${p.disabled ? t('enableAccountBtn') : t('disableAccountBtn')}</button>
+        <button class="delete-profile-btn" data-delete="${key}">${t('deleteProfileBtn')}</button>
       ` : '';
       card.innerHTML = `
         <button class="edit-fab" data-edit="${key}" title="${t('editProfile')}">✏️</button>
         <div class="avatar" id="cardAvatar_${key}" style="background:${hexToSoftBg(p.color)};"></div>
         <div class="p-name">${profileDisplayName(key)}</div>
+        ${p.username ? `<div class="p-username">@${p.username}</div>` : ''}
         <div class="p-age">${age}</div>
         <div class="p-best">${bestLine(p.best.score)}</div>
         ${statusBadgeHtml(key)}
         ${grantFormHtml}
       `;
       card.addEventListener('click', (e)=>{
-        if(e.target.closest('.edit-fab, .grant-sub-row, .toggle-disable-btn')) return;
+        if(e.target.closest('.edit-fab, .grant-sub-row, .toggle-disable-btn, .delete-profile-btn')) return;
         if(!checkStudentAccessGate(key)) return;
         requireLogin(key, ()=> selectProfileAndGoToSettings(key));
       });
@@ -3824,6 +3893,17 @@
         toggleBtn.addEventListener('click', (e)=>{
           e.stopPropagation();
           p.disabled = !p.disabled;
+          saveProfilesToStorage();
+          renderProfiles();
+        });
+      }
+      const deleteBtn = card.querySelector('.delete-profile-btn');
+      if(deleteBtn){
+        deleteBtn.addEventListener('click', (e)=>{
+          e.stopPropagation();
+          if(!window.confirm(fmt('deleteProfileConfirm', { name: profileDisplayName(key) }))) return;
+          delete PROFILES[key];
+          profileOrder = profileOrder.filter(k => k !== key);
           saveProfilesToStorage();
           renderProfiles();
         });
@@ -4619,6 +4699,9 @@
     if(loginBtnSpinner) loginBtnSpinner.classList.toggle('hidden', !loading);
   }
   const loginTransitionScreen = document.getElementById('loginTransitionScreen');
+  const forgotAccountModal = document.getElementById('forgotAccountModal');
+  const forgotAccountCloseBtn = document.getElementById('forgotAccountCloseBtn');
+  const forgotAccountOkBtn = document.getElementById('forgotAccountOkBtn');
   const sessionWarningModal = document.getElementById('sessionWarningModal');
   const sessionWarningCountdown = document.getElementById('sessionWarningCountdown');
   const sessionExtendBtn = document.getElementById('sessionExtendBtn');
@@ -4785,8 +4868,10 @@
     ulPwToggle.setAttribute('aria-label', t(showing ? 'pwToggleAria' : 'pwToggleAriaHide'));
   });
   forgotPasswordLink.addEventListener('click', ()=>{
-    ulError.textContent = t('forgotPasswordMsg');
+    forgotAccountModal.classList.remove('hidden');
   });
+  forgotAccountCloseBtn.addEventListener('click', ()=> forgotAccountModal.classList.add('hidden'));
+  forgotAccountOkBtn.addEventListener('click', ()=> forgotAccountModal.classList.add('hidden'));
   function logSessionLogout(){
     if(loggedInKey && SHEET_API_URL) postToSheet('logout', { username: loggedInKey });
     loggedInKey = null;
