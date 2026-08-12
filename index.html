@@ -4853,6 +4853,11 @@
     raceLobbyEl.classList.add('hidden');
     raceWaitingEl.classList.add('hidden');
     raceResultScreenEl.classList.add('hidden');
+    // Screens added in later sprints must be listed here too — otherwise
+    // they stay visible on top of the login screen after logout.
+    friendsScreen.classList.add('hidden');
+    teachersListScreen.classList.add('hidden');
+    teacherOverviewScreen.classList.add('hidden');
   }
   // Admin/management view — visible profile cards, only reached via the
   // "🛠️ إدارة الحسابات" link, never the app's default entry point.
@@ -11276,7 +11281,7 @@
     if(!toUsername) return;
     if(!SHEET_API_URL){ friendsError.className = 'feedback wrong'; friendsError.textContent = t('lpSeedNoBackend'); return; }
     setBtnSaving(friendAddBtn, true, t('friendSending'));
-    const res = await postToSheet('send_friend_request', { fromUsername: currentServerUsername(), toUsername });
+    const res = await postToSheet('send_friend_request', { fromUsername: currentServerUsername(), toUsername, fromName: profileDisplayName(currentProfile) });
     setBtnSaving(friendAddBtn, false);
     if(res && res.ok){
       friendsError.className = 'feedback correct';
