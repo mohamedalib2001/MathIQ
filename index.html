@@ -81,6 +81,7 @@
   .forgot-account-section{ margin-bottom:14px; }
   .forgot-account-subtitle{ font-weight:700; font-size:12.5px; color:var(--ink); margin-bottom:4px; }
   .forgot-account-text{ font-size:11.5px; color:var(--ink-dim); line-height:1.7; }
+  .forgot-account-success{ font-size:11.5px; color:#10B981; line-height:1.6; background:rgba(16,185,129,0.1); border-radius:8px; padding:10px; margin-top:8px; }
 
   /* Session expiry warning — a calm, dismissible overlay (not a full-screen
      block like the boot/login transitions), since this appears mid-session
@@ -1327,18 +1328,41 @@
 <div id="forgotAccountModal" class="hidden" role="dialog" aria-modal="true">
   <div class="forgot-account-card">
     <button class="forgot-account-close" id="forgotAccountCloseBtn" aria-label="إغلاق">✕</button>
-    <div class="forgot-account-title" data-i18n="forgotAccountTitle">نسيت كلمة المرور أو اسم المستخدم؟</div>
+    <div class="forgot-account-title" data-i18n="forgotAccountTitle">نسيت كلمة المرور؟</div>
     <div class="forgot-account-section">
-      <div class="forgot-account-subtitle" data-i18n="forgotPasswordSectionTitle">نسيت كلمة المرور</div>
-      <div class="forgot-account-text" data-i18n="forgotAccountStudentText">
-        تطبيق نِكسورا لا يرسل رسائل استعادة تلقائيًا. تواصلي مع معلّمتكِ أو ولي أمركِ (صاحب/ة الحساب) — يقدر/تقدر يشوف/تشوف حسابك ويغيّر كلمة المرور من لوحة "إدارة الحسابات".
+      <div class="forgot-account-text" data-i18n="forgotAccountEmailIntro">
+        أدخلي اسم المستخدم بتاعك، وهنبعتلك رابط لتعيين كلمة مرور جديدة على بريدك الإلكتروني المسجَّل (لو موجود).
       </div>
+      <div class="field-icon-wrap" style="margin-top:10px;">
+        <span class="field-icon"><svg class="nx-icon" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/></svg></span>
+        <input type="text" id="forgotUsernameInput" class="ltr-input" data-i18n-placeholder="usernamePlaceholder" placeholder="username">
+      </div>
+      <div class="feedback wrong" id="forgotAccountError" style="min-height:16px;" aria-live="polite"></div>
+      <div class="forgot-account-success hidden" id="forgotAccountSuccess" data-i18n="forgotAccountSuccessMsg">
+        لو الحساب موجود وله بريد إلكتروني مسجَّل، وصله رابط إعادة تعيين كلمة المرور الآن. راجعي بريدك (وصندوق الرسائل غير المرغوبة أيضًا).
+      </div>
+      <button class="start-btn" id="forgotAccountSendBtn" data-i18n="forgotAccountSendBtn">
+        <span class="login-btn-label" data-i18n="forgotAccountSendBtn">إرسال رابط الاستعادة</span>
+        <span class="login-btn-spinner hidden" id="forgotAccountSendSpinner"><svg class="nx-icon nx-spin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-dasharray="42" stroke-dashoffset="14"/></svg></span>
+      </button>
     </div>
-    <div class="forgot-account-section">
+    <div class="forgot-account-section" style="margin-top:16px; padding-top:14px; border-top:1px solid var(--chip-border);">
       <div class="forgot-account-subtitle" data-i18n="forgotUsernameSectionTitle">نسيت اسم المستخدم</div>
-      <div class="forgot-account-text" data-i18n="forgotUsernameText">
-        اطلبي من معلّمتكِ أو ولي أمركِ فتح "إدارة الحسابات" — اسم المستخدم بتاعك ظاهر تحت اسمك في كل بطاقة.
+      <div class="forgot-account-text" data-i18n="forgotUsernameEmailIntro">
+        أدخلي بريدك الإلكتروني المسجَّل، وهنبعتلك كل أسماء المستخدمين المرتبطة بيه (لو عندك أكتر من طفل بنفس البريد، هتوصلك كلها).
       </div>
+      <div class="field-icon-wrap" style="margin-top:10px;">
+        <span class="field-icon"><svg class="nx-icon" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg></span>
+        <input type="email" id="forgotEmailInput" class="ltr-input" data-i18n-placeholder="emailPlaceholder" placeholder="email@example.com">
+      </div>
+      <div class="feedback wrong" id="forgotUsernameError" style="min-height:16px;" aria-live="polite"></div>
+      <div class="forgot-account-success hidden" id="forgotUsernameSuccess" data-i18n="forgotUsernameSuccessMsg">
+        لو البريد ده مسجَّل، وصلك بريد فيه كل أسماء المستخدمين المرتبطة بيه. راجعي بريدك (وصندوق الرسائل غير المرغوبة أيضًا).
+      </div>
+      <button class="start-btn" id="forgotUsernameSendBtn" data-i18n="forgotUsernameSendBtn">
+        <span class="login-btn-label" data-i18n="forgotUsernameSendBtn">إرسال أسماء المستخدمين</span>
+        <span class="login-btn-spinner hidden" id="forgotUsernameSendSpinner"><svg class="nx-icon nx-spin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-dasharray="42" stroke-dashoffset="14"/></svg></span>
+      </button>
     </div>
     <div class="forgot-account-section">
       <div class="forgot-account-subtitle" data-i18n="forgotAccountOwnerTitle">أنتِ صاحبة التطبيق ونسيتِ حساب الإدارة؟</div>
@@ -1346,7 +1370,29 @@
         حساب الإدارة محفوظ محليًا على هذا الجهاز فقط، وليس له استعادة تلقائية. لو فقدتِه فعلًا، الخيار الوحيد هو مسح بيانات الموقع من إعدادات المتصفح لهذا الرابط، ثم تسجيل حساب إدارة جديد — علمًا بأن هذا لن يمسح بيانات الطلاب المخزّنة، لكنه سيفصلك عن هوية الإدارة القديمة.
       </div>
     </div>
-    <button class="start-btn" id="forgotAccountOkBtn" data-i18n="forgotAccountOkBtn">فهمت</button>
+  </div>
+</div>
+
+<!-- Password reset landing screen — shown instead of the normal boot flow
+     when the page loads with a ?resetToken= URL parameter (from the emailed link). -->
+<div id="resetPasswordScreen" class="hidden">
+  <div class="mini-editor" style="max-width:380px; margin:60px auto;">
+    <div class="group-label" style="text-align:center;" id="resetPasswordTitle" data-i18n="resetPasswordTitle">تعيين كلمة مرور جديدة</div>
+    <div id="resetPasswordValidating" data-i18n="resetPasswordValidating" style="text-align:center; font-size:12.5px; color:var(--ink-dim);">جارٍ التحقق من الرابط...</div>
+    <div id="resetPasswordInvalid" class="hidden feedback wrong" style="text-align:center;" data-i18n="resetPasswordInvalidMsg">هذا الرابط غير صالح أو انتهت صلاحيته. اطلبي رابطًا جديدًا من شاشة الدخول.</div>
+    <div id="resetPasswordForm" class="hidden">
+      <div class="forgot-account-text" id="resetPasswordForUser" style="text-align:center; margin-bottom:10px;"></div>
+      <div class="field-icon-wrap">
+        <span class="field-icon"><svg class="nx-icon" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+        <input type="password" id="resetPasswordNewInput" class="ltr-input" data-i18n-placeholder="pinPlaceholder" placeholder="كلمة المرور الجديدة">
+      </div>
+      <div class="feedback wrong" id="resetPasswordError" style="min-height:18px;" aria-live="polite"></div>
+      <button class="start-btn" id="resetPasswordSubmitBtn" data-i18n="resetPasswordSubmitBtn">تعيين كلمة المرور</button>
+    </div>
+    <div id="resetPasswordDone" class="hidden" style="text-align:center;">
+      <div class="feedback correct" data-i18n="resetPasswordDoneMsg">تم تعيين كلمة المرور الجديدة بنجاح!</div>
+      <button class="start-btn" id="resetPasswordGoToLoginBtn" data-i18n="resetPasswordGoToLoginBtn" style="margin-top:10px;">الذهاب لتسجيل الدخول</button>
+    </div>
   </div>
 </div>
 
@@ -1922,6 +1968,10 @@
       <div>
         <div class="group-label" data-i18n="usernameLabel">اسم المستخدم (لتسجيل الدخول)</div>
         <input type="text" id="editUsername" data-i18n-placeholder="usernamePlaceholder" placeholder="username" style="direction:ltr; text-align:left;">
+      </div>
+      <div>
+        <div class="group-label" data-i18n="emailLabel">البريد الإلكتروني (لاستعادة كلمة المرور)</div>
+        <input type="email" id="editEmail" class="ltr-input" data-i18n-placeholder="emailPlaceholder" placeholder="email@example.com">
       </div>
       <div class="feedback wrong" id="editorError" style="min-height:16px;"></div>
       <div>
@@ -2575,6 +2625,7 @@
   genderFemaleBtn.addEventListener('click', ()=> setGenderToggle('female'));
   genderMaleBtn.addEventListener('click', ()=> setGenderToggle('male'));
   const editUsernameInput = document.getElementById('editUsername');
+  const editEmailInput = document.getElementById('editEmail');
   const editorError = document.getElementById('editorError');
   const editBirthDateInput = document.getElementById('editBirthDate');
   const editPinInput = document.getElementById('editPin');
@@ -2677,7 +2728,9 @@
   function freshProfile(nameKey, avatar, color, defaults, isCustom, customName, birthDate, pin, theme, username){
     return {
       nameKey, customName: customName || null, avatar, color, photo:null, birthDate: birthDate || null, pin: pin || '',
-      theme: theme || 'chalkboard', username: username || null, gender: null, // null = unset, defaults to feminine forms (historical default)
+      theme: theme || 'chalkboard', username: username || null,
+      gender: null, // null = unset, defaults to feminine forms (historical default)
+      email: null, // used only for the password-reset-by-email flow — optional
       guardians: { mother: null, father: null }, // { username, pin(hash) } | null — up to one per parent
       defaults,
       best:{ score:0, streak:0 },
@@ -3021,10 +3074,23 @@
       forgotAccountTitle:'نسيت كلمة المرور أو اسم المستخدم؟', forgotPasswordSectionTitle:'نسيت كلمة المرور',
       forgotAccountStudentText:'تطبيق نِكسورا لا يرسل رسائل استعادة تلقائيًا. تواصلي مع معلّمتكِ أو ولي أمركِ (صاحب/ة الحساب) — يقدر/تقدر يشوف/تشوف حسابك ويغيّر كلمة المرور من لوحة "إدارة الحسابات".',
       forgotUsernameSectionTitle:'نسيت اسم المستخدم',
-      forgotUsernameText:'اطلبي من معلّمتكِ أو ولي أمركِ فتح "إدارة الحسابات" — اسم المستخدم بتاعك ظاهر تحت اسمك في كل بطاقة.',
+      forgotUsernameEmailIntro:'أدخلي بريدك الإلكتروني المسجَّل، وهنبعتلك كل أسماء المستخدمين المرتبطة بيه (لو عندك أكتر من طفل بنفس البريد، هتوصلك كلها).',
+      forgotUsernameSuccessMsg:'لو البريد ده مسجَّل، وصلك بريد فيه كل أسماء المستخدمين المرتبطة بيه. راجعي بريدك (وصندوق الرسائل غير المرغوبة أيضًا).',
+      forgotUsernameSendBtn:'إرسال أسماء المستخدمين', enterEmailOnly:'أدخلي البريد الإلكتروني أولًا',
       forgotAccountOwnerTitle:'أنتِ صاحبة التطبيق ونسيتِ حساب الإدارة؟',
       forgotAccountOwnerText:'حساب الإدارة محفوظ محليًا على هذا الجهاز فقط، وليس له استعادة تلقائية. لو فقدتِه فعلًا، الخيار الوحيد هو مسح بيانات الموقع من إعدادات المتصفح لهذا الرابط، ثم تسجيل حساب إدارة جديد — علمًا بأن هذا لن يمسح بيانات الطلاب المخزّنة، لكنه سيفصلك عن هوية الإدارة القديمة.',
       forgotAccountOkBtn:'فهمت', deleteProfileBtn:'حذف الحساب', deleteProfileConfirm:'هل تريدين حذف حساب {name} نهائيًا من هذا الجهاز؟ لن يمكن التراجع.',
+      emailLabel:'البريد الإلكتروني (لاستعادة كلمة المرور)', emailPlaceholder:'email@example.com',
+      forgotAccountEmailIntro:'أدخلي اسم المستخدم بتاعك، وهنبعتلك رابط لتعيين كلمة مرور جديدة على بريدك الإلكتروني المسجَّل (لو موجود).',
+      forgotAccountSuccessMsg:'لو الحساب موجود وله بريد إلكتروني مسجَّل، وصله رابط إعادة تعيين كلمة المرور الآن. راجعي بريدك (وصندوق الرسائل غير المرغوبة أيضًا).',
+      forgotAccountSendBtn:'إرسال رابط الاستعادة', forgotAccountRequestFailed:'تعذّر إرسال الطلب. تأكدي من الاتصال وحاولي مرة أخرى.',
+      forgotAccountNoBackend:'الخدمة غير متاحة حاليًا في هذا الإعداد.', enterUsernameOnly:'أدخلي اسم المستخدم أولًا',
+      resetPasswordTitle:'تعيين كلمة مرور جديدة', resetPasswordValidating:'جارٍ التحقق من الرابط...',
+      resetPasswordInvalidMsg:'هذا الرابط غير صالح أو انتهت صلاحيته. اطلبي رابطًا جديدًا من شاشة الدخول.',
+      resetPasswordForUserTpl:'تعيين كلمة مرور جديدة لحساب: {username}',
+      resetPasswordSubmitBtn:'تعيين كلمة المرور', resetPasswordTooShort:'كلمة المرور قصيرة جدًا (4 أحرف على الأقل)',
+      resetPasswordFailed:'تعذّر تعيين كلمة المرور. حاولي مرة أخرى.', resetPasswordDoneMsg:'تم تعيين كلمة المرور الجديدة بنجاح!',
+      resetPasswordGoToLoginBtn:'الذهاب لتسجيل الدخول',
       footerPrivacy:'الخصوصية', footerTerms:'الشروط', footerHelp:'المساعدة',
       shellNavProgramBuilder:'بناء البرامج', pbTitle:'🎓 بناء البرامج التعليمية', ppTitle:'📘 البرنامج التعليمي',
       pbBreadcrumbPrograms:'برامجي', pbNoPrograms:'لا توجد برامج بعد. أنشئي أول برنامج.', pbCourseCount:'{n} دورة',
@@ -3355,10 +3421,23 @@
       forgotAccountTitle:'Forgot your password or username?', forgotPasswordSectionTitle:'Forgot password',
       forgotAccountStudentText:'NEXORA does not send automatic recovery messages. Contact your teacher or guardian (the account owner) — they can look up your account and change your password from "Manage Accounts".',
       forgotUsernameSectionTitle:'Forgot username',
-      forgotUsernameText:'Ask your teacher or guardian to open "Manage Accounts" — your username is shown under your name on each card.',
+      forgotUsernameEmailIntro:"Enter your registered email and we'll send all usernames linked to it (if you have more than one child on the same email, you'll get all of them).",
+      forgotUsernameSuccessMsg:"If that email is on file, a message with all linked usernames was just sent. Check your inbox (and spam folder).",
+      forgotUsernameSendBtn:'Send usernames', enterEmailOnly:'Enter your email first',
       forgotAccountOwnerTitle:'Are you the app owner and forgot the admin account?',
       forgotAccountOwnerText:"The admin account is stored locally on this device only, with no automatic recovery. If it's truly lost, the only option is clearing this site's data in your browser settings, then registering a new admin account — this won't erase stored student data, but it will disconnect you from the old admin identity.",
       forgotAccountOkBtn:'Got it', deleteProfileBtn:'Delete account', deleteProfileConfirm:'Permanently delete {name}\'s account from this device? This cannot be undone.',
+      emailLabel:'Email (for password recovery)', emailPlaceholder:'email@example.com',
+      forgotAccountEmailIntro:"Enter your username and we'll email a password reset link to your registered address (if one is on file).",
+      forgotAccountSuccessMsg:'If the account exists and has an email on file, a reset link was just sent. Check your inbox (and spam folder).',
+      forgotAccountSendBtn:'Send reset link', forgotAccountRequestFailed:'Could not send the request. Check your connection and try again.',
+      forgotAccountNoBackend:'This service is not available in the current setup.', enterUsernameOnly:'Enter your username first',
+      resetPasswordTitle:'Set a new password', resetPasswordValidating:'Checking the link...',
+      resetPasswordInvalidMsg:'This link is invalid or has expired. Request a new one from the login screen.',
+      resetPasswordForUserTpl:'Setting a new password for: {username}',
+      resetPasswordSubmitBtn:'Set password', resetPasswordTooShort:'Password is too short (at least 4 characters)',
+      resetPasswordFailed:'Could not set the new password. Please try again.', resetPasswordDoneMsg:'Your new password has been set successfully!',
+      resetPasswordGoToLoginBtn:'Go to login',
       footerPrivacy:'Privacy', footerTerms:'Terms', footerHelp:'Help',
       shellNavProgramBuilder:'Program Builder', pbTitle:'🎓 Program Builder', ppTitle:'📘 Learning Program',
       pbBreadcrumbPrograms:'My Programs', pbNoPrograms:'No programs yet. Create your first program.', pbCourseCount:'{n} courses',
@@ -4225,6 +4304,7 @@
       const p = PROFILES[key];
       editNameInput.value = profileDisplayName(key);
       editUsernameInput.value = p.username || '';
+      editEmailInput.value = p.email || '';
       editBirthDateInput.value = p.birthDate || '';
       setGenderToggle(p.gender === 'male' ? 'male' : 'female');
       pinLabelEl.textContent = t('pinLabel');
@@ -4240,6 +4320,7 @@
     } else {
       editNameInput.value = '';
       editUsernameInput.value = '';
+      editEmailInput.value = '';
       editBirthDateInput.value = '';
       setGenderToggle('female'); // default — matches the app's historical baseline
       pinLabelEl.textContent = t('pinLabelRequired');
@@ -4379,6 +4460,7 @@
       const p = PROFILES[key];
       p.avatar = avatar; p.color = colorHex; p.birthDate = birthDate; p.gender = editingGender;
       p.username = requestedUsername || p.username;
+      p.email = editEmailInput.value.trim() || null;
       if(clearPinFlag){ p.pin = ''; }
       else if(enteredPassword){ p.pin = await computePasswordHash(p.username || key, enteredPassword); }
       // else: field left blank and not cleared → password stays unchanged
@@ -4394,6 +4476,7 @@
       PROFILES[key] = freshProfile(null, avatar, colorHex,
         { op:'add', diff:'units', time:'15', len:'10', mode:'type' }, true, name, birthDate, hashedPin, null, username);
       PROFILES[key].gender = editingGender;
+      PROFILES[key].email = editEmailInput.value.trim() || null;
       if(photoToSave) PROFILES[key].photo = photoToSave;
       profileOrder.push(key);
       startTrialForStudent(key); // registering a new (non-family) account starts this account's own 30-day trial
@@ -4420,8 +4503,9 @@
         postToSheet('signup', {
           username: p.username || key, pin: p.pin, name: profileDisplayName(key),
           birthDate: p.birthDate || '', avatar: p.avatar, color: p.color,
-          photoURL: photoURL || '' // sending ALL fields together — handleSignup_ overwrites the whole row,
-        });                        // so photoURL must travel with the rest, never in a separate call, or it wipes them.
+          photoURL: photoURL || '', // sending ALL fields together — handleSignup_ overwrites the whole row,
+          email: p.email || ''      // so photoURL/email must travel with the rest, never in a separate call, or it wipes them.
+        });
       };
       if(photoToSave){
         postToSheet('photo', { username: p.username || key, imageBase64: photoToSave }).then(photoRes=>{
@@ -4700,8 +4784,26 @@
   }
   const loginTransitionScreen = document.getElementById('loginTransitionScreen');
   const forgotAccountModal = document.getElementById('forgotAccountModal');
+  const forgotUsernameInput = document.getElementById('forgotUsernameInput');
+  const forgotAccountError = document.getElementById('forgotAccountError');
+  const forgotAccountSuccess = document.getElementById('forgotAccountSuccess');
+  const forgotAccountSendBtn = document.getElementById('forgotAccountSendBtn');
+  const forgotAccountSendSpinner = document.getElementById('forgotAccountSendSpinner');
+  const forgotEmailInput = document.getElementById('forgotEmailInput');
+  const forgotUsernameError = document.getElementById('forgotUsernameError');
+  const forgotUsernameSuccess = document.getElementById('forgotUsernameSuccess');
+  const forgotUsernameSendBtn = document.getElementById('forgotUsernameSendBtn');
+  const resetPasswordScreen = document.getElementById('resetPasswordScreen');
+  const resetPasswordValidating = document.getElementById('resetPasswordValidating');
+  const resetPasswordInvalid = document.getElementById('resetPasswordInvalid');
+  const resetPasswordForm = document.getElementById('resetPasswordForm');
+  const resetPasswordForUser = document.getElementById('resetPasswordForUser');
+  const resetPasswordNewInput = document.getElementById('resetPasswordNewInput');
+  const resetPasswordError = document.getElementById('resetPasswordError');
+  const resetPasswordSubmitBtn = document.getElementById('resetPasswordSubmitBtn');
+  const resetPasswordDone = document.getElementById('resetPasswordDone');
+  const resetPasswordGoToLoginBtn = document.getElementById('resetPasswordGoToLoginBtn');
   const forgotAccountCloseBtn = document.getElementById('forgotAccountCloseBtn');
-  const forgotAccountOkBtn = document.getElementById('forgotAccountOkBtn');
   const sessionWarningModal = document.getElementById('sessionWarningModal');
   const sessionWarningCountdown = document.getElementById('sessionWarningCountdown');
   const sessionExtendBtn = document.getElementById('sessionExtendBtn');
@@ -4834,6 +4936,7 @@
           { op:'add', diff:'units', time:'15', len:'10', mode:'type' }, true, res.user.name || username,
           res.user.birthDate || null, hashedPin, null, username);
         if(res.user.photoURL) PROFILES[key].photo = res.user.photoURL; // real cross-device photo sync
+        if(res.user.email) PROFILES[key].email = res.user.email;
         profileOrder.push(key);
         startTrialForStudent(key);
         saveProfilesToStorage();
@@ -4868,10 +4971,47 @@
     ulPwToggle.setAttribute('aria-label', t(showing ? 'pwToggleAria' : 'pwToggleAriaHide'));
   });
   forgotPasswordLink.addEventListener('click', ()=>{
+    forgotUsernameInput.value = '';
+    forgotAccountError.textContent = '';
+    forgotAccountSuccess.classList.add('hidden');
+    forgotEmailInput.value = '';
+    forgotUsernameError.textContent = '';
+    forgotUsernameSuccess.classList.add('hidden');
     forgotAccountModal.classList.remove('hidden');
   });
   forgotAccountCloseBtn.addEventListener('click', ()=> forgotAccountModal.classList.add('hidden'));
-  forgotAccountOkBtn.addEventListener('click', ()=> forgotAccountModal.classList.add('hidden'));
+  forgotAccountSendBtn.addEventListener('click', async ()=>{
+    const username = forgotUsernameInput.value.trim();
+    forgotAccountError.textContent = '';
+    if(!username){ forgotAccountError.textContent = t('enterUsernameOnly'); return; }
+    if(!SHEET_API_URL){ forgotAccountError.textContent = t('forgotAccountNoBackend'); return; }
+    setBtnSaving(forgotAccountSendBtn, true);
+    const res = await postToSheet('request_password_reset', { username });
+    setBtnSaving(forgotAccountSendBtn, false);
+    // Always show the same success message regardless of the actual result —
+    // matches the backend's own no-enumeration design (never reveal whether
+    // a given username exists or has an email on file).
+    if(res && res.ok){
+      forgotAccountSuccess.classList.remove('hidden');
+    } else {
+      forgotAccountError.textContent = t('forgotAccountRequestFailed');
+    }
+  });
+  forgotUsernameSendBtn.addEventListener('click', async ()=>{
+    const email = forgotEmailInput.value.trim();
+    forgotUsernameError.textContent = '';
+    if(!email){ forgotUsernameError.textContent = t('enterEmailOnly'); return; }
+    if(!SHEET_API_URL){ forgotUsernameError.textContent = t('forgotAccountNoBackend'); return; }
+    setBtnSaving(forgotUsernameSendBtn, true);
+    const res = await postToSheet('request_username_reminder', { email });
+    setBtnSaving(forgotUsernameSendBtn, false);
+    // Same no-enumeration principle: always show success regardless of a real match.
+    if(res && res.ok){
+      forgotUsernameSuccess.classList.remove('hidden');
+    } else {
+      forgotUsernameError.textContent = t('forgotAccountRequestFailed');
+    }
+  });
   function logSessionLogout(){
     if(loggedInKey && SHEET_API_URL) postToSheet('logout', { username: loggedInKey });
     loggedInKey = null;
@@ -9633,7 +9773,56 @@
     }
   }, 1000); // every second — needed for a genuinely live countdown display, not just periodic polling
 
-  runBootSequence();
+  /* ---------- Password reset landing (?resetToken=... in the URL) ----------
+     Checked before the normal boot sequence: if a reset token is present,
+     the whole app defers to this dedicated screen instead of booting
+     normally, since the person arrived here from an emailed link, not by
+     choice to use the app right now. */
+  function checkForPasswordResetLink(){
+    const params = new URLSearchParams(location.search);
+    const token = params.get('resetToken');
+    if(!token) return false;
+    bootScreen.remove();
+    resetPasswordScreen.classList.remove('hidden');
+    if(!SHEET_API_URL){
+      resetPasswordValidating.classList.add('hidden');
+      resetPasswordInvalid.classList.remove('hidden');
+      resetPasswordInvalid.textContent = t('forgotAccountNoBackend');
+      return true;
+    }
+    postToSheet('validate_reset_token', { token }).then(res=>{
+      resetPasswordValidating.classList.add('hidden');
+      if(res && res.ok && res.username){
+        resetPasswordForm.classList.remove('hidden');
+        resetPasswordForUser.textContent = fmt('resetPasswordForUserTpl', { username: res.username });
+        resetPasswordSubmitBtn.addEventListener('click', async ()=>{
+          const newPassword = resetPasswordNewInput.value;
+          resetPasswordError.textContent = '';
+          if(!newPassword || newPassword.length < 4){ resetPasswordError.textContent = t('resetPasswordTooShort'); return; }
+          setBtnSaving(resetPasswordSubmitBtn, true);
+          const newPin = await computePasswordHash(res.username, newPassword);
+          const submitRes = await postToSheet('reset_password_with_token', { token, newPin });
+          setBtnSaving(resetPasswordSubmitBtn, false);
+          if(submitRes && submitRes.ok){
+            // also update the local copy if this same profile happens to exist on this device
+            if(PROFILES[res.username]) { PROFILES[res.username].pin = newPin; saveProfilesToStorage(); }
+            resetPasswordForm.classList.add('hidden');
+            resetPasswordDone.classList.remove('hidden');
+          } else {
+            resetPasswordError.textContent = t('resetPasswordFailed');
+          }
+        }, { once:true });
+      } else {
+        resetPasswordInvalid.classList.remove('hidden');
+      }
+    });
+    return true;
+  }
+  resetPasswordGoToLoginBtn.addEventListener('click', ()=>{
+    location.href = location.pathname; // strip the resetToken param, land on a clean login screen
+  });
+
+  if(!checkForPasswordResetLink()) runBootSequence();
 })();
 </script>
 
