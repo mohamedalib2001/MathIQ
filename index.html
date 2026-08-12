@@ -2780,11 +2780,29 @@
   }
 
   /* ---------- persistent login session (stay signed in like a real app) ---------- */
+  const SESSION_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes idle — a reasonable "educational session" default
   function saveCurrentSession(key){
-    try{ if(key && key !== 'guest') localStorage.setItem('mm_current_session', key); }catch(e){}
+    try{
+      if(key && key !== 'guest'){
+        localStorage.setItem('mm_current_session', key);
+        localStorage.setItem('mm_session_last_activity', String(Date.now()));
+      }
+    }catch(e){}
+  }
+  function touchSessionActivity(){
+    try{
+      if(localStorage.getItem('mm_current_session')) localStorage.setItem('mm_session_last_activity', String(Date.now()));
+    }catch(e){}
+  }
+  function isSessionExpired(){
+    try{
+      const lastActivity = Number(localStorage.getItem('mm_session_last_activity'));
+      if(!lastActivity) return false; // legacy session predating this feature — don't force-logout existing users
+      return (Date.now() - lastActivity) > SESSION_TIMEOUT_MS;
+    }catch(e){ return false; }
   }
   function clearCurrentSession(){
-    try{ localStorage.removeItem('mm_current_session'); }catch(e){}
+    try{ localStorage.removeItem('mm_current_session'); localStorage.removeItem('mm_session_last_activity'); }catch(e){}
   }
 
   let score = 0, streak = 0, bestStreak = 0, count = 0, correctCount = 0;
@@ -9253,6 +9271,10 @@
   function tryAutoLogin(){
     let savedKey = null;
     try{ savedKey = localStorage.getItem('mm_current_session'); }catch(e){}
+    if(savedKey && isSessionExpired()){
+      clearCurrentSession(); // idle too long — a genuine expiry, not a refresh-triggered logout
+      savedKey = null;
+    }
     if(savedKey && PROFILES[savedKey]){
       if(!checkStudentAccessGate(savedKey)) return; // subscription/trial gate already shown
       selectProfileAndGoToSettings(savedKey);
@@ -9329,6 +9351,27 @@
     setTimeout(()=>{ bootScreen.remove(); }, 380);
     if(typeof loadDailyAiFact === 'function') loadDailyAiFact();
   });
+
+  /* ---------- Session activity tracking: keeps a genuinely-active session
+     alive indefinitely (touched on real interaction, throttled), while
+     proactively logging out a session that's gone idle past the timeout —
+     even without a refresh, matching how an educational session should
+     behave. Never runs before a profile is actually selected. ---------- */
+  let lastActivityTouch = 0;
+  function onUserActivity(){
+    if(!currentProfile) return;
+    const now = Date.now();
+    if(now - lastActivityTouch < 60000) return; // throttle to at most once/minute — avoids hammering localStorage
+    lastActivityTouch = now;
+    touchSessionActivity();
+  }
+  ['click','keydown','pointerdown'].forEach(evt=> document.addEventListener(evt, onUserActivity, { passive:true }));
+  setInterval(()=>{
+    if(currentProfile && isSessionExpired()){
+      clearCurrentSession();
+      goToLoginGate();
+    }
+  }, 60000); // check once a minute — proactive idle logout while the tab stays open
 
   runBootSequence();
 })();
