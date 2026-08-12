@@ -342,6 +342,15 @@
   .sidebar-nav-item:hover{ background:rgba(231,196,104,0.1); color:var(--ink); }
   .sidebar-nav-item.active{ background:rgba(231,196,104,0.16); color:var(--ink); }
   .sidebar-nav-item .nav-icon{ font-size:15px; flex:none; width:18px; text-align:center; }
+  .nav-badge{
+    background:#ef4444; color:#fff; font-size:10px; font-weight:800; line-height:1;
+    min-width:17px; height:17px; padding:0 5px; border-radius:9px;
+    display:inline-flex; align-items:center; justify-content:center; margin-inline-start:auto; flex:none;
+  }
+  .bottom-nav-item .nav-icon{ position:relative; display:inline-block; }
+  .bottom-nav-item .nav-badge{
+    position:absolute; top:-5px; inset-inline-end:-8px; margin:0;
+  }
 
   .app-bottom-nav{
     position:fixed; bottom:0; inset-inline:0; z-index:500; display:flex; justify-content:space-around;
@@ -1759,6 +1768,7 @@
       <button class="secondary-btn" id="friendAddBtn" style="width:auto; padding:10px 16px;" data-i18n="friendAddBtn">إضافة</button>
     </div>
     <div class="feedback" id="friendsError" style="min-height:18px;"></div>
+    <button class="secondary-btn" id="friendsShareAppBtn" data-i18n="friendsShareAppBtn">🔗 دعوة صديق للانضمام للأكاديمية</button>
     <div id="friendsIncomingArea"></div>
     <div id="friendsListArea"></div>
     <button class="secondary-btn" id="friendsBackBtn" data-i18n="closeBtn">إغلاق</button>
@@ -2566,6 +2576,7 @@
   const friendsIncomingArea = document.getElementById('friendsIncomingArea');
   const friendsListArea = document.getElementById('friendsListArea');
   const friendsBackBtn = document.getElementById('friendsBackBtn');
+  const friendsShareAppBtn = document.getElementById('friendsShareAppBtn');
   const myStatsAvatar = document.getElementById('myStatsAvatar');
   const myStatsName = document.getElementById('myStatsName');
   const myStatsBestScore = document.getElementById('myStatsBestScore');
@@ -3487,6 +3498,10 @@
       friendsNone:'لا يوجد أصدقاء بعد. أضيفي صديقًا باسم المستخدم أعلاه!',
       friendAcceptBtn:'قبول', friendDeclineBtn:'رفض', friendRemoveBtn:'إزالة',
       friendRemoveConfirm:'هل تريدين إزالة هذا الصديق؟',
+      friendsNavLabel:'أصدقائي', friendAccepted:'✓ صرتما صديقين الآن!',
+      friendChallengeBtn:'🏁 تحدّيها', friendsShareAppBtn:'🔗 دعوة صديق للانضمام للأكاديمية',
+      friendsShareText:'{name} تدعوكِ للانضمام إلى أكاديمية نِكسورا — منصة تعلّم ذكية!',
+      friendsShareCopied:'✓ تم نسخ رابط الدعوة',
       raceFullError:'هذا السباق ممتلئ بالفعل (لاعبان). جرّبي كودًا آخر أو أنشئي سباقًا جديدًا.',
       raceJoinConnError:'تعذّر الاتصال بالخادم. تأكدي من الاتصال وحاولي مرة أخرى.',
       statTotalAnswered:'مجموع الأسئلة', myStatsOpBreakdown:'أداؤك حسب نوع العملية',
@@ -3899,6 +3914,10 @@
       friendsNone:'No friends yet. Add one by username above!',
       friendAcceptBtn:'Accept', friendDeclineBtn:'Decline', friendRemoveBtn:'Remove',
       friendRemoveConfirm:'Remove this friend?',
+      friendsNavLabel:'Friends', friendAccepted:'✓ You are friends now!',
+      friendChallengeBtn:'🏁 Challenge', friendsShareAppBtn:'🔗 Invite a friend to the academy',
+      friendsShareText:'{name} is inviting you to join NEXORA Academy — a smart learning platform!',
+      friendsShareCopied:'✓ Invite link copied',
       raceFullError:'This race is already full (two players). Try another code or create a new race.',
       raceJoinConnError:'Could not reach the server. Check your connection and try again.',
       statTotalAnswered:'Total questions', myStatsOpBreakdown:'Your performance by operation',
@@ -4459,6 +4478,7 @@
     if(typeof renderTodayMission === 'function') renderTodayMission();
     applyServiceFlags();
     renderShellNav('learner');
+    if(typeof refreshPendingFriendCount === 'function') refreshPendingFriendCount();
     showProgramsHub();
   }
 
@@ -8526,6 +8546,19 @@
      around an already-existing, already-tested action — zero new
      business logic, just a second way to reach the same real screens. ---------- */
   let currentShellRole = null;
+  // Drives the sidebar badge. Refreshed on login and after any friends
+  // action; never blocks navigation if the fetch fails.
+  let pendingFriendRequestCount = 0;
+  async function refreshPendingFriendCount(){
+    if(!SHEET_API_URL || !currentProfile) return;
+    const res = await postToSheet('list_friends', { username: currentProfile });
+    if(!res || !res.ok) return; // silent — a badge is not worth an error toast
+    const next = res.incoming.length;
+    if(next !== pendingFriendRequestCount){
+      pendingFriendRequestCount = next;
+      if(currentShellRole === 'learner') renderShellNav('learner'); // re-render so the badge updates
+    }
+  }
   function buildShellItemsForRole(role){
     if(role === 'learner'){
       return [
@@ -8533,6 +8566,7 @@
         { icon:nxIcon('book'), label:t('shellNavJourney'), run: ()=>{ if(isServiceOn('knowledgeMap')) knowledgeMapOpenBtn.click(); } },
         { icon:nxIcon('puzzle'), label:t('shellNavSkills'), run: ()=>{ hideLearnerShellScreens(); mySkillsScreen.classList.remove('hidden'); renderMySkills(); renderShellNav('learner'); } },
         { icon:nxIcon('award'), label:t('shellNavAchievements'), run: ()=> myStatsLink.click() },
+        { icon:nxIcon('users'), label:t('friendsNavLabel'), run: ()=> friendsLink.click(), badgeCount: pendingFriendRequestCount },
         { icon:nxIcon('settings'), label:t('shellNavAccount'), run: ()=> editMyProfileLink.click() },
         { icon:nxIcon('logout'), label:t('shellNavLogout'), run: ()=> goToLoginGate() }
       ];
@@ -8601,7 +8635,10 @@
     items.forEach(item=>{
       const el = document.createElement('div');
       el.className = 'sidebar-nav-item';
-      el.innerHTML = `<span class="nav-icon">${item.icon}</span><span>${item.label}</span>`;
+      // A count badge appears only when there's genuinely something waiting —
+      // never a "0" bubble, which would be visual noise with no meaning.
+      const badge = item.badgeCount > 0 ? `<span class="nav-badge">${item.badgeCount}</span>` : '';
+      el.innerHTML = `<span class="nav-icon">${item.icon}</span><span>${item.label}</span>${badge}`;
       el.addEventListener('click', item.run);
       sidebarNav.appendChild(el);
     });
@@ -8610,7 +8647,8 @@
     items.slice(0, 5).forEach(item=>{
       const el = document.createElement('div');
       el.className = 'bottom-nav-item';
-      el.innerHTML = `<span class="nav-icon">${item.icon}</span><span>${item.label}</span>`;
+      const badge = item.badgeCount > 0 ? `<span class="nav-badge">${item.badgeCount}</span>` : '';
+      el.innerHTML = `<span class="nav-icon">${item.icon}${badge}</span><span>${item.label}</span>`;
       el.addEventListener('click', item.run);
       appBottomNav.appendChild(el);
     });
@@ -9897,6 +9935,7 @@
       book: '<svg class="nx-icon" viewBox="0 0 24 24"><path d="M4 4h11a4 4 0 0 1 4 4v12H8a4 4 0 0 0-4 4V4z"/><path d="M4 4v16"/></svg>',
       puzzle: '<svg class="nx-icon" viewBox="0 0 24 24"><path d="M4 8h4V5a2 2 0 0 1 4 0v3h4a2 2 0 0 1 2 2v4h-3a2 2 0 0 0 0 4h3v4a2 2 0 0 1-2 2h-4v-3a2 2 0 0 0-4 0v3H6a2 2 0 0 1-2-2v-4h3a2 2 0 0 0 0-4H4V8z"/></svg>',
       award: '<svg class="nx-icon" viewBox="0 0 24 24"><circle cx="12" cy="8" r="5"/><path d="M8.5 12.5L7 22l5-3 5 3-1.5-9.5"/></svg>',
+      users: '<svg class="nx-icon" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><circle cx="17.5" cy="9.5" r="2.8"/><path d="M16 15a5.5 5.5 0 0 1 5.5 5"/></svg>',
       settings: '<svg class="nx-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>',
       logout: '<svg class="nx-icon" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>',
       chart: '<svg class="nx-icon" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>',
@@ -10977,6 +11016,19 @@
     friendsScreen.classList.add('hidden');
     settingsEl.classList.remove('hidden');
   });
+  friendsShareAppBtn.addEventListener('click', async ()=>{
+    const shareText = fmt('friendsShareText', { name: profileDisplayName(currentProfile) });
+    if(navigator.share){
+      try{ await navigator.share({ title: t('title'), text: shareText, url: CERT_VERIFY_BASE_URL }); }
+      catch(e){ /* user cancelled — not an error */ }
+    } else {
+      // No Web Share on this browser — fall back to copying, and say so
+      // honestly rather than silently doing nothing.
+      navigator.clipboard.writeText(`${shareText} ${CERT_VERIFY_BASE_URL}`).then(()=>{
+        showToast(t('friendsShareCopied'), nxIcon('check'), 'system');
+      });
+    }
+  });
   friendAddBtn.addEventListener('click', async ()=>{
     const toUsername = friendUsernameInput.value.trim();
     if(!toUsername) return;
@@ -11023,6 +11075,7 @@
           <div class="lp-row" style="cursor:default;">
             <span>👫</span>
             <div style="flex:1;"><div style="font-weight:700;">${f.name}</div><div style="font-size:11px; color:var(--ink-dim);">@${f.username}</div></div>
+            <button class="secondary-btn" data-challenge="${f.username}" style="width:auto; padding:6px 12px; margin:0;">${t('friendChallengeBtn')}</button>
             <button class="secondary-btn" data-remove="${f.username}" style="width:auto; padding:6px 12px; margin:0;">${t('friendRemoveBtn')}</button>
           </div>`).join('')
       : `<div class="dash-empty">${t('friendsNone')}</div>`;
@@ -11031,17 +11084,33 @@
         <div class="lp-row" style="cursor:default; opacity:0.7;"><span>⏳</span><span>@${f.username}</span></div>`).join('');
     }
     friendsScreen.querySelectorAll('[data-accept]').forEach(b=> b.addEventListener('click', async ()=>{
-      await postToSheet('respond_friend_request', { username: currentProfile, fromUsername: b.dataset.accept, accept: true });
-      renderFriends();
+      setBtnSaving(b, true, t('friendSending'));
+      const r = await postToSheet('respond_friend_request', { username: currentProfile, fromUsername: b.dataset.accept, accept: true });
+      if(!r || !r.ok){ setBtnSaving(b, false); showToast(describeSyncFailure(r, 'lpSyncCreateFailed'), nxIcon('alertTriangle'), 'system'); return; }
+      showToast(t('friendAccepted'), nxIcon('check'), 'system');
+      await renderFriends();
+      refreshPendingFriendCount();
     }));
     friendsScreen.querySelectorAll('[data-decline]').forEach(b=> b.addEventListener('click', async ()=>{
-      await postToSheet('respond_friend_request', { username: currentProfile, fromUsername: b.dataset.decline, accept: false });
-      renderFriends();
+      setBtnSaving(b, true, t('friendSending'));
+      const r = await postToSheet('respond_friend_request', { username: currentProfile, fromUsername: b.dataset.decline, accept: false });
+      if(!r || !r.ok){ setBtnSaving(b, false); showToast(describeSyncFailure(r, 'lpSyncCreateFailed'), nxIcon('alertTriangle'), 'system'); return; }
+      await renderFriends();
+      refreshPendingFriendCount();
     }));
     friendsScreen.querySelectorAll('[data-remove]').forEach(b=> b.addEventListener('click', async ()=>{
       if(!window.confirm(t('friendRemoveConfirm'))) return;
       await postToSheet('remove_friend', { username: currentProfile, otherUsername: b.dataset.remove });
       renderFriends();
+    }));
+    // "Challenge a friend" — creates a REAL race via the existing race
+    // system and hands the learner the actual code to share, rather than
+    // pretending to deliver an in-app invite the backend can't push.
+    friendsScreen.querySelectorAll('[data-challenge]').forEach(b=> b.addEventListener('click', async ()=>{
+      friendsScreen.classList.add('hidden');
+      raceLobbyEl.classList.remove('hidden');
+      raceLobbyError.textContent = '';
+      createRaceBtn.click();
     }));
   }
   closeMyStatsBtn.addEventListener('click', ()=>{
