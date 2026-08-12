@@ -4309,8 +4309,15 @@
   /* ---------- Google Sheet connection ---------- */
   function postToSheet(type, payload){
     if(!SHEET_API_URL) return Promise.resolve(null);
-    return fetch(SHEET_API_URL, { method:'POST', body: JSON.stringify({ type, ...payload }) })
+    // A genuine timeout — without this, a slow/hung request (Apps Script
+    // cold-start, network hiccup) leaves whatever button triggered it
+    // stuck on its "saving..." state forever, since nothing ever resolves
+    // to let the existing success/failure handling run.
+    const REQUEST_TIMEOUT_MS = 20000;
+    const timeoutPromise = new Promise(resolve => setTimeout(()=> resolve(null), REQUEST_TIMEOUT_MS));
+    const fetchPromise = fetch(SHEET_API_URL, { method:'POST', body: JSON.stringify({ type, ...payload }) })
       .then(r=>r.json()).catch(()=>null);
+    return Promise.race([fetchPromise, timeoutPromise]);
   }
 
   /* ==================== MODULE: LP_API (Sprint 7) ====================
@@ -4517,6 +4524,24 @@
     return Object.keys(TEACHERS).find(u => u.toLowerCase() === uname) || null;
   }
 
+  // Reusable "saving" state for any action button — replaces plain text
+  // with a real spinner + label, and restores the button's exact original
+  // content on completion (success or failure) instead of assuming a
+  // fixed label to go back to.
+  function setBtnSaving(btn, saving){
+    if(!btn) return;
+    if(saving){
+      if(btn.dataset.savingOriginal === undefined) btn.dataset.savingOriginal = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = `<span class="login-btn-spinner" style="margin:0 6px 0 0;"><svg class="nx-icon nx-spin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-dasharray="42" stroke-dashoffset="14"/></svg></span>${t('pbSavingLabel')}`;
+    } else {
+      btn.disabled = false;
+      if(btn.dataset.savingOriginal !== undefined){
+        btn.innerHTML = btn.dataset.savingOriginal;
+        delete btn.dataset.savingOriginal;
+      }
+    }
+  }
   function setLoginLoading(loading){
     ulLoginBtn.disabled = loading;
     if(loginBtnSpinner) loginBtnSpinner.classList.toggle('hidden', !loading);
@@ -5699,7 +5724,7 @@
         if(!title) return;
         const btn = document.getElementById('pbCreateProgramBtn');
         const originalLabel = btn.textContent;
-        btn.disabled = true; btn.textContent = t('pbSavingLabel');
+        setBtnSaving(btn, true);
         await lpCreateProgram(title, document.getElementById('pbNewProgramDesc').value.trim(), document.getElementById('pbNewProgramLevel').value, pbOwnerUsername());
         renderProgramBuilder(); // re-render happens after the await resolves either way — button state doesn't persist since the form is rebuilt
       });
@@ -5764,7 +5789,7 @@
         const title = document.getElementById('pbNewCourseTitle').value.trim();
         if(!title) return;
         const btn = document.getElementById('pbCreateCourseBtn');
-        btn.disabled = true; btn.textContent = t('pbSavingLabel');
+        setBtnSaving(btn, true);
         await lpCreateCourse(pbProgram.id, title, '');
         renderProgramBuilder();
       });
@@ -5812,14 +5837,14 @@
           </div>`;
         document.getElementById('pbSaveModuleEditBtn').addEventListener('click', async ()=>{
           const btn = document.getElementById('pbSaveModuleEditBtn');
-          btn.disabled = true; btn.textContent = t('pbSavingLabel');
+          setBtnSaving(btn, true);
           const result = await lpUpdateModule(pbEditingEntity.id, {
             title: document.getElementById('pbEditModuleTitle').value.trim() || pbEditingEntity.title,
             description: document.getElementById('pbEditModuleDesc').value.trim()
           });
           if(!result){
             // backend rejected/failed — keep the edit form open so the trainer can retry, no false success
-            btn.disabled = false; btn.textContent = t('pbSaveChangesBtn');
+            setBtnSaving(btn, false);
             return;
           }
           pbEditingEntity = null; pbEditingType = null;
@@ -5837,7 +5862,7 @@
         const title = document.getElementById('pbNewModuleTitle').value.trim();
         if(!title) return;
         const btn = document.getElementById('pbCreateModuleBtn');
-        btn.disabled = true; btn.textContent = t('pbSavingLabel');
+        setBtnSaving(btn, true);
         await lpCreateModule(pbCourse.id, title);
         renderProgramBuilder();
       });
@@ -5888,13 +5913,13 @@
           </div>`;
         document.getElementById('pbSaveLessonEditBtn').addEventListener('click', async ()=>{
           const btn = document.getElementById('pbSaveLessonEditBtn');
-          btn.disabled = true; btn.textContent = t('pbSavingLabel');
+          setBtnSaving(btn, true);
           const result = await lpUpdateLesson(pbEditingEntity.id, {
             title: document.getElementById('pbEditLessonTitle').value.trim() || pbEditingEntity.title,
             content: document.getElementById('pbEditLessonContent').value.trim()
           });
           if(!result){
-            btn.disabled = false; btn.textContent = t('pbSaveChangesBtn');
+            setBtnSaving(btn, false);
             return;
           }
           pbEditingEntity = null; pbEditingType = null;
@@ -5913,7 +5938,7 @@
         const title = document.getElementById('pbNewLessonTitle').value.trim();
         if(!title) return;
         const btn = document.getElementById('pbCreateLessonBtn');
-        btn.disabled = true; btn.textContent = t('pbSavingLabel');
+        setBtnSaving(btn, true);
         await lpCreateLesson(pbModule.id, title, document.getElementById('pbNewLessonContent').value.trim());
         renderProgramBuilder();
       });
@@ -6025,7 +6050,7 @@
         const title = document.getElementById('pbAssessTitle').value.trim();
         if(!title || !pbAssessmentQuestions.length) return;
         const btn = document.getElementById('pbSaveAssessmentBtn');
-        btn.disabled = true; btn.textContent = t('pbSavingLabel');
+        setBtnSaving(btn, true);
         const timeLimit = parseInt(document.getElementById('pbAssessTimeLimit').value, 10) || null;
         const skillId = document.getElementById('pbAssessSkill').value;
         await lpCreateAssessment(pbLesson.id, title, pbAssessmentQuestions, 60, timeLimit, skillId ? [skillId] : []);
@@ -6237,10 +6262,10 @@
       });
       document.getElementById('ppCompleteLessonBtn').addEventListener('click', async ()=>{
         const btn = document.getElementById('ppCompleteLessonBtn');
-        btn.disabled = true; btn.textContent = t('pbSavingLabel');
+        setBtnSaving(btn, true);
         const result = await lpCompleteLesson(currentProfile, ppLesson.id);
         if(!result){
-          btn.disabled = false; btn.textContent = t('ppMarkCompleteBtn');
+          setBtnSaving(btn, false);
           return; // no false success — button re-enabled for retry
         }
         lpUpdateEnrollmentActivity(currentProfile, ppProgram.id);
@@ -6302,11 +6327,11 @@
       async function finishAssessment(timeExpired){
         clearInterval(ppAssessmentTimerInterval);
         const submitBtn = document.getElementById('ppSubmitAssessmentBtn');
-        if(submitBtn){ submitBtn.disabled = true; submitBtn.textContent = t('pbSavingLabel'); }
+        if(submitBtn){ setBtnSaving(submitBtn, true); }
         const attempt = await lpSubmitAssessment(currentProfile, assessment.id, collectAnswers(), timeExpired);
         if(!attempt){
           // no false success — let the learner retry instead of showing a fake result
-          if(submitBtn){ submitBtn.disabled = false; submitBtn.textContent = t('ppSubmitAssessmentBtn'); }
+          setBtnSaving(submitBtn, false);
           showToast(t('lpSyncProgressFailed'), nxIcon('alertTriangle'), 'system');
           return;
         }
@@ -6556,7 +6581,12 @@
     createClassBtn.disabled = true;
     postToSheet('create_class', { teacherUsername: currentTeacherUsername, className: name }).then(res=>{
       createClassBtn.disabled = false;
-      if(!res || !res.ok){ classManageError.textContent = t('classCreateFailed'); return; }
+      if(!res || !res.ok){
+        // surface the real backend reason instead of a generic message —
+        // makes a genuine failure (vs. e.g. a network/deployment issue) diagnosable
+        classManageError.textContent = res && res.message ? `${t('classCreateFailed')} (${res.message})` : t('classCreateFailed');
+        return;
+      }
       newClassNameInput.value = '';
       classManageError.textContent = '';
       renderTeacherClasses();
