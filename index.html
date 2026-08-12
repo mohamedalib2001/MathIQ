@@ -3299,6 +3299,7 @@
       pbSeedEnglishSuccess:'تم إنشاء البرنامج: {courses} دورة، {modules} وحدة، {lessons} درس، {assessments} اختبار.',
       pbSeedEnglishFailed:'تعذّر إنشاء البرنامج بالكامل. راجعي شيت الأخطاء للتفاصيل.',
       lpSeedNoBackend:'محتاجة اتصال بالسحابة لإنشاء البرنامج.',
+      lpSyncTimeoutHint:'انتهت مهلة الاتصال أو تعذّر الوصول للخادم — مش رسالة خطأ محددة من الخادم نفسه',
       pbSeedProgrammingBtn:'🌱 إنشاء برنامج البرمجة الكامل', pbSeedProgrammingConfirm:'هذا سينشئ برنامج "البرمجة" كاملًا (دورات، وحدات، دروس، واختبارات حقيقية) وينشره فورًا. متابعة؟',
       pbSeedProgrammingSuccess:'تم إنشاء البرنامج: {courses} دورة، {modules} وحدة، {lessons} درس، {assessments} اختبار.',
       pbSeedProgrammingFailed:'تعذّر إنشاء البرنامج بالكامل. راجعي شيت الأخطاء للتفاصيل.',
@@ -3686,6 +3687,7 @@
       pbSeedEnglishSuccess:'Program created: {courses} courses, {modules} modules, {lessons} lessons, {assessments} assessments.',
       pbSeedEnglishFailed:'Could not create the full program. Check the error log for details.',
       lpSeedNoBackend:'A cloud connection is required to create this program.',
+      lpSyncTimeoutHint:"Connection timed out or the server was unreachable — not a specific error from the server itself",
       pbSeedProgrammingBtn:'🌱 Create Full Programming Program', pbSeedProgrammingConfirm:'This will create the complete "Programming" program (courses, modules, lessons, real assessments) and publish it immediately. Continue?',
       pbSeedProgrammingSuccess:'Program created: {courses} courses, {modules} modules, {lessons} lessons, {assessments} assessments.',
       pbSeedProgrammingFailed:'Could not create the full program. Check the error log for details.',
@@ -4825,8 +4827,12 @@
     // A genuine timeout — without this, a slow/hung request (Apps Script
     // cold-start, network hiccup) leaves whatever button triggered it
     // stuck on its "saving..." state forever, since nothing ever resolves
-    // to let the existing success/failure handling run.
-    const REQUEST_TIMEOUT_MS = 20000;
+    // to let the existing success/failure handling run. Raised from the
+    // original 20s to 45s — the backend has grown substantially (admin
+    // roles, certificates, email flows, 9 program curricula), and a real
+    // Apps Script cold start on a script this size can legitimately take
+    // longer than 20s on its very first call after being idle.
+    const REQUEST_TIMEOUT_MS = 45000;
     const timeoutPromise = new Promise(resolve => setTimeout(()=> resolve(null), REQUEST_TIMEOUT_MS));
     const fetchPromise = fetch(SHEET_API_URL, { method:'POST', body: JSON.stringify({ type, ...payload }) })
       .then(r=>r.json()).catch(()=>null);
@@ -5037,8 +5043,11 @@
   certVerifyBtn.addEventListener('click', runCertVerification);
   certVerifyInput.addEventListener('keydown', e=>{ if(e.key === 'Enter') runCertVerification(); });
   adminLoginCancelBtn.addEventListener('click', ()=>{
+    // MUST reverse exactly what openAdminGate() did — return to the normal
+    // login screen, never grant access to the admin dashboard. Cancelling
+    // is not authentication.
     adminLoginGateEl.classList.add('hidden');
-    profilesEl.classList.remove('hidden');
+    usernameLoginEl.classList.remove('hidden');
   });
   adminLoginBtn.addEventListener('click', async ()=>{
     const username = adminUserInput.value.trim();
@@ -5689,7 +5698,12 @@
       // no local record is added unless the server confirms success.
       const result = await LP_API.programs.create({ InstructorUsername: instructorUsername, Title: title, Description: description, Level: level });
       if(!result || !result.ok){
-        showToast(t('lpSyncCreateFailed'), nxIcon('alertTriangle'), 'system');
+        showToast(
+          result === null ? `${t('lpSyncCreateFailed')} (${t('lpSyncTimeoutHint')})`
+          : result.message ? `${t('lpSyncCreateFailed')} (${result.message})`
+          : t('lpSyncCreateFailed'),
+          nxIcon('alertTriangle'), 'system'
+        );
         return null;
       }
       const programs = lpLoad(LP_KEYS.PROGRAMS);
@@ -5739,7 +5753,12 @@
     if(SHEET_API_URL){
       const result = await LP_API.courses.create({ ProgramID: programId, Title: title, Description: description });
       if(!result || !result.ok){
-        showToast(t('lpSyncCreateFailed'), nxIcon('alertTriangle'), 'system');
+        showToast(
+          result === null ? `${t('lpSyncCreateFailed')} (${t('lpSyncTimeoutHint')})`
+          : result.message ? `${t('lpSyncCreateFailed')} (${result.message})`
+          : t('lpSyncCreateFailed'),
+          nxIcon('alertTriangle'), 'system'
+        );
         return null;
       }
       const courses = lpLoad(LP_KEYS.COURSES);
@@ -5801,7 +5820,12 @@
     if(SHEET_API_URL){
       const result = await LP_API.modules.create({ CourseID: courseId, Title: title, Description: '' });
       if(!result || !result.ok){
-        showToast(t('lpSyncCreateFailed'), nxIcon('alertTriangle'), 'system');
+        showToast(
+          result === null ? `${t('lpSyncCreateFailed')} (${t('lpSyncTimeoutHint')})`
+          : result.message ? `${t('lpSyncCreateFailed')} (${result.message})`
+          : t('lpSyncCreateFailed'),
+          nxIcon('alertTriangle'), 'system'
+        );
         return null;
       }
       const modules = lpLoad(LP_KEYS.MODULES);
@@ -5899,7 +5923,12 @@
     if(SHEET_API_URL){
       const result = await LP_API.lessons.create({ ModuleID: moduleId, Title: title, Content: content });
       if(!result || !result.ok){
-        showToast(t('lpSyncCreateFailed'), nxIcon('alertTriangle'), 'system');
+        showToast(
+          result === null ? `${t('lpSyncCreateFailed')} (${t('lpSyncTimeoutHint')})`
+          : result.message ? `${t('lpSyncCreateFailed')} (${result.message})`
+          : t('lpSyncCreateFailed'),
+          nxIcon('alertTriangle'), 'system'
+        );
         return null;
       }
       const lessons = lpLoad(LP_KEYS.LESSONS);
@@ -6000,7 +6029,12 @@
         TimeLimit: timeLimit || null, SkillIds: skillIds || []
       });
       if(!result || !result.ok){
-        showToast(t('lpSyncCreateFailed'), nxIcon('alertTriangle'), 'system');
+        showToast(
+          result === null ? `${t('lpSyncCreateFailed')} (${t('lpSyncTimeoutHint')})`
+          : result.message ? `${t('lpSyncCreateFailed')} (${result.message})`
+          : t('lpSyncCreateFailed'),
+          nxIcon('alertTriangle'), 'system'
+        );
         return null;
       }
       const assessments = lpLoad(LP_KEYS.ASSESSMENTS);
@@ -7422,7 +7456,10 @@
       if(result && result.ok){
         showToast(fmt(successKey, { courses: result.courseCount, modules: result.moduleCount, lessons: result.lessonCount, assessments: result.assessmentCount }), nxIcon('check'), 'system');
       } else {
-        showToast(t(failKey), nxIcon('alertTriangle'), 'system');
+        // Surface exactly which creation step failed (program/course/module/
+        // lesson/assessment) — the earlier generic message hid this.
+        const reason = result && result.reason ? ` (${result.reason})` : '';
+        showToast(t(failKey) + reason, nxIcon('alertTriangle'), 'system');
       }
       renderProgramBuilder();
     });
@@ -7581,7 +7618,8 @@
         if(result && result.ok){
           showToast(fmt('pbSeedEnglishSuccess', { courses: result.courseCount, modules: result.moduleCount, lessons: result.lessonCount, assessments: result.assessmentCount }), nxIcon('check'), 'system');
         } else {
-          showToast(t('pbSeedEnglishFailed'), nxIcon('alertTriangle'), 'system');
+          const reason = result && result.reason ? ` (${result.reason})` : '';
+          showToast(t('pbSeedEnglishFailed') + reason, nxIcon('alertTriangle'), 'system');
         }
         renderProgramBuilder();
       });
@@ -7594,7 +7632,8 @@
         if(result && result.ok){
           showToast(fmt('pbSeedProgrammingSuccess', { courses: result.courseCount, modules: result.moduleCount, lessons: result.lessonCount, assessments: result.assessmentCount }), nxIcon('check'), 'system');
         } else {
-          showToast(t('pbSeedProgrammingFailed'), nxIcon('alertTriangle'), 'system');
+          const reason = result && result.reason ? ` (${result.reason})` : '';
+          showToast(t('pbSeedProgrammingFailed') + reason, nxIcon('alertTriangle'), 'system');
         }
         renderProgramBuilder();
       });
@@ -7621,7 +7660,7 @@
         if(summary.allOk){
           showToast(fmt('pbSeedAllSuccess', { count: summary.succeeded.length }), nxIcon('check'), 'system');
         } else {
-          showToast(fmt('pbSeedAllPartial', { succeeded: summary.succeeded.length, failed: summary.failed.length, failedNames: summary.failed.map(f=>f.name).join('، ') }), nxIcon('alertTriangle'), 'system');
+          showToast(fmt('pbSeedAllPartial', { succeeded: summary.succeeded.length, failed: summary.failed.length, failedNames: summary.failed.map(f=> f.name + (f.result && f.result.reason ? ` [${f.result.reason}]` : '')).join('، ') }), nxIcon('alertTriangle'), 'system');
         }
         renderProgramBuilder();
       });
