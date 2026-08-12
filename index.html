@@ -1597,12 +1597,13 @@
     <div class="admin-stats-bar" id="adminStatsBar"></div>
     <div class="group-label" data-i18n="adminDashStudents">الطلاب</div>
     <div class="profile-cards" id="profileCardsWrap"></div>
-    <button class="challenge-btn" id="challengeBtn" data-i18n="challengeBtn">🏆 تحدي بين اللاعبتين</button>
+    <button class="challenge-btn" id="challengeBtn" data-i18n="challengeBtn">🏆 تحدي بين طالبتين</button>
     <div class="group-label" data-i18n="adminDashTools">الأدوات والإعدادات</div>
     <div class="admin-tools-grid">
       <div class="admin-tool-tile" id="dashboardLink"><span class="tile-icon">📊</span><span data-i18n="dashboardLink">لوحة جميع الطلاب</span></div>
       <div class="admin-tool-tile" id="programBuilderLink"><span class="tile-icon">🎓</span><span data-i18n="programBuilderLink">بناء البرامج التعليمية</span></div>
       <div class="admin-tool-tile" id="addTeacherLink"><span class="tile-icon">➕</span><span data-i18n="addTeacherLink">إضافة حساب معلم</span></div>
+      <div class="admin-tool-tile" id="teachersListLink"><span class="tile-icon">👥</span><span data-i18n="teachersListLink">المعلّمون</span></div>
       <div class="admin-tool-tile" id="connectionLink"><span class="tile-icon">🔗</span><span data-i18n="connectionLink">ربط جوجل شيت</span></div>
       <div class="admin-tool-tile" id="subscriptionLink"><span class="tile-icon">💳</span><span data-i18n="subscriptionLink">الاشتراك والتفعيل</span></div>
       <div class="admin-tool-tile" id="serviceActivationLink"><span class="tile-icon">🧩</span><span data-i18n="serviceActivationLink">تفعيل الخدمات</span></div>
@@ -1626,6 +1627,21 @@
     <div id="pbListArea"></div>
     <div id="pbCreateForm"></div>
     <button class="secondary-btn" id="pbBackBtn" data-i18n="closeBtn">إغلاق</button>
+  </div>
+
+  <!-- TEACHER MANAGEMENT — real teacher roster (synced server-side, not
+       local-only), per-teacher drill-down into their classes/students/
+       assignments (reusing the existing Classes/ClassEnrollments/
+       ClassAssignments system, not a parallel one), with per-assignment cost. -->
+  <div id="teachersListScreen" class="panel hidden">
+    <div class="group-label" style="text-align:center;" data-i18n="teachersListTitle">👥 المعلّمون</div>
+    <div id="teachersListArea"></div>
+    <button class="secondary-btn" id="teachersListBackBtn" data-i18n="closeBtn">إغلاق</button>
+  </div>
+  <div id="teacherOverviewScreen" class="panel hidden">
+    <div class="conn-note" id="teacherOverviewCrumb"></div>
+    <div id="teacherOverviewArea"></div>
+    <button class="secondary-btn" id="teacherOverviewBackBtn" data-i18n="closeBtn">إغلاق</button>
   </div>
 
   <!-- LEARNER PROGRAM PLAYER — real Program > Course > Module > Lesson
@@ -1941,7 +1957,7 @@
     </div>
     <div class="secondary-options">
       <button class="secondary-link-btn" id="guestBtn" data-i18n="guestBtn">👤 متابعة كضيف</button>
-      <button class="secondary-link-btn" id="challengeBtnLogin" data-i18n="challengeBtn">🏆 تحدي بين اللاعبتين</button>
+      <button class="secondary-link-btn" id="challengeBtnLogin" data-i18n="challengeBtn">🏆 تحدي بين طالبتين</button>
     </div>
     <div class="guest-note" id="guestNote"></div>
     <div class="security-note"><span class="security-note-icon">🛡</span><span data-i18n="securityNoteText">اتصال آمن — بياناتكِ محمية داخل أكاديمية نِكسورا</span></div>
@@ -1976,7 +1992,7 @@
   <!-- LIVE RACE LOBBY -->
   <div id="raceLobby" class="panel hidden">
     <div class="group-label" style="text-align:center;" data-i18n="raceLobbyTitle">🏁 سباق مباشر</div>
-    <div class="conn-note" data-i18n="raceLobbyNote">كل لاعبة تدخل من حسابها الخاص (على جهازها) وتحل نفس الأسئلة في نفس الوقت — النتائج تتحدّث لحظيًا.</div>
+    <div class="conn-note" data-i18n="raceLobbyNote">كل طالبة تدخل من حسابها الخاص (على جهازها) وتحل نفس الأسئلة في نفس الوقت — النتائج تتحدّث لحظيًا.</div>
     <div>
       <div class="group-label" data-i18n="raceSettingsTitle">إعدادات السباق (تُطبَّق على الطرفين)</div>
       <div class="group-label" data-i18n="opLabel" style="margin-bottom:6px;">العملية الحسابية</div>
@@ -2033,7 +2049,7 @@
     <div class="winner-banner" id="raceWinnerBanner"></div>
     <div class="race-banter" id="raceResultBanter"></div>
     <div class="compare-grid" id="raceCompareGrid"></div>
-    <button class="start-btn" id="raceResultBackBtn" data-i18n="backToProfiles">العودة لاختيار اللاعب</button>
+    <button class="start-btn" id="raceResultBackBtn" data-i18n="backToProfiles">العودة لاختيار الطالب</button>
   </div>
 
   <!-- GOOGLE SHEET CONNECTION -->
@@ -2056,7 +2072,7 @@
   <!-- PROFILE MINI EDITOR (add/edit) -->
   <div id="profileEditor" class="panel hidden">
     <div class="mini-editor">
-      <div class="group-label" id="editorTitle" data-i18n="chooseAvatar">إضافة لاعب جديد</div>
+      <div class="group-label" id="editorTitle" data-i18n="chooseAvatar">إضافة طالب جديد</div>
       <input type="text" id="editName" data-i18n-placeholder="newPlayerNamePh" placeholder="الاسم">
       <div>
         <div class="group-label" data-i18n="genderLabel">أخاطبكِ بصيغة</div>
@@ -2090,7 +2106,7 @@
       <div>
         <div class="group-label" id="pinLabelEl" data-i18n="pinLabel">كلمة المرور (اختياري)</div>
         <input type="password" id="editPin" class="ltr-input" data-i18n-placeholder="pinPlaceholder" placeholder="كلمة المرور">
-        <div class="photo-note" id="pinNoteEl">إن تركتها فارغة فلن تُطلب كلمة مرور عند اختيار هذا اللاعب.</div>
+        <div class="photo-note" id="pinNoteEl">إن تركتها فارغة فلن تُطلب كلمة مرور عند اختيار هذا الطالب.</div>
         <div class="link-line hidden" id="removePinLink" data-i18n="removePinLink" style="text-align:start; margin-top:6px;">🗑️ إزالة كلمة المرور الحالية</div>
       </div>
       <div>
@@ -2444,7 +2460,7 @@
     <div class="group-label" style="text-align:center;" data-i18n="comparisonTitle">نتيجة التحدي</div>
     <div class="winner-banner" id="winnerBanner"></div>
     <div class="compare-grid" id="compareGrid"></div>
-    <button class="start-btn" id="backToProfilesBtn" data-i18n="backToProfiles">العودة لاختيار اللاعب</button>
+    <button class="start-btn" id="backToProfilesBtn" data-i18n="backToProfiles">العودة لاختيار الطالب</button>
   </div>
 
   <!-- SUMMARY SCREEN -->
@@ -2491,6 +2507,14 @@
   const guestNote = document.getElementById('guestNote');
   const dashboardLink = document.getElementById('dashboardLink');
   const programBuilderLink = document.getElementById('programBuilderLink');
+  const teachersListLink = document.getElementById('teachersListLink');
+  const teachersListScreen = document.getElementById('teachersListScreen');
+  const teachersListArea = document.getElementById('teachersListArea');
+  const teachersListBackBtn = document.getElementById('teachersListBackBtn');
+  const teacherOverviewScreen = document.getElementById('teacherOverviewScreen');
+  const teacherOverviewCrumb = document.getElementById('teacherOverviewCrumb');
+  const teacherOverviewArea = document.getElementById('teacherOverviewArea');
+  const teacherOverviewBackBtn = document.getElementById('teacherOverviewBackBtn');
   const dashboardBody = document.getElementById('dashboardBody');
   const closeDashboardBtn = document.getElementById('closeDashboardBtn');
   const teacherClassesBtn = document.getElementById('teacherClassesBtn');
@@ -3326,6 +3350,7 @@
       pbSeedAllSuccess:'تم بنجاح! تم تفعيل ونشر كل البرامج التسعة ({count}/9).',
       pbSeedAllPartial:'اكتمل جزئيًا: {succeeded} من 9 برامج نجحت. فشل: {failedNames}. راجعي شيت الأخطاء وحاولي تفعيل الفاشلة يدويًا من الأزرار أدناه.',
       pbSeedIndividualLabel:'أو فعّلي برنامجًا واحدًا بمفرده:',
+      pbSeedAlreadyExists:'⚠️ هذا البرنامج موجود بالفعل — لم يتم إنشاء نسخة مكرَّرة. راجعي القائمة، ولو محتاجة نسخة جديدة احذفي القديمة أولًا من Program Builder.',
       pbCourseTitlePh:'عنوان الدورة', pbCreateCourseBtn:'+ إضافة دورة',
       pbNoModules:'لا توجد وحدات بعد.', pbLessonCount:'{n} درس', pbModuleTitlePh:'عنوان الوحدة', pbCreateModuleBtn:'+ إضافة وحدة',
       pbNoLessons:'لا توجد دروس بعد.', pbHasAssessment:'يوجد تقييم', pbNoAssessmentYet:'لا يوجد تقييم بعد',
@@ -3361,7 +3386,7 @@
       svcKnowledgeMapName:'الرحلة التعليمية', svcKnowledgeMapDesc:'خريطة المستويات الـ12 ونظام الإتقان',
       svcPlacementName:'اختبار تحديد المستوى', svcPlacementDesc:'اختبار الـ8 أسئلة لتحديد نقطة البداية المناسبة',
       svcAiPracticeName:'التمرين الذكي بالذكاء الاصطناعي', svcAiPracticeDesc:'توليد أسئلة مخصّصة عبر Gemini، مُتحقَّقة رياضيًا',
-      svcCameraName:'الكاميرا المباشرة أثناء السباق', svcCameraDesc:'مكالمة فيديو مباشرة بين اللاعبتين أثناء السباق',
+      svcCameraName:'الكاميرا المباشرة أثناء السباق', svcCameraDesc:'مكالمة فيديو مباشرة بين الطالبتين أثناء السباق',
       tableFocusLabel:'التركيز على جدول', tableAll:'الكل',
       diffLabel:'فئة الأرقام (منازل العدد)',
       diffUnits:'آحاد', diffTens:'عشرات', diffHundreds:'مئات', diffThousands:'آلاف',
@@ -3393,11 +3418,11 @@
       summaryHeadingTemplate:'{praise} يا {name}! 🎉',
       bestScoreLabel:'أفضل نتيجة', pointsWord:'نقطة',
       minuteTimeLeft:'الوقت المتبقي',
-      challengeBtn:'🏆 تحدي بين لاعبَين', dashboardLink:'📊 لوحة جميع الطلاب', programBuilderLink:'🎓 بناء البرامج التعليمية',
-      addPlayerCard:'+ إضافة لاعب', editProfile:'تعديل',
+      challengeBtn:'🏆 تحدي بين طالبَين', dashboardLink:'📊 لوحة جميع الطلاب', programBuilderLink:'🎓 بناء البرامج التعليمية',
+      addPlayerCard:'+ إضافة طالب', editProfile:'تعديل',
       savePlayer:'حفظ', cancelBtn:'إلغاء',
       newPlayerNamePh:'الاسم', newPlayerAgePh:'العمر',
-      chooseAvatar:'إضافة لاعب جديد', chooseAvatar2:'أو اختر صورة رمزية', chooseColor:'اختر اللون',
+      chooseAvatar:'إضافة طالب جديد', chooseAvatar2:'أو اختر صورة رمزية', chooseColor:'اختر اللون',
       birthDateLabel:'تاريخ الميلاد', photoLabel:'الصورة الشخصية',
       uploadPhoto:'رفع صورة', removePhoto:'إزالة الصورة',
       photoPrivacyNote:'تبقى الصورة على متصفحك فقط ولا تُرفع لأي خادم.',
@@ -3413,7 +3438,7 @@
       connectionNote:'الصق رابط "Web app" الذي حصلت عليه بعد نشر كود Apps Script في جدولك، ثم اختبر الاتصال.',
       sheetUrlPlaceholder:'https://script.google.com/macros/s/.../exec',
       testConnection:'اختبار الاتصال', connNotConnected:'غير متصل', connConnected:'متصل بنجاح ✓', connFailed:'فشل الاتصال — تحقق من الرابط',
-      pinLabel:'كلمة المرور (اختياري)', pinPlaceholder:'كلمة المرور', pinNote:'إن تركتها فارغة فلن تُطلب كلمة مرور عند اختيار هذا اللاعب.',
+      pinLabel:'كلمة المرور (اختياري)', pinPlaceholder:'كلمة المرور', pinNote:'إن تركتها فارغة فلن تُطلب كلمة مرور عند اختيار هذا الطالب.',
       pinLabelRequired:'كلمة المرور (إلزامية)', pinNoteRequired:'مطلوبة لحماية حسابك — لا يمكن ترك هذا الحقل فارغًا.',
       pinRequiredError:'كلمة المرور إلزامية لإنشاء حساب جديد',
       pinNoteEdit:'اتركيها فارغة للاحتفاظ بكلمة المرور الحالية.', removePinLink:'🗑️ إزالة كلمة المرور الحالية', pinWillBeRemoved:'✓ سيتم إزالة كلمة المرور عند الحفظ',
@@ -3471,7 +3496,7 @@
       levelLabel:'المستوى {n}', levelUpMsg:'🎉 المستوى {n}!', dailyStreakLabel:'🔥 {n} يوم متتالي',
       mascotIdle:'🦉', mascotHappy:'🥳', mascotSad:'😥',
       raceLobbyOpenBtn:'🏁 سباق مباشر مع صديقة', raceLobbyTitle:'🏁 سباق مباشر',
-      raceLobbyNote:'كل لاعبة تدخل من حسابها الخاص (على جهازها) وتحل نفس الأسئلة في نفس الوقت — النتائج تتحدّث لحظيًا.',
+      raceLobbyNote:'كل طالبة تدخل من حسابها الخاص (على جهازها) وتحل نفس الأسئلة في نفس الوقت — النتائج تتحدّث لحظيًا.',
       raceSettingsTitle:'إعدادات السباق (تُطبَّق على الطرفين)', raceLen15:'15 سؤالاً', raceLen30:'30 سؤالاً',
       raceJoinNote:'إعدادات السباق تُحدَّد بالكامل من ينشئه — فقط الصقي الكود وانضمّي.',
       createRaceBtn:'🆕 إنشاء سباق جديد', raceCodePlaceholder:'ABCDE', joinRaceBtn:'انضمام',
@@ -3515,6 +3540,10 @@
       statusTrialDays:'⏳ تجربة — {n} يوم متبقٍ', statusTrialExpiredShort:'⚠️ التجربة منتهية', statusNoTrial:'لم يبدأ بعد',
       disableAccountBtn:'🚫 تعطيل', enableAccountBtn:'تفعيل',
       grantSubLabel:'منح اشتراك مجاني', grantSubDaysPh:'عدد الأيام', grantSubBtn:'منح', grantSubSuccess:'✓ تم المنح',
+      subCostPh:'تكلفة الاشتراك', subCostSaveBtn:'حفظ التكلفة', subCostSaved:'✓ تم حفظ تكلفة الاشتراك',
+      teachersListLink:'المعلّمون', teachersListTitle:'👥 المعلّمون', teachersLoading:'جارٍ التحميل...',
+      teachersNone:'لا يوجد معلّمون مسجَّلون بعد.', teacherNoClasses:'لا توجد فصول لهذا المعلّم بعد.',
+      teacherStudentCount:'{n} طالب مسجَّل', teacherAssignmentsLabel:'الواجبات المخصّصة:', costCurrencyLabel:'ريال',
       totalStudentsLabel:'إجمالي الطلاب', activeSubsLabel:'اشتراكات فعّالة', disabledAccountsLabel:'حسابات معطّلة',
       subInactive:'غير مفعّل', subActive:'مفعّل — حتى {date}',
       challengeRound:'الجولة {n}: دور {name}',
@@ -3522,7 +3551,7 @@
       handoffContinue:'متابعة',
       comparisonTitle:'نتيجة التحدي',
       winnerLine:'🏆 الفائز: {name}!', tieLine:'🤝 تعادل!',
-      backToProfiles:'العودة لاختيار اللاعب',
+      backToProfiles:'العودة لاختيار الطالب',
       hintAdd:'اجمع العشرات ثم الآحاد', hintSub:'اطرح تدريجيًا من الأكبر للأصغر',
       hintMul:'جزّئ العدد إلى أجزاء أسهل ثم اجمعها', hintDiv:'فكّر: كم مرة يتكرر المقسوم عليه؟',
       badgeStreak5:'متتالية 5', badgeStreak10:'متتالية 10', badgeScore100:'100 نقطة',
@@ -3718,6 +3747,7 @@
       pbSeedAllSuccess:'Success! All 9 programs were created and published ({count}/9).',
       pbSeedAllPartial:'Partially complete: {succeeded} of 9 programs succeeded. Failed: {failedNames}. Check the error log and try activating the failed ones individually below.',
       pbSeedIndividualLabel:'Or activate one program at a time:',
+      pbSeedAlreadyExists:'⚠️ This program already exists — no duplicate was created. Check the list, and if you need a fresh copy, delete the old one first from Program Builder.',
       pbCourseTitlePh:'Course title', pbCreateCourseBtn:'+ Add Course',
       pbNoModules:'No modules yet.', pbLessonCount:'{n} lessons', pbModuleTitlePh:'Module title', pbCreateModuleBtn:'+ Add Module',
       pbNoLessons:'No lessons yet.', pbHasAssessment:'Has an assessment', pbNoAssessmentYet:'No assessment yet',
@@ -3785,11 +3815,11 @@
       summaryHeadingTemplate:'{praise}, {name}! 🎉',
       bestScoreLabel:'Best score', pointsWord:'points',
       minuteTimeLeft:'Time left',
-      challengeBtn:'🏆 Two-player challenge', dashboardLink:'📊 All students dashboard', programBuilderLink:'🎓 Program Builder',
-      addPlayerCard:'+ Add player', editProfile:'Edit',
+      challengeBtn:'🏆 Two-student challenge', dashboardLink:'📊 All students dashboard', programBuilderLink:'🎓 Program Builder',
+      addPlayerCard:'+ Add student', editProfile:'Edit',
       savePlayer:'Save', cancelBtn:'Cancel',
       newPlayerNamePh:'Name', newPlayerAgePh:'Age',
-      chooseAvatar:'Add a new player', chooseAvatar2:'Or pick an avatar', chooseColor:'Choose a color',
+      chooseAvatar:'Add a new student', chooseAvatar2:'Or pick an avatar', chooseColor:'Choose a color',
       birthDateLabel:'Birth date', photoLabel:'Profile photo',
       uploadPhoto:'Upload photo', removePhoto:'Remove photo',
       photoPrivacyNote:'The photo stays only on your device and is never uploaded anywhere.',
@@ -3863,8 +3893,8 @@
       levelLabel:'Level {n}', levelUpMsg:'🎉 Level {n}!', dailyStreakLabel:'🔥 {n} day streak',
       mascotIdle:'🦉', mascotHappy:'🥳', mascotSad:'😥',
       raceLobbyOpenBtn:'🏁 Live race with a friend', raceLobbyTitle:'🏁 Live race',
-      raceLobbyNote:'Each player logs in on her own device with her own account and solves the same questions at the same time — results update live.',
-      raceSettingsTitle:'Race settings (apply to both players)', raceLen15:'15 questions', raceLen30:'30 questions',
+      raceLobbyNote:'Each student logs in on her own device with her own account and solves the same questions at the same time — results update live.',
+      raceSettingsTitle:'Race settings (apply to both students)', raceLen15:'15 questions', raceLen30:'30 questions',
       raceJoinNote:'The race settings are fully set by whoever created it — just paste the code and join.',
       createRaceBtn:'🆕 Create a new race', raceCodePlaceholder:'ABCDE', joinRaceBtn:'Join',
       raceWaitingTitle:'Share this code with your friend', raceWaitingBody:'Waiting for her to join... keep this page open.',
@@ -3907,6 +3937,10 @@
       statusTrialDays:'⏳ Trial — {n} days left', statusTrialExpiredShort:'⚠️ Trial expired', statusNoTrial:'Not started yet',
       disableAccountBtn:'🚫 Disable', enableAccountBtn:'Enable',
       grantSubLabel:'Grant free subscription', grantSubDaysPh:'Number of days', grantSubBtn:'Grant', grantSubSuccess:'✓ Granted',
+      subCostPh:'Subscription cost', subCostSaveBtn:'Save cost', subCostSaved:'✓ Subscription cost saved',
+      teachersListLink:'Teachers', teachersListTitle:'👥 Teachers', teachersLoading:'Loading...',
+      teachersNone:'No teachers registered yet.', teacherNoClasses:'This teacher has no classes yet.',
+      teacherStudentCount:'{n} enrolled students', teacherAssignmentsLabel:'Assignments given:', costCurrencyLabel:'SAR',
       totalStudentsLabel:'Total students', activeSubsLabel:'Active subscriptions', disabledAccountsLabel:'Disabled accounts',
       subInactive:'Not active', subActive:'Active — until {date}',
       challengeRound:"Round {n}: {name}'s turn",
@@ -3914,7 +3948,7 @@
       handoffContinue:'Continue',
       comparisonTitle:'Challenge results',
       winnerLine:'🏆 Winner: {name}!', tieLine:"🤝 It's a tie!",
-      backToProfiles:'Back to player selection',
+      backToProfiles:'Back to student selection',
       hintAdd:'Add the tens, then the units', hintSub:'Subtract step by step from the larger number',
       hintMul:'Break the number into easier parts, then add', hintDiv:'Think: how many times does the divisor fit?',
       badgeStreak5:'5 streak', badgeStreak10:'10 streak', badgeScore100:'100 points',
@@ -4225,6 +4259,10 @@
           <input type="number" min="1" class="grant-days-input" id="grantDays_${key}" placeholder="${t('grantSubDaysPh')}">
           <button class="grant-sub-btn" data-grant="${key}">${t('grantSubBtn')}</button>
         </div>
+        <div class="grant-sub-row" onclick="event.stopPropagation()">
+          <input type="number" min="0" class="grant-days-input" id="subCost_${key}" placeholder="${t('subCostPh')}" value="${p.subscriptionCost || ''}">
+          <button class="grant-sub-btn" data-cost-save="${key}">${t('subCostSaveBtn')}</button>
+        </div>
         <button class="toggle-disable-btn" data-toggle="${key}">${p.disabled ? t('enableAccountBtn') : t('disableAccountBtn')}</button>
         <button class="delete-profile-btn" data-delete="${key}">${t('deleteProfileBtn')}</button>
       ` : '';
@@ -4267,7 +4305,7 @@
           renderProfiles();
         });
       }
-      const grantBtn = card.querySelector('.grant-sub-btn');
+      const grantBtn = card.querySelector('[data-grant]');
       if(grantBtn){
         grantBtn.addEventListener('click', (e)=>{
           e.stopPropagation();
@@ -4278,6 +4316,26 @@
           p.subscriptionUntil = until.toISOString();
           saveProfilesToStorage();
           renderProfiles();
+        });
+      }
+      const costBtn = card.querySelector('[data-cost-save]');
+      if(costBtn){
+        costBtn.addEventListener('click', async (e)=>{
+          e.stopPropagation();
+          const costInput = document.getElementById(`subCost_${key}`);
+          const cost = Number(costInput.value) || 0;
+          if(SHEET_API_URL && p.username && ADMIN){
+            setBtnSaving(costBtn, true);
+            const res = await postToSheet('set_subscription_cost', { username: p.username, cost, requesterUsername: ADMIN.username, requesterPin: ADMIN.pin });
+            setBtnSaving(costBtn, false);
+            if(!res || !res.ok){
+              showToast(describeSyncFailure(res, 'lpSyncCreateFailed'), nxIcon('alertTriangle'), 'system');
+              return;
+            }
+          }
+          p.subscriptionCost = cost;
+          saveProfilesToStorage();
+          showToast(t('subCostSaved'), nxIcon('check'), 'system');
         });
       }
       profileCardsWrap.appendChild(card);
@@ -4408,6 +4466,15 @@
     hideLearnerShellScreens();
     programsHubEl.classList.remove('hidden');
   }
+  const PROGRAM_ICON_MAP_ = [
+    [/english|إنجليزي/i, '🔤'], [/programming|برمجة/i, '💻'], [/ai\b|digital intelligence|ذكاء اصطناعي/i, '🤖'],
+    [/robotics|روبوتات/i, '🦾'], [/design|تصميم/i, '🎨'], [/stem/i, '🔬'],
+    [/logic|منطق/i, '🧩'], [/memory|ذاكرة/i, '🧠'], [/cognitive|قدرات عقلية/i, '💡']
+  ];
+  function pickProgramIcon_(title){
+    const match = PROGRAM_ICON_MAP_.find(([re]) => re.test(title));
+    return match ? match[1] : '🎓';
+  }
   function renderRealProgramCards(){
     document.querySelectorAll('.lp-real-program-card').forEach(el => el.remove());
     const realPrograms = lpLoad(LP_KEYS.PROGRAMS).filter(pr => pr.status === 'published');
@@ -4416,7 +4483,7 @@
       card.className = 'program-card lp-real-program-card';
       const progress = lpComputeProgramProgress(currentProfile, pr.id);
       const stat = progress > 0 ? fmt('programAccuracyStat', { acc: progress }) : t('programNotStartedStat');
-      card.innerHTML = `<span class="program-icon">🎓</span><span class="program-name">${pr.title}</span><span class="program-stat">${stat}</span>`;
+      card.innerHTML = `<span class="program-icon">${pickProgramIcon_(pr.title)}</span><span class="program-name">${pr.title}</span><span class="program-stat">${stat}</span>`;
       card.addEventListener('click', ()=> openProgramPlayer(pr));
       programAbacusCard.insertAdjacentElement('afterend', card);
     });
@@ -7473,6 +7540,8 @@
       setBtnSaving(btn, false);
       if(result && result.ok){
         showToast(fmt(successKey, { courses: result.courseCount, modules: result.moduleCount, lessons: result.lessonCount, assessments: result.assessmentCount }), nxIcon('check'), 'system');
+      } else if(result && result.reason === 'already_exists'){
+        showToast(t('pbSeedAlreadyExists'), nxIcon('alertTriangle'), 'system');
       } else {
         // Surface exactly which creation step failed (program/course/module/
         // lesson/assessment) — the earlier generic message hid this.
@@ -7486,6 +7555,15 @@
   // Module → Lesson → Assessment using ONLY the existing lpCreate* functions
   // (which themselves call the existing, unmodified LP_API/backend actions).
   async function seedProgramFromSeedData(seed){
+    // Real duplicate check first — without this, retrying after a partial
+    // failure (or clicking twice) creates a brand new program every time,
+    // since nothing here was otherwise idempotent.
+    if(SHEET_API_URL){
+      const existing = await LP_API.programs.list('Title', seed.title);
+      if(existing && existing.ok && Array.isArray(existing.items) && existing.items.length){
+        return { ok:false, reason:'already_exists', existingCount: existing.items.length };
+      }
+    }
     const owner = pbOwnerUsername();
     const program = await lpCreateProgram(seed.title, seed.description, seed.level, owner);
     if(!program) return { ok:false, reason:'program_create_failed' };
@@ -7635,6 +7713,8 @@
         setBtnSaving(seedBtn, false);
         if(result && result.ok){
           showToast(fmt('pbSeedEnglishSuccess', { courses: result.courseCount, modules: result.moduleCount, lessons: result.lessonCount, assessments: result.assessmentCount }), nxIcon('check'), 'system');
+        } else if(result && result.reason === 'already_exists'){
+          showToast(t('pbSeedAlreadyExists'), nxIcon('alertTriangle'), 'system');
         } else {
           const reason = result && result.reason ? ` (${result.reason})` : '';
           showToast(t('pbSeedEnglishFailed') + reason, nxIcon('alertTriangle'), 'system');
@@ -7649,6 +7729,8 @@
         setBtnSaving(seedBtn, false);
         if(result && result.ok){
           showToast(fmt('pbSeedProgrammingSuccess', { courses: result.courseCount, modules: result.moduleCount, lessons: result.lessonCount, assessments: result.assessmentCount }), nxIcon('check'), 'system');
+        } else if(result && result.reason === 'already_exists'){
+          showToast(t('pbSeedAlreadyExists'), nxIcon('alertTriangle'), 'system');
         } else {
           const reason = result && result.reason ? ` (${result.reason})` : '';
           showToast(t('pbSeedProgrammingFailed') + reason, nxIcon('alertTriangle'), 'system');
@@ -8478,6 +8560,60 @@
     profilesEl.classList.add('hidden');
     openProgramBuilder();
   });
+  teachersListLink.addEventListener('click', async ()=>{
+    profilesEl.classList.add('hidden');
+    teachersListScreen.classList.remove('hidden');
+    teachersListArea.innerHTML = `<div class="dash-empty">${t('teachersLoading')}</div>`;
+    if(!SHEET_API_URL){ teachersListArea.innerHTML = `<div class="dash-empty">${t('lpSeedNoBackend')}</div>`; return; }
+    const res = await postToSheet('list_teachers', {});
+    if(!res || !res.ok || !res.teachers || !res.teachers.length){
+      teachersListArea.innerHTML = `<div class="dash-empty">${t('teachersNone')}</div>`;
+      return;
+    }
+    teachersListArea.innerHTML = res.teachers.map(tc => `
+      <div class="lp-row" data-username="${tc.username}">
+        <span>👤</span>
+        <div style="flex:1;">
+          <div style="font-weight:700;">${tc.name}</div>
+          <div style="font-size:11px; color:var(--ink-dim);">@${tc.username}</div>
+        </div>
+        <span>›</span>
+      </div>`).join('');
+    teachersListArea.querySelectorAll('.lp-row').forEach(row=>{
+      row.addEventListener('click', ()=> openTeacherOverview(row.dataset.username));
+    });
+  });
+  teachersListBackBtn.addEventListener('click', ()=>{
+    teachersListScreen.classList.add('hidden');
+    profilesEl.classList.remove('hidden');
+  });
+  teacherOverviewBackBtn.addEventListener('click', ()=>{
+    teacherOverviewScreen.classList.add('hidden');
+    teachersListScreen.classList.remove('hidden');
+  });
+  async function openTeacherOverview(teacherUsername){
+    teachersListScreen.classList.add('hidden');
+    teacherOverviewScreen.classList.remove('hidden');
+    teacherOverviewCrumb.textContent = `👥 ${teacherUsername}`;
+    teacherOverviewArea.innerHTML = `<div class="dash-empty">${t('teachersLoading')}</div>`;
+    const res = await postToSheet('get_teacher_overview', { teacherUsername });
+    if(!res || !res.ok){
+      teacherOverviewArea.innerHTML = `<div class="dash-empty">${describeSyncFailure(res, 'lpSyncCreateFailed')}</div>`;
+      return;
+    }
+    if(!res.classes.length){
+      teacherOverviewArea.innerHTML = `<div class="dash-empty">${t('teacherNoClasses')}</div>`;
+      return;
+    }
+    teacherOverviewArea.innerHTML = res.classes.map(c => `
+      <div class="lp-create-form" style="margin-bottom:10px;">
+        <div style="font-weight:700; margin-bottom:6px;">📚 ${c.className}</div>
+        <div style="font-size:11.5px; color:var(--ink-dim); margin-bottom:6px;">${fmt('teacherStudentCount', { n: c.students.length })}</div>
+        ${c.students.map(s => `<div class="lp-row" style="padding:8px 10px;"><span>🧑‍🎓</span><span>@${s.username}</span></div>`).join('')}
+        ${c.assignments.length ? `<div style="margin-top:8px; font-size:11.5px; color:var(--ink-dim);">${t('teacherAssignmentsLabel')}</div>` : ''}
+        ${c.assignments.map(a => `<div class="lp-question-block"><b>${a.operation} / ${a.difficulty}</b>${a.note ? ' — ' + a.note : ''} ${a.cost ? `<span style="color:var(--yellow);">(${a.cost} ${t('costCurrencyLabel')})</span>` : ''}</div>`).join('')}
+      </div>`).join('');
+  }
   closeDashboardBtn.addEventListener('click', ()=>{
     dashboardEl.classList.add('hidden');
     if(dashboardOpenedBy === 'teacher') goToLoginGate();
@@ -8667,11 +8803,23 @@
     const pass = teacherPinInput.value;
     if(!name || !username || !pass){ teacherError.textContent = t('enterBothFields'); return; }
     if(isUsernameTakenGlobally(username, null)){ teacherError.textContent = t('teacherUsernameTaken'); return; }
-    saveTeacherBtn.disabled = true;
+    setBtnSaving(saveTeacherBtn, true);
     const hash = await computePasswordHash(username, pass);
+    if(SHEET_API_URL){
+      // Real sync — without this, the teacher never appears in the admin's
+      // "👥 المعلّمون" list from any other device (the original local-only
+      // bug this whole feature was built to fix).
+      const res = await postToSheet('register_teacher', { username, pin: hash, name });
+      if(!res || !res.ok){
+        setBtnSaving(saveTeacherBtn, false);
+        teacherError.className = 'feedback wrong';
+        teacherError.textContent = describeSyncFailure(res, 'lpSyncCreateFailed');
+        return;
+      }
+    }
     TEACHERS[username] = { pin: hash, name };
     saveTeachersToStorage();
-    saveTeacherBtn.disabled = false;
+    setBtnSaving(saveTeacherBtn, false);
     teacherError.className = 'feedback correct';
     teacherError.textContent = t('teacherCreated');
     setTimeout(()=>{
@@ -11202,7 +11350,7 @@
     }
     if(SHEET_API_URL){
       const prompt = currentLang === 'ar'
-        ? `اكتبي جملة مرحة قصيرة جدًا (أقل من 18 كلمة) بالعربية تعلّق على نتيجة سباق حساب ذهني بين طفلتين، اللاعبة الأولى حصلت على ${myScore} نقطة والثانية على ${oppScore} نقطة. كوني ودودة ومشجّعة للاثنتين معًا، بدون مقدمات.`
+        ? `اكتبي جملة مرحة قصيرة جدًا (أقل من 18 كلمة) بالعربية تعلّق على نتيجة سباق حساب ذهني بين طفلتين، الطالبة الأولى حصلت على ${myScore} نقطة والثانية على ${oppScore} نقطة. كوني ودودة ومشجّعة للاثنتين معًا، بدون مقدمات.`
         : `Write one very short (under 18 words), playful English sentence commenting on a mental math race result between two kids, player one scored ${myScore} and player two scored ${oppScore}. Be warm and encouraging to both, no preamble.`;
       callAi(prompt).then(text=>{ if(text) raceResultBanter.textContent = '🤖 ' + text; });
     }
