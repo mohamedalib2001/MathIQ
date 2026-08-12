@@ -1266,70 +1266,154 @@
   /* certificate template (rendered off-screen, captured via html2canvas) */
   #certTemplate{
     position:fixed; top:0; inset-inline-start:-99999px;
-    width:1000px; height:700px;
-    background: linear-gradient(160deg, #fdf8ec 0%, #f7f0da 100%);
+    width:1400px; height:1120px;
     font-family:'IBM Plex Sans Arabic','Tajawal',sans-serif;
-    color:#2b3a2f;
-    padding:34px;
+    background:#ffffff;
   }
-  #certTemplate .cert-border{
-    width:100%; height:100%; border:3px solid #c8a34e; border-radius:10px;
-    padding:26px 46px; position:relative; display:flex; flex-direction:column; align-items:center; box-sizing:border-box;
+  #certTemplate .cert-canvas{
+    position:relative; width:100%; height:100%; overflow:hidden;
+    background:
+      radial-gradient(circle at 30% 25%, rgba(201,162,39,0.05), transparent 55%),
+      linear-gradient(155deg, #fffdf8 0%, #fbf6e9 60%, #f7f0dd 100%);
+    box-sizing:border-box;
   }
-  #certTemplate .cert-border::before{
-    content:""; position:absolute; inset:10px; border:1px solid #1b4332; border-radius:6px; opacity:0.4;
+  #certTemplate .cert-swoosh{ position:absolute; width:340px; height:340px; z-index:0; }
+  #certTemplate .cert-swoosh-tl{ top:0; left:0; }
+  #certTemplate .cert-swoosh-br{ bottom:0; right:0; }
+  #certTemplate .cert-frame{
+    position:absolute; inset:34px; border:2px solid rgba(201,162,39,0.55); border-radius:4px; pointer-events:none;
   }
-  #certTemplate .cert-corner{ position:absolute; width:34px; height:34px; border:2px solid #1b4332; opacity:0.7; }
-  #certTemplate .cert-corner-tl{ top:18px; inset-inline-start:18px; border-inline-end:none; border-bottom:none; }
-  #certTemplate .cert-corner-tr{ top:18px; inset-inline-end:18px; border-inline-start:none; border-bottom:none; }
-  #certTemplate .cert-corner-bl{ bottom:18px; inset-inline-start:18px; border-inline-end:none; border-top:none; }
-  #certTemplate .cert-corner-br{ bottom:18px; inset-inline-end:18px; border-inline-start:none; border-top:none; }
+  #certTemplate .cert-mono{
+    font-family:'Cairo',sans-serif; font-weight:800; color:#14402f; letter-spacing:-1px;
+  }
+
+  /* rosette */
+  #certTemplate .cert-rosette{ position:absolute; top:78px; left:96px; width:150px; height:150px; }
+  #certTemplate .cert-rosette-disc{
+    position:absolute; inset:0; border-radius:50%;
+    background:conic-gradient(from 0deg, #e8cd7d, #c9a227, #f0dfa4, #c9a227, #e8cd7d);
+    display:flex; align-items:center; justify-content:center; z-index:2;
+    box-shadow:0 3px 10px rgba(20,64,47,0.22);
+  }
+  #certTemplate .cert-rosette-disc::before{
+    content:""; position:absolute; inset:13px; border-radius:50%; background:#14402f;
+  }
+  #certTemplate .cert-rosette-disc .cert-mono{ position:relative; z-index:1; font-size:52px; color:#e8cd7d; }
+  #certTemplate .cert-rosette-tail{
+    position:absolute; top:118px; width:38px; height:92px; background:#14402f; z-index:1;
+  }
+  #certTemplate .cert-rosette-tail-l{ left:30px; clip-path:polygon(0 0,100% 0,100% 100%,50% 74%,0 100%); }
+  #certTemplate .cert-rosette-tail-r{ left:82px; clip-path:polygon(0 0,100% 0,100% 100%,50% 74%,0 100%); }
+
+  /* brand lockup */
+  #certTemplate .cert-brand{
+    position:absolute; top:82px; right:96px; display:flex; align-items:center; gap:16px; text-align:center;
+  }
+  #certTemplate .cert-brand-mark{
+    width:74px; height:74px; border-radius:12px; flex:none;
+    background:linear-gradient(140deg,#1c5541,#14402f); display:flex; align-items:center; justify-content:center;
+  }
+  #certTemplate .cert-brand-mark .cert-mono{ font-size:40px; color:#e8cd7d; }
+  #certTemplate .cert-brand-en{
+    font-family:'Cairo',sans-serif; font-weight:800; font-size:38px; color:#14402f; line-height:1;
+  }
+  #certTemplate .cert-brand-sub{ font-size:12.5px; color:#8a7736; letter-spacing:3px; margin-top:3px; }
+  #certTemplate .cert-brand-ar{
+    font-family:'Cairo',sans-serif; font-weight:700; font-size:19px; color:#14402f;
+    margin-top:8px; padding-top:8px; border-top:1.5px solid rgba(201,162,39,0.5);
+  }
+
+  /* body */
+  #certTemplate .cert-body{
+    position:absolute; inset-inline:270px; top:96px; display:flex; flex-direction:column; align-items:center; text-align:center;
+  }
   #certTemplate .cert-ribbon{
-    position:absolute; top:22px; left:50%; transform:translateX(-50%);
-    background:#1b4332; color:#f0e6c8; font-size:10.5px; font-weight:700; letter-spacing:0.5px;
-    padding:4px 18px; border-radius:0 0 8px 8px;
+    background:#14402f; color:#f0e3bd; font-size:16px; font-weight:700;
+    padding:9px 30px; border-radius:7px;
   }
-  #certTemplate .cert-medal{ font-size:44px; margin:22px 0 2px; }
-  #certTemplate .cert-title{ font-family:'Cairo',sans-serif; font-weight:800; font-size:32px; color:#20302a; margin:2px 0 4px; }
-  #certTemplate .cert-subtitle{ font-size:13px; color:#6b6250; margin-bottom:8px; text-align:center; max-width:640px; }
-  #certTemplate .cert-program{
-    font-family:'Cairo',sans-serif; font-weight:700; font-size:14px; color:#1b4332; margin-bottom:12px;
-    background:rgba(27,67,50,0.08); padding:4px 16px; border-radius:20px;
+  #certTemplate .cert-kicker{
+    font-size:13.5px; letter-spacing:1.6px; color:#5e5433; margin-top:14px; font-weight:600;
   }
+  #certTemplate .cert-stars{ color:#c9a227; font-size:17px; letter-spacing:7px; margin-top:9px; }
+  #certTemplate .cert-title{
+    font-family:'Cairo',sans-serif; font-weight:800; font-size:56px; color:#14402f; margin-top:14px; line-height:1.15;
+  }
+  #certTemplate .cert-attest{ font-size:19px; color:#4f4a38; margin-top:16px; }
   #certTemplate .cert-photo{
-    width:100px; height:100px; border-radius:50%; border:4px solid #c8a34e; overflow:hidden;
-    display:flex; align-items:center; justify-content:center; font-size:48px; background:#f1e9cf; margin-bottom:8px;
+    width:150px; height:150px; border-radius:50%; overflow:hidden; margin-top:14px;
+    border:5px solid #c9a227; background:#f1e9cf;
+    display:flex; align-items:center; justify-content:center; font-size:70px;
+    box-shadow:0 4px 14px rgba(20,64,47,0.18);
   }
   #certTemplate .cert-photo img{ width:100%; height:100%; object-fit:cover; }
-  #certTemplate .cert-name{ font-family:'Cairo',sans-serif; font-weight:800; font-size:26px; color:#20302a; margin-bottom:2px; }
-  #certTemplate .cert-age{ font-size:12px; color:#6b6250; margin-bottom:14px; }
-  #certTemplate .cert-stats{ display:flex; gap:14px; margin-bottom:12px; }
+  #certTemplate .cert-name{
+    font-family:'Cairo',sans-serif; font-weight:800; font-size:46px; color:#14402f; margin-top:16px;
+  }
+  #certTemplate .cert-completed{ font-size:18px; color:#4f4a38; margin-top:12px; }
+  #certTemplate .cert-program{
+    background:#14402f; color:#f0e3bd; font-family:'Cairo',sans-serif; font-weight:700; font-size:21px;
+    padding:11px 34px; border-radius:30px; margin-top:12px;
+  }
+  #certTemplate .cert-issuer{ font-size:16px; color:#5e5433; margin-top:14px; line-height:1.7; }
+
+  #certTemplate .cert-stats{ display:flex; gap:14px; margin-top:22px; }
   #certTemplate .cert-stat{
-    background:#fffdf6; border:1.5px solid #e2d4a6; border-radius:10px; padding:9px 20px; text-align:center; min-width:96px;
+    background:#fffdf6; border:1.5px solid rgba(201,162,39,0.45); border-radius:12px;
+    padding:12px 20px; min-width:132px; text-align:center;
   }
-  #certTemplate .cert-stat b{ display:block; font-family:'Cairo',sans-serif; font-size:19px; color:#a8791f; }
-  #certTemplate .cert-stat span{ font-size:11px; color:#6b6250; }
-  #certTemplate .cert-badges-row{ display:flex; gap:8px; margin-bottom:8px; min-height:26px; align-items:center; }
+  #certTemplate .cert-stat-top{ display:flex; align-items:center; justify-content:center; gap:8px; }
+  #certTemplate .cert-stat-ico{ font-size:20px; }
+  #certTemplate .cert-stat b{ font-family:'Cairo',sans-serif; font-size:27px; color:#14402f; }
+  #certTemplate .cert-stat span{ display:block; font-size:12.5px; color:#6b6250; margin-top:5px; }
+
+  #certTemplate .cert-badges-row{ display:flex; gap:10px; margin-top:16px; justify-content:center; flex-wrap:wrap; min-height:34px; }
   #certTemplate .cert-badge-chip{
-    display:flex; align-items:center; gap:4px; background:#1b4332; color:#f0e6c8; border-radius:14px;
-    padding:3px 10px; font-size:10px; font-weight:600;
+    display:flex; align-items:center; gap:6px; background:#14402f; color:#f0e3bd;
+    border-radius:20px; padding:7px 16px; font-size:13px; font-weight:600;
   }
-  #certTemplate .cert-footer{
-    margin-top:auto; width:100%; display:flex; justify-content:space-between; align-items:flex-end; font-size:11px; color:#6b6250;
-  }
-  #certTemplate .cert-footer-sig{ text-align:center; min-width:150px; }
-  #certTemplate .cert-sig-line{ width:120px; height:1px; background:#6b6250; margin:0 auto 4px; opacity:0.5; }
-  #certTemplate .cert-sig-title{ font-size:10px; }
+
+  /* centre seal */
+  #certTemplate .cert-seal-wrap{ position:absolute; bottom:104px; left:50%; transform:translateX(-50%); width:112px; }
   #certTemplate .cert-seal{
-    width:58px; height:58px; border-radius:50%; border:2px dashed #c8a34e; display:flex; align-items:center; justify-content:center;
-    text-align:center; font-family:'Cairo',sans-serif; font-weight:700; font-size:8.5px; color:#a8791f; line-height:1.2; padding:4px;
+    position:relative; width:112px; height:112px; border-radius:50%; z-index:2;
+    background:conic-gradient(from 0deg,#e8cd7d,#c9a227,#f0dfa4,#c9a227,#e8cd7d);
+    box-shadow:0 3px 12px rgba(20,64,47,0.25);
   }
-  #certTemplate .cert-footer-meta{ text-align:end; min-width:150px; }
-  #certTemplate .cert-qr-wrap{
-    position:absolute; bottom:24px; inset-inline-start:52px; width:64px; height:64px;
-    background:#fff; padding:4px; border:1px solid #e2d4a6; border-radius:6px;
+  #certTemplate .cert-seal::before{
+    content:""; position:absolute; inset:10px; border-radius:50%; border:2px dashed rgba(20,64,47,0.5);
   }
+  #certTemplate .cert-seal::after{
+    content:"N"; position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    font-family:'Cairo',sans-serif; font-weight:800; font-size:44px; color:#14402f;
+  }
+  #certTemplate .cert-seal-tail{ position:absolute; top:92px; width:30px; height:74px; background:#14402f; z-index:1; }
+  #certTemplate .cert-seal-tail-l{ left:16px; clip-path:polygon(0 0,100% 0,100% 100%,50% 72%,0 100%); }
+  #certTemplate .cert-seal-tail-r{ left:64px; clip-path:polygon(0 0,100% 0,100% 100%,50% 72%,0 100%); }
+
+  /* verification */
+  #certTemplate .cert-verify{
+    position:absolute; bottom:112px; left:112px; display:flex; direction:ltr; align-items:center; gap:14px; z-index:3;
+  }
+  #certTemplate .cert-qr-wrap{ width:96px; height:96px; background:#fff; padding:5px; border:1px solid rgba(201,162,39,0.5); border-radius:6px; flex:none; }
   #certTemplate .cert-qr-wrap img, #certTemplate .cert-qr-wrap canvas{ width:100%; height:100%; }
+  #certTemplate .cert-verify-title{ font-family:'Cairo',sans-serif; font-weight:700; font-size:15px; color:#14402f; direction:rtl; text-align:start; }
+  #certTemplate .cert-verify-sub{ font-size:12px; color:#6b6250; margin-top:5px; direction:rtl; text-align:start; }
+
+  /* signature */
+  #certTemplate .cert-sign{ position:absolute; bottom:132px; right:150px; text-align:center; min-width:210px; z-index:3; }
+  #certTemplate .cert-sign-label{ font-size:12.5px; color:#6b6250; }
+  #certTemplate .cert-sign-mark{
+    font-family:'Cairo',sans-serif; font-style:italic; font-size:34px; color:#14402f; margin-top:6px;
+  }
+  #certTemplate .cert-sign-line{ height:1.5px; background:rgba(20,64,47,0.35); margin:6px 0 8px; }
+  #certTemplate .cert-sign-name{ font-family:'Cairo',sans-serif; font-weight:700; font-size:16px; color:#14402f; }
+  #certTemplate .cert-sign-role{ font-size:12.5px; color:#6b6250; margin-top:3px; }
+
+  #certTemplate .cert-footline{
+    position:absolute; bottom:44px; inset-inline:96px; text-align:center; z-index:3;
+    font-size:12.5px; color:#6b6250; direction:rtl;
+  }
+  #certTemplate .cert-foot-sep{ margin:0 10px; color:rgba(201,162,39,0.8); }
 
   @media (prefers-reduced-motion: reduce){
     .chalk-mark path{ animation:none; stroke-dashoffset:0; }
@@ -2179,37 +2263,91 @@
 
   <!-- CERTIFICATE TEMPLATE (off-screen, captured to an image for download) -->
   <div id="certTemplate">
-    <div class="cert-border">
-      <div class="cert-corner cert-corner-tl"></div>
-      <div class="cert-corner cert-corner-tr"></div>
-      <div class="cert-corner cert-corner-bl"></div>
-      <div class="cert-corner cert-corner-br"></div>
-      <div class="cert-ribbon" id="certRibbonEl">شهادة رقمية موثّقة</div>
-      <div class="cert-medal">🏅</div>
-      <div class="cert-title" id="certTitleEl">شهادة تقدير</div>
-      <div class="cert-subtitle" id="certSubtitleEl">تمنح هذه الشهادة تقديرًا للأداء المتميز في الحساب الذهني</div>
-      <div class="cert-program" id="certProgramEl"></div>
-      <div class="cert-photo" id="certPhotoEl">👧</div>
-      <div class="cert-name" id="certNameEl"></div>
-      <div class="cert-age" id="certAgeEl"></div>
-      <div class="cert-stats">
-        <div class="cert-stat"><b id="certScoreEl">0</b><span id="certScoreLabelEl">النقاط</span></div>
-        <div class="cert-stat"><b id="certAccEl">0%</b><span id="certAccLabelEl">الدقة</span></div>
-        <div class="cert-stat"><b id="certBestEl">0</b><span id="certBestLabelEl">أفضل متتالية</span></div>
+    <div class="cert-canvas">
+      <!-- Decorative green/gold swooshes, drawn in SVG so they scale
+           crisply in the PDF and need no external image assets. -->
+      <svg class="cert-swoosh cert-swoosh-tl" viewBox="0 0 400 400" preserveAspectRatio="none">
+        <path d="M0,0 L400,0 C250,40 90,180 40,400 L0,400 Z" fill="#14402f"/>
+        <path d="M0,0 C230,10 60,150 0,330 Z" fill="none" stroke="#c9a227" stroke-width="14"/>
+        <path d="M60,0 C280,30 110,170 42,392" fill="none" stroke="#e3c976" stroke-width="5"/>
+      </svg>
+      <svg class="cert-swoosh cert-swoosh-br" viewBox="0 0 400 400" preserveAspectRatio="none">
+        <path d="M400,400 L0,400 C150,360 310,220 360,0 L400,0 Z" fill="#14402f"/>
+        <path d="M400,400 C170,390 340,250 400,70 Z" fill="none" stroke="#c9a227" stroke-width="14"/>
+      </svg>
+
+      <div class="cert-frame"></div>
+
+      <!-- Gold rosette seal with ribbon tails -->
+      <div class="cert-rosette">
+        <div class="cert-rosette-disc"><span class="cert-mono">N</span></div>
+        <div class="cert-rosette-tail cert-rosette-tail-l"></div>
+        <div class="cert-rosette-tail cert-rosette-tail-r"></div>
       </div>
-      <div class="cert-badges-row" id="certBadgesRow"></div>
-      <div class="cert-footer">
-        <div class="cert-footer-sig">
-          <div class="cert-sig-line"></div>
-          <div class="cert-sig-title" id="certSigTitleEl">المدير الأكاديمي — أكاديمية نِكسورا</div>
-        </div>
-        <div class="cert-seal" id="certSealEl">NEXORA Academy</div>
-        <div class="cert-footer-meta">
-          <div id="certDateEl"></div>
-          <div id="certNumEl"></div>
+
+      <!-- Brand lockup -->
+      <div class="cert-brand">
+        <div class="cert-brand-mark"><span class="cert-mono">N</span></div>
+        <div class="cert-brand-text">
+          <div class="cert-brand-en">NEXORA</div>
+          <div class="cert-brand-sub">A C A D E M Y</div>
+          <div class="cert-brand-ar">أكاديمية نِكسورا</div>
         </div>
       </div>
-      <div class="cert-qr-wrap" id="certQrWrap"></div>
+
+      <div class="cert-body">
+        <div class="cert-ribbon" id="certRibbonEl">شهادة إتمام وتفوق</div>
+        <div class="cert-kicker" id="certKickerEl">CERTIFICATE OF COMPLETION &amp; EXCELLENCE</div>
+        <div class="cert-stars">★ ★ ★</div>
+        <div class="cert-title" id="certTitleEl">شهادة إتمام وتفوق</div>
+        <div class="cert-attest" id="certSubtitleEl">تشهد أكاديمية نِكسورا بأن</div>
+        <div class="cert-photo" id="certPhotoEl">👧</div>
+        <div class="cert-name" id="certNameEl"></div>
+        <div class="cert-completed" id="certCompletedEl">قد أتم بنجاح برنامج</div>
+        <div class="cert-program" id="certProgramEl"></div>
+        <div class="cert-issuer" id="certIssuerLineEl">من أكاديمية نِكسورا للتعليم والتطوير</div>
+
+        <div class="cert-stats">
+          <div class="cert-stat"><div class="cert-stat-top"><span class="cert-stat-ico">🎖️</span><b id="certGradeEl">—</b></div><span id="certGradeLabelEl">التقدير النهائي</span></div>
+          <div class="cert-stat"><div class="cert-stat-top"><span class="cert-stat-ico">⭐</span><b id="certScoreEl">0</b></div><span id="certScoreLabelEl">النقاط</span></div>
+          <div class="cert-stat"><div class="cert-stat-top"><span class="cert-stat-ico">🎯</span><b id="certAccEl">0%</b></div><span id="certAccLabelEl">الدقة</span></div>
+          <div class="cert-stat"><div class="cert-stat-top"><span class="cert-stat-ico">🏆</span><b id="certBestEl">0</b></div><span id="certBestLabelEl">أفضل متتالية</span></div>
+        </div>
+
+        <div class="cert-badges-row" id="certBadgesRow"></div>
+      </div>
+
+      <!-- Centre seal -->
+      <div class="cert-seal-wrap">
+        <div class="cert-seal" id="certSealEl"></div>
+        <div class="cert-seal-tail cert-seal-tail-l"></div>
+        <div class="cert-seal-tail cert-seal-tail-r"></div>
+      </div>
+
+      <!-- Verification block -->
+      <div class="cert-verify">
+        <div class="cert-qr-wrap" id="certQrWrap"></div>
+        <div class="cert-verify-text">
+          <div class="cert-verify-title" id="certVerifyTitleEl">تحقق من الشهادة</div>
+          <div class="cert-verify-sub" id="certVerifySubEl">امسح الرمز للتحقق من صحة الشهادة</div>
+        </div>
+      </div>
+
+      <!-- Signature -->
+      <div class="cert-sign">
+        <div class="cert-sign-label" id="certSignLabelEl">ختم وتوقيع الأكاديمية</div>
+        <div class="cert-sign-mark">Nexora</div>
+        <div class="cert-sign-line"></div>
+        <div class="cert-sign-name" id="certSigTitleEl">أكاديمية نِكسورا</div>
+        <div class="cert-sign-role" id="certSignRoleEl">للتعليم والتطوير</div>
+      </div>
+
+      <div class="cert-footline">
+        <span id="certNumEl"></span><span class="cert-foot-sep">|</span>
+        <span id="certDateEl"></span><span class="cert-foot-sep">|</span>
+        <span id="certAgeEl"></span><span class="cert-foot-sep">|</span>
+        <span id="certRoleLabelEl">الطالب</span>
+      </div>
     </div>
   </div>
 
@@ -3466,7 +3604,14 @@
       uploadPhoto:'رفع صورة', removePhoto:'إزالة الصورة',
       photoPrivacyNote:'تبقى الصورة على متصفحك فقط ولا تُرفع لأي خادم.',
       certAgeLabel:'العمر', certNumLabel:'رقم الشهادة', certIssuedBy:'أكاديمية نِكسورا',
-      certRibbonLabel:'شهادة رقمية موثّقة', certSigTitle:'المدير الأكاديمي — أكاديمية نِكسورا',
+      certRibbonLabel:'شهادة إتمام وتفوق', certSigTitle:'المدير الأكاديمي — أكاديمية نِكسورا',
+      certKicker:'CERTIFICATE OF COMPLETION & EXCELLENCE',
+      certAttestLine:'تشهد أكاديمية نِكسورا بأن', certCompletedLine:'قد أتم بنجاح برنامج',
+      certIssuerLine:'من أكاديمية نِكسورا للتعليم والتطوير، وبتفوق وتميز في جميع أهداف البرنامج',
+      certGradeLabel:'التقدير النهائي', certGradeExcellent:'ممتاز', certGradeVeryGood:'جيد جدًا',
+      certGradeGood:'جيد', certGradePass:'مجتاز',
+      certVerifyBlockTitle:'تحقق من الشهادة', certVerifyBlockSub:'امسح الرمز للتحقق من صحة الشهادة',
+      certSignLabel:'ختم وتوقيع الأكاديمية', certSignRole:'للتعليم والتطوير', certRoleLabel:'الطالب',
       certVerifyChecking:'جارٍ التحقق...', certVerifyRevoked:'هذه الشهادة مُلغاة.',
       certVerifyBadges:'عدد الإنجازات', certVerifyProgram:'البرنامج',
       certCopyIdBtn:'نسخ', certCopiedLabel:'تم النسخ!',
@@ -3882,7 +4027,14 @@
       uploadPhoto:'Upload photo', removePhoto:'Remove photo',
       photoPrivacyNote:'The photo stays only on your device and is never uploaded anywhere.',
       certAgeLabel:'Age', certNumLabel:'Certificate No.', certIssuedBy:'NEXORA Academy',
-      certRibbonLabel:'Verified Digital Certificate', certSigTitle:'Academic Director — NEXORA Academy',
+      certRibbonLabel:'Certificate of Completion & Excellence', certSigTitle:'Academic Director — NEXORA Academy',
+      certKicker:'CERTIFICATE OF COMPLETION & EXCELLENCE',
+      certAttestLine:'NEXORA Academy hereby certifies that', certCompletedLine:'has successfully completed the program',
+      certIssuerLine:'from NEXORA Academy for Education & Development, with excellence across all program objectives',
+      certGradeLabel:'Final grade', certGradeExcellent:'Excellent', certGradeVeryGood:'Very good',
+      certGradeGood:'Good', certGradePass:'Pass',
+      certVerifyBlockTitle:'Verify this certificate', certVerifyBlockSub:'Scan the code to confirm authenticity',
+      certSignLabel:'Academy seal & signature', certSignRole:'Education & Development', certRoleLabel:'Student',
       certVerifyChecking:'Verifying...', certVerifyRevoked:'This certificate has been revoked.',
       certVerifyBadges:'Achievements', certVerifyProgram:'Program',
       certCopyIdBtn:'Copy', certCopiedLabel:'Copied!',
@@ -10251,8 +10403,17 @@
   const certBestEl = document.getElementById('certBestEl');
   const certBestLabelEl = document.getElementById('certBestLabelEl');
   const certBadgesRow = document.getElementById('certBadgesRow');
+  const certKickerEl = document.getElementById('certKickerEl');
+  const certCompletedEl = document.getElementById('certCompletedEl');
+  const certIssuerLineEl = document.getElementById('certIssuerLineEl');
+  const certGradeEl = document.getElementById('certGradeEl');
+  const certGradeLabelEl = document.getElementById('certGradeLabelEl');
+  const certVerifyTitleEl = document.getElementById('certVerifyTitleEl');
+  const certVerifySubEl = document.getElementById('certVerifySubEl');
+  const certSignLabelEl = document.getElementById('certSignLabelEl');
+  const certSignRoleEl = document.getElementById('certSignRoleEl');
+  const certRoleLabelEl = document.getElementById('certRoleLabelEl');
   const certDateEl = document.getElementById('certDateEl');
-  const certSealEl = document.getElementById('certSealEl');
   const certSigTitleEl = document.getElementById('certSigTitleEl');
   const certNumEl = document.getElementById('certNumEl');
   const certQrWrap = document.getElementById('certQrWrap');
@@ -10355,8 +10516,11 @@
     const prof = PROFILES[currentProfile];
     certTemplateEl.setAttribute('dir', currentLang === 'ar' ? 'rtl' : 'ltr');
     certRibbonEl.textContent = t('certRibbonLabel');
+    certKickerEl.textContent = t('certKicker');
     certTitleEl.textContent = t('certTitle');
-    certSubtitleEl.textContent = t('certSubtitle');
+    certSubtitleEl.textContent = t('certAttestLine');
+    certCompletedEl.textContent = t('certCompletedLine');
+    certIssuerLineEl.textContent = t('certIssuerLine');
     const programName = t('programMentalMathName'); // certificates are only ever issued from this program today — never invent a program name
     certProgramEl.textContent = programName;
     certNameEl.textContent = profileDisplayName(currentProfile);
@@ -10368,14 +10532,27 @@
     certAccLabelEl.textContent = t('sumAccLabel');
     certBestEl.textContent = sumBest.textContent;
     certBestLabelEl.textContent = t('statBest');
+    // Grade is DERIVED from the learner's real accuracy on this quiz — not
+    // a decorative label. The thresholds are fixed and applied identically
+    // to everyone, so the word on the certificate always means something.
+    const accForGrade = parseInt(sumAcc.textContent, 10) || 0;
+    certGradeEl.textContent = accForGrade >= 90 ? t('certGradeExcellent')
+      : accForGrade >= 80 ? t('certGradeVeryGood')
+      : accForGrade >= 70 ? t('certGradeGood')
+      : t('certGradePass');
+    certGradeLabelEl.textContent = t('certGradeLabel');
+    certVerifyTitleEl.textContent = t('certVerifyBlockTitle');
+    certVerifySubEl.textContent = t('certVerifyBlockSub');
+    certSignLabelEl.textContent = t('certSignLabel');
+    certSignRoleEl.textContent = t('certSignRole');
+    certRoleLabelEl.textContent = t('certRoleLabel');
     certDateEl.textContent = `${t('certDate')}: ${new Date().toLocaleDateString(currentLang === 'ar' ? 'ar-EG' : 'en-US')}`;
-    certSealEl.textContent = t('certIssuedBy');
-    certSigTitleEl.textContent = t('certSigTitle');
+    certSigTitleEl.textContent = t('certIssuedBy');
     const certId = generateCertId(currentProfile, Date.now());
-    certNumEl.textContent = `${t('certNumLabel')}: ${certId}`;
+    certNumEl.textContent = certId;
     const safePhoto = await resolvePhotoForCanvas(prof.photo);
-    setAvatarElement(certPhotoEl, Object.assign({}, prof, { photo: safePhoto }), 110);
-    if(!prof.photo) certPhotoEl.style.fontSize = '52px';
+    setAvatarElement(certPhotoEl, Object.assign({}, prof, { photo: safePhoto }), 150);
+    if(!prof.photo) certPhotoEl.style.fontSize = '70px';
 
     // Real earned badges only — never fabricated, and simply omitted (empty row) if the learner has none yet.
     const earnedBadgeIds = prof.badges ? Array.from(prof.badges) : [];
@@ -10394,7 +10571,7 @@
     certQrWrap.innerHTML = '';
     const verifyUrl = CERT_VERIFY_BASE_URL + '?verifyCert=' + encodeURIComponent(certId);
     if(typeof QRCode !== 'undefined'){
-      new QRCode(certQrWrap, { text: verifyUrl, width:56, height:56, colorDark:'#1b4332', colorLight:'#ffffff' });
+      new QRCode(certQrWrap, { text: verifyUrl, width:86, height:86, colorDark:'#14402f', colorLight:'#ffffff' });
     }
 
     const originalLabel = certBtn.textContent;
