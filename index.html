@@ -8549,9 +8549,18 @@
   // Drives the sidebar badge. Refreshed on login and after any friends
   // action; never blocks navigation if the fetch fails.
   let pendingFriendRequestCount = 0;
+  // The server identifies learners by their real username (the Users sheet
+  // key), NOT by the local profile key — those differ for accounts created
+  // before usernames existed. Every other server call in this file already
+  // uses the `p.username || key` pattern; friends must too, or requests get
+  // filed under a name the recipient never matches.
+  function currentServerUsername(){
+    const p = PROFILES[currentProfile];
+    return (p && p.username) || currentProfile;
+  }
   async function refreshPendingFriendCount(){
     if(!SHEET_API_URL || !currentProfile) return;
-    const res = await postToSheet('list_friends', { username: currentProfile });
+    const res = await postToSheet('list_friends', { username: currentServerUsername() });
     if(!res || !res.ok) return; // silent — a badge is not worth an error toast
     const next = res.incoming.length;
     if(next !== pendingFriendRequestCount){
@@ -11030,11 +11039,13 @@
     }
   });
   friendAddBtn.addEventListener('click', async ()=>{
-    const toUsername = friendUsernameInput.value.trim();
+    // Accept "@jory" as well as "jory" — the profile cards display the
+    // @-prefixed form, so people naturally copy it including the @.
+    const toUsername = friendUsernameInput.value.trim().replace(/^@+/, '');
     if(!toUsername) return;
     if(!SHEET_API_URL){ friendsError.className = 'feedback wrong'; friendsError.textContent = t('lpSeedNoBackend'); return; }
     setBtnSaving(friendAddBtn, true, t('friendSending'));
-    const res = await postToSheet('send_friend_request', { fromUsername: currentProfile, toUsername });
+    const res = await postToSheet('send_friend_request', { fromUsername: currentServerUsername(), toUsername });
     setBtnSaving(friendAddBtn, false);
     if(res && res.ok){
       friendsError.className = 'feedback correct';
@@ -11056,7 +11067,7 @@
     friendsListArea.innerHTML = `<div class="dash-empty">${t('teachersLoading')}</div>`;
     friendsIncomingArea.innerHTML = '';
     if(!SHEET_API_URL){ friendsListArea.innerHTML = `<div class="dash-empty">${t('lpSeedNoBackend')}</div>`; return; }
-    const res = await postToSheet('list_friends', { username: currentProfile });
+    const res = await postToSheet('list_friends', { username: currentServerUsername() });
     if(!res || !res.ok){
       friendsListArea.innerHTML = `<div class="dash-empty">${describeSyncFailure(res, 'lpSyncCreateFailed')}</div>`;
       return;
@@ -11085,7 +11096,7 @@
     }
     friendsScreen.querySelectorAll('[data-accept]').forEach(b=> b.addEventListener('click', async ()=>{
       setBtnSaving(b, true, t('friendSending'));
-      const r = await postToSheet('respond_friend_request', { username: currentProfile, fromUsername: b.dataset.accept, accept: true });
+      const r = await postToSheet('respond_friend_request', { username: currentServerUsername(), fromUsername: b.dataset.accept, accept: true });
       if(!r || !r.ok){ setBtnSaving(b, false); showToast(describeSyncFailure(r, 'lpSyncCreateFailed'), nxIcon('alertTriangle'), 'system'); return; }
       showToast(t('friendAccepted'), nxIcon('check'), 'system');
       await renderFriends();
@@ -11093,14 +11104,14 @@
     }));
     friendsScreen.querySelectorAll('[data-decline]').forEach(b=> b.addEventListener('click', async ()=>{
       setBtnSaving(b, true, t('friendSending'));
-      const r = await postToSheet('respond_friend_request', { username: currentProfile, fromUsername: b.dataset.decline, accept: false });
+      const r = await postToSheet('respond_friend_request', { username: currentServerUsername(), fromUsername: b.dataset.decline, accept: false });
       if(!r || !r.ok){ setBtnSaving(b, false); showToast(describeSyncFailure(r, 'lpSyncCreateFailed'), nxIcon('alertTriangle'), 'system'); return; }
       await renderFriends();
       refreshPendingFriendCount();
     }));
     friendsScreen.querySelectorAll('[data-remove]').forEach(b=> b.addEventListener('click', async ()=>{
       if(!window.confirm(t('friendRemoveConfirm'))) return;
-      await postToSheet('remove_friend', { username: currentProfile, otherUsername: b.dataset.remove });
+      await postToSheet('remove_friend', { username: currentServerUsername(), otherUsername: b.dataset.remove });
       renderFriends();
     }));
     // "Challenge a friend" — creates a REAL race via the existing race
