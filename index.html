@@ -4764,13 +4764,43 @@
     lpSave(LP_KEYS.COURSES, courses);
     return c;
   }
-  function lpCreateModule(courseId, title){
+  async function lpCreateModule(courseId, title){
     if(!can(lpCurrentRole(), 'module.create')) return lpDenyAndNotify('module.create');
+    if(SHEET_API_URL){
+      const result = await LP_API.modules.create({ CourseID: courseId, Title: title, Description: '' });
+      if(!result || !result.ok){
+        showToast(t('lpSyncCreateFailed'), nxIcon('alertTriangle'), 'system');
+        return null;
+      }
+      const modules = lpLoad(LP_KEYS.MODULES);
+      const m = { id: result.id, courseId, title, description:'', skillIds:[], archived:false };
+      modules.push(m);
+      lpSave(LP_KEYS.MODULES, modules);
+      return m;
+    }
     const modules = lpLoad(LP_KEYS.MODULES);
     const m = { id: lpGenId('mod'), courseId, title, description:'', skillIds:[], archived:false };
     modules.push(m);
     lpSave(LP_KEYS.MODULES, modules);
     return m;
+  }
+  async function lpRefreshModulesForCourse(courseId){
+    if(!SHEET_API_URL || !courseId) return false;
+    const result = await LP_API.modules.list('CourseID', courseId);
+    if(!result || !result.ok || !Array.isArray(result.items)) return false;
+    const remoteById = {};
+    result.items.forEach(item=>{
+      remoteById[item.ModuleID] = {
+        id: item.ModuleID, courseId: item.CourseID, title: item.Title, description: item.Description,
+        archived: item.Archived === true || item.Archived === 'TRUE', skillIds:[],
+        createdAt: item.CreatedAt, updatedAt: item.UpdatedAt
+      };
+    });
+    const localModules = lpLoad(LP_KEYS.MODULES);
+    const merged = localModules.filter(m => m.courseId !== courseId || !remoteById[m.id]);
+    Object.values(remoteById).forEach(m => merged.push(m));
+    lpSave(LP_KEYS.MODULES, merged);
+    return true;
   }
   function lpUpdateModule(moduleId, fields){
     if(!can(lpCurrentRole(), 'module.update')) return lpDenyAndNotify('module.update');
@@ -4796,13 +4826,43 @@
     lpSave(LP_KEYS.MODULES, modules);
     return m;
   }
-  function lpCreateLesson(moduleId, title, content){
+  async function lpCreateLesson(moduleId, title, content){
     if(!can(lpCurrentRole(), 'lesson.create')) return lpDenyAndNotify('lesson.create');
+    if(SHEET_API_URL){
+      const result = await LP_API.lessons.create({ ModuleID: moduleId, Title: title, Content: content });
+      if(!result || !result.ok){
+        showToast(t('lpSyncCreateFailed'), nxIcon('alertTriangle'), 'system');
+        return null;
+      }
+      const lessons = lpLoad(LP_KEYS.LESSONS);
+      const l = { id: result.id, moduleId, title, content, resources:'', skillIds:[], archived:false };
+      lessons.push(l);
+      lpSave(LP_KEYS.LESSONS, lessons);
+      return l;
+    }
     const lessons = lpLoad(LP_KEYS.LESSONS);
     const l = { id: lpGenId('lesson'), moduleId, title, content, resources:'', skillIds:[], archived:false };
     lessons.push(l);
     lpSave(LP_KEYS.LESSONS, lessons);
     return l;
+  }
+  async function lpRefreshLessonsForModule(moduleId){
+    if(!SHEET_API_URL || !moduleId) return false;
+    const result = await LP_API.lessons.list('ModuleID', moduleId);
+    if(!result || !result.ok || !Array.isArray(result.items)) return false;
+    const remoteById = {};
+    result.items.forEach(item=>{
+      remoteById[item.LessonID] = {
+        id: item.LessonID, moduleId: item.ModuleID, title: item.Title, content: item.Content,
+        archived: item.Archived === true || item.Archived === 'TRUE', resources:'', skillIds:[],
+        createdAt: item.CreatedAt, updatedAt: item.UpdatedAt
+      };
+    });
+    const localLessons = lpLoad(LP_KEYS.LESSONS);
+    const merged = localLessons.filter(l => l.moduleId !== moduleId || !remoteById[l.id]);
+    Object.values(remoteById).forEach(l => merged.push(l));
+    lpSave(LP_KEYS.LESSONS, merged);
+    return true;
   }
   function lpUpdateLesson(lessonId, fields){
     if(!can(lpCurrentRole(), 'lesson.update')) return lpDenyAndNotify('lesson.update');
@@ -4828,13 +4888,52 @@
     lpSave(LP_KEYS.LESSONS, lessons);
     return l;
   }
-  function lpCreateAssessment(lessonId, title, questions, passScore, timeLimit, skillIds){
+  async function lpCreateAssessment(lessonId, title, questions, passScore, timeLimit, skillIds){
     if(!can(lpCurrentRole(), 'assessment.create')) return lpDenyAndNotify('assessment.create');
+    if(SHEET_API_URL){
+      const result = await LP_API.assessments.create({
+        LessonID: lessonId, Title: title, Questions: questions, PassScore: passScore || 60,
+        TimeLimit: timeLimit || null, SkillIds: skillIds || []
+      });
+      if(!result || !result.ok){
+        showToast(t('lpSyncCreateFailed'), nxIcon('alertTriangle'), 'system');
+        return null;
+      }
+      const assessments = lpLoad(LP_KEYS.ASSESSMENTS);
+      const a = { id: result.id, lessonId, title, questions, passScore: passScore || 60, timeLimit: timeLimit || null, skillIds: skillIds || [], archived:false };
+      assessments.push(a);
+      lpSave(LP_KEYS.ASSESSMENTS, assessments);
+      return a;
+    }
     const assessments = lpLoad(LP_KEYS.ASSESSMENTS);
     const a = { id: lpGenId('assess'), lessonId, title, questions, passScore: passScore || 60, timeLimit: timeLimit || null, skillIds: skillIds || [], archived:false };
     assessments.push(a);
     lpSave(LP_KEYS.ASSESSMENTS, assessments);
     return a;
+  }
+  /* NOTE: the existing model is one assessment per lesson (lpGetAssessmentForLesson
+     uses .find(), not a list) — this refresh respects that, it does not
+     introduce a multi-assessment-per-lesson concept that isn't in the schema. */
+  async function lpRefreshAssessmentForLesson(lessonId){
+    if(!SHEET_API_URL || !lessonId) return false;
+    const result = await LP_API.assessments.list('LessonID', lessonId);
+    if(!result || !result.ok || !Array.isArray(result.items) || !result.items.length) return false;
+    const item = result.items[0]; // schema is one-per-lesson; take the first/only match
+    let questions = [];
+    try{ questions = typeof item.QuestionsJSON === 'string' ? JSON.parse(item.QuestionsJSON) : (item.QuestionsJSON || []); }catch(e){ questions = []; }
+    let skillIds = [];
+    try{ skillIds = typeof item.SkillIdsJSON === 'string' ? JSON.parse(item.SkillIdsJSON) : (item.SkillIdsJSON || []); }catch(e){ skillIds = []; }
+    const remote = {
+      id: item.AssessmentID, lessonId: item.LessonID, title: item.Title, questions,
+      passScore: item.PassScore || 60, timeLimit: item.TimeLimit || null, skillIds,
+      archived: item.Archived === true || item.Archived === 'TRUE',
+      createdAt: item.CreatedAt, updatedAt: item.UpdatedAt
+    };
+    const localAssessments = lpLoad(LP_KEYS.ASSESSMENTS);
+    const merged = localAssessments.filter(a => a.lessonId !== lessonId || a.id !== remote.id);
+    merged.push(remote);
+    lpSave(LP_KEYS.ASSESSMENTS, merged);
+    return true;
   }
   function lpUpdateAssessment(assessmentId, fields){
     if(!can(lpCurrentRole(), 'assessment.update')) return lpDenyAndNotify('assessment.update');
@@ -5234,6 +5333,12 @@
       document.getElementById('pbCrumbCourses').addEventListener('click', ()=> pbNavigate('courses', pbProgram));
       const modules = lpGetModulesForCourse(pbCourse.id);
       if(!modules.length) pbListArea.innerHTML = `<div class="dash-empty">${t('pbNoModules')}</div>`;
+      if(SHEET_API_URL){
+        const courseIdAtFetchTime = pbCourse.id;
+        lpRefreshModulesForCourse(courseIdAtFetchTime).then(changed=>{
+          if(changed && pbLevel === 'modules' && pbCourse && pbCourse.id === courseIdAtFetchTime) renderProgramBuilder();
+        });
+      }
       modules.forEach(m=>{
         const row = document.createElement('div');
         row.className = 'lp-row' + (m.archived ? ' disabled-service' : '');
@@ -5279,10 +5384,12 @@
           <input type="text" id="pbNewModuleTitle" placeholder="${t('pbModuleTitlePh')}">
           <button class="start-btn" id="pbCreateModuleBtn">${t('pbCreateModuleBtn')}</button>
         </div>`;
-      document.getElementById('pbCreateModuleBtn').addEventListener('click', ()=>{
+      document.getElementById('pbCreateModuleBtn').addEventListener('click', async ()=>{
         const title = document.getElementById('pbNewModuleTitle').value.trim();
         if(!title) return;
-        lpCreateModule(pbCourse.id, title);
+        const btn = document.getElementById('pbCreateModuleBtn');
+        btn.disabled = true; btn.textContent = t('pbSavingLabel');
+        await lpCreateModule(pbCourse.id, title);
         renderProgramBuilder();
       });
 
@@ -5293,6 +5400,12 @@
       document.getElementById('pbCrumbModules').addEventListener('click', ()=> pbNavigate('modules', pbProgram, pbCourse));
       const lessons = lpGetLessonsForModule(pbModule.id);
       if(!lessons.length) pbListArea.innerHTML = `<div class="dash-empty">${t('pbNoLessons')}</div>`;
+      if(SHEET_API_URL){
+        const moduleIdAtFetchTime = pbModule.id;
+        lpRefreshLessonsForModule(moduleIdAtFetchTime).then(changed=>{
+          if(changed && pbLevel === 'lessons' && pbModule && pbModule.id === moduleIdAtFetchTime) renderProgramBuilder();
+        });
+      }
       lessons.forEach(l=>{
         const row = document.createElement('div');
         row.className = 'lp-row' + (l.archived ? ' disabled-service' : '');
@@ -5341,16 +5454,24 @@
           <textarea id="pbNewLessonContent" placeholder="${t('pbLessonContentPh')}" rows="3"></textarea>
           <button class="start-btn" id="pbCreateLessonBtn">${t('pbCreateLessonBtn')}</button>
         </div>`;
-      document.getElementById('pbCreateLessonBtn').addEventListener('click', ()=>{
+      document.getElementById('pbCreateLessonBtn').addEventListener('click', async ()=>{
         const title = document.getElementById('pbNewLessonTitle').value.trim();
         if(!title) return;
-        lpCreateLesson(pbModule.id, title, document.getElementById('pbNewLessonContent').value.trim());
+        const btn = document.getElementById('pbCreateLessonBtn');
+        btn.disabled = true; btn.textContent = t('pbSavingLabel');
+        await lpCreateLesson(pbModule.id, title, document.getElementById('pbNewLessonContent').value.trim());
         renderProgramBuilder();
       });
 
     } else if(pbLevel === 'assessment'){
       pbBreadcrumb.innerHTML = `<span class="switch-player" id="pbCrumbLessons">${t('pbBreadcrumbPrograms')}</span> › ${pbLesson.title}`;
       document.getElementById('pbCrumbLessons').addEventListener('click', ()=> pbNavigate('lessons', pbProgram, pbCourse, pbModule));
+      if(SHEET_API_URL){
+        const lessonIdAtFetchTime = pbLesson.id;
+        lpRefreshAssessmentForLesson(lessonIdAtFetchTime).then(changed=>{
+          if(changed && pbLevel === 'assessment' && pbLesson && pbLesson.id === lessonIdAtFetchTime) renderProgramBuilder();
+        });
+      }
       const existing = lpGetAssessmentForLesson(pbLesson.id);
       if(existing){
         const timeLabel = existing.timeLimit ? fmt('pbTimeLimitShown', { min: existing.timeLimit }) : t('pbNoTimeLimit');
@@ -5445,12 +5566,14 @@
         pbAssessmentQuestions.push(q);
         renderProgramBuilder();
       });
-      document.getElementById('pbSaveAssessmentBtn').addEventListener('click', ()=>{
+      document.getElementById('pbSaveAssessmentBtn').addEventListener('click', async ()=>{
         const title = document.getElementById('pbAssessTitle').value.trim();
         if(!title || !pbAssessmentQuestions.length) return;
+        const btn = document.getElementById('pbSaveAssessmentBtn');
+        btn.disabled = true; btn.textContent = t('pbSavingLabel');
         const timeLimit = parseInt(document.getElementById('pbAssessTimeLimit').value, 10) || null;
         const skillId = document.getElementById('pbAssessSkill').value;
-        lpCreateAssessment(pbLesson.id, title, pbAssessmentQuestions, 60, timeLimit, skillId ? [skillId] : []);
+        await lpCreateAssessment(pbLesson.id, title, pbAssessmentQuestions, 60, timeLimit, skillId ? [skillId] : []);
         pbNavigate('lessons', pbProgram, pbCourse, pbModule);
       });
     }
@@ -5532,6 +5655,12 @@
       ppBreadcrumb.innerHTML = `<span class="switch-player" id="ppCrumbCourses">${ppProgram.title}</span> › ${ppCourse.title}`;
       document.getElementById('ppCrumbCourses').addEventListener('click', ()=> ppNavigate('courses'));
       const modules = lpGetActiveModulesForCourse(ppCourse.id);
+      if(SHEET_API_URL){
+        const courseIdAtFetchTime = ppCourse.id;
+        lpRefreshModulesForCourse(courseIdAtFetchTime).then(changed=>{
+          if(changed && ppLevel === 'modules' && ppCourse && ppCourse.id === courseIdAtFetchTime) renderProgramPlayer();
+        });
+      }
       modules.forEach(m=>{
         const row = document.createElement('div');
         row.className = 'lp-row';
@@ -5567,6 +5696,12 @@
       document.getElementById('ppCrumbCourses').addEventListener('click', ()=> ppNavigate('courses'));
       document.getElementById('ppCrumbModules').addEventListener('click', ()=> ppNavigate('moduleDetails', ppCourse, ppModule));
       const lessons = lpGetActiveLessonsForModule(ppModule.id);
+      if(SHEET_API_URL){
+        const moduleIdAtFetchTime = ppModule.id;
+        lpRefreshLessonsForModule(moduleIdAtFetchTime).then(changed=>{
+          if(changed && ppLevel === 'lessons' && ppModule && ppModule.id === moduleIdAtFetchTime) renderProgramPlayer();
+        });
+      }
       lessons.forEach(l=>{
         const done = lpIsLessonComplete(currentProfile, l.id);
         const row = document.createElement('div');
@@ -5580,6 +5715,12 @@
       ppBreadcrumb.innerHTML = `<span class="switch-player" id="ppCrumbLessons">${ppModule.title}</span> › ${ppLesson.title}`;
       document.getElementById('ppCrumbLessons').addEventListener('click', ()=> ppNavigate('lessons', ppCourse, ppModule));
       const done = lpIsLessonComplete(currentProfile, ppLesson.id);
+      if(SHEET_API_URL){
+        const lessonIdAtFetchTime = ppLesson.id;
+        lpRefreshAssessmentForLesson(lessonIdAtFetchTime).then(changed=>{
+          if(changed && ppLevel === 'lesson' && ppLesson && ppLesson.id === lessonIdAtFetchTime) renderProgramPlayer();
+        });
+      }
       const rawAssessment = lpGetAssessmentForLesson(ppLesson.id);
       const assessment = (rawAssessment && !rawAssessment.archived) ? rawAssessment : null;
       const orderedLessons = lpGetOrderedLessonsForCourse(ppCourse.id);
