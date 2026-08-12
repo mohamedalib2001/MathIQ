@@ -2808,6 +2808,9 @@
       oauthComingSoon:'قريبًا — غير متصل بعد', oauthComingSoonBadge:'قريبًا', securityNoteText:'اتصال آمن — بياناتكِ محمية داخل نِكسورا',
       loginBrandTagline:'منصة التعلّم الذكي', loginBrandHeadline:'تعلّم أذكى.\nتطوّر أسرع.',
       lpSyncCreateFailed:'تعذّر الحفظ على الخادم. حاولي مرة أخرى.', pbSavingLabel:'جارٍ الحفظ...',
+      lpSyncUpdateFailed:'تعذّر تحديث البيانات على الخادم. لم يتم حفظ التعديل.',
+      lpSyncArchiveFailed:'تعذّر الأرشفة على الخادم. حاولي مرة أخرى.',
+      lpSyncRestoreFailed:'تعذّرت الاستعادة من الخادم. حاولي مرة أخرى.',
       loginBrandDesc:'منصة تعليمية ذكية تجمع التعلّم والتقييم والمهارات والتحليلات في تجربة واحدة.',
       forgotPasswordLink:'نسيت كلمة المرور؟', forgotPasswordMsg:'تواصلي مع معلّمتكِ أو ولي أمركِ لإعادة تعيين كلمة المرور.',
       footerPrivacy:'الخصوصية', footerTerms:'الشروط', footerHelp:'المساعدة',
@@ -3063,6 +3066,9 @@
       oauthComingSoon:'Coming soon — not connected yet', oauthComingSoonBadge:'Coming soon', securityNoteText:'Secure connection — your data is protected inside NEXORA',
       loginBrandTagline:'Intelligent Learning Platform', loginBrandHeadline:'Learn smarter.\nGrow faster.',
       lpSyncCreateFailed:'Could not save to the server. Please try again.', pbSavingLabel:'Saving...',
+      lpSyncUpdateFailed:'Could not update on the server. Your change was not saved.',
+      lpSyncArchiveFailed:'Could not archive on the server. Please try again.',
+      lpSyncRestoreFailed:'Could not restore from the server. Please try again.',
       loginBrandDesc:'An intelligent education platform bringing learning, assessment, skills and analytics into one experience.',
       forgotPasswordLink:'Forgot password?', forgotPasswordMsg:'Contact your teacher or guardian to reset your password.',
       footerPrivacy:'Privacy', footerTerms:'Terms', footerHelp:'Help',
@@ -4802,24 +4808,60 @@
     lpSave(LP_KEYS.MODULES, merged);
     return true;
   }
-  function lpUpdateModule(moduleId, fields){
+  async function lpUpdateModule(moduleId, fields){
     if(!can(lpCurrentRole(), 'module.update')) return lpDenyAndNotify('module.update');
+    if(SHEET_API_URL){
+      const result = await LP_API.modules.update(moduleId, fields, pbOwnerUsername());
+      if(!result || !result.ok){
+        showToast(t('lpSyncUpdateFailed'), nxIcon('alertTriangle'), 'system');
+        return null; // no false success — local cache is NOT touched
+      }
+      const modules = lpLoad(LP_KEYS.MODULES);
+      const m = modules.find(x => x.id === moduleId);
+      if(m) Object.assign(m, fields);
+      lpSave(LP_KEYS.MODULES, modules);
+      return m;
+    }
     const modules = lpLoad(LP_KEYS.MODULES);
     const m = modules.find(x => x.id === moduleId);
     if(m) Object.assign(m, fields);
     lpSave(LP_KEYS.MODULES, modules);
     return m;
   }
-  function lpArchiveModule(moduleId){
+  async function lpArchiveModule(moduleId){
     if(!can(lpCurrentRole(), 'module.archive')) return lpDenyAndNotify('module.archive');
+    if(SHEET_API_URL){
+      const result = await LP_API.modules.archive(moduleId, pbOwnerUsername());
+      if(!result || !result.ok){
+        showToast(t('lpSyncArchiveFailed'), nxIcon('alertTriangle'), 'system');
+        return null;
+      }
+      const modules = lpLoad(LP_KEYS.MODULES);
+      const m = modules.find(x => x.id === moduleId);
+      if(m) m.archived = true;
+      lpSave(LP_KEYS.MODULES, modules);
+      return m;
+    }
     const modules = lpLoad(LP_KEYS.MODULES);
     const m = modules.find(x => x.id === moduleId);
     if(m) m.archived = true;
     lpSave(LP_KEYS.MODULES, modules);
     return m;
   }
-  function lpRestoreModule(moduleId){
+  async function lpRestoreModule(moduleId){
     if(!can(lpCurrentRole(), 'module.restore')) return lpDenyAndNotify('module.restore');
+    if(SHEET_API_URL){
+      const result = await LP_API.modules.restore(moduleId, pbOwnerUsername());
+      if(!result || !result.ok){
+        showToast(t('lpSyncRestoreFailed'), nxIcon('alertTriangle'), 'system');
+        return null;
+      }
+      const modules = lpLoad(LP_KEYS.MODULES);
+      const m = modules.find(x => x.id === moduleId);
+      if(m) m.archived = false;
+      lpSave(LP_KEYS.MODULES, modules);
+      return m;
+    }
     const modules = lpLoad(LP_KEYS.MODULES);
     const m = modules.find(x => x.id === moduleId);
     if(m) m.archived = false;
@@ -4864,24 +4906,60 @@
     lpSave(LP_KEYS.LESSONS, merged);
     return true;
   }
-  function lpUpdateLesson(lessonId, fields){
+  async function lpUpdateLesson(lessonId, fields){
     if(!can(lpCurrentRole(), 'lesson.update')) return lpDenyAndNotify('lesson.update');
+    if(SHEET_API_URL){
+      const result = await LP_API.lessons.update(lessonId, fields, pbOwnerUsername());
+      if(!result || !result.ok){
+        showToast(t('lpSyncUpdateFailed'), nxIcon('alertTriangle'), 'system');
+        return null;
+      }
+      const lessons = lpLoad(LP_KEYS.LESSONS);
+      const l = lessons.find(x => x.id === lessonId);
+      if(l) Object.assign(l, fields);
+      lpSave(LP_KEYS.LESSONS, lessons);
+      return l;
+    }
     const lessons = lpLoad(LP_KEYS.LESSONS);
     const l = lessons.find(x => x.id === lessonId);
     if(l) Object.assign(l, fields);
     lpSave(LP_KEYS.LESSONS, lessons);
     return l;
   }
-  function lpArchiveLesson(lessonId){
+  async function lpArchiveLesson(lessonId){
     if(!can(lpCurrentRole(), 'lesson.archive')) return lpDenyAndNotify('lesson.archive');
+    if(SHEET_API_URL){
+      const result = await LP_API.lessons.archive(lessonId, pbOwnerUsername());
+      if(!result || !result.ok){
+        showToast(t('lpSyncArchiveFailed'), nxIcon('alertTriangle'), 'system');
+        return null;
+      }
+      const lessons = lpLoad(LP_KEYS.LESSONS);
+      const l = lessons.find(x => x.id === lessonId);
+      if(l) l.archived = true;
+      lpSave(LP_KEYS.LESSONS, lessons);
+      return l;
+    }
     const lessons = lpLoad(LP_KEYS.LESSONS);
     const l = lessons.find(x => x.id === lessonId);
     if(l) l.archived = true;
     lpSave(LP_KEYS.LESSONS, lessons);
     return l;
   }
-  function lpRestoreLesson(lessonId){
+  async function lpRestoreLesson(lessonId){
     if(!can(lpCurrentRole(), 'lesson.restore')) return lpDenyAndNotify('lesson.restore');
+    if(SHEET_API_URL){
+      const result = await LP_API.lessons.restore(lessonId, pbOwnerUsername());
+      if(!result || !result.ok){
+        showToast(t('lpSyncRestoreFailed'), nxIcon('alertTriangle'), 'system');
+        return null;
+      }
+      const lessons = lpLoad(LP_KEYS.LESSONS);
+      const l = lessons.find(x => x.id === lessonId);
+      if(l) l.archived = false;
+      lpSave(LP_KEYS.LESSONS, lessons);
+      return l;
+    }
     const lessons = lpLoad(LP_KEYS.LESSONS);
     const l = lessons.find(x => x.id === lessonId);
     if(l) l.archived = false;
@@ -5353,9 +5431,9 @@
           </div>`;
         row.querySelector('[data-act="edit"]').addEventListener('click', e=>{ e.stopPropagation(); pbOpenEdit('module', m); });
         const archiveBtn = row.querySelector('[data-act="archive"]');
-        if(archiveBtn) archiveBtn.addEventListener('click', e=>{ e.stopPropagation(); lpArchiveModule(m.id); renderProgramBuilder(); });
+        if(archiveBtn) archiveBtn.addEventListener('click', async e=>{ e.stopPropagation(); await lpArchiveModule(m.id); renderProgramBuilder(); });
         const restoreBtn = row.querySelector('[data-act="restore"]');
-        if(restoreBtn) restoreBtn.addEventListener('click', e=>{ e.stopPropagation(); lpRestoreModule(m.id); renderProgramBuilder(); });
+        if(restoreBtn) restoreBtn.addEventListener('click', async e=>{ e.stopPropagation(); await lpRestoreModule(m.id); renderProgramBuilder(); });
         row.addEventListener('click', ()=> pbNavigate('lessons', pbProgram, pbCourse, m));
         pbListArea.appendChild(row);
       });
@@ -5368,11 +5446,18 @@
             <button class="start-btn" id="pbSaveModuleEditBtn">${t('pbSaveChangesBtn')}</button>
             <button class="secondary-btn" id="pbCancelEditBtn">${t('pbCancelBtn')}</button>
           </div>`;
-        document.getElementById('pbSaveModuleEditBtn').addEventListener('click', ()=>{
-          lpUpdateModule(pbEditingEntity.id, {
+        document.getElementById('pbSaveModuleEditBtn').addEventListener('click', async ()=>{
+          const btn = document.getElementById('pbSaveModuleEditBtn');
+          btn.disabled = true; btn.textContent = t('pbSavingLabel');
+          const result = await lpUpdateModule(pbEditingEntity.id, {
             title: document.getElementById('pbEditModuleTitle').value.trim() || pbEditingEntity.title,
             description: document.getElementById('pbEditModuleDesc').value.trim()
           });
+          if(!result){
+            // backend rejected/failed — keep the edit form open so the trainer can retry, no false success
+            btn.disabled = false; btn.textContent = t('pbSaveChangesBtn');
+            return;
+          }
           pbEditingEntity = null; pbEditingType = null;
           renderProgramBuilder();
         });
@@ -5423,9 +5508,9 @@
         row.querySelector('[data-act="edit"]').addEventListener('click', e=>{ e.stopPropagation(); pbOpenEdit('lesson', l); });
         row.querySelector('[data-act="assess"]').addEventListener('click', e=>{ e.stopPropagation(); pbNavigate('assessment', pbProgram, pbCourse, pbModule, l); });
         const archiveBtn = row.querySelector('[data-act="archive"]');
-        if(archiveBtn) archiveBtn.addEventListener('click', e=>{ e.stopPropagation(); lpArchiveLesson(l.id); renderProgramBuilder(); });
+        if(archiveBtn) archiveBtn.addEventListener('click', async e=>{ e.stopPropagation(); await lpArchiveLesson(l.id); renderProgramBuilder(); });
         const restoreBtn = row.querySelector('[data-act="restore"]');
-        if(restoreBtn) restoreBtn.addEventListener('click', e=>{ e.stopPropagation(); lpRestoreLesson(l.id); renderProgramBuilder(); });
+        if(restoreBtn) restoreBtn.addEventListener('click', async e=>{ e.stopPropagation(); await lpRestoreLesson(l.id); renderProgramBuilder(); });
         pbListArea.appendChild(row);
       });
       if(pbEditingType === 'lesson' && pbEditingEntity){
@@ -5437,11 +5522,17 @@
             <button class="start-btn" id="pbSaveLessonEditBtn">${t('pbSaveChangesBtn')}</button>
             <button class="secondary-btn" id="pbCancelEditBtn">${t('pbCancelBtn')}</button>
           </div>`;
-        document.getElementById('pbSaveLessonEditBtn').addEventListener('click', ()=>{
-          lpUpdateLesson(pbEditingEntity.id, {
+        document.getElementById('pbSaveLessonEditBtn').addEventListener('click', async ()=>{
+          const btn = document.getElementById('pbSaveLessonEditBtn');
+          btn.disabled = true; btn.textContent = t('pbSavingLabel');
+          const result = await lpUpdateLesson(pbEditingEntity.id, {
             title: document.getElementById('pbEditLessonTitle').value.trim() || pbEditingEntity.title,
             content: document.getElementById('pbEditLessonContent').value.trim()
           });
+          if(!result){
+            btn.disabled = false; btn.textContent = t('pbSaveChangesBtn');
+            return;
+          }
           pbEditingEntity = null; pbEditingType = null;
           renderProgramBuilder();
         });
