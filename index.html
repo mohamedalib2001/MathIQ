@@ -11260,7 +11260,17 @@
     friendsScreen.classList.remove('hidden');
     friendUsernameInput.value = '';
     friendsError.textContent = '';
-    renderFriends();
+    // Repair any older friendship rows that predate the name/photo columns.
+    // Each account can only fill its own side, so this runs per account.
+    if(SHEET_API_URL){
+      postToSheet('sync_my_friend_identity', {
+        username: currentServerUsername(),
+        myName: profileDisplayName(currentProfile),
+        myPhotoURL: myPhotoUrlForSharing()
+      }).then(()=> renderFriends());
+    } else {
+      renderFriends();
+    }
   });
   friendsBackBtn.addEventListener('click', ()=>{
     friendsScreen.classList.add('hidden');
