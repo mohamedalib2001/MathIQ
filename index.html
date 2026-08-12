@@ -3640,7 +3640,7 @@
         });
       }
       profileCardsWrap.appendChild(card);
-      setAvatarElement(card.querySelector(`#cardAvatar_${key}`), p, 64);
+      backfillAndRenderAvatar(key, card.querySelector(`#cardAvatar_${key}`), 64);
     });
     const addCard = document.createElement('button');
     addCard.className = 'add-player-card';
@@ -3669,6 +3669,24 @@
     return `rgba(${r},${g},${b},0.22)`;
   }
 
+  // Generic version: renders whatever avatar is available locally right
+  // now (instant, no flash of emptiness), then — if there's no local photo
+  // yet and a backend is configured — silently backfills the real photo
+  // and re-renders that exact element, but only if it's still in the DOM
+  // (avoids updating a card the user has already navigated away from).
+  function backfillAndRenderAvatar(key, targetEl, sizePx){
+    const p = PROFILES[key];
+    if(!p || !targetEl) return;
+    setAvatarElement(targetEl, p, sizePx);
+    if(!SHEET_API_URL || p.photo || !(p.username || key)) return;
+    postToSheet('get_user_photo', { username: p.username || key }).then(res=>{
+      if(res && res.ok && res.photoURL){
+        p.photo = res.photoURL;
+        saveProfilesToStorage();
+        if(document.body.contains(targetEl)) setAvatarElement(targetEl, p, sizePx);
+      }
+    });
+  }
   function selectProfileAndGoToSettings(key){
     hideAllScreens(); // guarantees no other screen (e.g. the login form) stays visible underneath
     currentProfile = key;
@@ -3678,35 +3696,17 @@
     applyTheme(p.theme || 'chalkboard');
     applyProfileDefaults(key);
     settingsProfileHeader.classList.remove('hidden');
-    setAvatarElement(settingsBigAvatar, p, 64);
+    backfillAndRenderAvatar(key, settingsBigAvatar, 64);
     settingsPlayerName.textContent = profileDisplayName(key);
-    setAvatarElement(playAvatar, p, 22);
+    backfillAndRenderAvatar(key, playAvatar, 22);
     playPlayerName.textContent = profileDisplayName(key);
     updateDailyStreak();
-    backfillProfilePhotoIfMissing(key); // this profile may already exist locally without ever having pulled its synced photo
     if(typeof loadSmartNotification === 'function') loadSmartNotification();
     if(typeof loadMyClasses === 'function') loadMyClasses();
     if(typeof renderTodayMission === 'function') renderTodayMission();
     applyServiceFlags();
     renderShellNav('learner');
     showProgramsHub();
-  }
-  // Covers the case Sprint-11's remote-login photo sync didn't: an EXISTING
-  // local profile (created before that fix, or on the original device
-  // before any photo existed) that still has no photo. Silent, best-effort,
-  // never blocks anything — just backfills the avatar if the server has one.
-  function backfillProfilePhotoIfMissing(key){
-    if(!SHEET_API_URL) return;
-    const p = PROFILES[key];
-    if(!p || p.photo || !(p.username || key)) return;
-    postToSheet('get_user_photo', { username: p.username || key }).then(res=>{
-      if(res && res.ok && res.photoURL && currentProfile === key){
-        p.photo = res.photoURL;
-        saveProfilesToStorage();
-        setAvatarElement(settingsBigAvatar, p, 64);
-        setAvatarElement(playAvatar, p, 22);
-      }
-    });
   }
 
   function overallAccuracyFor(p, buckets){
@@ -6429,8 +6429,9 @@
         }
       });
       const insightId = 'teacherInsight_' + key;
+      const avatarSlotId = 'teacherAvatarSlot_' + key;
       box.innerHTML = `
-        <h3>${p.avatar} ${profileDisplayName(key)}</h3>
+        <h3><span class="dash-avatar-slot" id="${avatarSlotId}" style="display:inline-block; vertical-align:middle; width:22px; height:22px; margin-inline-end:6px;"></span>${profileDisplayName(key)}</h3>
         <div class="dash-table">${any ? rowsHtml : `<div class="dash-empty">${t('dashNoData')}</div>`}</div>
         <div class="mystats-section" style="margin-top:10px;">
           <h4 style="font-size:12px;">📅 ${t('weeklyReportTitle')}</h4>
@@ -6441,6 +6442,7 @@
       `;
       box.querySelector('[data-print-report]').addEventListener('click', ()=> printChildReport(key));
       dashboardBody.appendChild(box);
+      backfillAndRenderAvatar(key, document.getElementById(avatarSlotId), 22);
       if(any) loadDashboardInsight(key, document.getElementById(insightId));
     });
   }
@@ -6502,8 +6504,9 @@
       });
       const summary = `<div class="dash-row"><span>${t('statBest')}</span><b>${p.best.score} ${t('pointsWord')}</b></div>`;
       const insightId = 'insight_' + key;
+      const avatarSlotId = 'parentAvatarSlot_' + key;
       box.innerHTML = `
-        <h3>${p.avatar} ${profileDisplayName(key)}</h3>
+        <h3><span class="dash-avatar-slot" id="${avatarSlotId}" style="display:inline-block; vertical-align:middle; width:22px; height:22px; margin-inline-end:6px;"></span>${profileDisplayName(key)}</h3>
         <div class="dash-table">${summary}${any ? rowsHtml : `<div class="dash-empty">${t('dashNoData')}</div>`}</div>
         <div class="mystats-section" style="margin-top:10px;">
           <h4 style="font-size:12px;">📅 ${t('weeklyReportTitle')}</h4>
@@ -6514,6 +6517,7 @@
       `;
       box.querySelector('[data-print-report]').addEventListener('click', ()=> printChildReport(key));
       parentChildrenList.appendChild(box);
+      backfillAndRenderAvatar(key, document.getElementById(avatarSlotId), 22);
       if(any) loadDashboardInsight(key, document.getElementById(insightId));
     });
   }
