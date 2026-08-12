@@ -8636,7 +8636,7 @@
   function renderMyStats(){
     const p = PROFILES[currentProfile];
     if(!p) return;
-    setAvatarElement(myStatsAvatar, p, 64);
+    backfillAndRenderAvatar(currentProfile, myStatsAvatar, 64);
     myStatsName.textContent = profileDisplayName(currentProfile);
     myStatsBestScore.textContent = p.best.score;
     myStatsBestStreak.textContent = p.best.streak;
