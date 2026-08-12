@@ -3316,6 +3316,11 @@
       pbSeedMemorySuccess:'تم إنشاء البرنامج: {courses} دورة، {modules} وحدة، {lessons} درس، {assessments} اختبار.', pbSeedMemoryFailed:'تعذّر إنشاء البرنامج بالكامل. راجعي شيت الأخطاء للتفاصيل.',
       pbSeedCognitiveBtn:'🌱 إنشاء برنامج الذكاء والقدرات العقلية', pbSeedCognitiveConfirm:'هذا سينشئ برنامج "الذكاء والقدرات العقلية" كاملًا وينشره فورًا. متابعة؟',
       pbSeedCognitiveSuccess:'تم إنشاء البرنامج: {courses} دورة، {modules} وحدة، {lessons} درس، {assessments} اختبار.', pbSeedCognitiveFailed:'تعذّر إنشاء البرنامج بالكامل. راجعي شيت الأخطاء للتفاصيل.',
+      pbSeedAllBtn:'🚀 تفعيل كل البرامج التسعة دفعة واحدة', pbSeedAllConfirm:'هذا سينشئ وينشر كل البرامج التسعة (اللغة الإنجليزية، البرمجة، الذكاء الاصطناعي، الروبوتات، التصميم، STEM، التفكير المنطقي، تنشيط العقل، الذكاء والقدرات العقلية) واحدًا تلو الآخر. قد يستغرق عدة دقائق. متابعة؟',
+      pbSeedAllProgressTpl:'({current}/{total}) جارٍ إنشاء: {name}...',
+      pbSeedAllSuccess:'تم بنجاح! تم تفعيل ونشر كل البرامج التسعة ({count}/9).',
+      pbSeedAllPartial:'اكتمل جزئيًا: {succeeded} من 9 برامج نجحت. فشل: {failedNames}. راجعي شيت الأخطاء وحاولي تفعيل الفاشلة يدويًا من الأزرار أدناه.',
+      pbSeedIndividualLabel:'أو فعّلي برنامجًا واحدًا بمفرده:',
       pbCourseTitlePh:'عنوان الدورة', pbCreateCourseBtn:'+ إضافة دورة',
       pbNoModules:'لا توجد وحدات بعد.', pbLessonCount:'{n} درس', pbModuleTitlePh:'عنوان الوحدة', pbCreateModuleBtn:'+ إضافة وحدة',
       pbNoLessons:'لا توجد دروس بعد.', pbHasAssessment:'يوجد تقييم', pbNoAssessmentYet:'لا يوجد تقييم بعد',
@@ -3698,6 +3703,11 @@
       pbSeedMemorySuccess:'Program created: {courses} courses, {modules} modules, {lessons} lessons, {assessments} assessments.', pbSeedMemoryFailed:'Could not create the full program. Check the error log for details.',
       pbSeedCognitiveBtn:'🌱 Create Full Intelligence & Cognitive Skills Program', pbSeedCognitiveConfirm:'This will create the complete "Intelligence & Cognitive Skills" program and publish it immediately. Continue?',
       pbSeedCognitiveSuccess:'Program created: {courses} courses, {modules} modules, {lessons} lessons, {assessments} assessments.', pbSeedCognitiveFailed:'Could not create the full program. Check the error log for details.',
+      pbSeedAllBtn:'🚀 Activate All 9 Programs At Once', pbSeedAllConfirm:'This will create and publish all 9 programs (English, Programming, AI, Robotics, Design, STEM, Logical Thinking, Brain & Memory, Cognitive Skills) one after another. This may take several minutes. Continue?',
+      pbSeedAllProgressTpl:'({current}/{total}) Creating: {name}...',
+      pbSeedAllSuccess:'Success! All 9 programs were created and published ({count}/9).',
+      pbSeedAllPartial:'Partially complete: {succeeded} of 9 programs succeeded. Failed: {failedNames}. Check the error log and try activating the failed ones individually below.',
+      pbSeedIndividualLabel:'Or activate one program at a time:',
       pbCourseTitlePh:'Course title', pbCreateCourseBtn:'+ Add Course',
       pbNoModules:'No modules yet.', pbLessonCount:'{n} lessons', pbModuleTitlePh:'Module title', pbCreateModuleBtn:'+ Add Module',
       pbNoLessons:'No lessons yet.', pbHasAssessment:'Has an assessment', pbNoAssessmentYet:'No assessment yet',
@@ -7372,6 +7382,33 @@
     if(!SHEET_API_URL){ showToast(t('lpSeedNoBackend'), nxIcon('alertTriangle'), 'system'); return { ok:false, reason:'no_backend' }; }
     return seedProgramFromSeedData(COGNITIVE_PROGRAM_SEED);
   }
+  // Runs every "seed a full program" function in sequence, in the exact
+  // display order requested. A failure on one program does NOT stop the
+  // rest — each is independent, so partial success is still real progress,
+  // not an all-or-nothing gate.
+  async function seedAllPrograms(onProgress){
+    const jobs = [
+      ['اللغة الإنجليزية', seedEnglishLanguageProgram],
+      ['البرمجة', seedProgrammingProgram],
+      ['الذكاء الاصطناعي والذكاء الرقمي', seedAiProgram],
+      ['الروبوتات والتقنية', seedRoboticsProgram],
+      ['الإبداع والتصميم الرقمي', seedDesignProgram],
+      ['العلوم والتجارب STEM', seedStemProgram],
+      ['التفكير المنطقي وحل المشكلات', seedLogicProgram],
+      ['تنشيط العقل والذاكرة', seedMemoryProgram],
+      ['الذكاء والقدرات العقلية', seedCognitiveProgram]
+    ];
+    const results = [];
+    for(let i = 0; i < jobs.length; i++){
+      const [name, fn] = jobs[i];
+      if(onProgress) onProgress(name, i + 1, jobs.length);
+      const result = await fn();
+      results.push({ name, ok: !!(result && result.ok), result });
+    }
+    const succeeded = results.filter(r => r.ok);
+    const failed = results.filter(r => !r.ok);
+    return { allOk: failed.length === 0, succeeded, failed, results };
+  }
   // Wires a "seed the full program" button: confirm → run → toast → re-render.
   // Used by the 5 newest programs to avoid repeating this sequence 5 times.
   function wireSeedProgramBtn(btnId, seedFn, confirmKey, successKey, failKey){
@@ -7513,7 +7550,10 @@
             <option value="advanced">${t('levelAdvanced')}</option>
           </select>
           <button class="start-btn" id="pbCreateProgramBtn">${t('pbCreateProgramBtn')}</button>
-          <button class="secondary-btn" id="pbSeedEnglishBtn" style="margin-top:8px;">${t('pbSeedEnglishBtn')}</button>
+          <button class="start-btn" id="pbSeedAllBtn" style="margin-top:14px; background:linear-gradient(135deg, #10B981, #059669);">${t('pbSeedAllBtn')}</button>
+          <div id="pbSeedAllProgress" class="hidden" style="text-align:center; font-size:11.5px; color:var(--ink-dim); margin-top:6px;"></div>
+          <div style="text-align:center; font-size:10.5px; color:var(--ink-dim); opacity:0.7; margin:10px 0 4px;">${t('pbSeedIndividualLabel')}</div>
+          <button class="secondary-btn" id="pbSeedEnglishBtn" style="margin-top:2px;">${t('pbSeedEnglishBtn')}</button>
           <button class="secondary-btn" id="pbSeedProgrammingBtn" style="margin-top:6px;">${t('pbSeedProgrammingBtn')}</button>
           <button class="secondary-btn" id="pbSeedAiBtn" style="margin-top:6px;">${t('pbSeedAiBtn')}</button>
           <button class="secondary-btn" id="pbSeedRoboticsBtn" style="margin-top:6px;">${t('pbSeedRoboticsBtn')}</button>
@@ -7567,6 +7607,24 @@
       wireSeedProgramBtn('pbSeedLogicBtn', seedLogicProgram, 'pbSeedLogicConfirm', 'pbSeedLogicSuccess', 'pbSeedLogicFailed');
       wireSeedProgramBtn('pbSeedMemoryBtn', seedMemoryProgram, 'pbSeedMemoryConfirm', 'pbSeedMemorySuccess', 'pbSeedMemoryFailed');
       wireSeedProgramBtn('pbSeedCognitiveBtn', seedCognitiveProgram, 'pbSeedCognitiveConfirm', 'pbSeedCognitiveSuccess', 'pbSeedCognitiveFailed');
+      document.getElementById('pbSeedAllBtn').addEventListener('click', async ()=>{
+        if(!window.confirm(t('pbSeedAllConfirm'))) return;
+        const allBtn = document.getElementById('pbSeedAllBtn');
+        const progressEl = document.getElementById('pbSeedAllProgress');
+        setBtnSaving(allBtn, true);
+        progressEl.classList.remove('hidden');
+        const summary = await seedAllPrograms((name, index, total)=>{
+          progressEl.textContent = fmt('pbSeedAllProgressTpl', { current: index, total, name });
+        });
+        setBtnSaving(allBtn, false);
+        progressEl.classList.add('hidden');
+        if(summary.allOk){
+          showToast(fmt('pbSeedAllSuccess', { count: summary.succeeded.length }), nxIcon('check'), 'system');
+        } else {
+          showToast(fmt('pbSeedAllPartial', { succeeded: summary.succeeded.length, failed: summary.failed.length, failedNames: summary.failed.map(f=>f.name).join('، ') }), nxIcon('alertTriangle'), 'system');
+        }
+        renderProgramBuilder();
+      });
 
     } else if(pbLevel === 'courses'){
       pbBreadcrumb.innerHTML = `<span class="switch-player" id="pbCrumbPrograms">${t('pbBreadcrumbPrograms')}</span> › ${pbProgram.title}`;
