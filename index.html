@@ -64,6 +64,26 @@
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
 
+  /* Session expiry warning — a calm, dismissible overlay (not a full-screen
+     block like the boot/login transitions), since this appears mid-session
+     and should feel like a gentle prompt, not an interruption. */
+  #sessionWarningModal{
+    position:fixed; inset:0; z-index:19000; display:flex; align-items:center; justify-content:center;
+    background:rgba(11,18,32,0.55); backdrop-filter:blur(3px); padding:20px;
+  }
+  .session-warning-card{
+    background:var(--bg); border:1.5px solid var(--input-border); border-radius:18px; box-shadow:var(--card-shadow);
+    max-width:340px; width:100%; padding:26px 24px; text-align:center;
+  }
+  .session-warning-icon{ color:#F59E0B; margin-bottom:10px; }
+  .session-warning-title{ font-family:'Cairo',sans-serif; font-weight:800; font-size:15px; color:var(--ink); margin-bottom:8px; }
+  .session-warning-text{ font-size:12.5px; color:var(--ink-dim); line-height:1.6; margin-bottom:14px; }
+  .session-warning-countdown{
+    font-family:'Cairo',sans-serif; font-weight:800; font-size:28px; color:#F59E0B; letter-spacing:1px;
+    margin-bottom:18px; direction:ltr;
+  }
+  .session-warning-actions{ display:flex; flex-direction:column; gap:8px; }
+
   /* NEXORA boot experience — shown immediately at page load, removed the
      moment real initialization (profiles + learning entities + session
      check) genuinely finishes. No fake percentages, no invented steps. */
@@ -139,6 +159,21 @@
   .nx-icon.nx-icon-filled{ fill:currentColor; stroke:none; }
   .topbar-spacer{ flex:1; }
   .topbar-role-label{ font-size:11.5px; color:var(--ink-dim); font-weight:600; }
+  .topbar-identity-card{
+    display:flex; align-items:center; gap:8px; padding:4px 10px 4px 4px; border-radius:20px;
+    border:1.5px solid var(--chip-border); background:var(--input-bg); flex:none;
+  }
+  .topbar-identity-avatar{
+    width:26px; height:26px; border-radius:50%; overflow:hidden; display:flex; align-items:center; justify-content:center;
+    font-size:14px; background:var(--rail); flex:none;
+  }
+  .topbar-identity-avatar img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .topbar-identity-text{ display:flex; flex-direction:column; line-height:1.25; }
+  .topbar-identity-name{ font-size:11.5px; font-weight:700; color:var(--ink); max-width:110px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .topbar-identity-stats{ font-size:9.5px; color:var(--ink-dim); }
+  @media (max-width:520px){
+    .topbar-identity-text{ display:none; } /* tight mobile width — keep just the avatar, drop the text to avoid crowding */
+  }
   .topbar-icon-wrap{ position:relative; }
   .notif-badge{
     position:absolute; top:-4px; inset-inline-end:-4px; background:var(--coral); color:#fff; font-size:9px;
@@ -1280,6 +1315,23 @@
   <div class="boot-progress-wrap"><div class="boot-progress-bar" id="loginTransitionBar"></div></div>
 </div>
 
+<!-- Session expiry warning — appears only after 58 minutes of genuine
+     inactivity, never during active use. A real countdown, not decorative. -->
+<div id="sessionWarningModal" class="hidden" role="alertdialog" aria-live="assertive">
+  <div class="session-warning-card">
+    <div class="session-warning-icon" aria-hidden="true">
+      <svg class="nx-icon" viewBox="0 0 24 24" style="width:28px; height:28px;"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+    </div>
+    <div class="session-warning-title" data-i18n="sessionWarningTitle">جلستك على وشك الانتهاء</div>
+    <div class="session-warning-text" data-i18n="sessionWarningText">لم نلاحظ أي نشاط منكِ لفترة طويلة. لأمان حسابك، سيتم تسجيل خروجك تلقائيًا خلال:</div>
+    <div class="session-warning-countdown" id="sessionWarningCountdown">2:00</div>
+    <div class="session-warning-actions">
+      <button class="start-btn" id="sessionExtendBtn" data-i18n="sessionExtendBtn">تمديد الجلسة</button>
+      <button class="secondary-btn" id="sessionLogoutNowBtn" data-i18n="sessionLogoutNowBtn">تسجيل الخروج الآن</button>
+    </div>
+  </div>
+</div>
+
 <div class="app-shell" id="appShell">
   <aside class="app-sidebar" id="appSidebar">
     <div class="sidebar-brand">NEXORA</div>
@@ -1297,6 +1349,13 @@
         </div>
       </div>
       <div class="topbar-spacer"></div>
+      <div class="topbar-identity-card hidden" id="topbarIdentityCard">
+        <span class="topbar-identity-avatar" id="topbarIdentityAvatar"></span>
+        <span class="topbar-identity-text">
+          <span class="topbar-identity-name" id="topbarIdentityName"></span>
+          <span class="topbar-identity-stats" id="topbarIdentityStats"></span>
+        </span>
+      </div>
       <span class="topbar-role-label" id="topbarRoleLabel"></span>
     </div>
     <div class="frame">
@@ -1931,7 +1990,6 @@
       </div>
     </div>
     <div class="pin-row" style="justify-content:center; margin-top:6px;">
-      <span class="switch-player" id="hubSwitchPlayerLink" data-i18n="switchPlayer">(تبديل اللاعب)</span>
       <span class="logout-text-link" id="hubLogoutLink" data-i18n="logoutLinkText">🚪 تسجيل الخروج</span>
     </div>
   </div>
@@ -1959,7 +2017,6 @@
       </div>
       <div class="name-row">
         <span class="switch-player" id="backToProgramsLink" data-i18n="backToProgramsLink">🏠 كل البرامج</span>
-        <span class="switch-player" id="switchPlayerLink" data-i18n="switchPlayer">(تبديل اللاعب)</span>
         <span class="logout-text-link" id="logoutTextLink" data-i18n="logoutLinkText">🚪 تسجيل الخروج</span>
       </div>
     </div>
@@ -2281,6 +2338,10 @@
   const appTopbar = document.getElementById('appTopbar');
   const cmdkTopbarBtn = document.getElementById('cmdkTopbarBtn');
   const topbarRoleLabel = document.getElementById('topbarRoleLabel');
+  const topbarIdentityCard = document.getElementById('topbarIdentityCard');
+  const topbarIdentityAvatar = document.getElementById('topbarIdentityAvatar');
+  const topbarIdentityName = document.getElementById('topbarIdentityName');
+  const topbarIdentityStats = document.getElementById('topbarIdentityStats');
   const appBottomNav = document.getElementById('appBottomNav');
   const notifBellWrap = document.getElementById('notifBellWrap');
   const notifBellBtn = document.getElementById('notifBellBtn');
@@ -2319,7 +2380,6 @@
   const programAbacusCard = document.getElementById('programAbacusCard');
   const programAbacusStat = document.getElementById('programAbacusStat');
   const backToProgramsLink = document.getElementById('backToProgramsLink');
-  const hubSwitchPlayerLink = document.getElementById('hubSwitchPlayerLink');
   const hubLogoutLink = document.getElementById('hubLogoutLink');
   const loginPromptEl = document.getElementById('loginPrompt');
   const loginPromptTitle = document.getElementById('loginPromptTitle');
@@ -2468,7 +2528,6 @@
   const saveProfileBtn = document.getElementById('saveProfileBtn');
   const cancelProfileBtn = document.getElementById('cancelProfileBtn');
 
-  const switchPlayerLink = document.getElementById('switchPlayerLink');
   const settingsProfileHeader = document.getElementById('settingsProfileHeader');
   const smartNotifBox = document.getElementById('smartNotifBox');
   const todayMissionCard = document.getElementById('todayMissionCard');
@@ -2892,6 +2951,9 @@
       lpSyncProgressFailed:'تعذّرت مزامنة تقدّمكِ مع الخادم. حاولي مرة أخرى.',
       loginStepVerifying:'جارٍ التحقق من الهوية', loginStepPreparing:'جارٍ تجهيز مساحة التعلّم...', loginStepSyncing:'جارٍ مزامنة بياناتكِ...',
       loginStepWelcome:'مرحبًا بعودتكِ، {name}',
+      sessionWarningTitle:'جلستك على وشك الانتهاء', sessionWarningText:'لم نلاحظ أي نشاط منكِ لفترة طويلة. لأمان حسابك، سيتم تسجيل خروجك تلقائيًا خلال:',
+      sessionExtendBtn:'تمديد الجلسة', sessionLogoutNowBtn:'تسجيل الخروج الآن',
+      topbarIdentityStatsTpl:'{badges} · {mastered}/{total} مستوى',
       loginBrandDesc:'منصة تعليمية ذكية تجمع التعلّم والتقييم والمهارات والتحليلات في تجربة واحدة.',
       forgotPasswordLink:'نسيت كلمة المرور؟', forgotPasswordMsg:'تواصلي مع معلّمتكِ أو ولي أمركِ لإعادة تعيين كلمة المرور.',
       footerPrivacy:'الخصوصية', footerTerms:'الشروط', footerHelp:'المساعدة',
@@ -2913,7 +2975,6 @@
       whoPlaying:'من يلعب اليوم؟',
       joryName:'جوري', joryAge:'٦ سنوات ونصف',
       jasmineName:'جاسمين', jasmineAge:'١١ سنة',
-      switchPlayer:'(تبديل اللاعب)',
       opLabel:'العملية الحسابية', opAdd:'جمع +', opSub:'طرح −', opMul:'ضرب ×', opDiv:'قسمة ÷', opMix:'منوّع',
       opPercent:'نسبة مئوية %', opExponent:'أُسس xⁿ', opSqrt:'جذر تربيعي √', opNumberRecognition:'🔢 التعرّف على الأرقام',
       levelNameNumberRecognition:'التعرّف على الأرقام',
@@ -3216,6 +3277,9 @@
       lpSyncProgressFailed:'Could not sync your progress with the server. Please try again.',
       loginStepVerifying:'Verifying your identity', loginStepPreparing:'Preparing your learning space...', loginStepSyncing:'Syncing your data...',
       loginStepWelcome:'Welcome back, {name}',
+      sessionWarningTitle:'Your session is about to expire', sessionWarningText:"We haven't noticed any activity for a while. For your account's security, you'll be signed out automatically in:",
+      sessionExtendBtn:'Extend session', sessionLogoutNowBtn:'Sign out now',
+      topbarIdentityStatsTpl:'{badges} · {mastered}/{total} levels',
       loginBrandDesc:'An intelligent education platform bringing learning, assessment, skills and analytics into one experience.',
       forgotPasswordLink:'Forgot password?', forgotPasswordMsg:'Contact your teacher or guardian to reset your password.',
       footerPrivacy:'Privacy', footerTerms:'Terms', footerHelp:'Help',
@@ -3237,7 +3301,6 @@
       whoPlaying:"Who's playing today?",
       joryName:'Jory', joryAge:'6.5 years old',
       jasmineName:'Jasmine', jasmineAge:'11 years old',
-      switchPlayer:'(Switch player)',
       opLabel:'Operation', opAdd:'Addition +', opSub:'Subtraction −', opMul:'Multiplication ×', opDiv:'Division ÷', opMix:'Mixed',
       opPercent:'Percentage %', opExponent:'Exponents xⁿ', opSqrt:'Square root √', opNumberRecognition:'🔢 Number recognition',
       levelNameNumberRecognition:'Number recognition',
@@ -3940,7 +4003,6 @@
     settingsEl.classList.add('hidden');
     showProgramsHub();
   });
-  hubSwitchPlayerLink.addEventListener('click', goToLoginGate);
   hubLogoutLink.addEventListener('click', goToLoginGate);
 
   function applyProfileDefaults(key){
@@ -4023,7 +4085,6 @@
     updateGuestNote();
     if(typeof loadDailyAiFact === 'function') loadDailyAiFact();
   }
-  switchPlayerLink.addEventListener('click', goToLoginGate);
   backToProfilesBtn.addEventListener('click', goToLoginGate);
 
   /* ---------- profile editor (add/edit avatar & color) ---------- */
@@ -4547,6 +4608,10 @@
     if(loginBtnSpinner) loginBtnSpinner.classList.toggle('hidden', !loading);
   }
   const loginTransitionScreen = document.getElementById('loginTransitionScreen');
+  const sessionWarningModal = document.getElementById('sessionWarningModal');
+  const sessionWarningCountdown = document.getElementById('sessionWarningCountdown');
+  const sessionExtendBtn = document.getElementById('sessionExtendBtn');
+  const sessionLogoutNowBtn = document.getElementById('sessionLogoutNowBtn');
   const loginTransitionText = document.getElementById('loginTransitionText');
   const loginTransitionBar = document.getElementById('loginTransitionBar');
   const loginTransitionAvatar = document.getElementById('loginTransitionAvatar');
@@ -6405,9 +6470,30 @@
     }
     return [];
   }
+  // Compact, persistent identity — real photo, real name, real progress
+  // (badges earned + knowledge levels mastered). Deliberately framed as
+  // "progress" rather than any claim to measure a child's intelligence —
+  // shows what they've genuinely achieved, not a score/estimate of ability.
+  function renderTopbarIdentityCard(role){
+    if(role !== 'learner' || !currentProfile || !PROFILES[currentProfile]){
+      topbarIdentityCard.classList.add('hidden');
+      return;
+    }
+    const p = PROFILES[currentProfile];
+    topbarIdentityCard.classList.remove('hidden');
+    backfillAndRenderAvatar(currentProfile, topbarIdentityAvatar, 26);
+    topbarIdentityName.textContent = profileDisplayName(currentProfile);
+    const badgeCount = p.badges ? p.badges.size : 0;
+    let masteredCount = 0;
+    if(typeof KNOWLEDGE_LEVELS !== 'undefined' && typeof computeLevelMastery === 'function'){
+      masteredCount = KNOWLEDGE_LEVELS.filter(l=>{ const m = computeLevelMastery(p, l.bucket); return m !== null && m >= MASTERY_THRESHOLD; }).length;
+    }
+    topbarIdentityStats.innerHTML = `${nxIcon('award')} ${fmt('topbarIdentityStatsTpl', { badges: badgeCount, mastered: masteredCount, total: (typeof KNOWLEDGE_LEVELS !== 'undefined' ? KNOWLEDGE_LEVELS.length : 0) })}`;
+  }
   function renderShellNav(role){
     currentShellRole = role;
     if(!role){
+      appSidebar.classList.add('hidden');
       appTopbar.classList.add('hidden');
       appBottomNav.classList.add('hidden');
       sidebarNav.innerHTML = '';
@@ -6418,6 +6504,8 @@
     }
     const roleLabelKey = role === 'learner' ? 'shellRoleLearner' : (role === 'admin' ? 'shellRoleAdmin' : 'shellRoleTeacher');
     topbarRoleLabel.textContent = t(roleLabelKey);
+    renderTopbarIdentityCard(role);
+    appSidebar.classList.remove('hidden');
     appTopbar.classList.remove('hidden');
     notifBellWrap.classList.toggle('hidden', role !== 'learner');
     if(role === 'learner') updateNotificationBadge();
@@ -9387,7 +9475,9 @@
      proactively logging out a session that's gone idle past the timeout —
      even without a refresh, matching how an educational session should
      behave. Never runs before a profile is actually selected. ---------- */
+  const SESSION_WARNING_MS = 58 * 60 * 1000; // warn 2 minutes before the 60-minute hard timeout
   let lastActivityTouch = 0;
+  let sessionWarningShown = false;
   function onUserActivity(){
     if(!currentProfile) return;
     const now = Date.now();
@@ -9396,12 +9486,56 @@
     touchSessionActivity();
   }
   ['click','keydown','pointerdown'].forEach(evt=> document.addEventListener(evt, onUserActivity, { passive:true }));
+
+  function getSessionIdleMs(){
+    try{
+      const lastActivity = Number(localStorage.getItem('mm_session_last_activity'));
+      if(!lastActivity) return 0; // legacy session with no timestamp yet — treat as freshly active
+      return Date.now() - lastActivity;
+    }catch(e){ return 0; }
+  }
+  function formatSessionCountdown(remainingMs){
+    const totalSec = Math.max(0, Math.ceil(remainingMs / 1000));
+    const mm = Math.floor(totalSec / 60);
+    const ss = totalSec % 60;
+    return mm + ':' + String(ss).padStart(2, '0');
+  }
+  function showSessionWarning(){
+    sessionWarningShown = true;
+    sessionWarningModal.classList.remove('hidden');
+  }
+  function hideSessionWarning(){
+    sessionWarningShown = false;
+    sessionWarningModal.classList.add('hidden');
+  }
+  function extendSession(){
+    touchSessionActivity();
+    lastActivityTouch = Date.now(); // bypass the throttle explicitly — this is a deliberate, real user action
+    hideSessionWarning();
+  }
+  sessionExtendBtn.addEventListener('click', extendSession);
+  sessionLogoutNowBtn.addEventListener('click', ()=>{
+    hideSessionWarning();
+    clearCurrentSession();
+    goToLoginGate();
+  });
+
   setInterval(()=>{
-    if(currentProfile && isSessionExpired()){
+    if(!currentProfile) return;
+    const idleMs = getSessionIdleMs();
+    if(idleMs >= SESSION_TIMEOUT_MS){
+      hideSessionWarning();
       clearCurrentSession();
       goToLoginGate();
+      return;
     }
-  }, 60000); // check once a minute — proactive idle logout while the tab stays open
+    if(idleMs >= SESSION_WARNING_MS){
+      if(!sessionWarningShown) showSessionWarning();
+      sessionWarningCountdown.textContent = formatSessionCountdown(SESSION_TIMEOUT_MS - idleMs);
+    } else if(sessionWarningShown){
+      hideSessionWarning(); // activity was detected elsewhere (e.g. a click outside the modal) — no longer idle
+    }
+  }, 1000); // every second — needed for a genuinely live countdown display, not just periodic polling
 
   runBootSequence();
 })();
