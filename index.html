@@ -780,6 +780,13 @@
   .p-name{ font-family:'Cairo', sans-serif; font-weight:800; font-size:18px; }
   .p-age{ font-size:12.5px; color:var(--ink-dim); }
   .p-username{ font-size:10.5px; color:var(--ink-dim); direction:ltr; opacity:0.75; }
+  .email-verify-row{ display:flex; align-items:center; justify-content:space-between; margin-top:6px; }
+  .email-verify-badge{ font-size:10.5px; font-weight:600; }
+  .email-verify-badge.verified{ color:#10B981; }
+  .email-verify-badge.unverified{ color:#F59E0B; }
+  .email-verify-code-row{ display:flex; gap:8px; margin-top:8px; }
+  .email-verify-code-row input{ flex:1; text-align:center; letter-spacing:3px; }
+  .email-verify-code-row button{ flex:none; }
   .p-best{ font-size:11.5px; color:var(--yellow); margin-top:4px; }
   .edit-fab{
     position:absolute; top:8px; inset-inline-end:8px; width:26px; height:26px; border-radius:50%;
@@ -1325,6 +1332,36 @@
      no email/SMS system, so there's no real self-service reset; the actual
      working recovery path is the account owner (teacher/admin) looking the
      student up and resetting them via the existing admin profile editor. -->
+<!-- Login via a one-time code emailed to the account's registered address —
+     a real alternative to password login, not a decorative option. -->
+<div id="loginCodeModal" class="hidden" role="dialog" aria-modal="true">
+  <div class="forgot-account-card">
+    <button class="forgot-account-close" id="loginCodeCloseBtn" aria-label="إغلاق">✕</button>
+    <div class="forgot-account-title" data-i18n="loginCodeTitle">تسجيل الدخول بكود</div>
+    <div id="loginCodeStep1">
+      <div class="forgot-account-text" data-i18n="loginCodeIntro">أدخلي اسم المستخدم، وهنبعتلك كود تسجيل دخول لمدة 10 دقائق على بريدك المسجَّل.</div>
+      <div class="field-icon-wrap" style="margin-top:10px;">
+        <span class="field-icon"><svg class="nx-icon" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/></svg></span>
+        <input type="text" id="loginCodeUsernameInput" class="ltr-input" data-i18n-placeholder="usernamePlaceholder" placeholder="username">
+      </div>
+      <div class="feedback wrong" id="loginCodeStep1Error" style="min-height:16px;" aria-live="polite"></div>
+      <button class="start-btn" id="loginCodeSendBtn">
+        <span class="login-btn-label" data-i18n="loginCodeSendBtn">إرسال الكود</span>
+        <span class="login-btn-spinner hidden" id="loginCodeSendSpinner"><svg class="nx-icon nx-spin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-dasharray="42" stroke-dashoffset="14"/></svg></span>
+      </button>
+    </div>
+    <div id="loginCodeStep2" class="hidden">
+      <div class="forgot-account-text" data-i18n="loginCodeEnterCode">أدخلي الكود اللي وصلك على بريدك الإلكتروني.</div>
+      <input type="text" id="loginCodeInput" class="ltr-input" maxlength="6" style="text-align:center; letter-spacing:4px; margin-top:10px;" data-i18n-placeholder="emailCodePlaceholder" placeholder="123456">
+      <div class="feedback wrong" id="loginCodeStep2Error" style="min-height:16px;" aria-live="polite"></div>
+      <button class="start-btn" id="loginCodeConfirmBtn">
+        <span class="login-btn-label" data-i18n="loginCodeConfirmBtn">تسجيل الدخول</span>
+        <span class="login-btn-spinner hidden" id="loginCodeConfirmSpinner"><svg class="nx-icon nx-spin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-dasharray="42" stroke-dashoffset="14"/></svg></span>
+      </button>
+    </div>
+  </div>
+</div>
+
 <div id="forgotAccountModal" class="hidden" role="dialog" aria-modal="true">
   <div class="forgot-account-card">
     <button class="forgot-account-close" id="forgotAccountCloseBtn" aria-label="إغلاق">✕</button>
@@ -1836,6 +1873,7 @@
         <span class="login-btn-spinner hidden" id="loginBtnSpinner"><svg class="nx-icon nx-spin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-dasharray="42" stroke-dashoffset="14"/></svg></span>
       </button>
       <div class="link-line" id="goToRegisterLink" data-i18n="goToRegisterLink">ليس لديكِ حساب؟ سجّلي الآن</div>
+      <div class="link-line subtle-link" id="loginWithCodeLink" data-i18n="loginWithCodeLink">تسجيل الدخول بكود عبر البريد الإلكتروني</div>
     </div>
     <div class="login-divider" data-i18n="orDivider">أو</div>
     <div class="oauth-row">
@@ -1972,6 +2010,15 @@
       <div>
         <div class="group-label" data-i18n="emailLabel">البريد الإلكتروني (لاستعادة كلمة المرور)</div>
         <input type="email" id="editEmail" class="ltr-input" data-i18n-placeholder="emailPlaceholder" placeholder="email@example.com">
+        <div class="email-verify-row" id="emailVerifyRow" style="display:none;">
+          <span class="email-verify-badge" id="emailVerifyBadge"></span>
+          <button type="button" class="link-line subtle-link" id="emailSendCodeBtn" style="margin:0;" data-i18n="emailSendCodeBtn">إرسال كود التأكيد</button>
+        </div>
+        <div class="email-verify-code-row hidden" id="emailVerifyCodeRow">
+          <input type="text" id="emailVerifyCodeInput" class="ltr-input" maxlength="6" data-i18n-placeholder="emailCodePlaceholder" placeholder="123456">
+          <button type="button" class="secondary-btn" id="emailConfirmCodeBtn" data-i18n="emailConfirmCodeBtn">تأكيد</button>
+        </div>
+        <div class="feedback wrong" id="emailVerifyError" style="min-height:14px; font-size:11px;"></div>
       </div>
       <div class="feedback wrong" id="editorError" style="min-height:16px;"></div>
       <div>
@@ -2626,6 +2673,81 @@
   genderMaleBtn.addEventListener('click', ()=> setGenderToggle('male'));
   const editUsernameInput = document.getElementById('editUsername');
   const editEmailInput = document.getElementById('editEmail');
+  const emailVerifyRow = document.getElementById('emailVerifyRow');
+  const emailVerifyBadge = document.getElementById('emailVerifyBadge');
+  const emailSendCodeBtn = document.getElementById('emailSendCodeBtn');
+  const emailVerifyCodeRow = document.getElementById('emailVerifyCodeRow');
+  const emailVerifyCodeInput = document.getElementById('emailVerifyCodeInput');
+  const emailConfirmCodeBtn = document.getElementById('emailConfirmCodeBtn');
+  const emailVerifyError = document.getElementById('emailVerifyError');
+  // Tracks a just-confirmed code for a profile that doesn't exist yet
+  // (brand-new account being created) — applied to the real profile object
+  // once the save handler actually creates it.
+  let pendingEmailVerified = false;
+  function currentEditUsername(){
+    return editUsernameInput.value.trim() || editingProfileKey || '';
+  }
+  function refreshEmailVerifyUI(){
+    const email = editEmailInput.value.trim();
+    emailVerifyCodeRow.classList.add('hidden');
+    emailVerifyError.textContent = '';
+    if(!email){
+      emailVerifyRow.style.display = 'none';
+      return;
+    }
+    emailVerifyRow.style.display = 'flex';
+    const p = editingProfileKey ? PROFILES[editingProfileKey] : null;
+    const savedEmail = p ? (p.email || '') : '';
+    const alreadyVerified = editingProfileKey ? (p && p.emailVerified && email === savedEmail) : pendingEmailVerified;
+    if(alreadyVerified){
+      emailVerifyBadge.textContent = t('emailVerifiedBadge');
+      emailVerifyBadge.className = 'email-verify-badge verified';
+      emailSendCodeBtn.classList.add('hidden');
+    } else {
+      emailVerifyBadge.textContent = t('emailUnverifiedBadge');
+      emailVerifyBadge.className = 'email-verify-badge unverified';
+      emailSendCodeBtn.classList.remove('hidden');
+    }
+  }
+  editEmailInput.addEventListener('input', ()=>{ pendingEmailVerified = false; refreshEmailVerifyUI(); });
+  emailSendCodeBtn.addEventListener('click', async ()=>{
+    const email = editEmailInput.value.trim();
+    const username = currentEditUsername();
+    emailVerifyError.textContent = '';
+    if(!email || !username){ emailVerifyError.textContent = t('enterEmailAndUsernameFirst'); return; }
+    if(!SHEET_API_URL){ emailVerifyError.textContent = t('forgotAccountNoBackend'); return; }
+    setBtnSaving(emailSendCodeBtn, true);
+    const res = await postToSheet('request_email_verification', { username, email });
+    setBtnSaving(emailSendCodeBtn, false);
+    if(res && res.ok){
+      emailVerifyCodeRow.classList.remove('hidden');
+      emailVerifyCodeInput.value = '';
+      emailVerifyCodeInput.focus();
+    } else {
+      emailVerifyError.textContent = t('emailSendCodeFailed');
+    }
+  });
+  emailConfirmCodeBtn.addEventListener('click', async ()=>{
+    const code = emailVerifyCodeInput.value.trim();
+    const username = currentEditUsername();
+    emailVerifyError.textContent = '';
+    if(!code){ emailVerifyError.textContent = t('enterCodeFirst'); return; }
+    setBtnSaving(emailConfirmCodeBtn, true);
+    const res = await postToSheet('confirm_email_verification', { username, code });
+    setBtnSaving(emailConfirmCodeBtn, false);
+    if(res && res.ok){
+      if(editingProfileKey && PROFILES[editingProfileKey]){
+        PROFILES[editingProfileKey].emailVerified = true;
+        PROFILES[editingProfileKey].email = editEmailInput.value.trim();
+        saveProfilesToStorage();
+      } else {
+        pendingEmailVerified = true;
+      }
+      refreshEmailVerifyUI();
+    } else {
+      emailVerifyError.textContent = t('emailCodeInvalid');
+    }
+  });
   const editorError = document.getElementById('editorError');
   const editBirthDateInput = document.getElementById('editBirthDate');
   const editPinInput = document.getElementById('editPin');
@@ -2731,6 +2853,7 @@
       theme: theme || 'chalkboard', username: username || null,
       gender: null, // null = unset, defaults to feminine forms (historical default)
       email: null, // used only for the password-reset-by-email flow — optional
+      emailVerified: false, // true only after the person actually confirms a code sent to this address
       guardians: { mother: null, father: null }, // { username, pin(hash) } | null — up to one per parent
       defaults,
       best:{ score:0, streak:0 },
@@ -3077,6 +3200,14 @@
       forgotUsernameEmailIntro:'أدخلي بريدك الإلكتروني المسجَّل، وهنبعتلك كل أسماء المستخدمين المرتبطة بيه (لو عندك أكتر من طفل بنفس البريد، هتوصلك كلها).',
       forgotUsernameSuccessMsg:'لو البريد ده مسجَّل، وصلك بريد فيه كل أسماء المستخدمين المرتبطة بيه. راجعي بريدك (وصندوق الرسائل غير المرغوبة أيضًا).',
       forgotUsernameSendBtn:'إرسال أسماء المستخدمين', enterEmailOnly:'أدخلي البريد الإلكتروني أولًا',
+      loginWithCodeLink:'تسجيل الدخول بكود عبر البريد الإلكتروني', loginCodeTitle:'تسجيل الدخول بكود',
+      loginCodeIntro:'أدخلي اسم المستخدم، وهنبعتلك كود تسجيل دخول لمدة 10 دقائق على بريدك المسجَّل.',
+      loginCodeSendBtn:'إرسال الكود', loginCodeEnterCode:'أدخلي الكود اللي وصلك على بريدك الإلكتروني.',
+      loginCodeConfirmBtn:'تسجيل الدخول', emailCodePlaceholder:'123456',
+      emailVerifiedBadge:'✓ مؤكَّد', emailUnverifiedBadge:'غير مؤكَّد',
+      emailSendCodeBtn:'إرسال كود التأكيد', emailConfirmCodeBtn:'تأكيد',
+      enterEmailAndUsernameFirst:'أدخلي البريد الإلكتروني واسم المستخدم أولًا', emailSendCodeFailed:'تعذّر إرسال الكود. حاولي مرة أخرى.',
+      enterCodeFirst:'أدخلي الكود أولًا', emailCodeInvalid:'الكود غير صحيح أو منتهي الصلاحية.',
       forgotAccountOwnerTitle:'أنتِ صاحبة التطبيق ونسيتِ حساب الإدارة؟',
       forgotAccountOwnerText:'حساب الإدارة محفوظ محليًا على هذا الجهاز فقط، وليس له استعادة تلقائية. لو فقدتِه فعلًا، الخيار الوحيد هو مسح بيانات الموقع من إعدادات المتصفح لهذا الرابط، ثم تسجيل حساب إدارة جديد — علمًا بأن هذا لن يمسح بيانات الطلاب المخزّنة، لكنه سيفصلك عن هوية الإدارة القديمة.',
       forgotAccountOkBtn:'فهمت', deleteProfileBtn:'حذف الحساب', deleteProfileConfirm:'هل تريدين حذف حساب {name} نهائيًا من هذا الجهاز؟ لن يمكن التراجع.',
@@ -3424,6 +3555,14 @@
       forgotUsernameEmailIntro:"Enter your registered email and we'll send all usernames linked to it (if you have more than one child on the same email, you'll get all of them).",
       forgotUsernameSuccessMsg:"If that email is on file, a message with all linked usernames was just sent. Check your inbox (and spam folder).",
       forgotUsernameSendBtn:'Send usernames', enterEmailOnly:'Enter your email first',
+      loginWithCodeLink:'Sign in with an email code', loginCodeTitle:'Sign in with a code',
+      loginCodeIntro:"Enter your username and we'll email a sign-in code, valid for 10 minutes.",
+      loginCodeSendBtn:'Send code', loginCodeEnterCode:'Enter the code sent to your email.',
+      loginCodeConfirmBtn:'Sign in', emailCodePlaceholder:'123456',
+      emailVerifiedBadge:'✓ Verified', emailUnverifiedBadge:'Unverified',
+      emailSendCodeBtn:'Send verification code', emailConfirmCodeBtn:'Confirm',
+      enterEmailAndUsernameFirst:'Enter your email and username first', emailSendCodeFailed:'Could not send the code. Please try again.',
+      enterCodeFirst:'Enter the code first', emailCodeInvalid:'That code is incorrect or has expired.',
       forgotAccountOwnerTitle:'Are you the app owner and forgot the admin account?',
       forgotAccountOwnerText:"The admin account is stored locally on this device only, with no automatic recovery. If it's truly lost, the only option is clearing this site's data in your browser settings, then registering a new admin account — this won't erase stored student data, but it will disconnect you from the old admin identity.",
       forgotAccountOkBtn:'Got it', deleteProfileBtn:'Delete account', deleteProfileConfirm:'Permanently delete {name}\'s account from this device? This cannot be undone.',
@@ -4317,6 +4456,8 @@
       clearFatherLink.classList.toggle('hidden', !g.father);
       buildPickerGrids(p.avatar, p.color);
       setAvatarElement(photoPreview, p, 72);
+      pendingEmailVerified = false;
+      refreshEmailVerifyUI();
     } else {
       editNameInput.value = '';
       editUsernameInput.value = '';
@@ -4328,6 +4469,8 @@
       guardianMotherUser.value = ''; guardianFatherUser.value = '';
       buildPickerGrids(AVATAR_OPTIONS[0], COLOR_OPTIONS[0]);
       setAvatarElement(photoPreview, { photo:null, avatar:AVATAR_OPTIONS[0] }, 72);
+      pendingEmailVerified = false;
+      refreshEmailVerifyUI();
     }
     profilesEl.classList.add('hidden');
     usernameLoginEl.classList.add('hidden');
@@ -4460,7 +4603,9 @@
       const p = PROFILES[key];
       p.avatar = avatar; p.color = colorHex; p.birthDate = birthDate; p.gender = editingGender;
       p.username = requestedUsername || p.username;
-      p.email = editEmailInput.value.trim() || null;
+      const newEmail = editEmailInput.value.trim() || null;
+      if(newEmail !== p.email) p.emailVerified = false; // email changed since it was last confirmed — must be re-verified
+      p.email = newEmail;
       if(clearPinFlag){ p.pin = ''; }
       else if(enteredPassword){ p.pin = await computePasswordHash(p.username || key, enteredPassword); }
       // else: field left blank and not cleared → password stays unchanged
@@ -4477,6 +4622,7 @@
         { op:'add', diff:'units', time:'15', len:'10', mode:'type' }, true, name, birthDate, hashedPin, null, username);
       PROFILES[key].gender = editingGender;
       PROFILES[key].email = editEmailInput.value.trim() || null;
+      PROFILES[key].emailVerified = pendingEmailVerified;
       if(photoToSave) PROFILES[key].photo = photoToSave;
       profileOrder.push(key);
       startTrialForStudent(key); // registering a new (non-family) account starts this account's own 30-day trial
@@ -4722,24 +4868,52 @@
     const password = adminPinInput.value;
     if(!username || !password){ adminLoginError.textContent = t('enterBothFields'); return; }
     adminLoginBtn.disabled = true;
+    const hash = await computePasswordHash(username, password);
+
+    if(SHEET_API_URL){
+      const loginRes = await postToSheet('admin_login', { username, pin: hash });
+      if(loginRes && loginRes.ok && loginRes.admin){
+        ADMIN = { username: loginRes.admin.username, pin: hash, name: loginRes.admin.name || username, role: loginRes.admin.role || 'owner' };
+        saveAdminToStorage();
+        adminLoginBtn.disabled = false;
+        adminLoginGateEl.classList.add('hidden');
+        goToProfiles();
+        return;
+      }
+      // Server login failed — could be a genuinely wrong password, OR this
+      // could be the very first admin account ever (nothing registered
+      // yet). Try registering; the backend itself decides which case this
+      // is (bootstraps as owner only if the roster is truly empty).
+      const registerRes = await postToSheet('register_admin', { username, pin: hash, name: username, role: 'owner' });
+      adminLoginBtn.disabled = false;
+      if(registerRes && registerRes.ok){
+        ADMIN = { username, pin: hash, name: username, role: registerRes.role };
+        saveAdminToStorage();
+        adminLoginGateEl.classList.add('hidden');
+        goToProfiles();
+        return;
+      }
+      adminLoginError.textContent = t('loginErrorMsg');
+      return;
+    }
+
+    // No backend configured — falls back to the original local-only behavior.
     if(!ADMIN){
-      // first-run setup — create the one and only owner account
       if(isUsernameTakenGlobally(username, null)){
         adminLoginBtn.disabled = false;
         adminLoginError.textContent = t('teacherUsernameTaken');
         return;
       }
-      const hash = await computePasswordHash(username, password);
-      ADMIN = { username, pin: hash, name: username };
+      ADMIN = { username, pin: hash, name: username, role: 'owner' };
       saveAdminToStorage();
       adminLoginBtn.disabled = false;
       adminLoginGateEl.classList.add('hidden');
       goToProfiles();
       return;
     }
-    const hash = await computePasswordHash(ADMIN.username, password);
     adminLoginBtn.disabled = false;
-    if(username.toLowerCase() !== ADMIN.username.toLowerCase() || hash !== ADMIN.pin){
+    const localHash = await computePasswordHash(ADMIN.username, password); // salted by the STORED canonical username, so a differently-cased typed username still matches correctly
+    if(username.toLowerCase() !== ADMIN.username.toLowerCase() || localHash !== ADMIN.pin){
       adminLoginError.textContent = t('loginErrorMsg');
       return;
     }
@@ -4783,6 +4957,17 @@
     if(loginBtnSpinner) loginBtnSpinner.classList.toggle('hidden', !loading);
   }
   const loginTransitionScreen = document.getElementById('loginTransitionScreen');
+  const loginWithCodeLink = document.getElementById('loginWithCodeLink');
+  const loginCodeModal = document.getElementById('loginCodeModal');
+  const loginCodeCloseBtn = document.getElementById('loginCodeCloseBtn');
+  const loginCodeStep1 = document.getElementById('loginCodeStep1');
+  const loginCodeStep2 = document.getElementById('loginCodeStep2');
+  const loginCodeUsernameInput = document.getElementById('loginCodeUsernameInput');
+  const loginCodeStep1Error = document.getElementById('loginCodeStep1Error');
+  const loginCodeSendBtn = document.getElementById('loginCodeSendBtn');
+  const loginCodeInput = document.getElementById('loginCodeInput');
+  const loginCodeStep2Error = document.getElementById('loginCodeStep2Error');
+  const loginCodeConfirmBtn = document.getElementById('loginCodeConfirmBtn');
   const forgotAccountModal = document.getElementById('forgotAccountModal');
   const forgotUsernameInput = document.getElementById('forgotUsernameInput');
   const forgotAccountError = document.getElementById('forgotAccountError');
@@ -5011,6 +5196,66 @@
     } else {
       forgotUsernameError.textContent = t('forgotAccountRequestFailed');
     }
+  });
+  loginWithCodeLink.addEventListener('click', ()=>{
+    loginCodeUsernameInput.value = '';
+    loginCodeInput.value = '';
+    loginCodeStep1Error.textContent = '';
+    loginCodeStep2Error.textContent = '';
+    loginCodeStep1.classList.remove('hidden');
+    loginCodeStep2.classList.add('hidden');
+    loginCodeModal.classList.remove('hidden');
+  });
+  loginCodeCloseBtn.addEventListener('click', ()=> loginCodeModal.classList.add('hidden'));
+  loginCodeSendBtn.addEventListener('click', async ()=>{
+    const username = loginCodeUsernameInput.value.trim();
+    loginCodeStep1Error.textContent = '';
+    if(!username){ loginCodeStep1Error.textContent = t('enterUsernameOnly'); return; }
+    if(!SHEET_API_URL){ loginCodeStep1Error.textContent = t('forgotAccountNoBackend'); return; }
+    setBtnSaving(loginCodeSendBtn, true);
+    const res = await postToSheet('request_login_code', { username });
+    setBtnSaving(loginCodeSendBtn, false);
+    // Generic success regardless of match — same no-enumeration principle as everywhere else.
+    if(res && res.ok){
+      loginCodeStep1.classList.add('hidden');
+      loginCodeStep2.classList.remove('hidden');
+      loginCodeInput.focus();
+    } else {
+      loginCodeStep1Error.textContent = t('forgotAccountRequestFailed');
+    }
+  });
+  loginCodeConfirmBtn.addEventListener('click', async ()=>{
+    const username = loginCodeUsernameInput.value.trim();
+    const code = loginCodeInput.value.trim();
+    loginCodeStep2Error.textContent = '';
+    if(!code){ loginCodeStep2Error.textContent = t('enterCodeFirst'); return; }
+    setBtnSaving(loginCodeConfirmBtn, true);
+    const res = await postToSheet('login_with_code', { username, code });
+    setBtnSaving(loginCodeConfirmBtn, false);
+    if(!res || !res.ok || !res.user){
+      loginCodeStep2Error.textContent = t('emailCodeInvalid');
+      return;
+    }
+    loginCodeModal.classList.add('hidden');
+    let key = username;
+    if(!PROFILES[key]){
+      key = 'custom_' + Date.now();
+      PROFILES[key] = freshProfile(null, res.user.avatar || AVATAR_OPTIONS[0], res.user.color || COLOR_OPTIONS[0],
+        { op:'add', diff:'units', time:'15', len:'10', mode:'type' }, true, res.user.name || username,
+        res.user.birthDate || null, '', null, username);
+      profileOrder.push(key);
+      startTrialForStudent(key);
+    }
+    if(res.user.photoURL) PROFILES[key].photo = res.user.photoURL;
+    if(res.user.email) PROFILES[key].email = res.user.email;
+    saveProfilesToStorage();
+    if(!checkStudentAccessGate(key)){ usernameLoginEl.classList.add('hidden'); return; }
+    showLoginTransition(t('loginStepVerifying'));
+    showLoginTransitionAvatar(PROFILES[key]);
+    updateLoginTransitionStep(fmt('loginStepWelcome', { name: profileDisplayName(key) }), 95);
+    await loginWelcomePause();
+    selectProfileAndGoToSettings(key);
+    hideLoginTransition();
   });
   function logSessionLogout(){
     if(loggedInKey && SHEET_API_URL) postToSheet('logout', { username: loggedInKey });
