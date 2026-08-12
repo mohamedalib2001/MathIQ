@@ -4838,6 +4838,16 @@
       .then(r=>r.json()).catch(()=>null);
     return Promise.race([fetchPromise, timeoutPromise]);
   }
+  // Turns a failed postToSheet() result into a message that actually
+  // distinguishes WHY it failed — a client-side timeout/network drop
+  // (result === null) vs a real, specific rejection the server sent back
+  // (result.message) — instead of one generic "connection failed" string
+  // that hides which of those it actually was.
+  function describeSyncFailure(result, fallbackKey){
+    if(result === null) return `${t(fallbackKey)} (${t('lpSyncTimeoutHint')})`;
+    if(result && result.message) return `${t(fallbackKey)} (${result.message})`;
+    return t(fallbackKey);
+  }
 
   /* ==================== MODULE: LP_API (Sprint 7) ====================
      Frontend Data Access Layer for the Learning Platform Core. Every
@@ -5365,7 +5375,7 @@
     if(res && res.ok){
       forgotAccountSuccess.classList.remove('hidden');
     } else {
-      forgotAccountError.textContent = t('forgotAccountRequestFailed');
+      forgotAccountError.textContent = describeSyncFailure(res, 'forgotAccountRequestFailed');
     }
   });
   forgotUsernameSendBtn.addEventListener('click', async ()=>{
@@ -5380,7 +5390,7 @@
     if(res && res.ok){
       forgotUsernameSuccess.classList.remove('hidden');
     } else {
-      forgotUsernameError.textContent = t('forgotAccountRequestFailed');
+      forgotUsernameError.textContent = describeSyncFailure(res, 'forgotAccountRequestFailed');
     }
   });
   loginWithCodeLink.addEventListener('click', ()=>{
@@ -5407,7 +5417,7 @@
       loginCodeStep2.classList.remove('hidden');
       loginCodeInput.focus();
     } else {
-      loginCodeStep1Error.textContent = t('forgotAccountRequestFailed');
+      loginCodeStep1Error.textContent = describeSyncFailure(res, 'forgotAccountRequestFailed');
     }
   });
   loginCodeConfirmBtn.addEventListener('click', async ()=>{
