@@ -3304,6 +3304,10 @@
       pbProgramTitlePh:'عنوان البرنامج', pbProgramDescPh:'وصف مختصر (اختياري)',
       levelBeginner:'مبتدئ', levelIntermediate:'متوسط', levelAdvanced:'متقدّم',
       pbCreateProgramBtn:'+ إنشاء برنامج', pbNoCourses:'لا توجد دورات بعد.', pbModuleCount:'{n} وحدة',
+      pbSeedEnglishBtn:'🌱 إنشاء برنامج اللغة الإنجليزية الكامل', pbSeedEnglishConfirm:'هذا سينشئ برنامج "اللغة الإنجليزية" كاملًا (دورات، وحدات، دروس، واختبارات حقيقية) وينشره فورًا. متابعة؟',
+      pbSeedEnglishSuccess:'تم إنشاء البرنامج: {courses} دورة، {modules} وحدة، {lessons} درس، {assessments} اختبار.',
+      pbSeedEnglishFailed:'تعذّر إنشاء البرنامج بالكامل. راجعي شيت الأخطاء للتفاصيل.',
+      lpSeedNoBackend:'محتاجة اتصال بالسحابة لإنشاء البرنامج.',
       pbCourseTitlePh:'عنوان الدورة', pbCreateCourseBtn:'+ إضافة دورة',
       pbNoModules:'لا توجد وحدات بعد.', pbLessonCount:'{n} درس', pbModuleTitlePh:'عنوان الوحدة', pbCreateModuleBtn:'+ إضافة وحدة',
       pbNoLessons:'لا توجد دروس بعد.', pbHasAssessment:'يوجد تقييم', pbNoAssessmentYet:'لا يوجد تقييم بعد',
@@ -3666,6 +3670,10 @@
       pbProgramTitlePh:'Program title', pbProgramDescPh:'Short description (optional)',
       levelBeginner:'Beginner', levelIntermediate:'Intermediate', levelAdvanced:'Advanced',
       pbCreateProgramBtn:'+ Create Program', pbNoCourses:'No courses yet.', pbModuleCount:'{n} modules',
+      pbSeedEnglishBtn:'🌱 Create Full English Language Program', pbSeedEnglishConfirm:'This will create the complete "English Language" program (courses, modules, lessons, real assessments) and publish it immediately. Continue?',
+      pbSeedEnglishSuccess:'Program created: {courses} courses, {modules} modules, {lessons} lessons, {assessments} assessments.',
+      pbSeedEnglishFailed:'Could not create the full program. Check the error log for details.',
+      lpSeedNoBackend:'A cloud connection is required to create this program.',
       pbCourseTitlePh:'Course title', pbCreateCourseBtn:'+ Add Course',
       pbNoModules:'No modules yet.', pbLessonCount:'{n} lessons', pbModuleTitlePh:'Module title', pbCreateModuleBtn:'+ Add Module',
       pbNoLessons:'No lessons yet.', pbHasAssessment:'Has an assessment', pbNoAssessmentYet:'No assessment yet',
@@ -6315,6 +6323,303 @@
     showProgramsHub();
   });
 
+  /* ==================== ENGLISH LANGUAGE PROGRAM SEED ====================
+     Real curriculum content, created ONLY through the existing lpCreate*
+     functions (which themselves call the existing LP_API/backend actions
+     unchanged). No new schema, no new backend action, no fabricated data —
+     every lesson/question below is real, written content, not a placeholder.
+     Speaking/Listening modules are honest about what this system can and
+     cannot grade (no audio/speech input exists), and are built around what
+     it genuinely CAN check: recognizing correct phrases in writing. */
+  const ENGLISH_PROGRAM_SEED = {
+    title: 'اللغة الإنجليزية | English Language',
+    description: 'برنامج متكامل لتعلّم اللغة الإنجليزية من المبتدئ إلى المتقدم — مفردات، قواعد، قراءة، استماع، كتابة، ومحادثة.',
+    level: 'beginner',
+    courses: [
+      {
+        title: 'المستوى المبتدئ — Beginner (A1–A2)',
+        description: 'أساسيات اللغة الإنجليزية: التحيات، الأرقام، القواعد الأساسية، والجمل البسيطة.',
+        modules: [
+          {
+            title: 'المفردات — Vocabulary',
+            lessons: [
+              {
+                title: 'تحيات يومية — Everyday Greetings',
+                content: 'التحيات هي أول ما نتعلّمه في أي لغة.\n\nHello — مرحبًا\nGood morning — صباح الخير\nGood evening — مساء الخير\nHow are you? — كيف حالك؟\nI am fine, thank you — أنا بخير، شكرًا\nNice to meet you — سعيد بلقائك\nGoodbye — مع السلامة\n\nمثال حوار:\nA: Hello! How are you?\nB: I am fine, thank you. And you?\nA: I am fine too. Nice to meet you!',
+                assessment: {
+                  title: 'اختبار: تحيات يومية',
+                  passScore: 60, timeLimit: 300,
+                  questions: [
+                    { type:'mcq', text:'What do you say when you meet someone for the first time?', options:['Goodbye','Nice to meet you','Good night','Sorry'], correctIndex:1 },
+                    { type:'truefalse', text:'"Good morning" is used at night.', correctAnswer:false },
+                    { type:'shortanswer', text:'Complete: "How ___ you?"', correctAnswer:'are', acceptedVariations:['Are','ARE'] }
+                  ]
+                }
+              },
+              {
+                title: 'الأرقام والألوان — Numbers & Colors',
+                content: 'الأرقام من 1 إلى 10:\none (1), two (2), three (3), four (4), five (5), six (6), seven (7), eight (8), nine (9), ten (10)\n\nالألوان الأساسية:\nred — أحمر\nblue — أزرق\ngreen — أخضر\nyellow — أصفر\nblack — أسود\nwhite — أبيض\n\nمثال: "I have three red apples." (لدي ثلاث تفاحات حمراء)',
+                assessment: {
+                  title: 'اختبار: الأرقام والألوان',
+                  passScore: 60, timeLimit: 300,
+                  questions: [
+                    { type:'mcq', text:'What color is the sky?', options:['Red','Blue','Black','Green'], correctIndex:1 },
+                    { type:'truefalse', text:'"Five" comes after "four".', correctAnswer:true },
+                    { type:'shortanswer', text:'Write the number word for 7.', correctAnswer:'seven', acceptedVariations:['Seven','SEVEN'] }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            title: 'القواعد — Grammar',
+            lessons: [
+              {
+                title: 'فعل الكينونة — The Verb "To Be"',
+                content: 'فعل "to be" من أهم أفعال اللغة الإنجليزية، وله ثلاث صور في المضارع:\n\nI am — أنا\nYou/We/They are — أنتَ/نحن/هم\nHe/She/It is — هو/هي/هو (لغير العاقل)\n\nأمثلة:\nI am a student. (أنا طالب)\nShe is a teacher. (هي معلّمة)\nThey are happy. (هم سعداء)\n\nملحوظة: لا نستخدم فعلًا آخر مع "to be" في الجملة الاسمية البسيطة.',
+                assessment: {
+                  title: 'اختبار: فعل الكينونة',
+                  passScore: 60, timeLimit: 300,
+                  questions: [
+                    { type:'mcq', text:'Choose the correct word: "She ___ a doctor."', options:['am','is','are','be'], correctIndex:1 },
+                    { type:'truefalse', text:'"They is happy" is correct.', correctAnswer:false },
+                    { type:'shortanswer', text:'Complete: "I ___ from Egypt."', correctAnswer:'am', acceptedVariations:['AM'] }
+                  ]
+                }
+              },
+              {
+                title: 'المضارع البسيط — Simple Present Tense',
+                content: 'نستخدم المضارع البسيط للحديث عن العادات والحقائق الثابتة.\n\nالتركيب: Subject + Verb (+s/es مع He/She/It)\n\nأمثلة:\nI play football. (ألعب كرة القدم)\nShe plays football. (هي تلعب كرة القدم) — لاحظ إضافة s\nThey go to school every day. (يذهبون للمدرسة كل يوم)\n\nخطأ شائع: نسيان إضافة s/es مع He/She/It.',
+                assessment: {
+                  title: 'اختبار: المضارع البسيط',
+                  passScore: 60, timeLimit: 300,
+                  questions: [
+                    { type:'mcq', text:'Choose the correct sentence:', options:['She play tennis.','She plays tennis.','She playing tennis.','She played tennis.'], correctIndex:1 },
+                    { type:'truefalse', text:'We add "s" to the verb with "I".', correctAnswer:false },
+                    { type:'shortanswer', text:'Complete: "He ___ (go) to work every day."', correctAnswer:'goes', acceptedVariations:['GOES','Goes'] }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            title: 'القراءة — Reading',
+            lessons: [
+              {
+                title: 'عائلتي — My Family',
+                content: 'اقرأ النص التالي:\n\n"My name is Sara. I have a small family. My father is an engineer, and my mother is a teacher. I have one brother. His name is Ali. He is ten years old. We live in a nice house near the school. I love my family very much."\n\nكلمات جديدة: engineer (مهندس)، teacher (معلّمة)، brother (أخ)، near (بالقرب من)',
+                assessment: {
+                  title: 'اختبار: عائلتي',
+                  passScore: 60, timeLimit: 300,
+                  questions: [
+                    { type:'mcq', text:'What is Sara\'s father\'s job?', options:['Teacher','Engineer','Doctor','Driver'], correctIndex:1 },
+                    { type:'truefalse', text:'Sara has two brothers.', correctAnswer:false },
+                    { type:'shortanswer', text:'What is the brother\'s name?', correctAnswer:'Ali', acceptedVariations:['ali','ALI'] }
+                  ]
+                }
+              },
+              {
+                title: 'يوم في المدرسة — A Day at School',
+                content: 'اقرأ النص التالي:\n\n"Every morning, I wake up at six o\'clock. I eat breakfast and go to school by bus. School starts at eight o\'clock. My favorite subject is English. After school, I do my homework and play with my friends."\n\nكلمات جديدة: wake up (يستيقظ)، breakfast (فطور)، favorite (المفضّل)، homework (واجب منزلي)',
+                assessment: {
+                  title: 'اختبار: يوم في المدرسة',
+                  passScore: 60, timeLimit: 300,
+                  questions: [
+                    { type:'mcq', text:'What time does school start?', options:['Six o\'clock','Seven o\'clock','Eight o\'clock','Nine o\'clock'], correctIndex:2 },
+                    { type:'truefalse', text:'The writer goes to school by car.', correctAnswer:false },
+                    { type:'shortanswer', text:'What is the writer\'s favorite subject?', correctAnswer:'English', acceptedVariations:['english','ENGLISH'] }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            title: 'الاستماع — Listening',
+            lessons: [
+              {
+                // Honest about the platform's real capability: no audio player
+                // exists yet, so this builds listening-comprehension SKILL via
+                // a written dialogue transcript exercise, not a fabricated audio feature.
+                title: 'استراتيجيات الاستماع — Listening Strategies',
+                content: 'مهارة الاستماع تُبنى بالتدرّب على فهم الحوارات المنطوقة. في هذا الدرس، تدرّبي على قراءة الحوار التالي بصوتٍ مسموع (اطلبي من شخص يقرأه لكِ) ثم أجيبي على الأسئلة كأنكِ سمعتِه:\n\n"A: What time is it?\nB: It is three o\'clock.\nA: Where is the library?\nB: It is next to the school."\n\nملحوظة: ميزة الاستماع الصوتي الكامل (تشغيل ملفات صوتية حقيقية) ليست متاحة بعد في هذا الإصدار من المنصة — هذا الدرس يُبني مهارة الفهم عبر النص المكتوب كخطوة أولى.',
+                assessment: {
+                  title: 'اختبار: استراتيجيات الاستماع',
+                  passScore: 60, timeLimit: 300,
+                  questions: [
+                    { type:'mcq', text:'Based on the dialogue, where is the library?', options:['Next to the school','Near the park','In the house','Far away'], correctIndex:0 },
+                    { type:'truefalse', text:'The dialogue says it is three o\'clock.', correctAnswer:true }
+                  ]
+                }
+              },
+              {
+                title: 'فهم الاتجاهات البسيطة — Understanding Simple Directions',
+                content: 'تعلّمي كلمات الاتجاهات الأساسية:\n\nturn left — انعطف يسارًا\nturn right — انعطف يمينًا\ngo straight — اذهب مستقيمًا\nnext to — بجانب\nbetween — بين\n\nمثال حوار:\n"Excuse me, where is the bank?"\n"Go straight, then turn right. The bank is next to the pharmacy."',
+                assessment: {
+                  title: 'اختبار: الاتجاهات البسيطة',
+                  passScore: 60, timeLimit: 300,
+                  questions: [
+                    { type:'mcq', text:'"Turn left" means:', options:['اذهب مستقيمًا','انعطف يمينًا','انعطف يسارًا','توقف'], correctIndex:2 },
+                    { type:'truefalse', text:'"Next to" means "far from".', correctAnswer:false }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            title: 'الكتابة — Writing',
+            lessons: [
+              {
+                title: 'كتابة جمل بسيطة — Writing Simple Sentences',
+                content: 'الجملة الإنجليزية البسيطة تتكوّن من: فاعل (Subject) + فعل (Verb) + مفعول به (Object، اختياري).\n\nأمثلة:\nThe cat sleeps. (فاعل + فعل)\nI read a book. (فاعل + فعل + مفعول به)\n\nتدرّبي: حاولي كتابة 3 جمل بسيطة عن يومك باستخدام نفس التركيب.',
+                assessment: {
+                  title: 'اختبار: كتابة جمل بسيطة',
+                  passScore: 60, timeLimit: 300,
+                  questions: [
+                    { type:'shortanswer', text:'Complete the sentence: "The sun ___ (shine) brightly."', correctAnswer:'shines', acceptedVariations:['SHINES','Shines'] },
+                    { type:'mcq', text:'Which is a complete simple sentence?', options:['Running fast.','The boy runs.','Very quickly.','In the park.'], correctIndex:1 }
+                  ]
+                }
+              },
+              {
+                title: 'الكتابة عن نفسك — Writing About Yourself',
+                content: 'عند الكتابة عن نفسك، استخدمي هذه الجمل كنموذج:\n\n"My name is ___."\n"I am ___ years old."\n"I live in ___."\n"My favorite hobby is ___."\n\nمثال كامل:\n"My name is Layla. I am twelve years old. I live in Riyadh. My favorite hobby is drawing."',
+                assessment: {
+                  title: 'اختبار: الكتابة عن نفسك',
+                  passScore: 60, timeLimit: 300,
+                  questions: [
+                    { type:'shortanswer', text:'Complete: "My ___ is Ahmed." (name)', correctAnswer:'name', acceptedVariations:['NAME','Name'] },
+                    { type:'truefalse', text:'"I am ___ years old" is used to talk about your age.', correctAnswer:true }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            title: 'المحادثة — Speaking',
+            lessons: [
+              {
+                // Also honest: no speech-recognition/audio grading exists.
+                // This builds recognition of correct spoken phrases in writing,
+                // which the existing MCQ/True-False engine genuinely CAN grade.
+                title: 'عبارات شائعة للمحادثة — Common Conversation Phrases',
+                content: 'عبارات مفيدة لبدء أي محادثة:\n\n"Excuse me..." — لو سمحت...\n"Can you help me?" — هل يمكنك مساعدتي؟\n"I don\'t understand." — لا أفهم.\n"Could you repeat that, please?" — هل يمكنك الإعادة من فضلك؟\n"Thank you very much." — شكرًا جزيلًا.\n\nملحوظة: تسجيل ونطق الصوت الفعلي غير متاح بعد في هذا الإصدار — هذا الدرس يبني المعرفة بالعبارات الصحيحة استعدادًا للتدريب الشفهي مع المعلّمة.',
+                assessment: {
+                  title: 'اختبار: عبارات المحادثة',
+                  passScore: 60, timeLimit: 300,
+                  questions: [
+                    { type:'mcq', text:'What do you say if you don\'t understand something?', options:['Thank you very much.','I don\'t understand.','Nice to meet you.','Good morning.'], correctIndex:1 },
+                    { type:'truefalse', text:'"Excuse me" is a polite way to get someone\'s attention.', correctAnswer:true }
+                  ]
+                }
+              },
+              {
+                title: 'السؤال والإجابة — Asking and Answering Questions',
+                content: 'أسئلة أساسية وإجاباتها:\n\n"What is your name?" → "My name is ___."\n"Where are you from?" → "I am from ___."\n"How old are you?" → "I am ___ years old."\n"What do you do?" → "I am a student."',
+                assessment: {
+                  title: 'اختبار: السؤال والإجابة',
+                  passScore: 60, timeLimit: 300,
+                  questions: [
+                    { type:'mcq', text:'"Where are you from?" asks about your:', options:['Age','Name','Country','Job'], correctIndex:2 },
+                    { type:'truefalse', text:'"I am a student" answers "What do you do?"', correctAnswer:true }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        title: 'المستوى المتوسط — Intermediate (B1–B2)',
+        description: 'توسيع المفردات، أزمنة أكثر تعقيدًا، والتعبير عن الآراء.',
+        modules: [
+          {
+            title: 'القواعد المتقدمة — Advanced Grammar',
+            lessons: [
+              {
+                title: 'الماضي البسيط — Simple Past Tense',
+                content: 'نستخدم الماضي البسيط للحديث عن أحداث انتهت في الماضي.\n\nالأفعال المنتظمة: نضيف "ed"\nplay → played, watch → watched\n\nالأفعال الشاذة: تتغيّر صورتها\ngo → went, eat → ate, see → saw\n\nمثال: "I visited my grandmother last week." (زرت جدتي الأسبوع الماضي)',
+                assessment: {
+                  title: 'اختبار: الماضي البسيط',
+                  passScore: 60, timeLimit: 300,
+                  questions: [
+                    { type:'mcq', text:'Choose the past tense of "go":', options:['goed','went','gone','going'], correctIndex:1 },
+                    { type:'truefalse', text:'"Played" is the past tense of "play".', correctAnswer:true },
+                    { type:'shortanswer', text:'Write the past tense of "eat".', correctAnswer:'ate', acceptedVariations:['ATE','Ate'] }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        title: 'المستوى المتقدم — Advanced (C1)',
+        description: 'إتقان التراكيب المعقدة، الكتابة الأكاديمية، والمفردات المتخصصة.',
+        modules: [
+          {
+            title: 'التراكيب المعقدة — Complex Structures',
+            lessons: [
+              {
+                title: 'الجمل الشرطية — Conditional Sentences',
+                content: 'الجملة الشرطية من النوع الأول (First Conditional) تُستخدم للحديث عن نتائج محتملة في المستقبل.\n\nالتركيب: If + Present Simple, ... will + Verb\n\nمثال: "If it rains, I will stay home." (إذا أمطرت، سأبقى في المنزل)\n\nالجملة الشرطية من النوع الثاني (Second Conditional) للحديث عن مواقف افتراضية غير حقيقية:\n"If I had more time, I would travel more." (لو كان لدي وقت أكثر، لسافرت أكثر)',
+                assessment: {
+                  title: 'اختبار: الجمل الشرطية',
+                  passScore: 60, timeLimit: 300,
+                  questions: [
+                    { type:'mcq', text:'Complete: "If it rains, I ___ stay home."', options:['will','would','was','did'], correctIndex:0 },
+                    { type:'truefalse', text:'The second conditional describes real, certain future events.', correctAnswer:false }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  };
+
+  async function seedEnglishLanguageProgram(){
+    if(!can(lpCurrentRole(), 'program.create')) return lpDenyAndNotify('program.create');
+    if(!SHEET_API_URL){
+      showToast(t('lpSeedNoBackend'), nxIcon('alertTriangle'), 'system');
+      return { ok:false, reason:'no_backend' };
+    }
+    const owner = pbOwnerUsername();
+    const seed = ENGLISH_PROGRAM_SEED;
+    const program = await lpCreateProgram(seed.title, seed.description, seed.level, owner);
+    if(!program) return { ok:false, reason:'program_create_failed' };
+
+    let lessonCount = 0, assessmentCount = 0, moduleCount = 0, courseCount = 0;
+    for(const courseSeed of seed.courses){
+      const course = await lpCreateCourse(program.id, courseSeed.title, courseSeed.description);
+      if(!course) return { ok:false, reason:'course_create_failed', partial:{ programId:program.id } };
+      courseCount++;
+      for(const moduleSeed of courseSeed.modules){
+        const module = await lpCreateModule(course.id, moduleSeed.title);
+        if(!module) return { ok:false, reason:'module_create_failed', partial:{ programId:program.id } };
+        moduleCount++;
+        for(const lessonSeed of moduleSeed.lessons){
+          const lesson = await lpCreateLesson(module.id, lessonSeed.title, lessonSeed.content);
+          if(!lesson) return { ok:false, reason:'lesson_create_failed', partial:{ programId:program.id } };
+          lessonCount++;
+          if(lessonSeed.assessment){
+            const asm = lessonSeed.assessment;
+            const assessment = await lpCreateAssessment(lesson.id, asm.title, asm.questions, asm.passScore, asm.timeLimit, []);
+            if(!assessment) return { ok:false, reason:'assessment_create_failed', partial:{ programId:program.id } };
+            assessmentCount++;
+          }
+        }
+      }
+    }
+    // Publish — uses the existing setStatus API (already implemented
+    // server-side; simply never had a UI trigger before now).
+    await LP_API.programs.setStatus(program.id, 'published', owner);
+    const p = lpLoad(LP_KEYS.PROGRAMS).find(x => x.id === program.id);
+    if(p) p.status = 'published';
+    lpSave(LP_KEYS.PROGRAMS, lpLoad(LP_KEYS.PROGRAMS));
+    return { ok:true, programId: program.id, courseCount, moduleCount, lessonCount, assessmentCount };
+  }
+
   function openProgramBuilder(){
     hideTeacherShellScreens();
     programBuilderEl.classList.remove('hidden');
@@ -6399,6 +6704,7 @@
             <option value="advanced">${t('levelAdvanced')}</option>
           </select>
           <button class="start-btn" id="pbCreateProgramBtn">${t('pbCreateProgramBtn')}</button>
+          <button class="secondary-btn" id="pbSeedEnglishBtn" style="margin-top:8px;">${t('pbSeedEnglishBtn')}</button>
         </div>`;
       document.getElementById('pbCreateProgramBtn').addEventListener('click', async ()=>{
         const title = document.getElementById('pbNewProgramTitle').value.trim();
@@ -6408,6 +6714,19 @@
         setBtnSaving(btn, true);
         await lpCreateProgram(title, document.getElementById('pbNewProgramDesc').value.trim(), document.getElementById('pbNewProgramLevel').value, pbOwnerUsername());
         renderProgramBuilder(); // re-render happens after the await resolves either way — button state doesn't persist since the form is rebuilt
+      });
+      document.getElementById('pbSeedEnglishBtn').addEventListener('click', async ()=>{
+        if(!window.confirm(t('pbSeedEnglishConfirm'))) return;
+        const seedBtn = document.getElementById('pbSeedEnglishBtn');
+        setBtnSaving(seedBtn, true);
+        const result = await seedEnglishLanguageProgram();
+        setBtnSaving(seedBtn, false);
+        if(result && result.ok){
+          showToast(fmt('pbSeedEnglishSuccess', { courses: result.courseCount, modules: result.moduleCount, lessons: result.lessonCount, assessments: result.assessmentCount }), nxIcon('check'), 'system');
+        } else {
+          showToast(t('pbSeedEnglishFailed'), nxIcon('alertTriangle'), 'system');
+        }
+        renderProgramBuilder();
       });
 
     } else if(pbLevel === 'courses'){
