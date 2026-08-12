@@ -2212,11 +2212,6 @@
         <span class="program-name" data-i18n="programAbacusName">الأباكوس</span>
         <span class="program-stat" id="programAbacusStat"></span>
       </div>
-      <div class="program-card coming-soon">
-        <span class="program-icon">💻</span>
-        <span class="program-name" data-i18n="programCodingName">البرمجة</span>
-        <span class="program-badge" data-i18n="comingSoonBadge">قريبًا</span>
-      </div>
     </div>
     <div class="pin-row" style="justify-content:center; margin-top:6px;">
       <span class="logout-text-link" id="hubLogoutLink" data-i18n="logoutLinkText">🚪 تسجيل الخروج</span>
@@ -3214,7 +3209,6 @@
       brandTagline:'منصة ذكية للتعلم والتطوير — تعلّم. تطوّر. أنجز.', aiPoweredBadge:'مدعوم بالذكاء الاصطناعي',
       hubGreeting:'مرحبًا {name} 👋', hubSubtitle:'اختاري برنامجًا لتبدئي',
       programMentalMathName:'الحساب الذهني', programAbacusName:'الأباكوس',
-      programCodingName:'البرمجة', comingSoonBadge:'قريبًا',
       programAccuracyStat:'الدقة {acc}%', programNotStartedStat:'لم تبدئي بعد', backToProgramsLink:'🏠 كل البرامج',
       shellRoleLearner:'متعلّمة', shellRoleAdmin:'المالك', shellRoleTeacher:'معلّمة',
       shellNavPrograms:'البرامج', shellNavJourney:'رحلتي التعليمية', shellNavAchievements:'إنجازاتي',
@@ -3303,6 +3297,9 @@
       pbSeedEnglishSuccess:'تم إنشاء البرنامج: {courses} دورة، {modules} وحدة، {lessons} درس، {assessments} اختبار.',
       pbSeedEnglishFailed:'تعذّر إنشاء البرنامج بالكامل. راجعي شيت الأخطاء للتفاصيل.',
       lpSeedNoBackend:'محتاجة اتصال بالسحابة لإنشاء البرنامج.',
+      pbSeedProgrammingBtn:'🌱 إنشاء برنامج البرمجة الكامل', pbSeedProgrammingConfirm:'هذا سينشئ برنامج "البرمجة" كاملًا (دورات، وحدات، دروس، واختبارات حقيقية) وينشره فورًا. متابعة؟',
+      pbSeedProgrammingSuccess:'تم إنشاء البرنامج: {courses} دورة، {modules} وحدة، {lessons} درس، {assessments} اختبار.',
+      pbSeedProgrammingFailed:'تعذّر إنشاء البرنامج بالكامل. راجعي شيت الأخطاء للتفاصيل.',
       pbCourseTitlePh:'عنوان الدورة', pbCreateCourseBtn:'+ إضافة دورة',
       pbNoModules:'لا توجد وحدات بعد.', pbLessonCount:'{n} درس', pbModuleTitlePh:'عنوان الوحدة', pbCreateModuleBtn:'+ إضافة وحدة',
       pbNoLessons:'لا توجد دروس بعد.', pbHasAssessment:'يوجد تقييم', pbNoAssessmentYet:'لا يوجد تقييم بعد',
@@ -3580,7 +3577,6 @@
       brandTagline:'Intelligent Learning & Development — Learn. Grow. Perform.', aiPoweredBadge:'AI-Powered',
       hubGreeting:'Hi {name} 👋', hubSubtitle:'Choose a program to get started',
       programMentalMathName:'Mental Math', programAbacusName:'Abacus',
-      programCodingName:'Programming', comingSoonBadge:'Coming Soon',
       programAccuracyStat:'{acc}% accuracy', programNotStartedStat:'Not started yet', backToProgramsLink:'🏠 All Programs',
       shellRoleLearner:'Learner', shellRoleAdmin:'Owner', shellRoleTeacher:'Instructor',
       shellNavPrograms:'Programs', shellNavJourney:'My Journey', shellNavAchievements:'Achievements',
@@ -3669,6 +3665,9 @@
       pbSeedEnglishSuccess:'Program created: {courses} courses, {modules} modules, {lessons} lessons, {assessments} assessments.',
       pbSeedEnglishFailed:'Could not create the full program. Check the error log for details.',
       lpSeedNoBackend:'A cloud connection is required to create this program.',
+      pbSeedProgrammingBtn:'🌱 Create Full Programming Program', pbSeedProgrammingConfirm:'This will create the complete "Programming" program (courses, modules, lessons, real assessments) and publish it immediately. Continue?',
+      pbSeedProgrammingSuccess:'Program created: {courses} courses, {modules} modules, {lessons} lessons, {assessments} assessments.',
+      pbSeedProgrammingFailed:'Could not create the full program. Check the error log for details.',
       pbCourseTitlePh:'Course title', pbCreateCourseBtn:'+ Add Course',
       pbNoModules:'No modules yet.', pbLessonCount:'{n} lessons', pbModuleTitlePh:'Module title', pbCreateModuleBtn:'+ Add Module',
       pbNoLessons:'No lessons yet.', pbHasAssessment:'Has an assessment', pbNoAssessmentYet:'No assessment yet',
@@ -6573,14 +6572,271 @@
     ]
   };
 
+  /* ==================== PROGRAMMING PROGRAM SEED ====================
+     Same principle as the English seed: real, written curriculum content,
+     created only through the existing lpCreate* functions. Code examples
+     are embedded as formatted text within Lesson.Content (a plain string
+     field already) — no new content type or schema needed. */
+  const PROGRAMMING_PROGRAM_SEED = {
+    title: 'البرمجة | Programming',
+    description: 'مسار متكامل لتعلّم البرمجة من الصفر: التفكير الحاسوبي، الخوارزميات، تطوير الويب، JavaScript، Python، ومشاريع تطبيقية حقيقية.',
+    level: 'beginner',
+    courses: [
+      {
+        title: 'أساسيات البرمجة والتفكير الحاسوبي — Programming Fundamentals & Computational Thinking',
+        description: 'المفاهيم الأساسية التي يقوم عليها أي تعلّم برمجي لاحق.',
+        modules: [
+          {
+            title: 'مفاهيم أساسية — Core Concepts',
+            lessons: [
+              {
+                title: 'ما هي البرمجة؟ — What is Programming?',
+                content: 'البرمجة هي عملية إعطاء تعليمات دقيقة للكمبيوتر لتنفيذ مهمة معيّنة، بلغة يفهمها الكمبيوتر.\n\nمثال بسيط بلغة بايثون (Python):\nprint("Hello, World!")\n\nهذا السطر يطبع الجملة "Hello, World!" على الشاشة — أول برنامج يتعلّمه أي مبرمج تقريبًا في كل لغات البرمجة.\n\nالبرنامج = سلسلة من التعليمات المتتابعة التي ينفّذها الكمبيوتر خطوة بخطوة.',
+                assessment: {
+                  title: 'اختبار: ما هي البرمجة؟',
+                  passScore: 60, timeLimit: 300,
+                  questions: [
+                    { type:'mcq', text:'ماذا يطبع الكود التالي: print("Hello, World!") ؟', options:['لا شيء','Hello, World!','خطأ','print'], correctIndex:1 },
+                    { type:'truefalse', text:'البرنامج هو سلسلة من التعليمات ينفّذها الكمبيوتر.', correctAnswer:true },
+                    { type:'shortanswer', text:'ما اسم الدالة المستخدمة لطباعة نص في بايثون؟', correctAnswer:'print', acceptedVariations:['Print','PRINT'] }
+                  ]
+                }
+              },
+              {
+                title: 'التفكير الحاسوبي وحل المشكلات — Computational Thinking',
+                content: 'التفكير الحاسوبي هو أسلوب لحل المشكلات يعتمد على 4 خطوات:\n\n1. التفكيك (Decomposition): تقسيم المشكلة الكبيرة لأجزاء أصغر.\n2. التعرّف على الأنماط (Pattern Recognition): ملاحظة التشابهات بين المشكلات.\n3. التجريد (Abstraction): التركيز على التفاصيل المهمة فقط.\n4. الخوارزمية (Algorithm): كتابة خطوات الحل بالترتيب.\n\nمثال: لحل مشكلة "ترتيب غرفة فوضوية"، نقسّمها لخطوات: (1) جمع الملابس، (2) ترتيب الكتب، (3) تنظيف السطح — كل خطوة أبسط من المشكلة الكاملة.',
+                assessment: {
+                  title: 'اختبار: التفكير الحاسوبي',
+                  passScore: 60, timeLimit: 300,
+                  questions: [
+                    { type:'mcq', text:'تقسيم مشكلة كبيرة لأجزاء أصغر يُسمى:', options:['التجريد','التفكيك','الخوارزمية','التكرار'], correctIndex:1 },
+                    { type:'truefalse', text:'التفكير الحاسوبي مفيد فقط في البرمجة.', correctAnswer:false }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        title: 'الخوارزميات وحل المشكلات — Algorithms & Problem Solving',
+        description: 'كيفية التفكير في الحل قبل كتابة أي كود.',
+        modules: [
+          {
+            title: 'أساسيات الخوارزميات — Algorithm Basics',
+            lessons: [
+              {
+                title: 'ما هي الخوارزمية؟ — What is an Algorithm?',
+                content: 'الخوارزمية هي مجموعة خطوات واضحة ومرتّبة لحل مشكلة معيّنة، مثل وصفة الطبخ بالظبط.\n\nمثال: خوارزمية لحساب مجموع رقمين:\n1. اطلب الرقم الأول (a)\n2. اطلب الرقم الثاني (b)\n3. اجمع a + b\n4. اعرض النتيجة\n\nبلغة بايثون:\na = 5\nb = 3\nsum = a + b\nprint(sum)   # الناتج: 8\n\nخصائص الخوارزمية الجيدة: واضحة، محدودة الخطوات، ولها نتيجة محددة.',
+                assessment: {
+                  title: 'اختبار: ما هي الخوارزمية؟',
+                  passScore: 60, timeLimit: 300,
+                  questions: [
+                    { type:'mcq', text:'ما ناتج الكود: a=5, b=3, sum=a+b, print(sum) ؟', options:['53','8','15','خطأ'], correctIndex:1 },
+                    { type:'truefalse', text:'الخوارزمية يجب أن تكون غير محدودة الخطوات.', correctAnswer:false },
+                    { type:'shortanswer', text:'اكتب ناتج: a=10, b=4, sum=a+b', correctAnswer:'14', acceptedVariations:[] }
+                  ]
+                }
+              },
+              {
+                title: 'مخططات التدفق والمنطق — Flowcharts & Logic',
+                content: 'مخطط التدفق (Flowchart) هو رسم بصري يوضّح خطوات الخوارزمية بأشكال متفق عليها:\n\n⬭ بداية/نهاية (Oval)\n▭ خطوة/عملية (Rectangle)\n◇ قرار (Diamond) — بها احتمالان: نعم/لا\n\nمثال منطقي: "هل العدد أكبر من 10؟"\nإذا نعم → اطبع "كبير"\nإذا لا → اطبع "صغير"\n\nبلغة بايثون:\nnumber = 15\nif number > 10:\n    print("كبير")\nelse:\n    print("صغير")',
+                assessment: {
+                  title: 'اختبار: مخططات التدفق',
+                  passScore: 60, timeLimit: 300,
+                  questions: [
+                    { type:'mcq', text:'أي شكل يُستخدم لتمثيل "القرار" في مخطط التدفق؟', options:['مستطيل','دائرة','معيّن (Diamond)','مثلث'], correctIndex:2 },
+                    { type:'truefalse', text:'إذا كان number=15، فالكود في الدرس سيطبع "كبير".', correctAnswer:true }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        title: 'HTML & CSS',
+        description: 'أساسيات بناء وتنسيق صفحات الويب.',
+        modules: [
+          {
+            title: 'أساسيات HTML',
+            lessons: [
+              {
+                title: 'بنية صفحة HTML — HTML Page Structure',
+                content: 'كل صفحة HTML لها هيكل أساسي ثابت:\n\n<!DOCTYPE html>\n<html>\n<head>\n  <title>عنوان الصفحة</title>\n</head>\n<body>\n  <h1>مرحبًا بالعالم</h1>\n  <p>هذه فقرة نصية.</p>\n</body>\n</html>\n\n<head> يحتوي على معلومات الصفحة (العنوان، إلخ)، و<body> يحتوي على المحتوى الظاهر للمستخدم.',
+                assessment: {
+                  title: 'اختبار: بنية HTML',
+                  passScore: 60, timeLimit: 300,
+                  questions: [
+                    { type:'mcq', text:'أي وسم يحتوي على المحتوى الظاهر للمستخدم؟', options:['<head>','<title>','<body>','<html>'], correctIndex:2 },
+                    { type:'truefalse', text:'<head> يظهر محتواه مباشرة في الصفحة للمستخدم.', correctAnswer:false },
+                    { type:'shortanswer', text:'ما الوسم المستخدم لعنوان رئيسي كبير؟ (اكتب h1)', correctAnswer:'h1', acceptedVariations:['H1','<h1>'] }
+                  ]
+                }
+              },
+              {
+                title: 'الوسوم الأساسية — Basic Tags',
+                content: 'وسوم HTML شائعة:\n\n<h1> إلى <h6> — عناوين بأحجام مختلفة\n<p> — فقرة نصية\n<a href="...">نص الرابط</a> — رابط\n<img src="..." alt="..."> — صورة\n<ul><li>عنصر</li></ul> — قائمة نقطية\n\nمثال:\n<a href="https://example.com">اضغط هنا</a>\nهذا ينشئ رابطًا نصه "اضغط هنا" يوجّه لموقع example.com',
+                assessment: {
+                  title: 'اختبار: الوسوم الأساسية',
+                  passScore: 60, timeLimit: 300,
+                  questions: [
+                    { type:'mcq', text:'أي وسم يُستخدم لإنشاء رابط؟', options:['<img>','<a>','<p>','<ul>'], correctIndex:1 },
+                    { type:'truefalse', text:'<img> يُستخدم لعرض صورة.', correctAnswer:true }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            title: 'أساسيات CSS',
+            lessons: [
+              {
+                title: 'تنسيق العناصر — Styling Elements',
+                content: 'CSS يُستخدم لتنسيق شكل عناصر HTML.\n\nمثال:\np {\n  color: blue;\n  font-size: 16px;\n}\n\nهذا الكود يجعل كل الفقرات (<p>) بلون أزرق وحجم خط 16 بكسل.\n\nيمكن ربط CSS بـHTML عبر الوسم <style> داخل <head>، أو ملف خارجي.',
+                assessment: {
+                  title: 'اختبار: تنسيق العناصر',
+                  passScore: 60, timeLimit: 300,
+                  questions: [
+                    { type:'mcq', text:'أي خاصية CSS تُغيّر لون النص؟', options:['font-size','color','background','border'], correctIndex:1 },
+                    { type:'truefalse', text:'CSS يُستخدم لتنسيق شكل عناصر HTML.', correctAnswer:true }
+                  ]
+                }
+              },
+              {
+                title: 'التخطيط والألوان — Layout & Colors',
+                content: 'يمكن التحكّم في تخطيط العناصر عبر خصائص مثل:\n\nwidth, height — العرض والارتفاع\nmargin — المسافة الخارجية حول العنصر\npadding — المسافة الداخلية داخل العنصر\nbackground-color — لون الخلفية\n\nمثال:\ndiv {\n  width: 200px;\n  background-color: lightgray;\n  padding: 10px;\n}',
+                assessment: {
+                  title: 'اختبار: التخطيط والألوان',
+                  passScore: 60, timeLimit: 300,
+                  questions: [
+                    { type:'mcq', text:'أي خاصية تُحدّد المسافة الداخلية داخل العنصر؟', options:['margin','padding','width','color'], correctIndex:1 },
+                    { type:'truefalse', text:'background-color يُغيّر لون النص.', correctAnswer:false }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        title: 'JavaScript',
+        description: 'إضافة التفاعل والحركة لصفحات الويب.',
+        modules: [
+          {
+            title: 'أساسيات JavaScript',
+            lessons: [
+              {
+                title: 'المتغيرات وأنواع البيانات — Variables & Data Types',
+                content: 'المتغيّر هو مكان لتخزين قيمة يمكن استخدامها لاحقًا.\n\nlet name = "Sara";      // نص (String)\nlet age = 12;            // رقم (Number)\nlet isStudent = true;    // منطقي (Boolean)\n\nconsole.log(name);   // يطبع: Sara\nconsole.log(age + 1); // يطبع: 13',
+                assessment: {
+                  title: 'اختبار: المتغيرات وأنواع البيانات',
+                  passScore: 60, timeLimit: 300,
+                  questions: [
+                    { type:'mcq', text:'ما ناتج: let age = 12; console.log(age + 1); ؟', options:['12','13','age+1','خطأ'], correctIndex:1 },
+                    { type:'truefalse', text:'true و false من نوع Boolean.', correctAnswer:true },
+                    { type:'shortanswer', text:'اكتب كلمة تعريف المتغيّر المستخدمة في المثال (let أم var أم const؟) — اكتب let', correctAnswer:'let', acceptedVariations:['Let','LET'] }
+                  ]
+                }
+              },
+              {
+                title: 'الشروط والحلقات — Conditionals & Loops',
+                content: 'الشرط if يُنفّذ كود فقط إذا تحقق شرط معيّن:\n\nlet score = 85;\nif (score >= 60) {\n  console.log("ناجح");\n} else {\n  console.log("راسب");\n}\n\nالحلقة for تُكرر تنفيذ كود عدة مرات:\n\nfor (let i = 1; i <= 3; i++) {\n  console.log(i);\n}\n// يطبع: 1 ثم 2 ثم 3',
+                assessment: {
+                  title: 'اختبار: الشروط والحلقات',
+                  passScore: 60, timeLimit: 300,
+                  questions: [
+                    { type:'mcq', text:'ما ناتج: let score=85; if(score>=60){console.log("ناجح")} ؟', options:['راسب','ناجح','85','خطأ'], correctIndex:1 },
+                    { type:'truefalse', text:'الحلقة for(let i=1;i<=3;i++) تطبع 3 أرقام.', correctAnswer:true }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        title: 'Python',
+        description: 'لغة برمجة بسيطة وقوية، شائعة في تعليم البرمجة والذكاء الاصطناعي.',
+        modules: [
+          {
+            title: 'أساسيات بايثون',
+            lessons: [
+              {
+                title: 'المتغيرات والطباعة — Variables & Print',
+                content: 'في بايثون، تعريف المتغيّر بسيط جدًا:\n\nname = "Ahmed"\nage = 14\n\nprint("الاسم:", name)\nprint("العمر:", age)\n\n# الناتج:\n# الاسم: Ahmed\n# العمر: 14\n\nلاحظ: بايثون لا تحتاج كتابة نوع المتغيّر صراحةً (تُحدّد النوع تلقائيًا).',
+                assessment: {
+                  title: 'اختبار: المتغيرات والطباعة',
+                  passScore: 60, timeLimit: 300,
+                  questions: [
+                    { type:'mcq', text:'ماذا تطبع: print("العمر:", 14) ؟', options:['14','العمر: 14','العمر','خطأ'], correctIndex:1 },
+                    { type:'truefalse', text:'بايثون تحتاج كتابة نوع المتغيّر صراحةً دائمًا.', correctAnswer:false }
+                  ]
+                }
+              },
+              {
+                title: 'الشروط والحلقات في بايثون — Conditionals & Loops in Python',
+                content: 'الشرط if في بايثون:\n\nscore = 75\nif score >= 60:\n    print("ناجح")\nelse:\n    print("راسب")\n\nالحلقة for في بايثون:\n\nfor i in range(1, 4):\n    print(i)\n# يطبع: 1 ثم 2 ثم 3\n\nملحوظة: بايثون تستخدم المسافات البادئة (Indentation) بدل الأقواس {} لتحديد الكتل البرمجية.',
+                assessment: {
+                  title: 'اختبار: الشروط والحلقات في بايثون',
+                  passScore: 60, timeLimit: 300,
+                  questions: [
+                    { type:'mcq', text:'ماذا تستخدم بايثون بدل الأقواس {} لتحديد الكتل البرمجية؟', options:['الفواصل','المسافات البادئة (Indentation)','الأقواس ()','النقطتان فقط'], correctIndex:1 },
+                    { type:'truefalse', text:'range(1, 4) في بايثون يشمل الأرقام 1، 2، 3.', correctAnswer:true }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        title: 'مشاريع تطبيقية — Practical Projects',
+        description: 'تطبيق ما تم تعلّمه في مشروع حقيقي متكامل.',
+        modules: [
+          {
+            title: 'مشروع: صفحة ويب شخصية بسيطة',
+            lessons: [
+              {
+                title: 'بناء صفحة تعريف شخصية — Building a Simple Personal Page',
+                content: 'هذا المشروع يجمع بين HTML وCSS اللي اتعلمناهم في وحدة واحدة عملية.\n\nHTML:\n<!DOCTYPE html>\n<html>\n<head><title>صفحتي</title></head>\n<body>\n  <h1>مرحبًا، أنا سارة</h1>\n  <p>أحب القراءة والرسم.</p>\n</body>\n</html>\n\nCSS (داخل <style> في <head>):\nh1 { color: darkgreen; }\np { font-size: 18px; color: gray; }\n\nجربي تعديل الاسم والهوايات والألوان لتُنشئي صفحتك الخاصة!',
+                assessment: {
+                  title: 'اختبار: مشروع الصفحة الشخصية',
+                  passScore: 60, timeLimit: 300,
+                  questions: [
+                    { type:'mcq', text:'في المثال، ما لون <h1>؟', options:['gray','darkgreen','blue','black'], correctIndex:1 },
+                    { type:'truefalse', text:'يمكن وضع CSS داخل وسم <style> في <head>.', correctAnswer:true }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  };
+
   async function seedEnglishLanguageProgram(){
     if(!can(lpCurrentRole(), 'program.create')) return lpDenyAndNotify('program.create');
     if(!SHEET_API_URL){
       showToast(t('lpSeedNoBackend'), nxIcon('alertTriangle'), 'system');
       return { ok:false, reason:'no_backend' };
     }
+    return seedProgramFromSeedData(ENGLISH_PROGRAM_SEED);
+  }
+  async function seedProgrammingProgram(){
+    if(!can(lpCurrentRole(), 'program.create')) return lpDenyAndNotify('program.create');
+    if(!SHEET_API_URL){
+      showToast(t('lpSeedNoBackend'), nxIcon('alertTriangle'), 'system');
+      return { ok:false, reason:'no_backend' };
+    }
+    return seedProgramFromSeedData(PROGRAMMING_PROGRAM_SEED);
+  }
+  // Shared by every "seed a full program" trigger — walks Program → Course →
+  // Module → Lesson → Assessment using ONLY the existing lpCreate* functions
+  // (which themselves call the existing, unmodified LP_API/backend actions).
+  async function seedProgramFromSeedData(seed){
     const owner = pbOwnerUsername();
-    const seed = ENGLISH_PROGRAM_SEED;
     const program = await lpCreateProgram(seed.title, seed.description, seed.level, owner);
     if(!program) return { ok:false, reason:'program_create_failed' };
 
@@ -6700,6 +6956,7 @@
           </select>
           <button class="start-btn" id="pbCreateProgramBtn">${t('pbCreateProgramBtn')}</button>
           <button class="secondary-btn" id="pbSeedEnglishBtn" style="margin-top:8px;">${t('pbSeedEnglishBtn')}</button>
+          <button class="secondary-btn" id="pbSeedProgrammingBtn" style="margin-top:6px;">${t('pbSeedProgrammingBtn')}</button>
         </div>`;
       document.getElementById('pbCreateProgramBtn').addEventListener('click', async ()=>{
         const title = document.getElementById('pbNewProgramTitle').value.trim();
@@ -6720,6 +6977,19 @@
           showToast(fmt('pbSeedEnglishSuccess', { courses: result.courseCount, modules: result.moduleCount, lessons: result.lessonCount, assessments: result.assessmentCount }), nxIcon('check'), 'system');
         } else {
           showToast(t('pbSeedEnglishFailed'), nxIcon('alertTriangle'), 'system');
+        }
+        renderProgramBuilder();
+      });
+      document.getElementById('pbSeedProgrammingBtn').addEventListener('click', async ()=>{
+        if(!window.confirm(t('pbSeedProgrammingConfirm'))) return;
+        const seedBtn = document.getElementById('pbSeedProgrammingBtn');
+        setBtnSaving(seedBtn, true);
+        const result = await seedProgrammingProgram();
+        setBtnSaving(seedBtn, false);
+        if(result && result.ok){
+          showToast(fmt('pbSeedProgrammingSuccess', { courses: result.courseCount, modules: result.moduleCount, lessons: result.lessonCount, assessments: result.assessmentCount }), nxIcon('check'), 'system');
+        } else {
+          showToast(t('pbSeedProgrammingFailed'), nxIcon('alertTriangle'), 'system');
         }
         renderProgramBuilder();
       });
