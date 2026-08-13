@@ -1218,111 +1218,169 @@
   .guardian-box input.ltr-input{ direction:ltr; text-align:left; }
   .guardian-box .clear-guardian{ font-size:11px; color:var(--coral); text-decoration:underline; cursor:pointer; }
 
-  /* ---------- MEMBERSHIP CARD ---------- */
-  .mc-stage{ perspective:1400px; display:flex; justify-content:center; margin:14px 0 18px; }
+  /* ---------- MEMBERSHIP CARD ----------
+     Design rule: luxury here is NEUTRAL. The card serves girls, women, boys
+     and men, so nothing is gendered — no pink, no blue, no "for her" variant.
+     A card that signals gender stops signalling status, and status is the
+     whole point of a membership card. Distinction comes from what the member
+     EARNED: the tier drives the metal, and the metal drives the palette.
+
+     Every effect below is html2canvas-safe. conic-gradient and radial-gradient
+     rasterise unreliably, and background-clip:text not at all — the certificate
+     already taught us that. Only linear and repeating-linear gradients are used,
+     so the downloaded PNG matches the screen. */
+  .mc-stage{ perspective:1600px; display:flex; justify-content:center; margin:16px 0 20px; }
   .mc-card{
-    position:relative; width:340px; height:214px; /* ISO 7810 ID-1 ratio, 1.586 */
-    transform-style:preserve-3d; transition:transform .7s cubic-bezier(.2,.8,.2,1);
+    position:relative; width:352px; height:222px; /* ISO 7810 ID-1 ratio */
+    transform-style:preserve-3d; transition:transform .75s cubic-bezier(.2,.85,.2,1);
     cursor:pointer;
   }
   .mc-card.flipped{ transform:rotateY(180deg); }
   .mc-face{
-    position:absolute; inset:0; border-radius:16px; overflow:hidden;
+    position:absolute; inset:0; border-radius:18px; overflow:hidden;
     backface-visibility:hidden; -webkit-backface-visibility:hidden;
-    box-shadow:0 18px 40px rgba(0,0,0,0.42); box-sizing:border-box;
-    direction:rtl; unicode-bidi:plaintext;
+    box-sizing:border-box; direction:rtl; unicode-bidi:plaintext;
+    box-shadow:0 22px 50px rgba(0,0,0,0.5), 0 2px 0 rgba(255,255,255,0.07) inset;
   }
+  /* The obsidian body is constant; the tier only changes the metal. */
   .mc-front{
-    padding:16px 18px;
-    background:
-      radial-gradient(120% 90% at 100% 0%, rgba(99,102,241,0.30), transparent 58%),
-      linear-gradient(150deg, #0f2b22 0%, #14402f 45%, #0b1f19 100%);
-    border:1px solid rgba(201,162,39,0.45);
+    padding:15px 17px;
+    background:linear-gradient(158deg, #123a2c 0%, #0d2a20 38%, #071612 100%);
+    border:1px solid var(--mc-metal-dim, rgba(201,162,39,0.5));
     display:flex; flex-direction:column; justify-content:space-between;
   }
   .mc-back{
     transform:rotateY(180deg);
-    background:linear-gradient(150deg, #0b1f19, #14402f);
-    border:1px solid rgba(201,162,39,0.45);
-    padding:0 0 12px; display:flex; flex-direction:column;
+    background:linear-gradient(158deg, #071612 0%, #0d2a20 60%, #123a2c 100%);
+    border:1px solid var(--mc-metal-dim, rgba(201,162,39,0.5));
+    padding:0 0 10px; display:flex; flex-direction:column;
   }
-  /* Fine engraved lines, the way security documents are printed. Pure CSS, so
-     it rasterises reliably — an SVG pattern would not survive html2canvas. */
+  /* Tier palettes. Gold is warm, silver is cool steel, member is a restrained
+     champagne — all three read as precious metal, none reads as a gender. */
+  .mc-card[data-tier="GOLD"]{   --mc-metal:#e7c468; --mc-metal-2:#a8861d; --mc-metal-dim:rgba(231,196,104,0.55); --mc-ink:#0f2b22; }
+  .mc-card[data-tier="SILVER"]{ --mc-metal:#dfe6ea; --mc-metal-2:#93a3ad; --mc-metal-dim:rgba(223,230,234,0.45); --mc-ink:#16241f; }
+  .mc-card[data-tier="MEMBER"]{ --mc-metal:#cbbf9a; --mc-metal-2:#8d8460; --mc-metal-dim:rgba(203,191,154,0.40); --mc-ink:#16241f; }
+
+  /* Engine-turned guilloche, the way banknotes and share certificates are
+     printed. Three crossing rulings at prime-ish angles so the moiré never
+     repeats visibly. */
   .mc-guilloche{
-    position:absolute; inset:0; opacity:0.10; pointer-events:none;
-    background-image:repeating-linear-gradient(115deg, #c9a227 0 1px, transparent 1px 7px);
+    position:absolute; inset:0; pointer-events:none; opacity:0.16;
+    background-image:
+      repeating-linear-gradient(112deg, var(--mc-metal) 0 0.6px, transparent 0.6px 6px),
+      repeating-linear-gradient(68deg,  var(--mc-metal) 0 0.6px, transparent 0.6px 9px),
+      repeating-linear-gradient(0deg,   var(--mc-metal) 0 0.4px, transparent 0.4px 14px);
+  }
+  /* Double hairline frame — a single border looks like a div; two rules with
+     air between them is what makes a document look printed. */
+  .mc-frame{
+    position:absolute; inset:7px; border-radius:12px; pointer-events:none;
+    border:0.5px solid var(--mc-metal-dim);
+    box-shadow:0 0 0 3px rgba(0,0,0,0.18) inset;
   }
   .mc-shimmer{
     position:absolute; inset:0; pointer-events:none;
-    background:linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.16) 48%, transparent 62%);
-    transform:translateX(-100%);
+    background:linear-gradient(112deg, transparent 34%, rgba(255,255,255,0.20) 47%, rgba(255,255,255,0.05) 53%, transparent 66%);
+    transform:translateX(-110%);
   }
   @media (prefers-reduced-motion: no-preference){
-    .mc-shimmer{ animation:mc-sheen 5.5s ease-in-out infinite; }
+    .mc-shimmer{ animation:mc-sheen 6.5s ease-in-out infinite; }
   }
-  @keyframes mc-sheen{ 0%,72%{ transform:translateX(-100%);} 100%{ transform:translateX(100%);} }
+  @keyframes mc-sheen{ 0%,74%{ transform:translateX(-110%);} 100%{ transform:translateX(110%);} }
 
-  .mc-top{ display:flex; align-items:flex-start; justify-content:space-between; position:relative; z-index:2; }
-  .mc-brand{ display:flex; align-items:center; gap:8px; }
+  .mc-top{ display:flex; align-items:flex-start; justify-content:space-between; position:relative; z-index:3; }
+  .mc-brand{ display:flex; align-items:center; gap:9px; }
   .mc-brand-mark{
-    width:30px; height:30px; border-radius:8px; background:linear-gradient(145deg,#e7c468,#c9a227);
-    color:#0f2b22; font-family:'Cairo',sans-serif; font-weight:800; font-size:17px;
+    width:32px; height:32px; border-radius:9px; flex:none;
+    background:linear-gradient(145deg, var(--mc-metal), var(--mc-metal-2));
+    color:var(--mc-ink); font-family:'Cairo',sans-serif; font-weight:800; font-size:18px;
     display:flex; align-items:center; justify-content:center;
+    box-shadow:0 1px 0 rgba(255,255,255,0.45) inset, 0 2px 6px rgba(0,0,0,0.4);
   }
-  .mc-brand-name{ font-family:'Cairo',sans-serif; font-weight:800; font-size:14px; color:#f1e9cf; letter-spacing:1.5px; line-height:1.1; }
-  .mc-brand-sub{ font-size:7px; color:#c9a227; letter-spacing:3.5px; margin-top:2px; }
+  .mc-brand-name{ font-family:'Cairo',sans-serif; font-weight:800; font-size:14.5px; color:#f4efe1; letter-spacing:2.2px; line-height:1.1; }
+  .mc-brand-sub{ font-size:6.5px; color:var(--mc-metal); letter-spacing:4.2px; margin-top:2px; }
   .mc-tier{
-    font-family:'Cairo',sans-serif; font-size:8.5px; font-weight:800; letter-spacing:1.6px;
-    color:#0f2b22; background:linear-gradient(145deg,#e7c468,#c9a227);
-    padding:3px 9px; border-radius:20px;
+    font-family:'Cairo',sans-serif; font-size:8px; font-weight:800; letter-spacing:2px;
+    color:var(--mc-ink); background:linear-gradient(145deg, var(--mc-metal), var(--mc-metal-2));
+    padding:3px 10px; border-radius:20px;
+    box-shadow:0 1px 0 rgba(255,255,255,0.4) inset;
   }
-  .mc-body{ display:flex; align-items:center; gap:12px; position:relative; z-index:2; }
+  .mc-body{ display:flex; align-items:center; gap:12px; position:relative; z-index:3; }
   .mc-photo{
-    width:52px; height:52px; border-radius:50%; overflow:hidden; flex:none;
-    border:2px solid #c9a227; background:#0b1f19;
+    width:54px; height:54px; border-radius:50%; overflow:hidden; flex:none;
+    border:2px solid var(--mc-metal); background:#071612;
     display:flex; align-items:center; justify-content:center;
-    font-family:'Cairo',sans-serif; font-weight:800; font-size:22px; color:#e7c468;
+    font-family:'Cairo',sans-serif; font-weight:800; font-size:23px; color:var(--mc-metal);
+    box-shadow:0 0 0 1px rgba(0,0,0,0.5), 0 3px 10px rgba(0,0,0,0.45);
   }
   .mc-photo img{ width:100% !important; height:100% !important; object-fit:cover; display:block; }
   .mc-ident{ min-width:0; }
-  .mc-label{ display:block; font-size:7.5px; color:#9db3a6; letter-spacing:0.8px; margin-bottom:2px; }
+  .mc-label{ display:block; font-size:7px; color:#8fa79a; letter-spacing:1.2px; margin-bottom:2px; }
   .mc-name{
-    font-family:'Cairo',sans-serif; font-weight:800; font-size:16px; color:#f6f1e2; line-height:1.25;
-    overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:210px;
+    font-family:'Cairo',sans-serif; font-weight:800; font-size:17px; color:#fbf7ec; line-height:1.25;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:215px;
+    text-shadow:0 1px 0 rgba(0,0,0,0.55);
   }
-  .mc-handle{ font-size:9.5px; color:#c9a227; direction:ltr; unicode-bidi:plaintext; margin-top:2px; }
-  .mc-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:6px; position:relative; z-index:2; }
-  .mc-grid b{ display:block; font-family:'Cairo',sans-serif; font-size:11px; color:#f6f1e2; }
-  .mc-bottom{ display:flex; align-items:center; justify-content:space-between; position:relative; z-index:2; }
-  .mc-id{ font-family:'Courier New',monospace; font-size:10px; color:#e7c468; letter-spacing:1.4px; direction:ltr; }
+  .mc-handle{ font-size:9.5px; color:var(--mc-metal); direction:ltr; unicode-bidi:plaintext; margin-top:2px; letter-spacing:0.5px; }
+  .mc-grid{
+    display:grid; grid-template-columns:repeat(3,1fr); gap:8px; position:relative; z-index:3;
+    border-top:0.5px solid var(--mc-metal-dim); padding-top:8px;
+  }
+  .mc-grid b{ display:block; font-family:'Cairo',sans-serif; font-size:11.5px; color:#fbf7ec; }
+  .mc-bottom{ display:flex; align-items:center; justify-content:space-between; position:relative; z-index:3; }
+  .mc-id{ font-family:'Courier New',monospace; font-size:10.5px; color:var(--mc-metal); letter-spacing:1.8px; direction:ltr; }
+  /* Contact-chip geometry: outer pad, inner die, contact rulings. */
   .mc-chip{
-    width:34px; height:25px; border-radius:5px; flex:none;
-    background:linear-gradient(145deg,#e7c468,#a8861d);
-    box-shadow:inset 0 0 0 1px rgba(0,0,0,0.25);
+    position:relative; width:36px; height:27px; border-radius:5px; flex:none;
+    background:linear-gradient(145deg, var(--mc-metal), var(--mc-metal-2));
+    box-shadow:inset 0 0 0 0.5px rgba(0,0,0,0.35), 0 1px 3px rgba(0,0,0,0.5);
   }
-  .mc-magstripe{ height:38px; background:#07120e; margin-top:14px; }
-  .mc-back-body{ display:flex; gap:12px; padding:12px 16px 0; align-items:center; }
-  .mc-qr-wrap{ width:78px; height:78px; background:#fff; padding:5px; border-radius:7px; flex:none; }
+  .mc-chip::after{
+    content:""; position:absolute; inset:5px 7px; border-radius:2px;
+    border:0.5px solid rgba(0,0,0,0.30);
+    background:repeating-linear-gradient(90deg, transparent 0 5px, rgba(0,0,0,0.22) 5px 5.5px);
+  }
+  /* Microprinting: real repeated text, the way security documents carry it. */
+  .mc-micro{
+    position:absolute; bottom:3px; inset-inline:10px; z-index:2; pointer-events:none;
+    font-size:3.6px; letter-spacing:0.7px; color:var(--mc-metal); opacity:0.42;
+    white-space:nowrap; overflow:hidden; direction:ltr;
+  }
+  .mc-magstripe{
+    height:40px; margin-top:16px; position:relative;
+    background:linear-gradient(180deg, #0a0a0a, #1c1c1c 45%, #050505);
+  }
+  .mc-magstripe::after{
+    content:""; position:absolute; inset:0;
+    background:linear-gradient(100deg, transparent 40%, rgba(255,255,255,0.09) 50%, transparent 60%);
+  }
+  .mc-back-body{ display:flex; gap:13px; padding:13px 17px 0; align-items:center; position:relative; z-index:3; }
+  .mc-qr-wrap{
+    width:80px; height:80px; background:#fff; padding:5px; border-radius:8px; flex:none;
+    box-shadow:0 0 0 1px var(--mc-metal-dim), 0 3px 10px rgba(0,0,0,0.4);
+  }
   .mc-qr-wrap img, .mc-qr-wrap canvas{ width:100% !important; height:100% !important; display:block; }
-  .mc-back-title{ font-family:'Cairo',sans-serif; font-weight:700; font-size:11.5px; color:#f6f1e2; }
-  .mc-back-sub{ font-size:8.5px; color:#9db3a6; line-height:1.6; margin-top:3px; }
-  .mc-back-id{ font-family:'Courier New',monospace; font-size:9px; color:#e7c468; margin-top:5px; direction:ltr; }
-  .mc-sign{ padding:8px 16px 0; }
+  .mc-back-title{ font-family:'Cairo',sans-serif; font-weight:700; font-size:12px; color:#fbf7ec; }
+  .mc-back-sub{ font-size:8.5px; color:#8fa79a; line-height:1.65; margin-top:4px; }
+  .mc-back-id{ font-family:'Courier New',monospace; font-size:9px; color:var(--mc-metal); margin-top:6px; direction:ltr; letter-spacing:1px; }
+  .mc-sign{ padding:9px 17px 0; position:relative; z-index:3; }
   .mc-sign-strip{
-    background:#f6f1e2; border-radius:4px; padding:5px 10px; color:#14402f;
-    font-family:'Cairo',cursive,sans-serif; font-style:italic; font-size:13px; font-weight:700;
-    min-height:22px; display:flex; align-items:center;
+    background:repeating-linear-gradient(102deg, #f7f3e6 0 7px, #ece5d2 7px 14px);
+    border-radius:4px; padding:6px 11px; color:#14402f;
+    font-family:'Cairo',cursive,sans-serif; font-style:italic; font-size:13.5px; font-weight:700;
+    min-height:23px; display:flex; align-items:center;
+    box-shadow:0 1px 3px rgba(0,0,0,0.35) inset;
   }
-  .mc-terms{ font-size:7px; color:#7f9488; line-height:1.6; padding:8px 16px 0; }
+  .mc-terms{ font-size:6.8px; color:#728a7d; line-height:1.65; padding:8px 17px 0; position:relative; z-index:3; }
   .mc-actions{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px; }
   .mc-actions button{ flex:1; min-width:120px; margin:0; }
 
-  /* CAPTURE MODE — every property html2canvas cannot handle is neutralised
-     here and restored afterwards. Without this the download came out
-     mirrored, with both faces stacked on top of each other. */
+  /* CAPTURE MODE — neutralises every property html2canvas cannot rasterise,
+     then restores it. Without this the download came out mirrored with both
+     faces stacked, exactly as it did on the Almanie card. */
   .mc-stage.mc-capture{ perspective:none !important; }
   .mc-stage.mc-capture .mc-card{ transform:none !important; transform-style:flat !important; transition:none !important; }
-  .mc-stage.mc-capture .mc-face{ backface-visibility:visible !important; -webkit-backface-visibility:visible !important; }
+  .mc-stage.mc-capture .mc-face{ backface-visibility:visible !important; -webkit-backface-visibility:visible !important; box-shadow:none !important; }
   .mc-stage.mc-capture .mc-shimmer{ animation:none !important; display:none !important; }
   .mc-stage.mc-capture .mc-back{ transform:none !important; }
   .mc-stage.mc-capture .mc-face:not(.mc-capture-target){ display:none !important; }
@@ -2393,8 +2451,10 @@
       <div class="mc-card" id="mcCard">
         <!-- FRONT -->
         <div class="mc-face mc-front">
-          <div class="mc-shimmer" aria-hidden="true"></div>
           <div class="mc-guilloche" aria-hidden="true"></div>
+          <div class="mc-frame" aria-hidden="true"></div>
+          <div class="mc-shimmer" aria-hidden="true"></div>
+          <div class="mc-micro" aria-hidden="true" id="mcMicro"></div>
           <div class="mc-top">
             <div class="mc-brand">
               <div class="mc-brand-mark">N</div>
@@ -2429,6 +2489,8 @@
 
         <!-- BACK -->
         <div class="mc-face mc-back">
+          <div class="mc-guilloche" aria-hidden="true"></div>
+          <div class="mc-frame" aria-hidden="true"></div>
           <div class="mc-magstripe" aria-hidden="true"></div>
           <div class="mc-back-body">
             <div class="mc-qr-wrap" id="mcQr"></div>
@@ -3483,6 +3545,7 @@
   const mcStage = document.getElementById('mcStage');
   const mcCard = document.getElementById('mcCard');
   const mcTier = document.getElementById('mcTier');
+  const mcMicro = document.getElementById('mcMicro');
   const mcPhoto = document.getElementById('mcPhoto');
   const mcName = document.getElementById('mcName');
   const mcHandle = document.getElementById('mcHandle');
@@ -12206,7 +12269,13 @@
     const since = memberSinceDate(prof);
     const displayName = profileDisplayName(key) || '';
 
-    mcTier.textContent = tier.label;
+    // The tier attribute is what switches the metal — gold, steel or
+    // champagne. Nothing in this card varies by gender, by design.
+    mcCard.setAttribute('data-tier', tier.label);
+    mcTier.textContent = t(tier.key).toUpperCase() + ' · ' + tier.label;
+    // Microprinting carries the real member id, repeated — the way security
+    // documents do it. Not decorative filler text.
+    if(mcMicro) mcMicro.textContent = ('NEXORA ACADEMY · ' + id + ' · ').repeat(6);
     mcName.textContent = displayName;
     mcHandle.textContent = prof.username ? '@' + prof.username : '';
     mcId.textContent = id;
