@@ -4077,6 +4077,7 @@
       forgotUsernameEmailIntro:'أدخلي بريدك الإلكتروني المسجَّل، وهنبعتلك كل أسماء المستخدمين المرتبطة بيه (لو عندك أكتر من طفل بنفس البريد، هتوصلك كلها).',
       forgotUsernameSuccessMsg:'لو البريد ده مسجَّل، وصلك بريد فيه كل أسماء المستخدمين المرتبطة بيه. راجعي بريدك (وصندوق الرسائل غير المرغوبة أيضًا).',
       forgotUsernameSendBtn:'إرسال أسماء المستخدمين', enterEmailOnly:'أدخلي البريد الإلكتروني أولًا',
+      loginCodeNoEmail:'لا يوجد بريد إلكتروني مسجَّل على هذا الحساب، فلا يمكن إرسال كود إليه. سجّلي الدخول بكلمة المرور ثم أضيفي بريدك من «حسابي».',
       loginWithCodeLink:'تسجيل الدخول بكود عبر البريد الإلكتروني', loginCodeTitle:'تسجيل الدخول بكود',
       loginCodeIntro:'أدخلي اسم المستخدم، وهنبعتلك كود تسجيل دخول لمدة 10 دقائق على بريدك المسجَّل.',
       loginCodeSendBtn:'إرسال الكود', loginCodeEnterCode:'أدخلي الكود اللي وصلك على بريدك الإلكتروني.',
@@ -4743,6 +4744,7 @@
       forgotUsernameEmailIntro:"Enter your registered email and we'll send all usernames linked to it (if you have more than one child on the same email, you'll get all of them).",
       forgotUsernameSuccessMsg:"If that email is on file, a message with all linked usernames was just sent. Check your inbox (and spam folder).",
       forgotUsernameSendBtn:'Send usernames', enterEmailOnly:'Enter your email first',
+      loginCodeNoEmail:'This account has no email address on file, so no code can be sent to it. Sign in with your password, then add an address under "My account".',
       loginWithCodeLink:'Sign in with an email code', loginCodeTitle:'Sign in with a code',
       loginCodeIntro:"Enter your username and we'll email a sign-in code, valid for 10 minutes.",
       loginCodeSendBtn:'Send code', loginCodeEnterCode:'Enter the code sent to your email.',
@@ -6853,7 +6855,15 @@
     setBtnSaving(loginCodeSendBtn, true, t('sendingLoginCodeLabel'));
     const res = await postToSheet('request_login_code', { username });
     setBtnSaving(loginCodeSendBtn, false);
-    // Generic success regardless of match — same no-enumeration principle as everywhere else.
+    // The account exists but has no address on file. Advancing to the code
+    // screen here would leave the learner waiting for an email that was never
+    // sent — the exact failure this screen used to hide.
+    if(res && res.error === 'no_email_on_file'){
+      loginCodeStep1Error.textContent = t('loginCodeNoEmail');
+      return;
+    }
+    // Otherwise a generic success, so a stranger cannot discover which
+    // usernames exist by watching this response.
     if(res && res.ok){
       loginCodeStep1.classList.add('hidden');
       loginCodeStep2.classList.remove('hidden');
