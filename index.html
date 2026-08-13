@@ -671,6 +671,20 @@
   .abacus-target{ text-align:center; font-size:15px; font-weight:700; margin-bottom:10px; }
   .abacus-target b{ color:var(--yellow); font-size:22px; }
 
+  .ab-exp-q{ font-size:12.5px; color:var(--ink); line-height:1.7; margin-bottom:10px; }
+  .ab-exp-opt{
+    display:block; width:100%; text-align:start; margin-bottom:7px; cursor:pointer;
+    font-family:'IBM Plex Sans Arabic','Tajawal',sans-serif; font-size:12.5px; color:var(--ink);
+    background:var(--bg); border:1.5px solid var(--input-border); border-radius:10px; padding:10px 13px;
+    transition:border-color .15s ease, transform .1s ease;
+  }
+  .ab-exp-opt:hover{ border-color:var(--yellow); }
+  .ab-exp-opt:active{ transform:scale(0.985); }
+  .ab-exp-result{ font-size:12.5px; line-height:1.7; border-radius:10px; padding:10px 13px; }
+  .ab-exp-result.match{ color:var(--mint); background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.3); }
+  .ab-exp-result.differ{ color:var(--ink); background:var(--input-bg); border:1px solid var(--chip-border); }
+  .ab-exp-result.neutral{ color:var(--ink-dim); background:var(--bg); border:1px solid var(--chip-border); }
+
   .ab-stage-badge{
     display:flex; align-items:center; justify-content:center; gap:6px; width:fit-content; margin:0 auto 10px;
     font-size:11.5px; font-weight:700; color:#06B6D4;
@@ -2229,6 +2243,7 @@
     </div>
     <div class="feedback" id="abacusFeedback"></div>
     <div class="ab-stage-progress hidden" id="abacusStageProgress"></div>
+    <div class="strategy-box hidden" id="abacusExplainBox"></div>
     <div class="strategy-box hidden" id="abacusPathBox"></div>
     <div class="editor-actions" style="margin-top:10px;">
       <button class="secondary-btn" id="abacusResetBtn" data-i18n="abacusResetBtn">🔄 صفّري الأباكوس</button>
@@ -3351,6 +3366,7 @@
   const abStageProgress = document.getElementById('abacusStageProgress');
   const abacusPeekBtn = document.getElementById('abacusPeekBtn');
   const abacusUndoBtn = document.getElementById('abacusUndoBtn');
+  const abExplainBox = document.getElementById('abacusExplainBox');
   const abPathBox = document.getElementById('abacusPathBox');
   const abacusNewBtn = document.getElementById('abacusNewBtn');
   const abacusCloseBtn = document.getElementById('abacusCloseBtn');
@@ -3640,6 +3656,7 @@
       knowledgeQueue: [],          // spaced retrieval for the nine programs, not just math
       abacusLog: [],               // compressed solution-path summaries, bounded at 40
       abacusStage: 1,              // 1..5 — visible abacus through to mental (Anzan)
+      abExplainStats: { asked:0, answered:0, matched:0, unsure:0 }, // strategic awareness
       twinSessions: [],            // recorded sessions, replayable as an opponent
       cogSnapshots: [],            // weekly indicator snapshots, for trajectory
       sessionLog: [], // rolling log for the weekly report: { date, score, accuracy, questionCount, operation }
@@ -3680,6 +3697,7 @@
       knowledgeQueue: p.knowledgeQueue || [],
       abacusLog: p.abacusLog || [],
       abacusStage: p.abacusStage || 1,
+      abExplainStats: p.abExplainStats || { asked:0, answered:0, matched:0, unsure:0 },
       twinSessions: p.twinSessions || [],
       cogSnapshots: p.cogSnapshots || [],
       sessionLog: p.sessionLog || [],
@@ -4299,6 +4317,18 @@
       aiPracticeLoading:'جارٍ توليد تمرين ذكي...', aiPracticeFailed:'تعذّر توليد التمرين الذكي — تم استخدام التمرين العادي بدلًا منه.',
       abacusOpenBtn:'🧮 مدرّب الأباكوس (Abacus)', abacusTitle:'🧮 مدرّب الأباكوس',
       abacusModeFree:'تدريب حر', abacusModeRead:'اقرئي الرقم', abacusModeSet:'مثّلي الرقم',
+      abExplainTitle:'اشرحي حركتك',
+      abExplainQuestion:'قبل ما نعرض التحليل — كيف حللتِ هذه المسألة؟',
+      abExpDirect:'حللتُ مباشرة من اليمين لليسار بلا تردد',
+      abExpCarry:'احتجتُ الحمل بين المنازل',
+      abExpFixed:'أخطأتُ ثم صحّحتُ نفسي',
+      abExpTried:'جرّبتُ أكثر من طريقة حتى وصلت',
+      abExpUnsure:'لستُ متأكدة',
+      abExplainMatch:'✓ وصفكِ لطريقتك يطابق ما سجّلته حركاتك تمامًا — وعيٌ ممتاز بطريقة تفكيرك',
+      abExplainDiffer:'حركاتك المسجَّلة تشير إلى: {s}. لا توجد إجابة خاطئة هنا — الانتباه لطريقتك مهارة تُبنى بالممارسة.',
+      abExplainUnsureBack:'لا بأس إطلاقًا — الانتباه لطريقة حلّك يحتاج وقتًا. جرّبي ملاحظة أول حركة تقومين بها المرة القادمة.',
+      abAwarenessTitle:'وعيك بطريقة حلّك',
+      abAwarenessLine:'وصفتِ طريقتك بدقة في {n}% من {t} محاولات',
       abacusPeekBtn:'👁 نظرة سريعة',
       abStageBadge:'المرحلة {n} · {label}',
       abStage1:'أباكوس كامل', abStage2:'بدون إظهار القيمة', abStage3:'الأباكوس يظهر لحظة',
@@ -4477,6 +4507,12 @@
       cmdStartMission:'ابدأ تدريب اليوم',
       explainBtn:'اشرحلي',
       explainFailed:'حاول مرة أخرى',
+      abExplainTitle:'اشرح حركتك',
+      abExplainQuestion:'قبل ما نعرض التحليل — كيف حللت هذه المسألة؟',
+      abExpDirect:'حللتُ مباشرة من اليمين لليسار بلا تردد',
+      abExpUnsure:'لستُ متأكدًا',
+      abExplainMatch:'✓ وصفك لطريقتك يطابق ما سجّلته حركاتك تمامًا — وعيٌ ممتاز بطريقة تفكيرك',
+      abExplainUnsureBack:'لا بأس إطلاقًا — الانتباه لطريقة حلّك يحتاج وقتًا. جرّب ملاحظة أول حركة تقوم بها المرة القادمة.',
       abStageUp:'🎓 انتقلت للمرحلة {n}: {label} — بدقة {acc}% في هذه المرحلة',
       abStageDown:'رجعنا للمرحلة {n}: {label} — لنبني الأساس أقوى، ولم تفقد شيئًا مما أتقنته',
       abStageNoData:'ابدأ المحاولات في هذه المرحلة لنعرف متى تكون جاهزًا للتالية',
@@ -4880,6 +4916,18 @@
       aiPracticeLoading:'Generating a smart practice set...', aiPracticeFailed:'Could not generate the AI practice set — using the regular practice instead.',
       abacusOpenBtn:'🧮 Abacus Trainer', abacusTitle:'🧮 Abacus Trainer',
       abacusModeFree:'Free practice', abacusModeRead:'Read the number', abacusModeSet:'Set the number',
+      abExplainTitle:'Explain your move',
+      abExplainQuestion:'Before we show the analysis — how did you solve this one?',
+      abExpDirect:'Straight through, right to left, no hesitation',
+      abExpCarry:'I needed to carry between place values',
+      abExpFixed:'I made a slip and then fixed it',
+      abExpTried:'I tried more than one way before getting there',
+      abExpUnsure:'I am not sure',
+      abExplainMatch:'✓ Your description matches exactly what your moves recorded — excellent awareness of your own thinking',
+      abExplainDiffer:'Your recorded moves suggest: {s}. There is no wrong answer here — noticing your own method is a skill that builds with practice.',
+      abExplainUnsureBack:'That is completely fine — noticing how you solve takes time. Try watching your very first move next time.',
+      abAwarenessTitle:'Awareness of your own method',
+      abAwarenessLine:'You described your method accurately in {n}% of {t} attempts',
       abacusPeekBtn:'👁 Quick peek',
       abStageBadge:'Stage {n} · {label}',
       abStage1:'Full abacus', abStage2:'Value hidden', abStage3:'Abacus flashes briefly',
@@ -11208,6 +11256,12 @@
     if(e.unclassifiedShare >= 60){
       out.push({ ic: nxIcon('lightbulb'), text: t('abObsUnclear') });
     }
+    // Strategic awareness — how well the learner's own account of their
+    // method matches what the moves recorded. Shown only from 5 answers up.
+    const aw = abAwareness(prof);
+    if(aw){
+      out.push({ ic: nxIcon('brain'), text: fmt('abAwarenessLine', { n: aw.pct, t: aw.n }) });
+    }
     return { pending: null, items: out, evidence: e };
   }
 
@@ -11649,6 +11703,7 @@
       knowledgeQueue: prof.knowledgeQueue || [],
       abacusLog: prof.abacusLog || [],
       abacusStage: prof.abacusStage || 1,
+      abExplainStats: prof.abExplainStats || { asked:0, answered:0, matched:0, unsure:0 },
       cogSnapshots: prof.cogSnapshots || [],
       twinSessions: prof.twinSessions || [],
       errorTypeCounts: prof.errorTypeCounts || {},
@@ -11676,6 +11731,7 @@
     prof.knowledgeQueue = state.knowledgeQueue || [];
     prof.abacusLog = state.abacusLog || [];
     prof.abacusStage = state.abacusStage || 1;
+    prof.abExplainStats = state.abExplainStats || { asked:0, answered:0, matched:0, unsure:0 };
     prof.cogSnapshots = state.cogSnapshots || [];
     prof.twinSessions = state.twinSessions || [];
     prof.errorTypeCounts = state.errorTypeCounts || {};
@@ -14739,6 +14795,64 @@
     return { id:'unclassified', reason:'no_clear_pattern' };
   }
 
+  /* ---------- EXPLAIN MY MOVE (METACOGNITION) ----------
+     Getting the right answer and knowing HOW you got it are different
+     skills, and the second is what transfers to other problems. After a
+     solved question the learner picks which method they used.
+
+     Two design rules make this honest rather than decorative:
+
+     1. The options are derived from what the RECORDED MOVES could plausibly
+        be, plus one always-present "I'm not sure" — so the choice is real,
+        not a single obvious answer dressed as a question.
+
+     2. Their answer is compared with what the events actually show, and the
+        agreement rate becomes a measured signal: a learner who reliably
+        knows what they did has genuine strategic awareness. We never tell a
+        child their self-report is "wrong" — when it disagrees with the
+        events we show what the moves recorded and let them see it. */
+  const EXPLAIN_MIN_MOVES = 2;      // below this there is nothing to explain
+  const EXPLAIN_ASK_EVERY = 3;      // asked periodically, never every question
+
+  function abExplainOptionsFor(summary){
+    if(!summary || summary.moveCount < EXPLAIN_MIN_MOVES) return null;
+    const opts = [
+      { id:'direct',        key:'abExpDirect' },
+      { id:'carryPattern',  key:'abExpCarry' },
+      { id:'selfCorrected', key:'abExpFixed' },
+      { id:'trialAndError', key:'abExpTried' },
+      { id:'unsure',        key:'abExpUnsure' }   // always offered, never penalised
+    ];
+    return opts;
+  }
+  // Should we ask this time? Periodic, and only when there is something to
+  // reflect on — asking after every single question turns it into a chore.
+  function abShouldAskExplain(prof, summary){
+    if(!summary || summary.moveCount < EXPLAIN_MIN_MOVES) return false;
+    if(!summary.strategy || summary.strategy.id === 'unclassified') return false;
+    const asked = (prof && prof.abExplainStats && prof.abExplainStats.asked) || 0;
+    const answered = ((prof && prof.abacusLog) || []).length;
+    return (answered % EXPLAIN_ASK_EVERY) === 0 || asked === 0;
+  }
+  function abRecordExplain(prof, chosenId, observedId){
+    if(!prof) return null;
+    if(!prof.abExplainStats) prof.abExplainStats = { asked:0, answered:0, matched:0, unsure:0 };
+    const st = prof.abExplainStats;
+    st.asked++;
+    if(chosenId === 'unsure'){ st.unsure++; return { match:'unsure' }; }
+    st.answered++;
+    const matched = chosenId === observedId;
+    if(matched) st.matched++;
+    return { match: matched ? 'yes' : 'no', observed: observedId };
+  }
+  // Strategic awareness: how often the learner's own account of their method
+  // agrees with the recorded moves. Gated on a real sample.
+  function abAwareness(prof){
+    const st = prof && prof.abExplainStats;
+    if(!st || st.answered < 5) return null;
+    return { pct: Math.round((st.matched / st.answered) * 100), n: st.answered, unsure: st.unsure };
+  }
+
   /* ---------- INVISIBLE ABACUS: PROGRESSION ENGINE ----------
      The goal of abacus training is not mastering the tool — it is no longer
      needing it. These five stages take the learner from a fully visible
@@ -14983,6 +15097,7 @@
       abStartQuestion({ concept: 'abacus:set', target: abacusTargetValue, mode: 'set' });
     }
     abPathBox.classList.add('hidden');
+    abExplainBox.classList.add('hidden');
     abApplyStageVisibility();
     renderAbacus();
   }
@@ -15130,8 +15245,49 @@
     abStageProgress.innerHTML = `<span>${line}</span>`;
     abStageProgress.classList.remove('hidden');
   }
+  /* Asks the learner to name their own method BEFORE showing the analysis,
+     so the reflection is genuine rather than a reading of our answer. */
+  function renderExplainPrompt(summary, onDone){
+    const prof = PROFILES[currentProfile];
+    const opts = abExplainOptionsFor(summary);
+    if(!prof || !opts || !abShouldAskExplain(prof, summary)){ onDone(); return; }
+
+    abExplainBox.innerHTML =
+      `<div class="strategy-title">${nxIcon('lightbulb')} ${t('abExplainTitle')}</div>` +
+      `<div class="ab-exp-q">${t('abExplainQuestion')}</div>` +
+      opts.map(function(o){ return `<button type="button" class="ab-exp-opt" data-id="${o.id}">${t(o.key)}</button>`; }).join('');
+    abExplainBox.classList.remove('hidden');
+
+    abExplainBox.querySelectorAll('.ab-exp-opt').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        const observed = summary.strategy ? summary.strategy.id : null;
+        const res = abRecordExplain(prof, btn.dataset.id, observed);
+        saveProfilesToStorage();
+        learnerStateDirty = true;
+
+        // Never told they are "wrong" about their own thinking. When the
+        // account and the moves disagree we show the moves and let them look.
+        let msg, cls;
+        if(res.match === 'unsure'){ msg = t('abExplainUnsureBack'); cls = 'neutral'; }
+        else if(res.match === 'yes'){ msg = t('abExplainMatch'); cls = 'match'; }
+        else { msg = fmt('abExplainDiffer', { s: t('abStrat' + capitalize(observed)) }); cls = 'differ'; }
+
+        abExplainBox.innerHTML =
+          `<div class="strategy-title">${nxIcon('lightbulb')} ${t('abExplainTitle')}</div>` +
+          `<div class="ab-exp-result ${cls}">${msg}</div>`;
+        onDone();
+      });
+    });
+  }
   function renderAbacusPath(summary){
     renderAbacusStageProgress();
+    if(!summary){ abPathBox.classList.add('hidden'); abExplainBox.classList.add('hidden'); return; }
+    abExplainBox.classList.add('hidden');
+    // The analysis is drawn by the callback in BOTH paths: immediately when
+    // no question is asked, and after the learner answers when one is.
+    renderExplainPrompt(summary, function(){ renderAbacusPathBody(summary); });
+  }
+  function renderAbacusPathBody(summary){
     if(!summary){ abPathBox.classList.add('hidden'); return; }
     const rows = [];
     if(summary.solveTimeMs) rows.push([t('abPathTime'), (summary.solveTimeMs/1000).toFixed(1) + t('secLabel')]);
