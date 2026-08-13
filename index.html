@@ -1146,6 +1146,20 @@
   .syn-shape{ fill:rgba(99,102,241,0.26); stroke:#6366F1; stroke-width:1.8; }
   .syn-dot{ fill:#06B6D4; }
   .syn-label{ font-size:9.5px; fill:var(--ink-dim); font-family:'IBM Plex Sans Arabic','Tajawal',sans-serif; }
+  .syn-prog-row{
+    background:var(--input-bg); border:1px solid var(--chip-border); border-radius:12px;
+    padding:11px 13px; margin-bottom:8px;
+  }
+  .syn-prog-name{
+    font-family:'Cairo',sans-serif; font-weight:700; font-size:13px; margin-bottom:9px;
+    display:flex; align-items:baseline; gap:8px;
+  }
+  .syn-prog-name span{ font-family:'IBM Plex Sans Arabic','Tajawal',sans-serif; font-weight:400; font-size:10.5px; color:var(--ink-dim); }
+  .syn-prog-cells{ display:grid; grid-template-columns:repeat(4,1fr); gap:6px; }
+  .syn-prog-cell{ text-align:center; background:var(--bg); border-radius:9px; padding:7px 3px; }
+  .syn-prog-cell b{ display:block; font-family:'Cairo',sans-serif; font-size:14px; color:var(--yellow); }
+  .syn-prog-cell b.unmeasured{ color:var(--ink-dim); opacity:0.55; }
+  .syn-prog-cell span{ display:block; font-size:9px; color:var(--ink-dim); margin-top:3px; }
   .syn-legend{ display:flex; flex-wrap:wrap; gap:6px; justify-content:center; margin-bottom:14px; }
   .syn-chip{
     display:flex; align-items:center; gap:5px; font-size:11px; padding:5px 10px; border-radius:20px;
@@ -2069,6 +2083,7 @@
       <div class="syn-trajectory" id="synTrajectory"></div>
     </div>
     <div id="synRadarWrap"></div>
+    <div id="synPrograms"></div>
     <div id="synInsights"></div>
     <div id="synActions"></div>
     <div class="syn-disclaimer" data-i18n="synapseDisclaimer">
@@ -3090,6 +3105,7 @@
   const synapseScreen = document.getElementById('synapseScreen');
   const synTrajectory = document.getElementById('synTrajectory');
   const synRadarWrap = document.getElementById('synRadarWrap');
+  const synPrograms = document.getElementById('synPrograms');
   const synInsights = document.getElementById('synInsights');
   const synActions = document.getElementById('synActions');
   const synapseBackBtn = document.getElementById('synapseBackBtn');
@@ -4114,6 +4130,8 @@
       profileBestScore:'أفضل نتيجة', profileBestAccuracy:'أعلى دقة', profileBestStreak:'أطول متتالية',
       profileAvgAccuracy:'متوسط الدقة', profileSessions:'عدد الجلسات', profileCertificates:'الشهادات',
       profileMemberSince:'عضو منذ {d}', profileNoActivity:'لم يبدأ أي تمرين بعد.',
+      synProgramsTitle:'أداؤك في كل برنامج', synProgramAttempts:'{n} تقييم',
+      cogSourceLine:'مقاس من: {s}',
       synapseNavLabel:'سينابس', synapseSubtitle:'مختبر الذكاء والذاكرة',
       synapseRadarAria:'رسم بياني لمؤشرات أدائك التعليمية',
       synapseDisclaimer:'مؤشرات أداء تعليمي داخل المنصة، محسوبة من تدريبك الفعلي — وليست قياسًا للذكاء ولا تشخيصًا من أي نوع.',
@@ -4656,6 +4674,8 @@
       profileBestScore:'Best score', profileBestAccuracy:'Best accuracy', profileBestStreak:'Longest streak',
       profileAvgAccuracy:'Average accuracy', profileSessions:'Sessions', profileCertificates:'Certificates',
       profileMemberSince:'Member since {d}', profileNoActivity:'No practice sessions yet.',
+      synProgramsTitle:'Your performance per program', synProgramAttempts:'{n} assessment(s)',
+      cogSourceLine:'Measured from: {s}',
       synapseNavLabel:'Synapse', synapseSubtitle:'Your intelligence & memory lab',
       synapseRadarAria:'Chart of your learning performance indicators',
       synapseDisclaimer:'In-platform learning performance indicators computed from your own practice — not an intelligence measure and not a diagnosis of any kind.',
@@ -5955,7 +5975,7 @@
     },
     progress: {
       completeLesson: (learnerUsername, lessonId) => postToSheet('lp_complete_lesson', { learnerUsername, lessonId }),
-      submitAssessment: (learnerUsername, assessmentId, score, passed, timeExpired) => postToSheet('lp_submit_assessment', { learnerUsername, assessmentId, score, passed, timeExpired }),
+      submitAssessment: (learnerUsername, assessmentId, score, passed, timeExpired, extra) => postToSheet('lp_submit_assessment', Object.assign({ learnerUsername, assessmentId, score, passed, timeExpired }, extra || {})),
       get: (learnerUsername) => postToSheet('lp_get_progress', { learnerUsername })
     },
     skills: {
@@ -7328,7 +7348,7 @@
     }
     return false;
   }
-  async function lpSubmitAssessment(learnerUsername, assessmentId, answers, timeExpired){
+  async function lpSubmitAssessment(learnerUsername, assessmentId, answers, timeExpired, timing){
     if(!can(lpCurrentRole(), 'assessment.submit')) return lpDenyAndNotify('assessment.submit');
     const a = lpLoad(LP_KEYS.ASSESSMENTS).find(x => x.id === assessmentId);
     if(!a) return null;
@@ -7346,14 +7366,21 @@
     const passed = score >= (a.passScore || 60);
     const attemptedAt = new Date().toISOString();
     if(SHEET_API_URL){
-      const result = await LP_API.progress.submitAssessment(learnerUsername, assessmentId, score, passed, !!timeExpired);
+      const result = await LP_API.progress.submitAssessment(learnerUsername, assessmentId, score, passed, !!timeExpired, {
+        durationMs: (timing && timing.durationMs) || 0,
+        programId: (timing && timing.programId) || '',
+        perQuestion: (timing && timing.perQuestion) || []
+      });
       if(!result || !result.ok){
         showToast(t('lpSyncProgressFailed'), nxIcon('alertTriangle'), 'system');
         return null; // no false "synced" claim — the score was computed but NOT persisted
       }
     }
     const attempts = lpLoad(LP_KEYS.ASSESSMENT_ATTEMPTS);
-    const attempt = { learnerUsername, assessmentId, score, passed, breakdown, timeExpired: !!timeExpired, attemptedAt };
+    const attempt = { learnerUsername, assessmentId, score, passed, breakdown, timeExpired: !!timeExpired, attemptedAt,
+      durationMs: (timing && timing.durationMs) || 0,
+      programId: (timing && timing.programId) || '',
+      perQuestion: (timing && timing.perQuestion) || [] };
     attempts.push(attempt);
     lpSave(LP_KEYS.ASSESSMENT_ATTEMPTS, attempts);
     return attempt;
@@ -9403,6 +9430,27 @@
       html += `<button class="start-btn" id="ppSubmitAssessmentBtn">${t('ppSubmitAssessmentBtn')}</button></div>`;
       ppContentArea.innerHTML = html;
 
+      // Per-question timing: the clock for a question starts when the learner
+      // first interacts with it and stops at their last change to it. This is
+      // an honest measure of engaged time — not "time since the page opened",
+      // which would count reading, scrolling and interruptions as thinking.
+      const qFirstTouch = {}, qLastTouch = {};
+      const assessmentStartedAt = Date.now();
+      function markQuestionTouched(i){
+        const now = Date.now();
+        if(qFirstTouch[i] === undefined) qFirstTouch[i] = now;
+        qLastTouch[i] = now;
+      }
+      function buildTiming(){
+        const perQuestion = assessment.questions.map(function(q, i){
+          const first = qFirstTouch[i], last = qLastTouch[i];
+          const ms = (first !== undefined && last !== undefined) ? Math.max(0, last - first) : 0;
+          return { ok: lpScoreQuestion(q, collectAnswers()[i]), ms: ms };
+        });
+        return { durationMs: Date.now() - assessmentStartedAt,
+                 programId: ppProgram ? ppProgram.id : '',
+                 perQuestion: perQuestion };
+      }
       function collectAnswers(){
         return assessment.questions.map((q,i)=>{
           if(q.type === 'mcq'){
@@ -9421,7 +9469,7 @@
         clearInterval(ppAssessmentTimerInterval);
         const submitBtn = document.getElementById('ppSubmitAssessmentBtn');
         if(submitBtn){ setBtnSaving(submitBtn, true); }
-        const attempt = await lpSubmitAssessment(currentProfile, assessment.id, collectAnswers(), timeExpired);
+        const attempt = await lpSubmitAssessment(currentProfile, assessment.id, collectAnswers(), timeExpired, buildTiming());
         if(!attempt){
           // no false success — let the learner retry instead of showing a fake result
           setBtnSaving(submitBtn, false);
@@ -9475,6 +9523,13 @@
         if(revBtn) revBtn.addEventListener('click', ()=> ppNavigate('lesson', ppCourse, ppModule, ppLesson));
         document.getElementById('ppBackToLessonBtn').addEventListener('click', ()=> ppNavigate('lesson', ppCourse, ppModule, ppLesson));
       }
+      assessment.questions.forEach(function(q, i){
+        document.querySelectorAll(`input[name="ppq${i}"]`).forEach(function(el){
+          el.addEventListener('change', ()=> markQuestionTouched(i));
+          el.addEventListener('input', ()=> markQuestionTouched(i));
+          el.addEventListener('focus', ()=> markQuestionTouched(i));
+        });
+      });
       document.getElementById('ppSubmitAssessmentBtn').addEventListener('click', ()=> finishAssessment(false));
 
       if(assessment.timeLimit){
@@ -10720,6 +10775,129 @@
     return (r && r.level !== null && r.attemptCount >= 2) ? r.level : null;
   }
 
+  /* ---------- PER-PROGRAM INDICATORS ----------
+     Until now every cognitive indicator came from mental math alone, while
+     the service was presented as the academy's lab. These compute the same
+     kinds of indicator from real assessment attempts in ANY program, so a
+     learner strong in logic and weak in language can actually see that.
+
+     Only measured signals are returned. A program the learner has attempted
+     but where the data cannot support an indicator returns null for it,
+     rather than a plausible-looking number. */
+  const PROGRAM_TARGET_MS_PER_Q = 45000; // 45s per question as the reference pace
+
+  function attemptsForLearner(){
+    return lpLoad(LP_KEYS.ASSESSMENT_ATTEMPTS).filter(a => a.learnerUsername === currentProfile);
+  }
+  function attemptsByProgram(){
+    const byProgram = {};
+    attemptsForLearner().forEach(function(a){
+      // Older attempts predate the ProgramID column; resolve them through the
+      // assessment -> lesson -> module -> course -> program chain instead of
+      // discarding them.
+      let pid = a.programId;
+      if(!pid){
+        const asm = lpLoad(LP_KEYS.ASSESSMENTS).find(x => x.id === a.assessmentId);
+        const les = asm && lpLoad(LP_KEYS.LESSONS).find(l => l.id === asm.lessonId);
+        const mod = les && lpLoad(LP_KEYS.MODULES).find(m => m.id === les.moduleId);
+        const crs = mod && lpLoad(LP_KEYS.COURSES).find(c => c.id === mod.courseId);
+        pid = crs ? crs.programId : '';
+      }
+      if(!pid) return;
+      if(!byProgram[pid]) byProgram[pid] = [];
+      byProgram[pid].push(a);
+    });
+    return byProgram;
+  }
+  function programIndicators(attempts){
+    if(!attempts || !attempts.length) return null;
+    const recent = attempts.slice(-12);
+
+    // Accuracy — recency weighted, same rule used for mental math.
+    let num = 0, den = 0;
+    recent.forEach(function(a, i){ const w = 1 + i; num += (a.score || 0) * w; den += w; });
+    const accuracy = den ? Math.round(num / den) : null;
+
+    // Speed — only from attempts that actually carry per-question timing.
+    const timed = recent.filter(a => Array.isArray(a.perQuestion) && a.perQuestion.some(q => q.ms > 0));
+    let speed = null;
+    if(timed.length >= 2){
+      let msSum = 0, n = 0;
+      timed.forEach(function(a){ a.perQuestion.forEach(function(q){ if(q.ms > 0){ msSum += q.ms; n++; } }); });
+      if(n >= 5) speed = Math.round(Math.min(100, Math.max(0, (PROGRAM_TARGET_MS_PER_Q / (msSum / n)) * 100)));
+    }
+
+    // Focus — does accuracy hold across the second half of an assessment?
+    let focus = null;
+    const focusable = timed.filter(a => a.perQuestion.length >= 6);
+    if(focusable.length >= 2){
+      let f = 0, sHalf = 0, c = 0;
+      focusable.forEach(function(a){
+        const pq = a.perQuestion, mid = Math.floor(pq.length / 2);
+        f += pq.slice(0, mid).filter(q => q.ok).length / mid;
+        sHalf += pq.slice(mid).filter(q => q.ok).length / (pq.length - mid);
+        c++;
+      });
+      if(c) focus = Math.round(Math.min(100, ((sHalf / c) / Math.max(0.01, f / c)) * 100));
+    }
+
+    // Resilience — recovery on the question straight after a miss.
+    let resilience = null, recovered = 0, chances = 0;
+    focusable.forEach(function(a){
+      const pq = a.perQuestion;
+      for(let i = 0; i < pq.length - 1; i++){ if(!pq[i].ok){ chances++; if(pq[i+1].ok) recovered++; } }
+    });
+    if(chances >= 4) resilience = Math.round((recovered / chances) * 100);
+
+    // Consistency — distinct days with an attempt, over the last 14.
+    const cutoff = Date.now() - 14 * 86400000;
+    const days = new Set(attempts.filter(a => new Date(a.attemptedAt).getTime() >= cutoff)
+      .map(a => String(a.attemptedAt).slice(0,10)));
+    const consistency = attempts.length ? Math.round((days.size / 14) * 100) : null;
+
+    return { accuracy: accuracy, speed: speed, focus: focus, resilience: resilience,
+             consistency: consistency, attempts: attempts.length };
+  }
+  // The learner's programs, each with its own measured indicators, sorted so
+  // the ones with the most evidence appear first.
+  function computeProgramProfiles(){
+    const byProgram = attemptsByProgram();
+    const programs = lpLoad(LP_KEYS.PROGRAMS);
+    const out = [];
+    Object.keys(byProgram).forEach(function(pid){
+      const pr = programs.find(x => x.id === pid);
+      if(!pr) return; // program deleted — nothing honest to show
+      const ind = programIndicators(byProgram[pid]);
+      if(!ind) return;
+      out.push({ id: pid, title: pr.title, ind: ind });
+    });
+    out.sort((a,b)=> b.ind.attempts - a.ind.attempts);
+    return out;
+  }
+  // Academy-wide view: mental math contributes its indicators, every program
+  // contributes its own, and each axis records WHERE it came from so the
+  // radar can state its source instead of implying it measured everything.
+  function computeAcademyProfile(prof){
+    const mm = computeCognitiveProfile(prof);
+    const progs = computeProgramProfiles();
+    const merged = mm.map(function(m){ return Object.assign({}, m, { sources: m.value !== null ? ['programMentalMathName'] : [] }); });
+    const map = { accuracy:'accuracy', speed:'speed', focus:'focus', resilience:'resilience', consistency:'consistency' };
+    Object.keys(map).forEach(function(axis){
+      const target = merged.find(x => x.id === axis);
+      if(!target) return;
+      const values = [], names = [];
+      progs.forEach(function(p){
+        const v = p.ind[map[axis]];
+        if(v !== null && v !== undefined){ values.push(v); names.push(p.title); }
+      });
+      if(!values.length) return;
+      const programAvg = Math.round(values.reduce((a,b)=>a+b,0) / values.length);
+      target.value = target.value === null ? programAvg : Math.round((target.value + programAvg) / 2);
+      target.sources = target.sources.concat(names);
+    });
+    return { axes: merged, programs: progs };
+  }
+
   function computeCognitiveProfile(prof){
     return [
       { id:'accuracy',    key:'cogAccuracy',    value: synapseRecencyWeightedAccuracy(prof), howKey:'cogHowAccuracy' },
@@ -10879,7 +11057,8 @@
   function renderSynapseProfile(){
     const prof = PROFILES[currentProfile];
     if(!prof) return;
-    const metrics = computeCognitiveProfile(prof);
+    const academy = computeAcademyProfile(prof);
+    const metrics = academy.axes;
     const enough = synapseHasEnoughData(prof);
 
     // Trajectory leads, because "you improved" is the message — not "you are a 42".
@@ -10902,9 +11081,9 @@
         fmt('cogLockedMsg', { a: done, A: SYNAPSE_MIN_ATTEMPTS, d: days, D: SYNAPSE_MIN_DAYS })}</div>`;
     } else {
       const radar = renderSynapseRadar(metrics);
-      const chips = metrics.map(function(m){
+      const chips = metrics.map(function(m, idx){
         const un = m.value === null;
-        return `<button type="button" class="syn-chip${un ? ' unmeasured' : ''}" data-how="${m.howKey}">
+        return `<button type="button" class="syn-chip${un ? ' unmeasured' : ''}" data-how="${m.howKey}" data-axis="${idx}">
           <span>${t(m.key)}</span><b>${un ? '—' : m.value + '%'}</b></button>`;
       }).join('');
       synRadarWrap.innerHTML = radar +
@@ -10912,14 +11091,47 @@
       const howBox = document.getElementById('synHowBox');
       synRadarWrap.querySelectorAll('.syn-chip').forEach(function(btn){
         btn.addEventListener('click', function(){
-          howBox.textContent = nxIcon ? t(btn.dataset.how) : t(btn.dataset.how);
+          const axis = metrics[Number(btn.dataset.axis)];
+          // Always name the programs an indicator was actually measured from.
+          // A single number covering nine programs must never imply it
+          // measured all of them.
+          const names = (axis && axis.sources || []).map(function(n){
+            return n === 'programMentalMathName' ? t('programMentalMathName') : n;
+          });
+          const src = names.length ? `<div style="margin-top:6px; opacity:0.85;">${fmt('cogSourceLine', { s: names.join('، ') })}</div>` : '';
+          howBox.innerHTML = t(btn.dataset.how) + src;
           howBox.classList.remove('hidden');
         });
       });
     }
 
+    renderProgramBreakdown(academy.programs);
     renderSynapseInsights(prof);
     renderSynapseActions(prof);
+  }
+
+  /* Per-program strengths — the view that makes this the academy's lab and
+     not the mental-math lab. Each row shows only what was measured for that
+     program; unmeasured axes are shown as "—", never filled in. */
+  function renderProgramBreakdown(programs){
+    if(!programs || !programs.length){ synPrograms.innerHTML = ''; return; }
+    const axes = [
+      { k:'accuracy',    label:'cogAccuracy' },
+      { k:'speed',       label:'cogSpeed' },
+      { k:'focus',       label:'cogFocus' },
+      { k:'resilience',  label:'cogResilience' }
+    ];
+    synPrograms.innerHTML = `<div class="group-label" style="margin-top:6px;">${t('synProgramsTitle')}</div>` +
+      programs.map(function(p){
+        const cells = axes.map(function(a){
+          const v = p.ind[a.k];
+          return `<div class="syn-prog-cell"><b${v === null ? ' class="unmeasured"' : ''}>${v === null ? '—' : v + '%'}</b><span>${t(a.label)}</span></div>`;
+        }).join('');
+        return `<div class="syn-prog-row">
+          <div class="syn-prog-name">${p.title}<span>${fmt('synProgramAttempts', { n: p.ind.attempts })}</span></div>
+          <div class="syn-prog-cells">${cells}</div>
+        </div>`;
+      }).join('');
   }
 
   /* Behavioural observations — each one is only shown when the underlying
