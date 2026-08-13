@@ -1218,6 +1218,115 @@
   .guardian-box input.ltr-input{ direction:ltr; text-align:left; }
   .guardian-box .clear-guardian{ font-size:11px; color:var(--coral); text-decoration:underline; cursor:pointer; }
 
+  /* ---------- MEMBERSHIP CARD ---------- */
+  .mc-stage{ perspective:1400px; display:flex; justify-content:center; margin:14px 0 18px; }
+  .mc-card{
+    position:relative; width:340px; height:214px; /* ISO 7810 ID-1 ratio, 1.586 */
+    transform-style:preserve-3d; transition:transform .7s cubic-bezier(.2,.8,.2,1);
+    cursor:pointer;
+  }
+  .mc-card.flipped{ transform:rotateY(180deg); }
+  .mc-face{
+    position:absolute; inset:0; border-radius:16px; overflow:hidden;
+    backface-visibility:hidden; -webkit-backface-visibility:hidden;
+    box-shadow:0 18px 40px rgba(0,0,0,0.42); box-sizing:border-box;
+    direction:rtl; unicode-bidi:plaintext;
+  }
+  .mc-front{
+    padding:16px 18px;
+    background:
+      radial-gradient(120% 90% at 100% 0%, rgba(99,102,241,0.30), transparent 58%),
+      linear-gradient(150deg, #0f2b22 0%, #14402f 45%, #0b1f19 100%);
+    border:1px solid rgba(201,162,39,0.45);
+    display:flex; flex-direction:column; justify-content:space-between;
+  }
+  .mc-back{
+    transform:rotateY(180deg);
+    background:linear-gradient(150deg, #0b1f19, #14402f);
+    border:1px solid rgba(201,162,39,0.45);
+    padding:0 0 12px; display:flex; flex-direction:column;
+  }
+  /* Fine engraved lines, the way security documents are printed. Pure CSS, so
+     it rasterises reliably — an SVG pattern would not survive html2canvas. */
+  .mc-guilloche{
+    position:absolute; inset:0; opacity:0.10; pointer-events:none;
+    background-image:repeating-linear-gradient(115deg, #c9a227 0 1px, transparent 1px 7px);
+  }
+  .mc-shimmer{
+    position:absolute; inset:0; pointer-events:none;
+    background:linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.16) 48%, transparent 62%);
+    transform:translateX(-100%);
+  }
+  @media (prefers-reduced-motion: no-preference){
+    .mc-shimmer{ animation:mc-sheen 5.5s ease-in-out infinite; }
+  }
+  @keyframes mc-sheen{ 0%,72%{ transform:translateX(-100%);} 100%{ transform:translateX(100%);} }
+
+  .mc-top{ display:flex; align-items:flex-start; justify-content:space-between; position:relative; z-index:2; }
+  .mc-brand{ display:flex; align-items:center; gap:8px; }
+  .mc-brand-mark{
+    width:30px; height:30px; border-radius:8px; background:linear-gradient(145deg,#e7c468,#c9a227);
+    color:#0f2b22; font-family:'Cairo',sans-serif; font-weight:800; font-size:17px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .mc-brand-name{ font-family:'Cairo',sans-serif; font-weight:800; font-size:14px; color:#f1e9cf; letter-spacing:1.5px; line-height:1.1; }
+  .mc-brand-sub{ font-size:7px; color:#c9a227; letter-spacing:3.5px; margin-top:2px; }
+  .mc-tier{
+    font-family:'Cairo',sans-serif; font-size:8.5px; font-weight:800; letter-spacing:1.6px;
+    color:#0f2b22; background:linear-gradient(145deg,#e7c468,#c9a227);
+    padding:3px 9px; border-radius:20px;
+  }
+  .mc-body{ display:flex; align-items:center; gap:12px; position:relative; z-index:2; }
+  .mc-photo{
+    width:52px; height:52px; border-radius:50%; overflow:hidden; flex:none;
+    border:2px solid #c9a227; background:#0b1f19;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Cairo',sans-serif; font-weight:800; font-size:22px; color:#e7c468;
+  }
+  .mc-photo img{ width:100% !important; height:100% !important; object-fit:cover; display:block; }
+  .mc-ident{ min-width:0; }
+  .mc-label{ display:block; font-size:7.5px; color:#9db3a6; letter-spacing:0.8px; margin-bottom:2px; }
+  .mc-name{
+    font-family:'Cairo',sans-serif; font-weight:800; font-size:16px; color:#f6f1e2; line-height:1.25;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:210px;
+  }
+  .mc-handle{ font-size:9.5px; color:#c9a227; direction:ltr; unicode-bidi:plaintext; margin-top:2px; }
+  .mc-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:6px; position:relative; z-index:2; }
+  .mc-grid b{ display:block; font-family:'Cairo',sans-serif; font-size:11px; color:#f6f1e2; }
+  .mc-bottom{ display:flex; align-items:center; justify-content:space-between; position:relative; z-index:2; }
+  .mc-id{ font-family:'Courier New',monospace; font-size:10px; color:#e7c468; letter-spacing:1.4px; direction:ltr; }
+  .mc-chip{
+    width:34px; height:25px; border-radius:5px; flex:none;
+    background:linear-gradient(145deg,#e7c468,#a8861d);
+    box-shadow:inset 0 0 0 1px rgba(0,0,0,0.25);
+  }
+  .mc-magstripe{ height:38px; background:#07120e; margin-top:14px; }
+  .mc-back-body{ display:flex; gap:12px; padding:12px 16px 0; align-items:center; }
+  .mc-qr-wrap{ width:78px; height:78px; background:#fff; padding:5px; border-radius:7px; flex:none; }
+  .mc-qr-wrap img, .mc-qr-wrap canvas{ width:100% !important; height:100% !important; display:block; }
+  .mc-back-title{ font-family:'Cairo',sans-serif; font-weight:700; font-size:11.5px; color:#f6f1e2; }
+  .mc-back-sub{ font-size:8.5px; color:#9db3a6; line-height:1.6; margin-top:3px; }
+  .mc-back-id{ font-family:'Courier New',monospace; font-size:9px; color:#e7c468; margin-top:5px; direction:ltr; }
+  .mc-sign{ padding:8px 16px 0; }
+  .mc-sign-strip{
+    background:#f6f1e2; border-radius:4px; padding:5px 10px; color:#14402f;
+    font-family:'Cairo',cursive,sans-serif; font-style:italic; font-size:13px; font-weight:700;
+    min-height:22px; display:flex; align-items:center;
+  }
+  .mc-terms{ font-size:7px; color:#7f9488; line-height:1.6; padding:8px 16px 0; }
+  .mc-actions{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px; }
+  .mc-actions button{ flex:1; min-width:120px; margin:0; }
+
+  /* CAPTURE MODE — every property html2canvas cannot handle is neutralised
+     here and restored afterwards. Without this the download came out
+     mirrored, with both faces stacked on top of each other. */
+  .mc-stage.mc-capture{ perspective:none !important; }
+  .mc-stage.mc-capture .mc-card{ transform:none !important; transform-style:flat !important; transition:none !important; }
+  .mc-stage.mc-capture .mc-face{ backface-visibility:visible !important; -webkit-backface-visibility:visible !important; }
+  .mc-stage.mc-capture .mc-shimmer{ animation:none !important; display:none !important; }
+  .mc-stage.mc-capture .mc-back{ transform:none !important; }
+  .mc-stage.mc-capture .mc-face:not(.mc-capture-target){ display:none !important; }
+
   /* ---------- NEXORA SYNAPSE ----------
      A synapse strengthens with use and fades with neglect — the same shape
      as spaced retrieval, which is why it is the mark for this service. */
@@ -2268,6 +2377,84 @@
     <button class="secondary-btn" id="synapseBackBtn" data-i18n="backBtn">رجوع</button>
   </div>
 
+  <!-- MEMBERSHIP CARD
+       Front/back flip, printable and downloadable.
+
+       Hard-won from the Almanie Group card: html2canvas cannot rasterise 3D
+       transforms, backface-visibility, or -webkit-background-clip:text. The
+       first version there captured mirrored text and both faces at once. So a
+       capture mode flattens every one of those before the screenshot and
+       restores them after — designed in from the start this time. -->
+  <div id="memberCardScreen" class="panel hidden">
+    <div class="group-label" style="text-align:center;" data-i18n="memberCardTitle">🪪 بطاقة العضوية</div>
+    <div class="conn-note" data-i18n="memberCardHint">اضغط على البطاقة لقلبها ورؤية الوجه الخلفي.</div>
+
+    <div class="mc-stage" id="mcStage">
+      <div class="mc-card" id="mcCard">
+        <!-- FRONT -->
+        <div class="mc-face mc-front">
+          <div class="mc-shimmer" aria-hidden="true"></div>
+          <div class="mc-guilloche" aria-hidden="true"></div>
+          <div class="mc-top">
+            <div class="mc-brand">
+              <div class="mc-brand-mark">N</div>
+              <div>
+                <div class="mc-brand-name">NEXORA</div>
+                <div class="mc-brand-sub">A C A D E M Y</div>
+              </div>
+            </div>
+            <div class="mc-tier" id="mcTier">MEMBER</div>
+          </div>
+
+          <div class="mc-body">
+            <div class="mc-photo" id="mcPhoto"></div>
+            <div class="mc-ident">
+              <div class="mc-label" data-i18n="mcNameLabel">اسم العضو</div>
+              <div class="mc-name" id="mcName"></div>
+              <div class="mc-handle" id="mcHandle"></div>
+            </div>
+          </div>
+
+          <div class="mc-grid">
+            <div><span class="mc-label" data-i18n="mcSince">عضو منذ</span><b id="mcSince"></b></div>
+            <div><span class="mc-label" data-i18n="mcLevel">المستوى</span><b id="mcLevel"></b></div>
+            <div><span class="mc-label" data-i18n="mcStatus">الحالة</span><b id="mcStatus"></b></div>
+          </div>
+
+          <div class="mc-bottom">
+            <div class="mc-id" id="mcId"></div>
+            <div class="mc-chip" aria-hidden="true"></div>
+          </div>
+        </div>
+
+        <!-- BACK -->
+        <div class="mc-face mc-back">
+          <div class="mc-magstripe" aria-hidden="true"></div>
+          <div class="mc-back-body">
+            <div class="mc-qr-wrap" id="mcQr"></div>
+            <div class="mc-back-text">
+              <div class="mc-back-title" data-i18n="mcVerifyTitle">التحقق من العضوية</div>
+              <div class="mc-back-sub" data-i18n="mcVerifySub">امسح الرمز للتحقق من صحة هذه البطاقة.</div>
+              <div class="mc-back-id" id="mcBackId"></div>
+            </div>
+          </div>
+          <div class="mc-sign">
+            <div class="mc-sign-strip" id="mcSignature"></div>
+            <div class="mc-label" data-i18n="mcSignLabel">توقيع العضو</div>
+          </div>
+          <div class="mc-terms" data-i18n="mcTerms">هذه البطاقة ملك أكاديمية نِكسورا وتُستخدم لإثبات العضوية فقط. غير قابلة للتحويل.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mc-actions">
+      <button class="start-btn" id="mcFlipBtn" data-i18n="mcFlipBtn">🔄 اقلب البطاقة</button>
+      <button class="secondary-btn" id="mcDownloadBtn" data-i18n="mcDownloadBtn">⬇️ تنزيل PNG</button>
+      <button class="secondary-btn" id="mcPrintBtn" data-i18n="mcPrintBtn">🖨️ طباعة</button>
+    </div>
+    <button class="secondary-btn" id="mcBackBtn" data-i18n="closeBtn">إغلاق</button>
+  </div>
+
   <!-- KNOWLEDGE REVIEW — spaced retrieval across all nine programs. The
        questions are the instructor's own authored items, re-served on
        schedule; nothing is generated here. -->
@@ -3292,6 +3479,24 @@
   const knowRevProgress = document.getElementById('knowRevProgress');
   const knowRevArea = document.getElementById('knowRevArea');
   const knowRevBackBtn = document.getElementById('knowRevBackBtn');
+  const memberCardScreen = document.getElementById('memberCardScreen');
+  const mcStage = document.getElementById('mcStage');
+  const mcCard = document.getElementById('mcCard');
+  const mcTier = document.getElementById('mcTier');
+  const mcPhoto = document.getElementById('mcPhoto');
+  const mcName = document.getElementById('mcName');
+  const mcHandle = document.getElementById('mcHandle');
+  const mcSince = document.getElementById('mcSince');
+  const mcLevel = document.getElementById('mcLevel');
+  const mcStatus = document.getElementById('mcStatus');
+  const mcId = document.getElementById('mcId');
+  const mcQr = document.getElementById('mcQr');
+  const mcBackId = document.getElementById('mcBackId');
+  const mcSignature = document.getElementById('mcSignature');
+  const mcFlipBtn = document.getElementById('mcFlipBtn');
+  const mcDownloadBtn = document.getElementById('mcDownloadBtn');
+  const mcPrintBtn = document.getElementById('mcPrintBtn');
+  const mcBackBtn = document.getElementById('mcBackBtn');
   const synapseScreen = document.getElementById('synapseScreen');
   const synTrajectory = document.getElementById('synTrajectory');
   const synRadarWrap = document.getElementById('synRadarWrap');
@@ -4385,6 +4590,17 @@
       profileMemberSince:'عضو منذ {d}', profileNoActivity:'لم يبدأ أي تمرين بعد.',
       synProgramsTitle:'أداؤك في كل برنامج', synProgramAttempts:'{n} تقييم',
       cogSourceLine:'مقاس من: {s}',
+      memberCardNavLabel:'بطاقة العضوية', memberCardTitle:'🪪 بطاقة العضوية',
+      memberCardHint:'اضغط على البطاقة لقلبها ورؤية الوجه الخلفي.',
+      mcNameLabel:'اسم العضو', mcSince:'عضو منذ', mcLevel:'المستوى', mcStatus:'الحالة',
+      mcSinceUnknown:'—', mcStatusActive:'نشِط', mcStatusDormant:'غير نشِط',
+      mcTierMember:'عضو', mcTierSilver:'فضي', mcTierGold:'ذهبي',
+      mcVerifyTitle:'التحقق من العضوية', mcVerifySub:'امسح الرمز للتحقق من صحة هذه البطاقة.',
+      mcSignLabel:'توقيع العضو',
+      mcTerms:'هذه البطاقة ملك أكاديمية نِكسورا وتُستخدم لإثبات العضوية فقط. غير قابلة للتحويل.',
+      mcFlipBtn:'🔄 اقلب البطاقة', mcDownloadBtn:'⬇️ تنزيل PNG', mcPrintBtn:'🖨️ طباعة',
+      mcCaptureFailed:'تعذّر إنشاء صورة البطاقة. أعد المحاولة.',
+      mcPopupBlocked:'المتصفح منع نافذة الطباعة. اسمح بالنوافذ المنبثقة ثم أعد المحاولة.',
       synapseNavLabel:'سينابس', synapseSubtitle:'مختبر الذكاء والذاكرة',
       synapseRadarAria:'رسم بياني لمؤشرات أدائك التعليمية',
       synapseDisclaimer:'مؤشرات أداء تعليمي داخل المنصة، محسوبة من تدريبك الفعلي — وليست قياسًا للذكاء ولا تشخيصًا من أي نوع.',
@@ -5063,6 +5279,17 @@
       profileMemberSince:'Member since {d}', profileNoActivity:'No practice sessions yet.',
       synProgramsTitle:'Your performance per program', synProgramAttempts:'{n} assessment(s)',
       cogSourceLine:'Measured from: {s}',
+      memberCardNavLabel:'Membership card', memberCardTitle:'🪪 Membership card',
+      memberCardHint:'Tap the card to flip it and see the back.',
+      mcNameLabel:'Member name', mcSince:'Member since', mcLevel:'Level', mcStatus:'Status',
+      mcSinceUnknown:'—', mcStatusActive:'Active', mcStatusDormant:'Dormant',
+      mcTierMember:'Member', mcTierSilver:'Silver', mcTierGold:'Gold',
+      mcVerifyTitle:'Membership verification', mcVerifySub:'Scan the code to verify this card.',
+      mcSignLabel:'Member signature',
+      mcTerms:'This card is the property of NEXORA Academy and serves only as proof of membership. Non-transferable.',
+      mcFlipBtn:'🔄 Flip card', mcDownloadBtn:'⬇️ Download PNG', mcPrintBtn:'🖨️ Print',
+      mcCaptureFailed:'Could not render the card image. Please try again.',
+      mcPopupBlocked:'The browser blocked the print window. Allow pop-ups and try again.',
       synapseNavLabel:'Synapse', synapseSubtitle:'Your intelligence & memory lab',
       synapseRadarAria:'Chart of your learning performance indicators',
       synapseDisclaimer:'In-platform learning performance indicators computed from your own practice — not an intelligence measure and not a diagnosis of any kind.',
@@ -5828,6 +6055,7 @@
     abacusTrainerEl.classList.add('hidden');
     childDetailScreen.classList.add('hidden');
     synapseScreen.classList.add('hidden');
+    memberCardScreen.classList.add('hidden');
     knowledgeReviewScreen.classList.add('hidden');
     parentDashboardScreenEl.classList.add('hidden');
   }
@@ -6009,6 +6237,7 @@
     mailDiagScreen.classList.add('hidden');
     guardianAuditScreen.classList.add('hidden');
     synapseScreen.classList.add('hidden');
+    memberCardScreen.classList.add('hidden');
     knowledgeReviewScreen.classList.add('hidden');
     parentDashboardScreenEl.classList.add('hidden');
     childDetailScreen.classList.add('hidden');
@@ -10450,6 +10679,7 @@
       return [
         { icon:nxIcon('home'), label:t('shellNavPrograms'), run: ()=> showProgramsHub() },
         { icon:nxIcon('target'), label:t('synapseNavLabel'), run: ()=> openSynapse() },
+        { icon:nxIcon('award'), label:t('memberCardNavLabel'), run: ()=> openMembershipCard() },
         { icon:nxIcon('book'), label:t('shellNavJourney'), run: ()=>{ if(isServiceOn('knowledgeMap')) knowledgeMapOpenBtn.click(); } },
         { icon:nxIcon('puzzle'), label:t('shellNavSkills'), run: ()=>{ hideLearnerShellScreens(); mySkillsScreen.classList.remove('hidden'); renderMySkills(); renderShellNav('learner'); } },
         { icon:nxIcon('award'), label:t('shellNavAchievements'), run: ()=> myStatsLink.click() },
@@ -11091,6 +11321,55 @@
   /* ---------- one child's full file ----------
      Contains exactly the detail the old inline list used to show, plus the
      summary figures — nothing invented, just given room to be readable. */
+  function openMembershipCard(){
+    if(!requireAuth('memberCard')) return;
+    hideLearnerShellScreens();
+    memberCardScreen.classList.remove('hidden');
+    mcCard.classList.remove('flipped');
+    renderMembershipCard();
+    renderShellNav('learner');
+  }
+  mcCard.addEventListener('click', ()=> mcCard.classList.toggle('flipped'));
+  mcFlipBtn.addEventListener('click', ()=> mcCard.classList.toggle('flipped'));
+  mcBackBtn.addEventListener('click', ()=>{
+    memberCardScreen.classList.add('hidden');
+    showProgramsHub();
+  });
+  mcDownloadBtn.addEventListener('click', async ()=>{
+    setBtnSaving(mcDownloadBtn, true);
+    // Whichever face is showing is the one downloaded, matching what the
+    // learner is actually looking at.
+    const facing = mcCard.classList.contains('flipped') ? '.mc-back' : '.mc-front';
+    const canvas = await captureMemberCard(facing);
+    setBtnSaving(mcDownloadBtn, false);
+    if(!canvas){ showToast(t('mcCaptureFailed'), nxIcon('alertTriangle'), 'system'); return; }
+    const link = document.createElement('a');
+    link.download = 'nexora-membership-card.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  });
+  mcPrintBtn.addEventListener('click', async ()=>{
+    setBtnSaving(mcPrintBtn, true);
+    // Both faces, captured separately then printed side by side at true
+    // ID-1 size, so a printed card can be cut out and actually used.
+    const front = await captureMemberCard('.mc-front');
+    const back = await captureMemberCard('.mc-back');
+    setBtnSaving(mcPrintBtn, false);
+    if(!front || !back){ showToast(t('mcCaptureFailed'), nxIcon('alertTriangle'), 'system'); return; }
+    const w = window.open('', '_blank');
+    if(!w){ showToast(t('mcPopupBlocked'), nxIcon('alertTriangle'), 'system'); return; }
+    w.document.write(
+      '<!doctype html><html><head><title>NEXORA Membership Card</title><style>' +
+      '@page{size:auto;margin:12mm}body{margin:0;display:flex;gap:8mm;flex-wrap:wrap;' +
+      'justify-content:center;align-items:flex-start;font-family:sans-serif}' +
+      'img{width:85.6mm;height:53.98mm;border-radius:3mm}</style></head><body>' +
+      '<img src="' + front.toDataURL('image/png') + '">' +
+      '<img src="' + back.toDataURL('image/png') + '">' +
+      '</body></html>');
+    w.document.close();
+    w.onload = ()=> setTimeout(()=> w.print(), 300);
+  });
+
   function openSynapse(){
     if(!requireAuth('synapse')) return;
     if(!currentProfile || !PROFILES[currentProfile]) return;
@@ -11882,6 +12161,108 @@
     }
     return { pending: null, items: out, evidence: e };
   }
+
+  /* ==================== MODULE: MEMBERSHIP CARD ====================
+     Every field is read from the learner's real record. Nothing is invented:
+     no fabricated "valid through" date, no tier the account has not actually
+     reached, no member-since date guessed when none was recorded. */
+
+  // Deterministic, not random: the same learner always gets the same number,
+  // so a card reissued next year still matches the one they hold. Derived
+  // from the immutable username, never from the render time.
+  function membershipId(prof, key){
+    const seed = String((prof && prof.username) || key || 'guest');
+    let h = 5381;
+    for(let i = 0; i < seed.length; i++) h = ((h << 5) + h + seed.charCodeAt(i)) >>> 0;
+    const block = String(h).padStart(10, '0').slice(-10);
+    return 'NX-' + block.slice(0, 4) + '-' + block.slice(4, 7) + '-' + block.slice(7);
+  }
+  // The first day this learner has any recorded activity. If nothing was ever
+  // recorded we say so rather than printing today's date as a join date.
+  function memberSinceDate(prof){
+    const log = (prof && prof.sessionLog) || [];
+    if(log.length) return new Date(log[0].date);
+    const certs = (prof && prof.certificatesIssued) || [];
+    if(certs.length && certs[0].date) return new Date(certs[0].date);
+    return null;
+  }
+  // Tier reflects measured progress only. A learner who has not earned a tier
+  // is simply a MEMBER — inflating it would make the whole card meaningless.
+  function membershipTier(prof){
+    const mastered = KNOWLEDGE_LEVELS.filter(l => isBucketMastered(prof, l.bucket)).length;
+    const badges = prof.badges ? prof.badges.size : 0;
+    if(mastered >= 8 || badges >= 12) return { key:'mcTierGold',   label:'GOLD' };
+    if(mastered >= 4 || badges >= 6)  return { key:'mcTierSilver', label:'SILVER' };
+    return { key:'mcTierMember', label:'MEMBER' };
+  }
+
+  function renderMembershipCard(){
+    const key = currentProfile;
+    const prof = PROFILES[key];
+    if(!prof) return;
+
+    const id = membershipId(prof, key);
+    const tier = membershipTier(prof);
+    const since = memberSinceDate(prof);
+    const displayName = profileDisplayName(key) || '';
+
+    mcTier.textContent = tier.label;
+    mcName.textContent = displayName;
+    mcHandle.textContent = prof.username ? '@' + prof.username : '';
+    mcId.textContent = id;
+    mcBackId.textContent = id;
+    mcSignature.textContent = displayName;
+
+    mcSince.textContent = since
+      ? since.toLocaleDateString(currentLang === 'ar' ? 'ar-EG' : 'en-US', { year:'numeric', month:'short' })
+      : t('mcSinceUnknown');
+
+    const lvl = typeof computeLevel === 'function' ? computeLevel(prof.totalCorrect || 0) : null;
+    mcLevel.textContent = lvl ? String(lvl.level) : '—';
+    // "Active" is a claim about the account, so it is stated only when there
+    // is recent recorded activity to support it.
+    const log = prof.sessionLog || [];
+    const lastSeen = log.length ? new Date(log[log.length - 1].date).getTime() : 0;
+    const active = lastSeen && (Date.now() - lastSeen) < 45 * 86400000;
+    mcStatus.textContent = t(active ? 'mcStatusActive' : 'mcStatusDormant');
+
+    // Photo, falling back to a monogram — never an emoji, which html2canvas
+    // cannot rasterise (it produced a garbled shape on the certificate).
+    mcPhoto.innerHTML = '';
+    if(prof.photo && String(prof.photo).indexOf('data:') === 0){
+      const img = document.createElement('img');
+      img.src = prof.photo;
+      mcPhoto.appendChild(img);
+    } else {
+      mcPhoto.textContent = (displayName || '?').trim().charAt(0);
+    }
+
+    // QR points at the same verification page certificates use, so a scan
+    // resolves against real server data rather than encoding claims itself.
+    mcQr.innerHTML = '';
+    if(typeof QRCode === 'function'){
+      new QRCode(mcQr, {
+        text: CERT_VERIFY_BASE_URL + '?verifyMember=' + encodeURIComponent(id),
+        width: 68, height: 68, correctLevel: QRCode.CorrectLevel.M
+      });
+    }
+  }
+
+  /* Flattens everything html2canvas cannot render, captures ONE face, then
+     restores the live card exactly as it was. */
+  async function captureMemberCard(faceSelector){
+    const face = mcCard.querySelector(faceSelector);
+    if(!face || typeof html2canvas !== 'function') return null;
+    face.classList.add('mc-capture-target');
+    mcStage.classList.add('mc-capture');
+    try{
+      return await html2canvas(face, { scale:3, backgroundColor:null, useCORS:true });
+    } finally {
+      mcStage.classList.remove('mc-capture');
+      face.classList.remove('mc-capture-target');
+    }
+  }
+  /* ==================== END MODULE: MEMBERSHIP CARD ==================== */
 
   /* ---------- SYNAPSE UI ---------- */
   function renderSynapseRadar(metrics){
