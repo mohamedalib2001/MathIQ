@@ -2359,7 +2359,7 @@
     <div class="gate-box">
       <div class="gate-emoji">🔒</div>
       <div class="gate-title" data-i18n="guestLimitTitle">يلزم التسجيل للمتابعة</div>
-      <div class="gate-body" data-i18n="guestLimitBody">استخدمتِ كل المحاولات المجانية كضيف. سجّلي حسابًا للمتابعة والحصول على شهر مجاني كامل!</div>
+      <div class="gate-body" data-i18n="guestLimitBody">محتوى الأكاديمية وبرامجها متاح للأعضاء المسجَّلين فقط، حمايةً لبيانات الطلاب. سجّلي حسابًا الآن واحصلي على شهر مجاني كامل.</div>
       <div class="gate-actions">
         <button class="start-btn" id="registerNowBtn" data-i18n="registerNowBtn">سجّلي الآن</button>
         <button class="secondary-btn" id="guestGateBackBtn" data-i18n="cancelBtn">إلغاء</button>
@@ -4480,6 +4480,8 @@
       goToRegisterLink:'ليس لديكِ حساب؟ سجّلي الآن', adminLink:'🛠️ إدارة الحسابات (لصاحب التطبيق)',
       adminLinkShort:'إدارة الحسابات', certVerifyLinkShort:'التحقق من شهادة',
       guestLimitTitle:'يلزم التسجيل للمتابعة',
+      guestLimitBody:'محتوى الأكاديمية وبرامجها متاح للأعضاء المسجَّلين فقط، حمايةً لبيانات الطلاب. سجّلي حسابًا الآن واحصلي على شهر مجاني كامل.',
+      authRequiredMsg:'🔒 يلزم تسجيل الدخول للوصول إلى هذه الصفحة',
       guestLimitBody:'استخدمتِ كل المحاولات المجانية كضيف. سجّلي حسابًا للمتابعة والحصول على شهر مجاني كامل!',
       registerNowBtn:'سجّلي الآن',
       subscriptionRequiredTitle:'انتهت الفترة التجريبية',
@@ -5134,6 +5136,8 @@
       goToRegisterLink:"Don't have an account? Register now", adminLink:'🛠️ Manage accounts (app owner)',
       adminLinkShort:'Manage accounts', certVerifyLinkShort:'Verify a certificate',
       guestLimitTitle:'Registration required',
+      guestLimitBody:'Academy content and programs are available to registered members only, to protect student data. Register now and get a full free month.',
+      authRequiredMsg:'🔒 Sign in is required to open this page',
       guestLimitBody:"You've used all your free guest tries. Register an account to continue and get a full free month!",
       registerNowBtn:'Register now',
       subscriptionRequiredTitle:'Trial period ended',
@@ -5682,6 +5686,7 @@
     programBuilderEl.classList.add('hidden');
   }
   function showProgramsHub(){
+    if(!requireAuth('programs')) return;
     const p = PROFILES[currentProfile];
     if(!p) return;
     programsHubGreeting.textContent = fmt('hubGreeting', { name: profileDisplayName(currentProfile) });
@@ -6866,6 +6871,38 @@
   logoutBtn.addEventListener('click', goToLoginGate);
   logoutTextLink.addEventListener('click', goToLoginGate);
 
+  /* ==================== MODULE: ACCESS GUARD ====================
+     Two paths used to reach the full learner shell with no authentication at
+     all: the guest button and the two-student challenge. Neither called
+     logSessionLogin, so there was no session, no identity and no audit trail
+     — yet both rendered the complete learner navigation: the nine programs,
+     Synapse and the cognitive profile, the learning journey, achievements,
+     and the FRIENDS list, which exposes other real learners.
+
+     The challenge path was worse still: it set currentProfile to a real
+     student account, so a visitor was operating inside another child's
+     profile and reading their settings and results.
+
+     This guard is the single point every protected screen passes through.
+     It is deliberately positive-listed: a screen is unprotected only if it
+     is named here, so any screen added later is protected by default. */
+  const PUBLIC_SCREENS = ['login', 'register', 'certVerify', 'passwordReset', 'adminGate', 'guestGate'];
+
+  // A session exists only when a real profile was authenticated. 'guest' is
+  // explicitly NOT an identity — it never was one.
+  function hasAuthenticatedSession(){
+    return !!(loggedInKey && loggedInKey !== 'guest' && PROFILES[loggedInKey]);
+  }
+  // Called before any protected screen opens. Returns false and sends the
+  // visitor back to the login screen when there is no session.
+  function requireAuth(screenName){
+    if(PUBLIC_SCREENS.indexOf(screenName) > -1) return true;
+    if(hasAuthenticatedSession()) return true;
+    showToast(t('authRequiredMsg'), nxIcon('lock'), 'system');
+    goToLoginGate();
+    return false;
+  }
+
   /* ---------- guest usage limit + free trial + subscription ----------
      IMPORTANT: this is a client-side-only convenience gate. It is not a
      real payment system and can be bypassed by clearing browser storage.
@@ -6935,11 +6972,13 @@
   }
 
   if(guestBtn) guestBtn.addEventListener('click', ()=>{
-    if(getGuestUsesUsed() >= 20){
-      usernameLoginEl.classList.add('hidden');
-      guestGateEl.classList.remove('hidden');
-      return;
-    }
+    // Guest mode no longer opens the learner shell. It previously rendered
+    // the whole navigation — programs, Synapse, achievements, friends — to
+    // someone with no account at all.
+    usernameLoginEl.classList.add('hidden');
+    guestGateEl.classList.remove('hidden');
+    return;
+    /* eslint-disable no-unreachable */
     if(!PROFILES.guest){
       PROFILES.guest = freshProfile(null, '🙂', '#8fa8d8',
         { op:'add', diff:'units', time:'15', len:'10', mode:'type' }, true, null);
@@ -7785,6 +7824,7 @@
     renderProgramBuilder();
   }
   function renderMySkills(){
+    if(!requireAuth('skills')) return;
     mySkillsList.innerHTML = '';
     const skills = lpEnsureDefaultSkills();
     skills.forEach(s=>{
@@ -9524,6 +9564,7 @@
   }
   /* ==================== END MODULE: ERROR STATE ==================== */
   function openProgramPlayer(program){
+    if(!requireAuth('programPlayer')) return;
     if(!program){
       programsHubEl.classList.add('hidden');
       programPlayerEl.classList.remove('hidden');
@@ -10724,6 +10765,7 @@
      Contains exactly the detail the old inline list used to show, plus the
      summary figures — nothing invented, just given room to be readable. */
   function openSynapse(){
+    if(!requireAuth('synapse')) return;
     if(!currentProfile || !PROFILES[currentProfile]) return;
     hideLearnerShellScreens();
     synapseScreen.classList.remove('hidden');
@@ -11773,6 +11815,7 @@
   let knowRevQueue = [], knowRevIndex = 0, knowRevCorrect = 0;
 
   function startKnowledgeReview(){
+    if(!requireAuth('knowledgeReview')) return;
     const prof = PROFILES[currentProfile];
     if(!prof) return;
     pruneKnowledgeQueue(prof);
@@ -13018,6 +13061,7 @@
   });
 
   function renderKnowledgeMap(){
+    if(!requireAuth('knowledgeMap')) return;
     const p = PROFILES[currentProfile];
     if(!p){ return; }
     knowledgeMapList.innerHTML = '';
@@ -13379,6 +13423,7 @@
       ban: '<svg class="nx-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M4.9 4.9l14.2 14.2"/></svg>',
       flame: '<svg class="nx-icon" viewBox="0 0 24 24"><path d="M12 2c1 4-4 5-4 10a4 4 0 0 0 8 0c1.5 1 2 3 2 4a6 6 0 0 1-12 0c0-5 3-6 4-10 1 1 2 2 2 3 1-2 0-5 0-7z"/></svg>',
       target: '<svg class="nx-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1" class="nx-icon-filled"/></svg>',
+      lock: '<svg class="nx-icon" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>',
       clock: '<svg class="nx-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>',
       refresh: '<svg class="nx-icon" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v6h-6"/></svg>',
       brain: '<svg class="nx-icon" viewBox="0 0 24 24"><path d="M9 3a3 3 0 0 0-3 3 3 3 0 0 0-2 5.2A3 3 0 0 0 6 17a3 3 0 0 0 3 3z"/><path d="M15 3a3 3 0 0 1 3 3 3 3 0 0 1 2 5.2A3 3 0 0 1 18 17a3 3 0 0 1-3 3z"/><path d="M12 3v18"/></svg>'
@@ -14110,6 +14155,7 @@
   /* A review-only session: nothing but questions that are genuinely due
      today. Short by design — when the queue is empty, it is empty. */
   function startReviewSession(){
+    if(!requireAuth('review')) return;
     const prof = PROFILES[currentProfile];
     if(!prof) return;
     prepareSessionReviewPool(true);
@@ -14163,6 +14209,10 @@
 
   /* ---------- two-player challenge mode ---------- */
   challengeBtn.addEventListener('click', ()=>{
+    // The two-student challenge is a supervised, in-account feature. It used
+    // to be reachable from the login screen and silently adopted a real
+    // student's profile, so a visitor ended up inside that child's account.
+    if(!requireAuth('challenge')) return;
     challengeMode = true;
     currentProfile = 'jory';
     applyProfileDefaults('jory');
@@ -14516,6 +14566,7 @@
   });
 
   function renderMyStats(){
+    if(!requireAuth('myStats')) return;
     const p = PROFILES[currentProfile];
     if(!p) return;
     backfillAndRenderAvatar(currentProfile, myStatsAvatar, 64);
@@ -14763,6 +14814,7 @@
     });
   }
   async function renderFriends(){
+    if(!requireAuth('friends')) return;
     friendsListArea.innerHTML = `<div class="dash-empty">${t('teachersLoading')}</div>`;
     friendsIncomingArea.innerHTML = '';
     if(!SHEET_API_URL){ friendsListArea.innerHTML = `<div class="dash-empty">${t('lpSeedNoBackend')}</div>`; return; }
