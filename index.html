@@ -671,6 +671,15 @@
   .abacus-target{ text-align:center; font-size:15px; font-weight:700; margin-bottom:10px; }
   .abacus-target b{ color:var(--yellow); font-size:22px; }
 
+  .ab-path-strategy{
+    font-family:'Cairo',sans-serif; font-weight:700; font-size:13px; color:var(--mint);
+    background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.3);
+    border-radius:8px; padding:6px 12px; margin-bottom:9px; text-align:center;
+  }
+  .ab-path-strategy.unknown{ color:var(--ink-dim); background:var(--bg); border-color:var(--chip-border); font-weight:600; }
+  .ab-path-row{ display:flex; justify-content:space-between; font-size:12px; padding:3px 2px; color:var(--ink-dim); }
+  .ab-path-row b{ color:var(--ink); }
+
   /* class management (teacher) + my classes (student) */
   .class-card{
     background:var(--input-bg); border:1.5px solid var(--input-border); border-radius:12px; padding:12px 14px; margin-bottom:10px;
@@ -2198,8 +2207,10 @@
       <button class="secondary-btn" id="abacusCheckBtn" data-i18n="submitBtn" style="flex:none;">تحقق</button>
     </div>
     <div class="feedback" id="abacusFeedback"></div>
+    <div class="strategy-box hidden" id="abacusPathBox"></div>
     <div class="editor-actions" style="margin-top:10px;">
       <button class="secondary-btn" id="abacusResetBtn" data-i18n="abacusResetBtn">🔄 صفّري الأباكوس</button>
+      <button class="secondary-btn" id="abacusUndoBtn" data-i18n="abacusUndoBtn">↶ تراجع</button>
       <button class="secondary-btn" id="abacusNewBtn" data-i18n="abacusNewBtn">🎲 رقم جديد</button>
     </div>
     <button class="secondary-btn" id="abacusCloseBtn" data-i18n="closeBtn" style="margin-top:8px;">إغلاق</button>
@@ -3313,6 +3324,8 @@
   const abacusCheckBtn = document.getElementById('abacusCheckBtn');
   const abacusFeedback = document.getElementById('abacusFeedback');
   const abacusResetBtn = document.getElementById('abacusResetBtn');
+  const abacusUndoBtn = document.getElementById('abacusUndoBtn');
+  const abPathBox = document.getElementById('abacusPathBox');
   const abacusNewBtn = document.getElementById('abacusNewBtn');
   const abacusCloseBtn = document.getElementById('abacusCloseBtn');
   const knowledgeMapOpenBtn = document.getElementById('knowledgeMapOpenBtn');
@@ -3599,6 +3612,7 @@
       reviewStats: { c:0, t:0 },   // recall: how review items actually went
       recentByBucket: {},          // rolling window of recent attempts per operation
       knowledgeQueue: [],          // spaced retrieval for the nine programs, not just math
+      abacusLog: [],               // compressed solution-path summaries, bounded at 40
       twinSessions: [],            // recorded sessions, replayable as an opponent
       cogSnapshots: [],            // weekly indicator snapshots, for trajectory
       sessionLog: [], // rolling log for the weekly report: { date, score, accuracy, questionCount, operation }
@@ -3637,6 +3651,7 @@
       reviewStats: p.reviewStats || { c:0, t:0 },
       recentByBucket: p.recentByBucket || {},
       knowledgeQueue: p.knowledgeQueue || [],
+      abacusLog: p.abacusLog || [],
       twinSessions: p.twinSessions || [],
       cogSnapshots: p.cogSnapshots || [],
       sessionLog: p.sessionLog || [],
@@ -4256,6 +4271,22 @@
       aiPracticeLoading:'جارٍ توليد تمرين ذكي...', aiPracticeFailed:'تعذّر توليد التمرين الذكي — تم استخدام التمرين العادي بدلًا منه.',
       abacusOpenBtn:'🧮 مدرّب الأباكوس (Abacus)', abacusTitle:'🧮 مدرّب الأباكوس',
       abacusModeFree:'تدريب حر', abacusModeRead:'اقرئي الرقم', abacusModeSet:'مثّلي الرقم',
+      abacusUndoBtn:'↶ تراجع',
+      abacusBeadHeavenAria:'خرزة السماء في العمود {c}', abacusBeadEarthAria:'خرزة الأرض في العمود {c}',
+      abEvidencePending:'الأباكوس: {n} من {need} محاولات — نحتاج المزيد قبل عرض أي ملاحظة',
+      abObsTrial:'في الأباكوس، {n}% من حلولك بالمحاولة والخطأ — التخطيط قبل أول حركة سيوفّر عليك وقتًا',
+      abObsDirect:'في الأباكوس، {n}% من حلولك مباشرة ومنظّمة — أساس ممتاز للانتقال للحساب الذهني',
+      abObsPlanner:'تفكّرين {t} ثانية قبل أول حركة ثم تحلّين بدقة — أسلوب المخطِّط، وهو أسلوب جيد',
+      abObsSelfFix:'تصحّحين نفسك {n} مرة في المتوسط وتصلين للصواب — مراجعة ذاتية قوية',
+      abObsUnclear:'حركاتك على الأباكوس سريعة جدًا لتصنيف طريقة الحل — جرّبي التمهّل قليلًا',
+      abPathTitle:'تحليل طريقة حلّك', abPathTime:'زمن الحل', abPathThink:'زمن التفكير قبل أول حركة',
+      abPathMoves:'عدد الحركات', abPathCorrections:'تصحيحات أثناء الحل', abPathPauses:'توقفات · أطولها',
+      abStratDirect:'حلّ مباشر ومنظّم — من اليمين لليسار بلا تردد',
+      abStratCarryPattern:'استخدمتِ الحمل بين المنازل',
+      abStratSelfCorrected:'صحّحتِ نفسك بنفسك قرب النهاية — مهارة مهمة',
+      abStratTrialAndError:'محاولة وخطأ — جرّبي التفكير في العدد كاملًا قبل تحريك أول خرزة',
+      abStratLeftToRight:'حللتِ من اليسار لليمين — جرّبي البدء من الآحاد',
+      abStratUnclassified:'الحركات المسجَّلة غير كافية لتصنيف طريقة الحل',
       abacusSetTargetPrefix:'مثّلي الرقم:', abacusResetBtn:'🔄 صفّري الأباكوس', abacusNewBtn:'🎲 رقم جديد',
       teacherClassesBtn:'🏫 إدارة فصولي', classManageTitle:'🏫 إدارة الفصول',
       classManageNote:'البث المباشر لمجموعة كبيرة غير متاح حاليًا (يحتاج خادم فيديو متخصص) — لكن يمكنك تنظيم الفصول، إضافة التلاميذ، وتحديد واجب مخصّص لكل فصل يظهر لهم فور تسجيل الدخول.',
@@ -4406,6 +4437,10 @@
       cmdStartMission:'ابدأ تدريب اليوم',
       explainBtn:'اشرحلي',
       explainFailed:'حاول مرة أخرى',
+      abStratTrialAndError:'محاولة وخطأ — جرّب التفكير في العدد كاملًا قبل تحريك أول خرزة',
+      abStratLeftToRight:'حللت من اليسار لليمين — جرّب البدء من الآحاد',
+      abStratSelfCorrected:'صحّحت نفسك بنفسك قرب النهاية — مهارة مهمة',
+      abPathTitle:'تحليل طريقة حلّك',
       abacusModeRead:'اقرأ الرقم',
       abacusModeSet:'مثّل الرقم',
       abacusSetTargetPrefix:'مثّل الرقم:',
@@ -4800,6 +4835,22 @@
       aiPracticeLoading:'Generating a smart practice set...', aiPracticeFailed:'Could not generate the AI practice set — using the regular practice instead.',
       abacusOpenBtn:'🧮 Abacus Trainer', abacusTitle:'🧮 Abacus Trainer',
       abacusModeFree:'Free practice', abacusModeRead:'Read the number', abacusModeSet:'Set the number',
+      abacusUndoBtn:'↶ Undo',
+      abacusBeadHeavenAria:'Heaven bead on column {c}', abacusBeadEarthAria:'Earth bead on column {c}',
+      abEvidencePending:'Abacus: {n} of {need} attempts — more are needed before any observation',
+      abObsTrial:'On the abacus, {n}% of your solutions are trial and error — planning before the first move will save you time',
+      abObsDirect:'On the abacus, {n}% of your solutions are direct and orderly — a strong base for moving to mental math',
+      abObsPlanner:'You think for {t}s before the first move, then solve accurately — a planner style, and a good one',
+      abObsSelfFix:'You correct yourself {n} times on average and still reach the right answer — strong self-checking',
+      abObsUnclear:'Your abacus moves are too fast to classify how you solve — try slowing down slightly',
+      abPathTitle:'How you solved it', abPathTime:'Solve time', abPathThink:'Thinking time before first move',
+      abPathMoves:'Moves', abPathCorrections:'Corrections while solving', abPathPauses:'Pauses · longest',
+      abStratDirect:'Direct and orderly — right to left with no hesitation',
+      abStratCarryPattern:'You carried between place values',
+      abStratSelfCorrected:'You caught and fixed your own slip near the end — a real skill',
+      abStratTrialAndError:'Trial and error — try picturing the whole number before moving the first bead',
+      abStratLeftToRight:'You solved left to right — try starting from the units',
+      abStratUnclassified:'The recorded moves are not enough to classify how you solved it',
       abacusSetTargetPrefix:'Set the number:', abacusResetBtn:'🔄 Reset abacus', abacusNewBtn:'🎲 New number',
       teacherClassesBtn:'🏫 Manage my classes', classManageTitle:'🏫 Class Management',
       classManageNote:'Live broadcast to a large group is not available yet (needs a dedicated video server) — but you can organize classes, add students, and set a custom assignment for each class that shows up as soon as they log in.',
@@ -11052,6 +11103,57 @@
   }
 
 
+  /* ---------- ABACUS EVIDENCE FOR SYNAPSE ----------
+     Turns the compressed solution-path log into observations. Every one is
+     gated on a minimum sample; below it, nothing is claimed. */
+  const ABACUS_MIN_SAMPLE = 6;
+
+  function abacusEvidence(prof){
+    const log = (prof && prof.abacusLog) || [];
+    if(log.length < ABACUS_MIN_SAMPLE) return { enough:false, count: log.length, need: ABACUS_MIN_SAMPLE };
+    const recent = log.slice(-20);
+    const classified = recent.filter(x => x.strategy && x.strategy.id !== 'unclassified');
+    const counts = {};
+    classified.forEach(function(x){ counts[x.strategy.id] = (counts[x.strategy.id] || 0) + 1; });
+    let topId = null, topN = 0;
+    Object.keys(counts).forEach(function(k){ if(counts[k] > topN){ topN = counts[k]; topId = k; } });
+
+    const solved = recent.filter(x => x.solveTimeMs > 0);
+    const avgSolve = solved.length ? Math.round(solved.reduce((a,b)=>a+b.solveTimeMs,0) / solved.length) : null;
+    const thinkers = recent.filter(x => x.firstInteractionMs !== null);
+    const avgThink = thinkers.length ? Math.round(thinkers.reduce((a,b)=>a+b.firstInteractionMs,0) / thinkers.length) : null;
+    const avgCorrections = Math.round((recent.reduce((a,b)=>a+(b.correctionCount||0),0) / recent.length) * 10) / 10;
+    const accuracy = Math.round((recent.filter(x=>x.finalCorrect).length / recent.length) * 100);
+
+    return {
+      enough: true, count: log.length, sample: recent.length,
+      dominantStrategy: (topId && topN >= 3) ? { id: topId, share: Math.round((topN / classified.length) * 100) } : null,
+      unclassifiedShare: Math.round(((recent.length - classified.length) / recent.length) * 100),
+      avgSolveMs: avgSolve, avgThinkMs: avgThink, avgCorrections: avgCorrections, accuracy: accuracy
+    };
+  }
+  function abacusObservations(prof){
+    const e = abacusEvidence(prof);
+    if(!e.enough) return { pending: fmt('abEvidencePending', { n: e.count, need: e.need }), items: [] };
+    const out = [];
+    if(e.dominantStrategy && e.dominantStrategy.id === 'trialAndError' && e.dominantStrategy.share >= 40){
+      out.push({ ic: nxIcon('alertTriangle'), text: fmt('abObsTrial', { n: e.dominantStrategy.share }) });
+    }
+    if(e.dominantStrategy && e.dominantStrategy.id === 'direct' && e.dominantStrategy.share >= 60){
+      out.push({ ic: nxIcon('check'), text: fmt('abObsDirect', { n: e.dominantStrategy.share }) });
+    }
+    if(e.avgThinkMs !== null && e.avgSolveMs !== null && e.avgThinkMs > e.avgSolveMs * 0.45 && e.accuracy >= 75){
+      out.push({ ic: nxIcon('clock'), text: fmt('abObsPlanner', { t: (e.avgThinkMs/1000).toFixed(1) }) });
+    }
+    if(e.avgCorrections >= 2 && e.accuracy >= 70){
+      out.push({ ic: nxIcon('refresh'), text: fmt('abObsSelfFix', { n: e.avgCorrections }) });
+    }
+    if(e.unclassifiedShare >= 60){
+      out.push({ ic: nxIcon('lightbulb'), text: t('abObsUnclear') });
+    }
+    return { pending: null, items: out, evidence: e };
+  }
+
   /* ---------- SYNAPSE UI ---------- */
   function renderSynapseRadar(metrics){
     const measured = metrics.filter(m => m.value !== null);
@@ -11208,6 +11310,10 @@
       if(spd >= 75 && acc <= 65) out.push({ ic: nxIcon('alertTriangle'), text: t('cogInsightFastLoose') });
       else if(spd <= 45 && acc >= 80) out.push({ ic: nxIcon('check'), text: t('cogInsightSlowSure') });
     }
+
+    // Abacus evidence joins the same insight stream, so Synapse reflects the
+    // whole platform rather than mental math alone.
+    abacusObservations(prof).items.forEach(function(o){ out.push(o); });
 
     synInsights.innerHTML = out.length
       ? out.map(o => `<div class="syn-insight"><span class="syn-ic">${o.ic}</span><span>${o.text}</span></div>`).join('')
@@ -11484,6 +11590,7 @@
       reviewQueue: prof.reviewQueue || [],
       reviewStats: prof.reviewStats || { c:0, t:0 },
       knowledgeQueue: prof.knowledgeQueue || [],
+      abacusLog: prof.abacusLog || [],
       cogSnapshots: prof.cogSnapshots || [],
       twinSessions: prof.twinSessions || [],
       errorTypeCounts: prof.errorTypeCounts || {},
@@ -11509,6 +11616,7 @@
     prof.reviewQueue = state.reviewQueue || [];
     prof.reviewStats = state.reviewStats || { c:0, t:0 };
     prof.knowledgeQueue = state.knowledgeQueue || [];
+    prof.abacusLog = state.abacusLog || [];
     prof.cogSnapshots = state.cogSnapshots || [];
     prof.twinSessions = state.twinSessions || [];
     prof.errorTypeCounts = state.errorTypeCounts || {};
@@ -11526,7 +11634,7 @@
     // Trim history before schedules, and oldest before newest. Twin
     // recordings are by far the largest objects, so they give way first.
     const HISTORY = [
-      { field:'twinSessions', min:1 }, { field:'sessionLog', min:5 },
+      { field:'twinSessions', min:1 }, { field:'abacusLog', min:5 }, { field:'sessionLog', min:5 },
       { field:'recentMistakes', min:3 }, { field:'certificatesIssued', min:3 },
       { field:'cogSnapshots', min:4 }
     ];
@@ -14437,6 +14545,141 @@
      (worth 1 each, active when pushed UP toward the bar). Rods run
      left-to-right, most significant to least significant, regardless
      of page text direction — numerals are always written LTR. */
+  /* ==================== MODULE: ABACUS INTERACTION TRACKING ====================
+     Every bead move becomes a learning signal instead of a UI event.
+
+     Raw events live in memory for the duration of ONE question and are then
+     compressed into a fixed-size summary; the raw trail is discarded. This is
+     deliberate: a 20-question session produces roughly 300 moves, and storing
+     those raw would overflow the 45,000-character learner-state document
+     within days and break the sync layer. The summary is ~15 numbers.
+
+     Nothing here is inferred beyond what the events actually show. */
+  const ABACUS_PAUSE_MS = 2500;      // a gap this long counts as real hesitation
+  const ABACUS_MAX_RAW_EVENTS = 400; // hard ceiling; a stuck input can never grow unbounded
+
+  let abSession = null;   // the question currently being solved
+  let abHistory = [];     // undo stack of rod snapshots
+
+  function abStartQuestion(meta){
+    abSession = {
+      startedAt: performance.now(),
+      firstInteractionMs: null,
+      lastEventAt: null,
+      events: [],
+      corrections: 0,
+      pauses: 0,
+      longestPauseMs: 0,
+      columnsUsed: {},
+      concept: meta && meta.concept || null,
+      target: meta && meta.target,
+      mode: meta && meta.mode || null,
+      truncated: false
+    };
+    abHistory = [];
+  }
+  function abRecordMove(rodIdx, type, from, to){
+    if(!abSession) return;
+    const now = performance.now();
+    const sinceStart = now - abSession.startedAt;
+    if(abSession.firstInteractionMs === null) abSession.firstInteractionMs = Math.round(sinceStart);
+    if(abSession.lastEventAt !== null){
+      const gap = now - abSession.lastEventAt;
+      if(gap >= ABACUS_PAUSE_MS){
+        abSession.pauses++;
+        if(gap > abSession.longestPauseMs) abSession.longestPauseMs = Math.round(gap);
+      }
+    }
+    abSession.lastEventAt = now;
+    abSession.columnsUsed[rodIdx] = (abSession.columnsUsed[rodIdx] || 0) + 1;
+    // A move that reduces a rod's value is a correction — the learner is
+    // undoing something they just placed, not building toward the answer.
+    if(to < from) abSession.corrections++;
+    if(abSession.events.length < ABACUS_MAX_RAW_EVENTS){
+      abSession.events.push({ t: Math.round(sinceStart), rod: rodIdx, k: type === 'heaven' ? 'h' : 'e', from: from, to: to });
+    } else {
+      abSession.truncated = true;
+    }
+  }
+  // Compresses one solved question into a fixed-size, analysable record.
+  function abSummarise(finalCorrect, finalValue){
+    if(!abSession) return null;
+    const solveTimeMs = Math.round(performance.now() - abSession.startedAt);
+    const cols = Object.keys(abSession.columnsUsed).map(Number).sort((a,b)=>a-b);
+    return {
+      concept: abSession.concept,
+      mode: abSession.mode,
+      target: abSession.target,
+      finalValue: finalValue,
+      finalCorrect: !!finalCorrect,
+      firstInteractionMs: abSession.firstInteractionMs,
+      solveTimeMs: solveTimeMs,
+      moveCount: abSession.events.length + (abSession.truncated ? ABACUS_MAX_RAW_EVENTS : 0),
+      correctionCount: abSession.corrections,
+      pauseCount: abSession.pauses,
+      longestPauseMs: abSession.longestPauseMs,
+      columnsUsed: cols,
+      columnOrder: abColumnOrder(abSession.events),
+      strategy: abClassifyStrategy(abSession, finalCorrect),
+      at: new Date().toISOString()
+    };
+  }
+  // The order columns were first touched in — the raw material for strategy
+  // classification (right-to-left is standard; left-to-right is not).
+  function abColumnOrder(events){
+    const seen = [];
+    events.forEach(function(e){ if(seen.indexOf(e.rod) === -1) seen.push(e.rod); });
+    return seen;
+  }
+
+  /* ---------- SOLUTION PATH CLASSIFICATION ----------
+     Returns a label ONLY when the events support it. When they do not, it
+     returns 'unclassified' and the UI says so plainly, because inventing a
+     strategy the learner did not demonstrate is worse than saying nothing. */
+  function abClassifyStrategy(sess, finalCorrect){
+    const ev = sess.events;
+    if(sess.truncated) return { id:'unclassified', reason:'truncated' };
+    if(ev.length === 0) return { id:'unclassified', reason:'no_moves' };
+    if(ev.length < 2) return { id:'unclassified', reason:'too_few_moves' };
+
+    const order = abColumnOrder(ev);
+    const corrections = sess.corrections;
+    const netMoves = ev.length;
+
+    // Repeated undoing with no settled direction — the events show trial and
+    // error, which is a real, nameable pattern.
+    if(corrections >= 3 && corrections / netMoves >= 0.4){
+      return { id:'trialAndError', reason:'high_correction_ratio', corrections: corrections };
+    }
+    // A single late correction after an otherwise clean run.
+    if(corrections === 1 && netMoves >= 4){
+      const lastQuarter = ev.slice(Math.floor(ev.length * 0.75));
+      if(lastQuarter.some(e => e.to < e.from)) return { id:'selfCorrected', reason:'late_single_correction' };
+    }
+    // Clean, no corrections, columns touched once each, right to left.
+    const descending = order.every((c, i)=> i === 0 || c < order[i-1]);
+    const touchedOnce = order.length === Object.keys(sess.columnsUsed).length;
+    if(corrections === 0 && touchedOnce && descending && finalCorrect){
+      return { id:'direct', reason:'clean_right_to_left' };
+    }
+    if(corrections === 0 && finalCorrect && order.length > 1){
+      // Correct and clean, but the column order was not the standard one.
+      const ascending = order.every((c, i)=> i === 0 || c > order[i-1]);
+      if(ascending) return { id:'leftToRight', reason:'clean_left_to_right' };
+    }
+    // Revisiting a column after moving on is the observable signature of
+    // carrying between places.
+    const revisited = order.some(function(c){
+      const idxs = [];
+      ev.forEach(function(e, i){ if(e.rod === c) idxs.push(i); });
+      return idxs.length > 1 && (idxs[idxs.length-1] - idxs[0]) > idxs.length;
+    });
+    if(revisited && finalCorrect) return { id:'carryPattern', reason:'column_revisited' };
+
+    return { id:'unclassified', reason:'no_clear_pattern' };
+  }
+  /* ==================== END MODULE: ABACUS INTERACTION TRACKING ==================== */
+
   const ABACUS_ROD_COUNT = 5; // supports values 0–99999
   let abacusRods = [];
   let abacusMode = 'free'; // 'free' | 'read' | 'set'
@@ -14458,15 +14701,33 @@
     const digits = String(Math.max(0, Math.floor(num))).padStart(n, '0').slice(-n).split('').map(Number);
     return digits.map(d => ({ heaven: d >= 5, earth: d >= 5 ? d - 5 : d }));
   }
+  function abSnapshot(){
+    return abacusRods.map(r => ({ heaven: r.heaven, earth: r.earth }));
+  }
+  function abPushHistory(){
+    abHistory.push(abSnapshot());
+    if(abHistory.length > 60) abHistory.shift();
+  }
+  function abUndo(){
+    if(!abHistory.length) return;
+    abacusRods = abHistory.pop();
+    renderAbacus();
+  }
   function toggleHeavenBead(rodIdx){
     if(abacusMode === 'read') return; // fixed display in read mode — not interactive
+    const before = abacusRods[rodIdx].heaven ? 5 : 0;
+    abPushHistory();
     abacusRods[rodIdx].heaven = !abacusRods[rodIdx].heaven;
+    abRecordMove(rodIdx, 'heaven', before, abacusRods[rodIdx].heaven ? 5 : 0);
     renderAbacus();
   }
   function toggleEarthBead(rodIdx, beadIdx){
     if(abacusMode === 'read') return;
     const rod = abacusRods[rodIdx];
+    const before = rod.earth;
+    abPushHistory();
     rod.earth = (beadIdx < rod.earth) ? beadIdx : beadIdx + 1;
+    abRecordMove(rodIdx, 'earth', before, rod.earth);
     renderAbacus();
   }
 
@@ -14494,10 +14755,21 @@
     abacusSvgWrap.innerHTML = svg;
 
     abacusSvgWrap.querySelectorAll('.abacus-bead').forEach(el=>{
-      el.addEventListener('click', ()=>{
-        const rodIdx = parseInt(el.dataset.rod, 10);
-        if(el.dataset.type === 'heaven') toggleHeavenBead(rodIdx);
-        else toggleEarthBead(rodIdx, parseInt(el.dataset.idx, 10));
+      const rodIdx = parseInt(el.dataset.rod, 10);
+      const isHeaven = el.dataset.type === 'heaven';
+      const act = ()=>{ if(isHeaven) toggleHeavenBead(rodIdx); else toggleEarthBead(rodIdx, parseInt(el.dataset.idx, 10)); };
+      // pointerdown covers mouse, touch and stylus in one path, and fires on
+      // contact rather than on release — an abacus should respond the instant
+      // the bead is pressed, which click alone does not do on a tablet.
+      el.addEventListener('pointerdown', function(ev){ ev.preventDefault(); act(); });
+      el.addEventListener('click', function(ev){ ev.preventDefault(); }); // suppress the synthetic follow-up
+      // Keyboard reachability: the beads were <ellipse> elements with no role
+      // and no tab stop, so the abacus could not be operated without a mouse.
+      el.setAttribute('tabindex', '0');
+      el.setAttribute('role', 'button');
+      el.setAttribute('aria-label', fmt(isHeaven ? 'abacusBeadHeavenAria' : 'abacusBeadEarthAria', { c: rodIdx + 1 }));
+      el.addEventListener('keydown', function(ev){
+        if(ev.key === 'Enter' || ev.key === ' '){ ev.preventDefault(); act(); }
       });
     });
 
@@ -14507,11 +14779,12 @@
     } else {
       abacusValueDisplay.textContent = value;
     }
-    if(abacusMode === 'set' && value === abacusTargetValue){
+    if(abacusMode === 'set' && value === abacusTargetValue && abSession){
       abacusFeedback.textContent = t('correctFeedback');
       abacusFeedback.className = 'feedback correct';
-      recordAbacusResult(true);
-      setTimeout(()=> switchAbacusMode('set'), 1200);
+      const summary = recordAbacusResult(true, value);
+      renderAbacusPath(summary);
+      setTimeout(()=> switchAbacusMode('set'), 2600);
     }
   }
 
@@ -14532,6 +14805,7 @@
       abacusReadInput.value = '';
       abacusTargetValue = randInt(0, Math.pow(10, ABACUS_ROD_COUNT) - 1);
       abacusRods = rodsFromNumber(abacusTargetValue, ABACUS_ROD_COUNT);
+      abStartQuestion({ concept: 'abacus:read', target: abacusTargetValue, mode: 'read' });
     } else if(mode === 'set'){
       abacusModeSet.classList.add('active');
       abacusReadInputRow.classList.add('hidden');
@@ -14539,7 +14813,9 @@
       abacusTargetLine.innerHTML = `${t('abacusSetTargetPrefix')} <b>${abacusTargetValue}</b>`;
       abacusTargetLine.classList.remove('hidden');
       abacusRods = freshAbacusRods(ABACUS_ROD_COUNT);
+      abStartQuestion({ concept: 'abacus:set', target: abacusTargetValue, mode: 'set' });
     }
+    abPathBox.classList.add('hidden');
     renderAbacus();
   }
 
@@ -14572,21 +14848,90 @@
   });
   abacusNewBtn.addEventListener('click', ()=> switchAbacusMode(abacusMode === 'free' ? 'free' : abacusMode));
 
-  function recordAbacusResult(correct){
+  /* The abacus used to write two counters and nothing else — it was isolated
+     from every learning engine in the platform. It now feeds the same
+     machinery mental math does: timed mastery, scheduled review, error
+     patterns, and the learner state that syncs across devices. */
+  function recordAbacusResult(correct, finalValue){
     const p = PROFILES[currentProfile];
-    if(!p || !p.opStats.abacus) return;
+    if(!p) return null;
+    const summary = abSummarise(correct, finalValue);
+    abSession = null;
+
+    if(!p.opStats.abacus) p.opStats.abacus = { c:0, t:0, time:0 };
     p.opStats.abacus.t++;
     if(correct) p.opStats.abacus.c++;
+    // Real elapsed seconds, so abacus work counts toward speed and mastery
+    // exactly like every other operation. Previously no time was recorded at
+    // all, which meant abacus mastery was accuracy-only.
+    const secs = summary ? Math.min(600, summary.solveTimeMs / 1000) : 0;
+    p.opStats.abacus.time += secs;
+
+    // Rolling window -> mastery can rise AND decay, same as every other skill.
+    if(!p.recentByBucket) p.recentByBucket = {};
+    if(!p.recentByBucket.abacus) p.recentByBucket.abacus = [];
+    p.recentByBucket.abacus.push({ ok: !!correct, s: Math.round(secs * 10) / 10, d: Date.now() });
+    if(p.recentByBucket.abacus.length > MASTERY_WINDOW) p.recentByBucket.abacus.shift();
+
+    // A missed number is a concept to revisit, not just a failed attempt.
+    if(!correct && summary && summary.target !== undefined && summary.target !== null){
+      scheduleForReview(p, 'abacus:' + summary.target, summary.target, 'int', 'abacus', 'abacus');
+      // Classify the error the same way mental math does, so the dominant
+      // error pattern is computed across the whole platform, not per tool.
+      const errorType = classifyMistake(finalValue, summary.target, 'int');
+      if(!p.errorTypeCounts) p.errorTypeCounts = {};
+      p.errorTypeCounts[errorType] = (p.errorTypeCounts[errorType] || 0) + 1;
+      if(!p.recentMistakes) p.recentMistakes = [];
+      p.recentMistakes.push({ text: 'أباكوس: ' + summary.target, correct: String(summary.target), date: new Date().toISOString(), errorType: errorType });
+      if(p.recentMistakes.length > 20) p.recentMistakes.shift();
+    }
+
+    // Bounded log of solution-path summaries — the evidence behind every
+    // insight shown later. Fixed size, so it can never grow the synced state.
+    if(summary){
+      if(!p.abacusLog) p.abacusLog = [];
+      p.abacusLog.push(summary);
+      if(p.abacusLog.length > 40) p.abacusLog.shift();
+    }
+
+    incrementDailyGoalProgress(p);
+    learnerStateDirty = true;
     saveProfilesToStorage();
+    return summary;
   }
   abacusCheckBtn.addEventListener('click', ()=>{
+    if(!abSession) return; // already answered — a second click must not double-count
     const entered = parseInt(abacusReadInput.value, 10);
     const correct = entered === abacusTargetValue;
     abacusFeedback.textContent = correct ? t('correctFeedback') : fmt('wrongFeedback', { ans: abacusTargetValue });
     abacusFeedback.className = 'feedback ' + (correct ? 'correct' : 'wrong');
-    recordAbacusResult(correct);
-    if(correct) setTimeout(()=> switchAbacusMode('read'), 1200);
+    const summary = recordAbacusResult(correct, isNaN(entered) ? null : entered);
+    renderAbacusPath(summary);
+    if(correct) setTimeout(()=> switchAbacusMode('read'), 2600);
   });
+  abacusUndoBtn.addEventListener('click', abUndo);
+
+  /* Shows what the events actually recorded. When the moves do not support a
+     classification it says exactly that, rather than naming a strategy the
+     learner never demonstrated. */
+  function renderAbacusPath(summary){
+    if(!summary){ abPathBox.classList.add('hidden'); return; }
+    const rows = [];
+    if(summary.solveTimeMs) rows.push([t('abPathTime'), (summary.solveTimeMs/1000).toFixed(1) + t('secLabel')]);
+    if(summary.firstInteractionMs !== null) rows.push([t('abPathThink'), (summary.firstInteractionMs/1000).toFixed(1) + t('secLabel')]);
+    rows.push([t('abPathMoves'), summary.moveCount]);
+    if(summary.correctionCount) rows.push([t('abPathCorrections'), summary.correctionCount]);
+    if(summary.pauseCount) rows.push([t('abPathPauses'), summary.pauseCount + ' · ' + (summary.longestPauseMs/1000).toFixed(1) + t('secLabel')]);
+
+    const st = summary.strategy || { id:'unclassified' };
+    const known = ['direct','carryPattern','selfCorrected','trialAndError','leftToRight'].indexOf(st.id) > -1;
+    const label = known ? t('abStrat' + capitalize(st.id)) : t('abStratUnclassified');
+    abPathBox.innerHTML =
+      `<div class="strategy-title">${nxIcon('target')} ${t('abPathTitle')}</div>` +
+      `<div class="ab-path-strategy${known ? '' : ' unknown'}">${label}</div>` +
+      rows.map(function(r){ return `<div class="ab-path-row"><span>${r[0]}</span><b>${r[1]}</b></div>`; }).join('');
+    abPathBox.classList.remove('hidden');
+  }
 
   function postRaceProgress(done, left){
     if(!raceMode || !raceCode) return;
