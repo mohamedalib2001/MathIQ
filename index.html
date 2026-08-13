@@ -2049,6 +2049,7 @@
       <div class="admin-tool-tile" id="addTeacherLink"><span class="tile-icon">➕</span><span data-i18n="addTeacherLink">إضافة حساب معلم</span></div>
       <div class="admin-tool-tile" id="teachersListLink"><span class="tile-icon">👥</span><span data-i18n="teachersListLink">المعلّمون</span></div>
       <div class="admin-tool-tile" id="guardianAuditLink"><span class="tile-icon">🔍</span><span data-i18n="guardianAuditLink">فحص حسابات أولياء الأمور</span></div>
+      <div class="admin-tool-tile" id="mailDiagLink"><span class="tile-icon">✉️</span><span data-i18n="mailDiagLink">تشخيص إرسال البريد</span></div>
       <div class="admin-tool-tile" id="connectionLink"><span class="tile-icon">🔗</span><span data-i18n="connectionLink">ربط جوجل شيت</span></div>
       <div class="admin-tool-tile" id="subscriptionLink"><span class="tile-icon">💳</span><span data-i18n="subscriptionLink">الاشتراك والتفعيل</span></div>
       <div class="admin-tool-tile" id="serviceActivationLink"><span class="tile-icon">🧩</span><span data-i18n="serviceActivationLink">تفعيل الخدمات</span></div>
@@ -2080,6 +2081,18 @@
        ClassAssignments system, not a parallel one), with per-assignment cost. -->
   <!-- Guardian audit — shows exactly what is stored, so a parent link that
        silently fails can be seen instead of guessed at. -->
+  <!-- Mail diagnostics: user-facing responses are deliberately generic to
+       prevent account enumeration, which also hid real delivery failures.
+       This is where the owner sees what actually happened. -->
+  <div id="mailDiagScreen" class="panel hidden">
+    <div class="group-label" style="text-align:center;" data-i18n="mailDiagTitle">✉️ تشخيص إرسال البريد</div>
+    <div class="conn-note" data-i18n="mailDiagHint">أدخلي اسم مستخدم للتحقق من وجود بريد مسجّل له (اختياري).</div>
+    <input type="text" id="mailDiagUser" placeholder="username" class="ltr-input">
+    <button class="start-btn" id="mailDiagRunBtn" data-i18n="mailDiagRunBtn">تشغيل الفحص</button>
+    <div id="mailDiagArea"></div>
+    <button class="secondary-btn" id="mailDiagBackBtn" data-i18n="closeBtn">إغلاق</button>
+  </div>
+
   <div id="guardianAuditScreen" class="panel hidden">
     <div class="group-label" style="text-align:center;" data-i18n="guardianAuditTitle">🔍 فحص حسابات أولياء الأمور</div>
     <div id="guardianAuditArea"></div>
@@ -3156,6 +3169,12 @@
   const dashboardLink = document.getElementById('dashboardLink');
   const programBuilderLink = document.getElementById('programBuilderLink');
   const teachersListLink = document.getElementById('teachersListLink');
+  const mailDiagLink = document.getElementById('mailDiagLink');
+  const mailDiagScreen = document.getElementById('mailDiagScreen');
+  const mailDiagUser = document.getElementById('mailDiagUser');
+  const mailDiagRunBtn = document.getElementById('mailDiagRunBtn');
+  const mailDiagArea = document.getElementById('mailDiagArea');
+  const mailDiagBackBtn = document.getElementById('mailDiagBackBtn');
   const guardianAuditLink = document.getElementById('guardianAuditLink');
   const guardianAuditScreen = document.getElementById('guardianAuditScreen');
   const guardianAuditArea = document.getElementById('guardianAuditArea');
@@ -4226,6 +4245,16 @@
       removeGuardianLink:'🗑️ إزالة الحساب', guardianUsernameTaken:'اسم المستخدم هذا مستخدم بالفعل',
       guardianPinRequired:'اكتبي كلمة مرور لحساب ولي الأمر — بدونها لن يستطيع تسجيل الدخول.',
       guardianNoPinWarn:'⚠️ هذا الحساب محفوظ بدون كلمة مرور ولا يمكنه تسجيل الدخول. اكتبي كلمة مرور هنا واحفظي.',
+      mailDiagLink:'تشخيص إرسال البريد', mailDiagTitle:'✉️ تشخيص إرسال البريد',
+      mailDiagHint:'أدخلي اسم مستخدم للتحقق من وجود بريد مسجّل له (اختياري).',
+      mailDiagRunBtn:'تشغيل الفحص', mailDiagNoApi:'لا يوجد اتصال بالخادم.',
+      mailDiagScope:'صلاحية إرسال البريد', mailDiagScopeOk:'مفعّلة',
+      mailDiagScopeMissing:'غير مفعّلة — لن يُرسل أي بريد',
+      mailDiagQuota:'الرسائل المتبقية اليوم', mailDiagSender:'الحساب المُرسِل',
+      mailDiagUserEmail:'بريد المستخدم', mailDiagNoEmail:'لا يوجد بريد مسجّل لهذا الحساب',
+      mailDiagNoUser:'اسم المستخدم غير موجود',
+      mailDiagRecent:'آخر محاولات الإرسال', mailDiagNoLog:'لا توجد محاولات مسجّلة بعد',
+      mailDiagFixHint:'الحل: افتحي محرر Apps Script، شغّلي الدالة grantMailPermission مرة واحدة، ووافقي على الصلاحيات. بدونها لن يصل أي كود إلى البريد.',
       guardianAuditLink:'فحص حسابات أولياء الأمور', guardianAuditTitle:'🔍 فحص حسابات أولياء الأمور',
       guardianAuditNone:'لا توجد حسابات أولياء أمور مسجَّلة بعد.',
       guardianAuditUsername:'اسم المستخدم', guardianAuditPinId:'بصمة كلمة المرور',
@@ -4882,6 +4911,16 @@
       removeGuardianLink:'🗑️ Remove account', guardianUsernameTaken:'That username is already taken',
       guardianPinRequired:'Set a password for the guardian account — without one it cannot sign in.',
       guardianNoPinWarn:'⚠️ This account was saved without a password and cannot sign in. Type a password here and save.',
+      mailDiagLink:'Mail delivery diagnostics', mailDiagTitle:'✉️ Mail delivery diagnostics',
+      mailDiagHint:'Enter a username to check whether an address is on file (optional).',
+      mailDiagRunBtn:'Run check', mailDiagNoApi:'No server connection.',
+      mailDiagScope:'Send-mail permission', mailDiagScopeOk:'granted',
+      mailDiagScopeMissing:'not granted — no email will ever send',
+      mailDiagQuota:'Messages left today', mailDiagSender:'Sending account',
+      mailDiagUserEmail:'User email', mailDiagNoEmail:'no address on file for this account',
+      mailDiagNoUser:'username not found',
+      mailDiagRecent:'Recent send attempts', mailDiagNoLog:'No attempts recorded yet',
+      mailDiagFixHint:'Fix: open the Apps Script editor, run grantMailPermission once, and approve the permissions. Without it no code can ever be delivered.',
       guardianAuditLink:'Guardian accounts audit', guardianAuditTitle:'🔍 Guardian accounts audit',
       guardianAuditNone:'No guardian accounts saved yet.',
       guardianAuditUsername:'Username', guardianAuditPinId:'Password fingerprint',
@@ -5852,6 +5891,7 @@
     // they stay visible on top of the login screen after logout.
     friendsScreen.classList.add('hidden');
     friendProfileScreen.classList.add('hidden');
+    mailDiagScreen.classList.add('hidden');
     guardianAuditScreen.classList.add('hidden');
     synapseScreen.classList.add('hidden');
     knowledgeReviewScreen.classList.add('hidden');
@@ -10357,6 +10397,50 @@
     guardianAuditScreen.classList.remove('hidden');
     await renderGuardianAudit();
   });
+  mailDiagLink.addEventListener('click', ()=>{
+    hideAllScreens();
+    mailDiagScreen.classList.remove('hidden');
+    mailDiagArea.innerHTML = '';
+  });
+  mailDiagBackBtn.addEventListener('click', ()=>{
+    mailDiagScreen.classList.add('hidden');
+    adminPanelEl.classList.remove('hidden');
+  });
+  mailDiagRunBtn.addEventListener('click', async ()=>{
+    if(!SHEET_API_URL){ mailDiagArea.innerHTML = `<div class="dash-empty">${t('mailDiagNoApi')}</div>`; return; }
+    setBtnSaving(mailDiagRunBtn, true);
+    const res = await postToSheet('mail_diagnostics', {
+      requesterUsername: ADMIN.username, requesterPin: ADMIN.pin,
+      checkUsername: mailDiagUser.value.trim()
+    });
+    setBtnSaving(mailDiagRunBtn, false);
+    if(!res || !res.ok){
+      mailDiagArea.innerHTML = `<div class="dash-empty">${(res && res.message) || t('lpSyncProgressFailed')}</div>`;
+      return;
+    }
+    // The single most useful line: if the scope is not authorised, no email
+    // will ever be sent no matter how correct the rest of the code is.
+    const rows = [
+      [t('mailDiagScope'), res.scopeAuthorized ? '✅ ' + t('mailDiagScopeOk') : '❌ ' + t('mailDiagScopeMissing')],
+      [t('mailDiagQuota'), res.remainingQuota === null ? '—' : res.remainingQuota],
+      [t('mailDiagSender'), res.effectiveUser || '—']
+    ];
+    if(res.userEmail) rows.push([t('mailDiagUserEmail'),
+      res.userEmail === 'NO_EMAIL_ON_FILE' ? '❌ ' + t('mailDiagNoEmail')
+      : (res.userEmail === 'USER_NOT_FOUND' ? '❌ ' + t('mailDiagNoUser') : '✅ ' + res.userEmail)]);
+
+    const recent = (res.recent || []).slice().reverse().map(function(r){
+      const ok = r.status === 'SENT';
+      return `<div class="dash-row"><span>${r.context || '—'} · ${r.to || ''}</span><span style="color:${ok ? 'var(--mint)' : 'var(--wrong)'};">${r.status}${r.detail ? ' — ' + r.detail : ''}</span></div>`;
+    }).join('');
+
+    mailDiagArea.innerHTML =
+      `<div class="dash-table">${rows.map(function(r){ return `<div class="dash-row"><span>${r[0]}</span><b>${r[1]}</b></div>`; }).join('')}</div>` +
+      (res.scopeAuthorized ? '' : `<div class="syn-insight" style="margin-top:10px;"><span class="syn-ic">${nxIcon('alertTriangle')}</span><span>${t('mailDiagFixHint')}</span></div>`) +
+      `<div class="mystats-section" style="margin-top:12px;"><h4>${t('mailDiagRecent')}</h4><div class="dash-table">${
+        recent || `<div class="dash-empty">${t('mailDiagNoLog')}</div>`}</div></div>`;
+  });
+
   guardianAuditBackBtn.addEventListener('click', ()=>{
     guardianAuditScreen.classList.add('hidden');
     profilesEl.classList.remove('hidden');
