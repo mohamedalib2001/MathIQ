@@ -1767,6 +1767,7 @@
       <div class="admin-tool-tile" id="programBuilderLink"><span class="tile-icon">🎓</span><span data-i18n="programBuilderLink">بناء البرامج التعليمية</span></div>
       <div class="admin-tool-tile" id="addTeacherLink"><span class="tile-icon">➕</span><span data-i18n="addTeacherLink">إضافة حساب معلم</span></div>
       <div class="admin-tool-tile" id="teachersListLink"><span class="tile-icon">👥</span><span data-i18n="teachersListLink">المعلّمون</span></div>
+      <div class="admin-tool-tile" id="guardianAuditLink"><span class="tile-icon">🔍</span><span data-i18n="guardianAuditLink">فحص حسابات أولياء الأمور</span></div>
       <div class="admin-tool-tile" id="connectionLink"><span class="tile-icon">🔗</span><span data-i18n="connectionLink">ربط جوجل شيت</span></div>
       <div class="admin-tool-tile" id="subscriptionLink"><span class="tile-icon">💳</span><span data-i18n="subscriptionLink">الاشتراك والتفعيل</span></div>
       <div class="admin-tool-tile" id="serviceActivationLink"><span class="tile-icon">🧩</span><span data-i18n="serviceActivationLink">تفعيل الخدمات</span></div>
@@ -1796,6 +1797,14 @@
        local-only), per-teacher drill-down into their classes/students/
        assignments (reusing the existing Classes/ClassEnrollments/
        ClassAssignments system, not a parallel one), with per-assignment cost. -->
+  <!-- Guardian audit — shows exactly what is stored, so a parent link that
+       silently fails can be seen instead of guessed at. -->
+  <div id="guardianAuditScreen" class="panel hidden">
+    <div class="group-label" style="text-align:center;" data-i18n="guardianAuditTitle">🔍 فحص حسابات أولياء الأمور</div>
+    <div id="guardianAuditArea"></div>
+    <button class="secondary-btn" id="guardianAuditBackBtn" data-i18n="closeBtn">إغلاق</button>
+  </div>
+
   <div id="teachersListScreen" class="panel hidden">
     <div class="group-label" style="text-align:center;" data-i18n="teachersListTitle">👥 المعلّمون</div>
     <div id="teachersListArea"></div>
@@ -2321,12 +2330,14 @@
             <div class="guardian-title">👩 <span data-i18n="motherAccount">حساب الأم</span></div>
             <input type="text" id="guardianMotherUser" class="ltr-input" data-i18n-placeholder="usernamePlaceholder" placeholder="username">
             <input type="password" id="guardianMotherPin" class="ltr-input" data-i18n-placeholder="pinPlaceholder" placeholder="كلمة المرور">
+            <div class="feedback wrong hidden" id="motherPinWarn" style="font-size:11.5px; min-height:0;"></div>
             <div class="clear-guardian hidden" id="clearMotherLink" data-i18n="removeGuardianLink">🗑️ إزالة حساب الأم</div>
           </div>
           <div class="guardian-box">
             <div class="guardian-title">👨 <span data-i18n="fatherAccount">حساب الأب</span></div>
             <input type="text" id="guardianFatherUser" class="ltr-input" data-i18n-placeholder="usernamePlaceholder" placeholder="username">
             <input type="password" id="guardianFatherPin" class="ltr-input" data-i18n-placeholder="pinPlaceholder" placeholder="كلمة المرور">
+            <div class="feedback wrong hidden" id="fatherPinWarn" style="font-size:11.5px; min-height:0;"></div>
             <div class="clear-guardian hidden" id="clearFatherLink" data-i18n="removeGuardianLink">🗑️ إزالة حساب الأب</div>
           </div>
         </div>
@@ -2786,6 +2797,10 @@
   const dashboardLink = document.getElementById('dashboardLink');
   const programBuilderLink = document.getElementById('programBuilderLink');
   const teachersListLink = document.getElementById('teachersListLink');
+  const guardianAuditLink = document.getElementById('guardianAuditLink');
+  const guardianAuditScreen = document.getElementById('guardianAuditScreen');
+  const guardianAuditArea = document.getElementById('guardianAuditArea');
+  const guardianAuditBackBtn = document.getElementById('guardianAuditBackBtn');
   const teachersListScreen = document.getElementById('teachersListScreen');
   const teachersListArea = document.getElementById('teachersListArea');
   const teachersListBackBtn = document.getElementById('teachersListBackBtn');
@@ -3055,6 +3070,8 @@
   const editUsernameInput = document.getElementById('editUsername');
   const editEmailInput = document.getElementById('editEmail');
   const editPhoneInput = document.getElementById('editPhone');
+  const motherPinWarn = document.getElementById('motherPinWarn');
+  const fatherPinWarn = document.getElementById('fatherPinWarn');
   const emailVerifyRow = document.getElementById('emailVerifyRow');
   const emailVerifyBadge = document.getElementById('emailVerifyBadge');
   const emailSendCodeBtn = document.getElementById('emailSendCodeBtn');
@@ -3762,6 +3779,14 @@
       guardiansLabel:'👪 حسابات أولياء الأمور (اختياري)', motherAccount:'حساب الأم', fatherAccount:'حساب الأب',
       removeGuardianLink:'🗑️ إزالة الحساب', guardianUsernameTaken:'اسم المستخدم هذا مستخدم بالفعل',
       guardianPinRequired:'اكتبي كلمة مرور لحساب ولي الأمر — بدونها لن يستطيع تسجيل الدخول.',
+      guardianNoPinWarn:'⚠️ هذا الحساب محفوظ بدون كلمة مرور ولا يمكنه تسجيل الدخول. اكتبي كلمة مرور هنا واحفظي.',
+      guardianAuditLink:'فحص حسابات أولياء الأمور', guardianAuditTitle:'🔍 فحص حسابات أولياء الأمور',
+      guardianAuditNone:'لا توجد حسابات أولياء أمور مسجَّلة بعد.',
+      guardianAuditUsername:'اسم المستخدم', guardianAuditPinId:'بصمة كلمة المرور',
+      guardianAuditNoPin:'بدون كلمة مرور صالحة — لن يستطيع تسجيل الدخول. اكتبي كلمة مرور واحفظي.',
+      guardianAuditMismatch:'كلمة المرور مختلفة عن نفس الاسم في طفل آخر — وحّديها ليظهر الأبناء معًا.',
+      guardianAuditNoLearner:'هذا الاسم غير مرتبط بأي حساب متعلّم — لن يظهر عنصر «أبنائي».',
+      guardianAuditOk:'✓ سليم — سيظهر «أبنائي» داخل حساب {name}',
       addTeacherLink:'➕ إضافة حساب معلم', addTeacherTitle:'إضافة حساب معلم', teacherNamePh:'اسم المعلم/ة',
       teacherUsernameTaken:'اسم المستخدم مستخدم بالفعل', teacherCreated:'✓ تم إنشاء الحساب',
       parentBannerText:'👪 نتائج أبنائك فقط', teacherBannerText:'🏫 نتائج جميع الطلاب',
@@ -4201,6 +4226,14 @@
       guardiansLabel:'👪 Guardian accounts (optional)', motherAccount:"Mother's account", fatherAccount:"Father's account",
       removeGuardianLink:'🗑️ Remove account', guardianUsernameTaken:'That username is already taken',
       guardianPinRequired:'Set a password for the guardian account — without one it cannot sign in.',
+      guardianNoPinWarn:'⚠️ This account was saved without a password and cannot sign in. Type a password here and save.',
+      guardianAuditLink:'Guardian accounts audit', guardianAuditTitle:'🔍 Guardian accounts audit',
+      guardianAuditNone:'No guardian accounts saved yet.',
+      guardianAuditUsername:'Username', guardianAuditPinId:'Password fingerprint',
+      guardianAuditNoPin:'No usable password — cannot sign in. Type a password and save.',
+      guardianAuditMismatch:'Password differs from the same username on another child — make them identical.',
+      guardianAuditNoLearner:'This username matches no learner account — \"My children\" will not appear.',
+      guardianAuditOk:'✓ Healthy — \"My children\" will appear inside {name}',
       addTeacherLink:'➕ Add a teacher account', addTeacherTitle:'Add a teacher account', teacherNamePh:"Teacher's name",
       teacherUsernameTaken:'That username is already taken', teacherCreated:'✓ Account created',
       parentBannerText:"👪 Your children's results only", teacherBannerText:"🏫 All students' results",
@@ -4986,6 +5019,7 @@
     // they stay visible on top of the login screen after logout.
     friendsScreen.classList.add('hidden');
     friendProfileScreen.classList.add('hidden');
+    guardianAuditScreen.classList.add('hidden');
     parentDashboardScreenEl.classList.add('hidden');
     parentDashboardBackBtn.classList.add('hidden');
     teachersListScreen.classList.add('hidden');
@@ -5040,6 +5074,16 @@
   let clearPinFlag = false;
   let clearMotherFlag = false;
   let clearFatherFlag = false;
+  async function flagPasswordlessGuardian(guardian, warnEl){
+    if(!warnEl) return;
+    warnEl.classList.add('hidden');
+    if(!guardian || !guardian.username) return;
+    const emptyHash = await computePasswordHash(guardian.username, '');
+    if(guardian.pin === emptyHash || !guardian.pin){
+      warnEl.textContent = t('guardianNoPinWarn');
+      warnEl.classList.remove('hidden');
+    }
+  }
   function openEditor(key, returnTo){
     editingProfileKey = key;
     // The heading was hard-coded to "add a new student" and never updated,
@@ -5071,6 +5115,11 @@
       guardianMotherUser.value = (g.mother && g.mother.username) || '';
       clearMotherLink.classList.toggle('hidden', !g.mother);
       guardianFatherUser.value = (g.father && g.father.username) || '';
+      // Surface guardian accounts that were saved with an EMPTY password by
+      // the old code — they look fine but can never sign in. Detected by
+      // recomputing the empty-password hash and comparing.
+      flagPasswordlessGuardian(g.mother, motherPinWarn);
+      flagPasswordlessGuardian(g.father, fatherPinWarn);
       clearFatherLink.classList.toggle('hidden', !g.father);
       buildPickerGrids(p.avatar, p.color);
       setAvatarElement(photoPreview, p, 72);
@@ -9259,6 +9308,70 @@
     profilesEl.classList.add('hidden');
     openProgramBuilder();
   });
+  guardianAuditLink.addEventListener('click', async ()=>{
+    profilesEl.classList.add('hidden');
+    guardianAuditScreen.classList.remove('hidden');
+    await renderGuardianAudit();
+  });
+  guardianAuditBackBtn.addEventListener('click', ()=>{
+    guardianAuditScreen.classList.add('hidden');
+    profilesEl.classList.remove('hidden');
+  });
+  // Reports the ACTUAL stored state of every guardian link: the username as
+  // saved, whether its password is usable, and which learner account (if any)
+  // it will surface "My children" for.
+  async function renderGuardianAudit(){
+    const rows = [];
+    const learnerUsernames = {};
+    Object.keys(PROFILES).forEach(k=>{
+      const u = PROFILES[k].username;
+      if(u) learnerUsernames[String(u).toLowerCase()] = k;
+    });
+    for(const key of Object.keys(PROFILES)){
+      const p = PROFILES[key];
+      const g = p.guardians || {};
+      for(const role of ['mother','father']){
+        const gu = g[role];
+        if(!gu || !gu.username) continue;
+        const emptyHash = await computePasswordHash(gu.username, '');
+        const noPin = !gu.pin || gu.pin === emptyHash;
+        const linkedLearner = learnerUsernames[String(gu.username).trim().toLowerCase()];
+        rows.push({
+          child: profileDisplayName(key),
+          role: role === 'mother' ? t('motherAccount') : t('fatherAccount'),
+          username: gu.username,
+          noPin,
+          pinFingerprint: gu.pin ? String(gu.pin).slice(0, 8) : '—',
+          linkedLearner: linkedLearner || null
+        });
+      }
+    }
+    if(!rows.length){
+      guardianAuditArea.innerHTML = `<div class="dash-empty">${t('guardianAuditNone')}</div>`;
+      return;
+    }
+    // Guardians sharing one username must share one password, or each login
+    // only reveals the subset that password unlocks.
+    const byUser = {};
+    rows.forEach(r=>{ (byUser[r.username.toLowerCase()] = byUser[r.username.toLowerCase()] || []).push(r); });
+    guardianAuditArea.innerHTML = rows.map(r=>{
+      const group = byUser[r.username.toLowerCase()];
+      const mismatch = group.length > 1 && new Set(group.map(x=>x.pinFingerprint)).size > 1;
+      const issues = [];
+      if(r.noPin) issues.push(t('guardianAuditNoPin'));
+      if(mismatch) issues.push(t('guardianAuditMismatch'));
+      if(!r.linkedLearner) issues.push(t('guardianAuditNoLearner'));
+      const okMsg = `<div style="color:#22c55e; font-size:11.5px;">${fmt('guardianAuditOk', { name: r.linkedLearner ? profileDisplayName(r.linkedLearner) : '' })}</div>`;
+      return `<div class="lp-create-form" style="margin-bottom:8px;">
+        <div style="font-weight:700;">${r.child} — ${r.role}</div>
+        <div style="font-size:11.5px; color:var(--ink-dim); margin-top:4px;">
+          ${t('guardianAuditUsername')}: <b style="direction:ltr; display:inline-block;">${r.username}</b>
+          · ${t('guardianAuditPinId')}: <span style="direction:ltr; display:inline-block;">${r.pinFingerprint}</span>
+        </div>
+        ${issues.length ? issues.map(i=>`<div style="color:#ef4444; font-size:11.5px; margin-top:4px;">⚠️ ${i}</div>`).join('') : okMsg}
+      </div>`;
+    }).join('');
+  }
   teachersListLink.addEventListener('click', async ()=>{
     profilesEl.classList.add('hidden');
     teachersListScreen.classList.remove('hidden');
