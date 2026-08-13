@@ -2257,7 +2257,7 @@
   <!-- PROFILE MINI EDITOR (add/edit) -->
   <div id="profileEditor" class="panel hidden">
     <div class="mini-editor">
-      <div class="group-label" id="editorTitle" data-i18n="chooseAvatar">إضافة طالب جديد</div>
+      <div class="group-label" id="editorTitle">إضافة طالب جديد</div>
       <input type="text" id="editName" data-i18n-placeholder="newPlayerNamePh" placeholder="الاسم">
       <div>
         <div class="group-label" data-i18n="genderLabel">أخاطبكِ بصيغة</div>
@@ -2284,6 +2284,11 @@
         <div class="feedback wrong" id="emailVerifyError" style="min-height:14px; font-size:11px;"></div>
       </div>
       <div class="feedback wrong" id="editorError" style="min-height:16px;"></div>
+      <div>
+        <div class="group-label" data-i18n="phoneLabel">رقم الجوال (اختياري)</div>
+        <input type="tel" id="editPhone" class="ltr-input" data-i18n-placeholder="phonePlaceholder" placeholder="+9665XXXXXXXX" autocomplete="tel">
+        <div class="conn-note" data-i18n="phoneHint">للتواصل بشأن الاشتراك أو استعادة الحساب — لا يظهر لأي متعلّم آخر.</div>
+      </div>
       <div>
         <div class="group-label" data-i18n="birthDateLabel">تاريخ الميلاد</div>
         <input type="date" id="editBirthDate">
@@ -3034,6 +3039,7 @@
   genderMaleBtn.addEventListener('click', ()=> setGenderToggle('male'));
   const editUsernameInput = document.getElementById('editUsername');
   const editEmailInput = document.getElementById('editEmail');
+  const editPhoneInput = document.getElementById('editPhone');
   const emailVerifyRow = document.getElementById('emailVerifyRow');
   const emailVerifyBadge = document.getElementById('emailVerifyBadge');
   const emailSendCodeBtn = document.getElementById('emailSendCodeBtn');
@@ -3214,6 +3220,7 @@
       theme: theme || 'chalkboard', username: username || null,
       gender: null, // null = unset, defaults to feminine forms (historical default)
       email: null, // used only for the password-reset-by-email flow — optional
+      phone: null, // optional contact number — never shown to other learners
       emailVerified: false, // true only after the person actually confirms a code sent to this address
       guardians: { mother: null, father: null }, // { username, pin(hash) } | null — up to one per parent
       defaults,
@@ -3748,6 +3755,9 @@
       presence_online:'متصل الآن', presence_busy:'في تمرين الآن', presence_away:'بعيد مؤقتًا', presence_offline:'غير متصل',
       presenceLastSeen:'آخر ظهور {t}', presenceJustNow:'منذ لحظات', presenceMinsAgo:'منذ {n} دقيقة',
       presenceHoursAgo:'منذ {n} ساعة', presenceDaysAgo:'منذ {n} يوم', presenceUnknown:'غير معروف',
+      phoneLabel:'رقم الجوال (اختياري)', phonePlaceholder:'+9665XXXXXXXX',
+      phoneHint:'للتواصل بشأن الاشتراك أو استعادة الحساب — لا يظهر لأي متعلّم آخر.',
+      editorTitleAdd:'إضافة طالب جديد', editorTitleEdit:'تعديل البيانات',
       profileBestScore:'أفضل نتيجة', profileBestAccuracy:'أعلى دقة', profileBestStreak:'أطول متتالية',
       profileAvgAccuracy:'متوسط الدقة', profileSessions:'عدد الجلسات', profileCertificates:'الشهادات',
       profileMemberSince:'عضو منذ {d}', profileNoActivity:'لم يبدأ أي تمرين بعد.',
@@ -3866,7 +3876,7 @@
       certSubtitle:'تمنح هذه الشهادة تقديرًا للأداء المتميز في الحساب الذهني',
       certDate:'التاريخ',
       dashboardTitle:'لوحة جميع الطلاب', dashOperation:'العملية', dashAccuracy:'الدقة', dashAvgTime:'متوسط الوقت',
-      dashNoData:'لا توجد بيانات بعد', closeBtn:'إغلاق', secLabel:'ث',
+      dashNoData:'لا توجد بيانات بعد', closeBtn:'إغلاق', backBtn:'رجوع', secLabel:'ث',
       bucketAdd:'جمع', bucketSub:'طرح', bucketMul:'ضرب', bucketDiv:'قسمة',
       bucketCompound:'المسائل المركبة', bucketDecimals:'الأعداد العشرية', bucketFractions:'الكسور',
       bucketPercent:'النسبة المئوية', bucketExponent:'الأُسس', bucketSqrt:'الجذر التربيعي', bucketAbacus:'الأباكوس',
@@ -4181,6 +4191,9 @@
       presence_online:'Online now', presence_busy:'In a session', presence_away:'Away', presence_offline:'Offline',
       presenceLastSeen:'Last seen {t}', presenceJustNow:'moments ago', presenceMinsAgo:'{n} min ago',
       presenceHoursAgo:'{n} h ago', presenceDaysAgo:'{n} d ago', presenceUnknown:'unknown',
+      phoneLabel:'Phone number (optional)', phonePlaceholder:'+9665XXXXXXXX',
+      phoneHint:'For subscription or account-recovery contact — never shown to other learners.',
+      editorTitleAdd:'Add a new student', editorTitleEdit:'Edit details',
       profileBestScore:'Best score', profileBestAccuracy:'Best accuracy', profileBestStreak:'Longest streak',
       profileAvgAccuracy:'Average accuracy', profileSessions:'Sessions', profileCertificates:'Certificates',
       profileMemberSince:'Member since {d}', profileNoActivity:'No practice sessions yet.',
@@ -4299,7 +4312,7 @@
       certSubtitle:'Awarded for excellent performance in mental math',
       certDate:'Date',
       dashboardTitle:'All students dashboard', dashOperation:'Operation', dashAccuracy:'Accuracy', dashAvgTime:'Avg time',
-      dashNoData:'No data yet', closeBtn:'Close', secLabel:'s',
+      dashNoData:'No data yet', closeBtn:'Close', backBtn:'Back', secLabel:'s',
       bucketAdd:'Addition', bucketSub:'Subtraction', bucketMul:'Multiplication', bucketDiv:'Division',
       bucketCompound:'Compound', bucketDecimals:'Decimals', bucketFractions:'Fractions',
       bucketPercent:'Percentage', bucketExponent:'Exponents', bucketSqrt:'Square root', bucketAbacus:'Abacus',
@@ -4997,6 +5010,9 @@
   let clearFatherFlag = false;
   function openEditor(key, returnTo){
     editingProfileKey = key;
+    // The heading was hard-coded to "add a new student" and never updated,
+    // so editing your own details looked like creating a new account.
+    editorTitle.textContent = key ? t('editorTitleEdit') : t('editorTitleAdd');
     editingPhotoDataUrl = null;
     editorError.textContent = '';
     editorReturnScreen = returnTo || 'profiles';
@@ -5013,6 +5029,7 @@
       editNameInput.value = profileDisplayName(key);
       editUsernameInput.value = p.username || '';
       editEmailInput.value = p.email || '';
+      editPhoneInput.value = p.phone || '';
       editBirthDateInput.value = p.birthDate || '';
       setGenderToggle(p.gender === 'male' ? 'male' : 'female');
       pinLabelEl.textContent = t('pinLabel');
@@ -5031,6 +5048,7 @@
       editNameInput.value = '';
       editUsernameInput.value = '';
       editEmailInput.value = '';
+      editPhoneInput.value = '';
       editBirthDateInput.value = '';
       setGenderToggle('female'); // default — matches the app's historical baseline
       pinLabelEl.textContent = t('pinLabelRequired');
@@ -5133,8 +5151,14 @@
       return;
     }
 
-    // uniqueness check across all profiles (case-insensitive), excluding self
-    if(requestedUsername){
+    // uniqueness check across all profiles (case-insensitive), excluding self.
+    // If the username is unchanged, there is nothing to claim and nothing to
+    // clash with — editing your own details must never be blocked by your
+    // own existing username (which previously happened when a duplicate
+    // profile row existed for the same person).
+    const currentUsername = (key && PROFILES[key] && PROFILES[key].username) ? String(PROFILES[key].username) : '';
+    const usernameUnchanged = !!currentUsername && currentUsername.toLowerCase() === requestedUsername.toLowerCase();
+    if(requestedUsername && !usernameUnchanged){
       const clash = Object.keys(PROFILES).some(k=>
         k !== key && PROFILES[k].username &&
         PROFILES[k].username.toLowerCase() === requestedUsername.toLowerCase()
@@ -5150,15 +5174,24 @@
     const motherPass = guardianMotherPin.value;
     const fatherUser = guardianFatherUser.value.trim();
     const fatherPass = guardianFatherPin.value;
-    const guardianClash = (u)=> u && (
-      u.toLowerCase() === requestedUsername.toLowerCase() ||
-      isUsernameTakenGlobally(u, editingProfileKey)
-    );
+    // A guardian username that is UNCHANGED from what this profile already
+    // has is not a new claim, so it must not be re-validated. Without this,
+    // simply updating an unrelated field (phone, birth date) was blocked by
+    // the profile's own already-saved guardian account.
+    const existingG = (key && PROFILES[key] && PROFILES[key].guardians) ? PROFILES[key].guardians : {};
+    const existingMotherUser = (existingG.mother && existingG.mother.username) ? String(existingG.mother.username).toLowerCase() : '';
+    const existingFatherUser = (existingG.father && existingG.father.username) ? String(existingG.father.username).toLowerCase() : '';
+    const guardianClash = (u, previouslySaved)=>{
+      if(!u) return false;
+      if(previouslySaved && u.toLowerCase() === previouslySaved) return false; // unchanged — nothing being claimed
+      return u.toLowerCase() === requestedUsername.toLowerCase() ||
+             isUsernameTakenGlobally(u, editingProfileKey);
+    };
     if(motherUser && fatherUser && motherUser.toLowerCase() === fatherUser.toLowerCase()){
       editorError.textContent = t('guardianUsernameTaken');
       return;
     }
-    if(guardianClash(motherUser) || guardianClash(fatherUser)){
+    if(guardianClash(motherUser, existingMotherUser) || guardianClash(fatherUser, existingFatherUser)){
       editorError.textContent = t('guardianUsernameTaken');
       return;
     }
@@ -5175,6 +5208,7 @@
       const newEmail = editEmailInput.value.trim() || null;
       if(newEmail !== p.email) p.emailVerified = false; // email changed since it was last confirmed — must be re-verified
       p.email = newEmail;
+      p.phone = editPhoneInput.value.trim() || null; // optional: blank simply stores nothing
       if(clearPinFlag){ p.pin = ''; }
       else if(enteredPassword){ p.pin = await computePasswordHash(p.username || key, enteredPassword); }
       // else: field left blank and not cleared → password stays unchanged
@@ -5191,6 +5225,7 @@
         { op:'add', diff:'units', time:'15', len:'10', mode:'type' }, true, name, birthDate, hashedPin, null, username);
       PROFILES[key].gender = editingGender;
       PROFILES[key].email = editEmailInput.value.trim() || null;
+      PROFILES[key].phone = editPhoneInput.value.trim() || null;
       PROFILES[key].emailVerified = pendingEmailVerified;
       if(photoToSave) PROFILES[key].photo = photoToSave;
       profileOrder.push(key);
@@ -5219,7 +5254,8 @@
           username: p.username || key, pin: p.pin, name: profileDisplayName(key),
           birthDate: p.birthDate || '', avatar: p.avatar, color: p.color,
           photoURL: photoURL || '', // sending ALL fields together — handleSignup_ overwrites the whole row,
-          email: p.email || ''      // so photoURL/email must travel with the rest, never in a separate call, or it wipes them.
+          email: p.email || '',     // so photoURL/email must travel with the rest, never in a separate call, or it wipes them.
+          phone: p.phone || ''
         });
       };
       if(photoToSave){
