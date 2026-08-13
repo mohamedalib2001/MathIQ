@@ -2749,6 +2749,7 @@
 
   <!-- SETTINGS SCREEN -->
   <div id="settings" class="panel hidden">
+    <div class="syn-insight hidden" id="errPatternCoach"></div>
     <button class="review-cta hidden" id="reviewCta" type="button">
       <span class="review-count" id="reviewCtaCount">0</span>
       <span class="review-text">
@@ -3413,6 +3414,7 @@
   const smartNotifBox = document.getElementById('smartNotifBox');
   const twinBannerEl = document.getElementById('twinBanner');
   const reviewBadgeEl = document.getElementById('reviewBadge');
+  const errPatternCoach = document.getElementById('errPatternCoach');
   const reviewCta = document.getElementById('reviewCta');
   const reviewCtaCount = document.getElementById('reviewCtaCount');
   const reviewCtaSub = document.getElementById('reviewCtaSub');
@@ -3530,6 +3532,7 @@
       // NEXORA SYNAPSE — every field below is filled from the learner's own
       // recorded behaviour. Nothing here is estimated or invented.
       reviewStats: { c:0, t:0 },   // recall: how review items actually went
+      recentByBucket: {},          // rolling window of recent attempts per operation
       twinSessions: [],            // recorded sessions, replayable as an opponent
       cogSnapshots: [],            // weekly indicator snapshots, for trajectory
       sessionLog: [], // rolling log for the weekly report: { date, score, accuracy, questionCount, operation }
@@ -3566,6 +3569,7 @@
       errorTypeCounts: p.errorTypeCounts || {},
       reviewQueue: p.reviewQueue || [],
       reviewStats: p.reviewStats || { c:0, t:0 },
+      recentByBucket: p.recentByBucket || {},
       twinSessions: p.twinSessions || [],
       cogSnapshots: p.cogSnapshots || [],
       sessionLog: p.sessionLog || [],
@@ -3787,6 +3791,7 @@
   let currentProblemBucket = null;
   let currentProblemOp = null;
   let currentProblemIsWord = false;
+  let lastErrorType = null;
   let reviewOnlySession = false;
   let reviewSessionLength = 0;
   let twinQueue = [];
@@ -4090,6 +4095,14 @@
       synapseNavLabel:'سينابس', synapseSubtitle:'مختبر الذكاء والذاكرة',
       synapseRadarAria:'رسم بياني لمؤشرات أدائك التعليمية',
       synapseDisclaimer:'مؤشرات أداء تعليمي داخل المنصة، محسوبة من تدريبك الفعلي — وليست قياسًا للذكاء ولا تشخيصًا من أي نوع.',
+      errPatternTitle:'نمط متكرر: {p} ({n}% من أخطائك)',
+      errFixPlaceValueError:'خطؤك غالبًا في ترتيب المنازل لا في الحساب نفسه. اقرئي العدد بصوتٍ مسموع قبل الإجابة: كم عشرة؟ كم آحاد؟',
+      errFixSignError:'انتبهي لإشارة العملية قبل الحل — ضعي إصبعك عليها وقوليها بصوتك: جمع أم طرح؟',
+      errFixCarrySlip:'إجاباتك قريبة جدًا من الصحيح — الخلل في خطوة الحمل. أعيدي التحقق من آخر خانة فقط قبل التأكيد.',
+      errFixCalculationError:'خذي ثانية إضافية قبل الإجابة، وجزّئي المسألة إلى خطوتين أصغر بدل حلّها دفعة واحدة.',
+      errFixNoAnswer:'الوقت ينفد قبل أن تُجيبي — جرّبي إعدادًا بدون مؤقّت حتى تثبت الدقة، ثم أعيدي الوقت تدريجيًا.',
+      unkReasonPattern:'اخترت لكِ تمرين المنازل — {n}% من أخطائك من نوع {p}',
+      levelMasteryFading:'إتقان {n}% — آخر تدريب من {d} يوم، يحتاج تأكيد',
       cogAccuracy:'الدقة', cogSpeed:'سرعة المعالجة', cogRecall:'الاستدعاء', cogFocus:'التركيز',
       cogResilience:'المرونة', cogConsistency:'الاستمرارية', cogProblem:'حل المشكلات', cogCritical:'التفكير النقدي',
       cogHowAccuracy:'محسوبة من دقتك في آخر 24 جلسة، مع إعطاء الجلسات الأحدث وزنًا أكبر.',
@@ -4289,6 +4302,11 @@
       lpSyncArchiveFailed:'تعذّر الأرشفة على الخادم. حاول مرة أخرى.',
       lpSyncRestoreFailed:'تعذّرت الاستعادة من الخادم. حاول مرة أخرى.',
       lpSyncProgressFailed:'تعذّرت مزامنة تقدّمك مع الخادم. حاول مرة أخرى.',
+      errFixPlaceValueError:'خطؤك غالبًا في ترتيب المنازل لا في الحساب نفسه. اقرأ العدد بصوتٍ مسموع قبل الإجابة: كم عشرة؟ كم آحاد؟',
+      errFixSignError:'انتبه لإشارة العملية قبل الحل — ضع إصبعك عليها وقلها بصوتك: جمع أم طرح؟',
+      errFixCarrySlip:'إجاباتك قريبة جدًا من الصحيح — الخلل في خطوة الحمل. أعد التحقق من آخر خانة فقط قبل التأكيد.',
+      errFixCalculationError:'خذ ثانية إضافية قبل الإجابة، وجزّئ المسألة إلى خطوتين أصغر بدل حلّها دفعة واحدة.',
+      errFixNoAnswer:'الوقت ينفد قبل أن تُجيب — جرّب إعدادًا بدون مؤقّت حتى تثبت الدقة، ثم أعد الوقت تدريجيًا.',
       stratSplit:'جزّئ {n} إلى {x} + {y}',
       stratAddComplete:'أكمل {a} إلى {a2} (خذ {n} من {b})',
       stratSubTens:'اطرح العشرات: {a} − {bt} = {r}',
@@ -4603,6 +4621,14 @@
       synapseNavLabel:'Synapse', synapseSubtitle:'Your intelligence & memory lab',
       synapseRadarAria:'Chart of your learning performance indicators',
       synapseDisclaimer:'In-platform learning performance indicators computed from your own practice — not an intelligence measure and not a diagnosis of any kind.',
+      errPatternTitle:'Recurring pattern: {p} ({n}% of your mistakes)',
+      errFixPlaceValueError:'Your slips are about digit position, not the arithmetic. Read the number aloud first: how many tens? how many units?',
+      errFixSignError:'Check the operation sign before solving — point at it and say it out loud: add or subtract?',
+      errFixCarrySlip:'Your answers are very close to correct — the carry step is where it breaks. Re-check just the last column before confirming.',
+      errFixCalculationError:'Take one extra second before answering, and split the problem into two smaller steps instead of solving it at once.',
+      errFixNoAnswer:'Time runs out before you answer — try a no-timer setting until accuracy settles, then bring the timer back gradually.',
+      unkReasonPattern:'Picked place-value practice — {n}% of your mistakes are {p}',
+      levelMasteryFading:'{n}% mastery — last practised {d} days ago, needs confirming',
       cogAccuracy:'Accuracy', cogSpeed:'Processing speed', cogRecall:'Recall', cogFocus:'Focus',
       cogResilience:'Resilience', cogConsistency:'Consistency', cogProblem:'Problem solving', cogCritical:'Critical thinking',
       cogHowAccuracy:'From your accuracy across the last 24 sessions, with recent sessions weighted more heavily.',
@@ -9615,7 +9641,7 @@
     const badgeCount = p.badges ? p.badges.size : 0;
     let masteredCount = 0;
     if(typeof KNOWLEDGE_LEVELS !== 'undefined' && typeof computeLevelMastery === 'function'){
-      masteredCount = KNOWLEDGE_LEVELS.filter(l=>{ const m = computeLevelMastery(p, l.bucket); return m !== null && m >= MASTERY_THRESHOLD; }).length;
+      masteredCount = KNOWLEDGE_LEVELS.filter(l=> isBucketMastered(p, l.bucket)).length;
     }
     topbarIdentityStats.innerHTML = `${nxIcon('award')} ${fmt('topbarIdentityStatsTpl', { badges: badgeCount, mastered: masteredCount, total: (typeof KNOWLEDGE_LEVELS !== 'undefined' ? KNOWLEDGE_LEVELS.length : 0) })}`;
   }
@@ -10852,6 +10878,12 @@
   function pickUnknownChallenge(prof){
     const due = reviewDueItems(prof).length;
     if(due >= 3) return { kind:'review', reason: fmt('unkReasonReview', { n: due }) };
+    // A dominant error pattern outranks a merely weak operation: fixing HOW
+    // they go wrong helps more than drilling WHERE they go wrong.
+    const dom = dominantErrorPattern(prof);
+    if(dom && dom.type === 'placeValueError'){
+      return { kind:'op', bucket:'numberRecognition', reason: fmt('unkReasonPattern', { p: t('errType' + capitalize(dom.type)), n: dom.share }) };
+    }
     const weak = computeWeakestBucket(prof);
     if(weak && weak.acc < 75 && ['add','sub','mul','div','percent','exponent','sqrt','numberRecognition'].includes(weak.bucket)){
       return { kind:'op', bucket: weak.bucket, reason: fmt('unkReasonWeak', { op: t('bucket'+capitalize(weak.bucket)), acc: weak.acc }) };
@@ -10966,6 +10998,38 @@
 
   /* ==================== END MODULE: NEXORA SYNAPSE ==================== */
 
+  /* ==================== MODULE: ERROR-PATTERN INTERVENTION ====================
+     The app already classifies WHY an answer was wrong (place value, sign,
+     carry slip, calculation, no answer). Until now that classification was
+     only ever displayed in a table. Here it actually changes what the
+     learner sees: a dominant error pattern earns a targeted correction at
+     the moment it happens, plus a coaching line before the next session.
+
+     A pattern must be both frequent AND dominant before we act on it —
+     three stray place-value slips are noise, not a pattern. */
+  const ERROR_PATTERN_MIN_COUNT = 5;
+  const ERROR_PATTERN_MIN_SHARE = 0.30;
+
+  function dominantErrorPattern(prof){
+    const counts = (prof && prof.errorTypeCounts) || {};
+    const total = Object.keys(counts).reduce((a,k)=> a + (counts[k] || 0), 0);
+    if(total < ERROR_PATTERN_MIN_COUNT) return null;
+    let topKey = null, topVal = 0;
+    Object.keys(counts).forEach(function(k){ if(counts[k] > topVal){ topVal = counts[k]; topKey = k; } });
+    if(!topKey || topVal < ERROR_PATTERN_MIN_COUNT) return null;
+    const share = topVal / total;
+    if(share < ERROR_PATTERN_MIN_SHARE) return null;
+    return { type: topKey, count: topVal, share: Math.round(share * 100) };
+  }
+  // Shown at the moment of a matching mistake — specific to the pattern,
+  // not a generic "try again".
+  function patternCorrectionFor(errorType, dominant){
+    if(!dominant || dominant.type !== errorType) return null;
+    const key = 'errFix' + capitalize(errorType);
+    const text = t(key);
+    return text === key ? null : text; // no invented advice for unmapped types
+  }
+
   /* ==================== MODULE: MENTAL STRATEGIES ====================
      Mental math is a set of methods, not a speed contest. When a learner
      misses a question we show HOW it is solved mentally, derived from the
@@ -11054,14 +11118,30 @@
   function showStrategyForCurrentProblem(){
     strategyBox.classList.add('hidden');
     strategyBox.innerHTML = '';
-    if(currentProblemIsWord) return;
-    const steps = buildStrategySteps(equationEl.dataset.compact, currentProblemOp);
-    if(!steps || !steps.length) return;
-    strategyBox.innerHTML =
-      `<div class="strategy-title">${nxIcon('lightbulb')} ${t('strategyTitle')}</div>` +
-      steps.map(function(line, i){
-        return `<div class="strategy-step"><span class="strategy-num">${i + 1}</span><span>${line}</span></div>`;
-      }).join('');
+    let html = '';
+
+    // If this mistake matches the learner's dominant error pattern, name the
+    // pattern and correct it directly — this is the moment it means most.
+    if(lastErrorType && PROFILES[currentProfile]){
+      const dom = dominantErrorPattern(PROFILES[currentProfile]);
+      const fix = patternCorrectionFor(lastErrorType, dom);
+      if(fix){
+        html += `<div class="strategy-title">${nxIcon('alertTriangle')} ${fmt('errPatternTitle', { p: t('errType' + capitalize(lastErrorType)), n: dom.share })}</div>` +
+                `<div class="strategy-step"><span class="strategy-num">!</span><span>${fix}</span></div>`;
+      }
+    }
+
+    if(!currentProblemIsWord){
+      const steps = buildStrategySteps(equationEl.dataset.compact, currentProblemOp);
+      if(steps && steps.length){
+        html += `<div class="strategy-title"${html ? ' style="margin-top:10px;"' : ''}>${nxIcon('lightbulb')} ${t('strategyTitle')}</div>` +
+          steps.map(function(line, i){
+            return `<div class="strategy-step"><span class="strategy-num">${i + 1}</span><span>${line}</span></div>`;
+          }).join('');
+      }
+    }
+    if(!html) return;
+    strategyBox.innerHTML = html;
     strategyBox.classList.remove('hidden');
   }
   /* ==================== END MODULE: MENTAL STRATEGIES ==================== */
@@ -11077,6 +11157,73 @@
   const REVIEW_SHARE_OF_SESSION = 0.3; // at most 30% of a normal session
   let sessionReviewPool = [];   // items chosen for THIS session
   let currentReviewKey = null;  // set while a review item is on screen
+  let currentReviewForm = null; // which representation is being asked right now
+
+  /* ---------- CONCEPT VARIANTS ----------
+     A concept is not the same thing as a question. Re-asking "7 × 8" six
+     times measures whether the learner memorised that string; asking it as
+     56 ÷ 7, then 7 × ? = 56, then as a direct recall measures whether they
+     actually own the relationship.
+
+     So an item only leaves the review queue after it has been answered
+     correctly in at least MIN_FORMS_TO_CLEAR different representations —
+     not after N repetitions of one. */
+  const REVIEW_MIN_FORMS_TO_CLEAR = 3;
+  const CONCEPT_FORMS = ['direct', 'inverse', 'missing'];
+
+  // Derives the alternative representations of a two-operand fact from the
+  // stored expression. Returns null for anything that cannot be transformed
+  // faithfully (compound chains, decimals, fractions) — we show the original
+  // rather than inventing a form that changes what is being asked.
+  function conceptFormsFor(text, answer){
+    const m = /^\s*(\d+)\s*([+\u2212\u00D7\u00F7])\s*(\d+)\s*$/.exec(String(text || ''));
+    if(!m) return null;
+    const a = parseInt(m[1], 10), b = parseInt(m[3], 10), sym = m[2];
+    const res = Number(answer);
+    if(!isFinite(res) || !Number.isInteger(res)) return null;
+    const q = '\u061F';
+    if(sym === '+'){
+      return {
+        direct:  { text: `${a} + ${b}`,            ans: res, complete:false },
+        inverse: { text: `${res} \u2212 ${a}`,      ans: b,   complete:false },
+        missing: { text: `${a} + ${q} = ${res}`,   ans: b,   complete:true  }
+      };
+    }
+    if(sym === '\u2212'){
+      return {
+        direct:  { text: `${a} \u2212 ${b}`,        ans: res, complete:false },
+        inverse: { text: `${res} + ${b}`,           ans: a,   complete:false },
+        missing: { text: `${a} \u2212 ${q} = ${res}`, ans: b, complete:true  }
+      };
+    }
+    if(sym === '\u00D7'){
+      if(a === 0 || b === 0) return null; // no meaningful inverse
+      return {
+        direct:  { text: `${a} \u00D7 ${b}`,        ans: res, complete:false },
+        inverse: { text: `${res} \u00F7 ${a}`,      ans: b,   complete:false },
+        missing: { text: `${a} \u00D7 ${q} = ${res}`, ans: b, complete:true }
+      };
+    }
+    if(sym === '\u00F7'){
+      if(b === 0 || res === 0) return null;
+      return {
+        direct:  { text: `${a} \u00F7 ${b}`,        ans: res, complete:false },
+        inverse: { text: `${res} \u00D7 ${b}`,      ans: a,   complete:false },
+        missing: { text: `${q} \u00F7 ${b} = ${res}`, ans: a, complete:true }
+      };
+    }
+    return null;
+  }
+  // Chooses the representation this learner has NOT yet proven, so the
+  // rotation is driven by what is missing rather than by a counter.
+  function pickConceptForm(item){
+    const forms = conceptFormsFor(item.text, item.ans);
+    if(!forms) return null;
+    const done = item.formsOk || [];
+    const pending = CONCEPT_FORMS.filter(f => done.indexOf(f) === -1);
+    const chosen = pending.length ? pending[0] : CONCEPT_FORMS[(item.seen || 0) % CONCEPT_FORMS.length];
+    return { form: chosen, variant: forms[chosen] };
+  }
 
   function reviewQueueOf(prof){
     if(!prof.reviewQueue) prof.reviewQueue = [];
@@ -11111,15 +11258,24 @@
     });
     if(queue.length > 120) queue.shift(); // bounded, oldest first
   }
-  function recordReviewOutcome(prof, key, wasCorrect){
+  function recordReviewOutcome(prof, key, wasCorrect, form){
     const it = reviewQueueOf(prof).find(x => x.text === key);
     if(!it) return;
     it.seen = (it.seen || 0) + 1;
     if(wasCorrect){
+      // Credit the specific representation that was just proven.
+      if(!it.formsOk) it.formsOk = [];
+      if(form && it.formsOk.indexOf(form) === -1) it.formsOk.push(form);
       it.box = (it.box || 0) + 1;
-      if(it.box >= REVIEW_INTERVALS_DAYS.length){
-        it.cleared = true; // survived every interval — genuinely learned
+      const enoughForms = !conceptFormsFor(it.text, it.ans) || it.formsOk.length >= REVIEW_MIN_FORMS_TO_CLEAR;
+      if(it.box >= REVIEW_INTERVALS_DAYS.length && enoughForms){
+        it.cleared = true; // every interval survived AND the concept proven in several forms
         showToast(fmt('reviewClearedToast', { q: it.text }), nxIcon('check'), 'learning');
+      } else if(it.box >= REVIEW_INTERVALS_DAYS.length){
+        // Intervals done but the concept has only been shown one way — hold
+        // it at the longest interval until the remaining forms are proven.
+        it.box = REVIEW_INTERVALS_DAYS.length - 1;
+        it.dueAt = new Date(Date.now() + REVIEW_INTERVALS_DAYS[it.box] * 86400000).toISOString();
       } else {
         it.dueAt = new Date(Date.now() + REVIEW_INTERVALS_DAYS[it.box] * 86400000).toISOString();
       }
@@ -11143,9 +11299,20 @@
   function takeReviewProblem(){
     const it = sessionReviewPool.shift();
     if(!it) return null;
+    const pick = (it.kind === 'int') ? pickConceptForm(it) : null;
+    if(pick){
+      currentReviewForm = pick.form;
+      return {
+        text: pick.variant.text, ans: pick.variant.ans, bucket: it.bucket || 'add', op: it.op || null,
+        compactText: pick.variant.text, isReview: true, reviewKey: it.text,
+        isEquationComplete: !!pick.variant.complete, conceptForm: pick.form,
+        isFraction: false, isDecimal: false
+      };
+    }
+    currentReviewForm = 'direct';
     return {
       text: it.text, ans: it.ans, bucket: it.bucket || 'add', op: it.op || null,
-      compactText: it.text, isReview: true, reviewKey: it.text,
+      compactText: it.text, isReview: true, reviewKey: it.text, conceptForm: 'direct',
       isFraction: it.kind === 'fraction', isDecimal: it.kind === 'decimal'
     };
   }
@@ -11373,14 +11540,45 @@
   const LEVEL_TARGET_TIME = { numberRecognition:8, add:6, sub:6, mul:8, div:8, decimals:10, fractions:10, compound:15, percent:10, exponent:10, sqrt:10, abacus:12 };
   const MASTERY_THRESHOLD = 75;
 
+  const MASTERY_WINDOW = 30;        // attempts kept per operation
+  const MASTERY_STALE_DAYS = 21;    // after this, a mastery claim expires
+
+  // Mastery is measured from the RECENT window when one exists, and falls
+  // back to lifetime totals only for profiles that predate the window.
+  // The number itself is never quietly reduced — instead a stale claim
+  // stops counting as mastery until it is re-confirmed. Deflating the score
+  // would be inventing data; expiring the claim is simply honest.
   function computeLevelMastery(p, bucket){
+    const win = (p.recentByBucket && p.recentByBucket[bucket]) || [];
+    const target = LEVEL_TARGET_TIME[bucket] || 8;
+    if(win.length >= 5){
+      const correct = win.filter(x => x.ok).length;
+      const accuracy = (correct / win.length) * 100;
+      const avgTime = win.reduce((a,b)=> a + b.s, 0) / win.length;
+      const speedScore = Math.min(100, Math.max(0, (target / Math.max(0.1, avgTime)) * 100));
+      return Math.round(accuracy * 0.7 + speedScore * 0.3);
+    }
     const st = p.opStats && p.opStats[bucket];
     if(!st || st.t < 3) return null; // not enough attempts yet to judge fairly
     const accuracy = (st.c/st.t)*100;
     const avgTime = st.time/st.t;
-    const target = LEVEL_TARGET_TIME[bucket] || 8;
     const speedScore = Math.min(100, Math.max(0, (target/avgTime)*100));
     return Math.round(accuracy*0.7 + speedScore*0.3);
+  }
+  function daysSinceBucketPractice(p, bucket){
+    const win = (p.recentByBucket && p.recentByBucket[bucket]) || [];
+    if(!win.length) return null;
+    return Math.floor((Date.now() - win[win.length - 1].d) / 86400000);
+  }
+  // A mastery claim older than MASTERY_STALE_DAYS is reported as fading,
+  // and stops being counted as mastered until the learner confirms it again.
+  function isMasteryStale(p, bucket){
+    const days = daysSinceBucketPractice(p, bucket);
+    return days !== null && days >= MASTERY_STALE_DAYS;
+  }
+  function isBucketMastered(p, bucket){
+    const m = computeLevelMastery(p, bucket);
+    return m !== null && m >= MASTERY_THRESHOLD && !isMasteryStale(p, bucket);
   }
 
   /* ---------- placement test: 8 fixed questions across increasing
@@ -11505,8 +11703,15 @@
     KNOWLEDGE_LEVELS.forEach(level=>{
       const mastery = computeLevelMastery(p, level.bucket);
       let statusIcon, statusClass, masteryText;
+      const stale = isMasteryStale(p, level.bucket);
+      const sinceDays = daysSinceBucketPractice(p, level.bucket);
       if(mastery === null){
         statusIcon = '<svg class="nx-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/></svg>'; statusClass = 'not-started'; masteryText = t('levelNotStarted');
+      } else if(mastery >= MASTERY_THRESHOLD && stale){
+        // The score was genuinely earned, but it is old. We say so instead of
+        // presenting a months-old result as current mastery.
+        statusIcon = nxIcon('clock'); statusClass = 'in-progress';
+        masteryText = fmt('levelMasteryFading', { n: mastery, d: sinceDays });
       } else if(mastery >= MASTERY_THRESHOLD){
         statusIcon = nxIcon('check'); statusClass = 'mastered'; masteryText = fmt('levelMasteryScore', { n: mastery });
       } else {
@@ -11542,7 +11747,7 @@
       });
       knowledgeMapList.appendChild(row);
     });
-    const masteredCount = KNOWLEDGE_LEVELS.filter(l => { const m = computeLevelMastery(p, l.bucket); return m !== null && m >= MASTERY_THRESHOLD; }).length;
+    const masteredCount = KNOWLEDGE_LEVELS.filter(l => isBucketMastered(p, l.bucket)).length;
     knowledgeMapProgress.textContent = fmt('levelsCompleted', { done: masteredCount, total: KNOWLEDGE_LEVELS.length });
   }
 
@@ -11612,7 +11817,7 @@
     reviewBadgeEl.classList.toggle('hidden', !p.isReview);
 
     equationEl.classList.toggle('word-mode', !!p.isWord);
-    equationEl.textContent = p.isWord ? p.text : (p.text + (currentLang === 'ar' ? ' = ؟' : ' = ?'));
+    equationEl.textContent = (p.isWord || p.isEquationComplete) ? p.text : (p.text + (currentLang === 'ar' ? ' = ؟' : ' = ?'));
     equationEl.dataset.compact = p.compactText || p.text;
 
     currentProblemSpeechText = p.isWord ? p.text : speechTextFor(p.text);
@@ -11623,6 +11828,7 @@
     }
 
     updateHint(p);
+    lastErrorType = null;
     strategyBox.classList.add('hidden');
     feedbackEl.textContent = '';
     feedbackEl.className = 'feedback';
@@ -11725,6 +11931,15 @@
         prof.opStats[bucket].time += elapsed;
         if(isCorrect) prof.opStats[bucket].c += 1;
       }
+      // Rolling window: lifetime totals can never fall, so a skill that has
+      // decayed would still report the level reached months ago.
+      if(bucket){
+        if(!prof.recentByBucket) prof.recentByBucket = {};
+        if(!prof.recentByBucket[bucket]) prof.recentByBucket[bucket] = [];
+        const win = prof.recentByBucket[bucket];
+        win.push({ ok: !!isCorrect, s: Math.round(elapsed * 10) / 10, d: Date.now() });
+        if(win.length > MASTERY_WINDOW) win.shift();
+      }
       incrementDailyGoalProgress(prof);
     }
 
@@ -11764,6 +11979,7 @@
         const prof = PROFILES[currentProfile];
         if(!prof.recentMistakes) prof.recentMistakes = [];
         const errorType = classifyMistake(userAnswer, currentAnswer, currentAnswerKind);
+        lastErrorType = errorType;
         prof.recentMistakes.push({ text: compact, correct: correctDisplayString(), date: new Date().toISOString(), errorType });
         if(prof.recentMistakes.length > 20) prof.recentMistakes.shift();
         if(!prof.errorTypeCounts) prof.errorTypeCounts = {};
@@ -11774,7 +11990,7 @@
       const rp = PROFILES[currentProfile];
       if(!rp.reviewStats) rp.reviewStats = { c:0, t:0 };
       rp.reviewStats.t++; if(isCorrect) rp.reviewStats.c++;
-      recordReviewOutcome(rp, currentReviewKey, isCorrect);
+      recordReviewOutcome(rp, currentReviewKey, isCorrect, currentReviewForm);
       currentReviewKey = null;
     }
     scoreVal.textContent = score;
@@ -12096,8 +12312,7 @@
     KNOWLEDGE_LEVELS.forEach(level=>{
       const badgeId = 'master_' + level.bucket;
       if(prof.badges.has(badgeId)) return;
-      const mastery = computeLevelMastery(prof, level.bucket);
-      if(mastery !== null && mastery >= MASTERY_THRESHOLD){
+      if(isBucketMastered(prof, level.bucket)){
         prof.badges.add(badgeId);
         showToast(fmt('toastLevelMastered', { level: t(level.nameKey) }), nxIcon('check'));
       }
@@ -12751,6 +12966,18 @@
     return Math.floor((Date.now() - lastDate) / (24*60*60*1000));
   }
 
+  function renderErrorPatternCoach(){
+    const prof = PROFILES[currentProfile];
+    if(!prof || challengeMode || raceMode){ errPatternCoach.classList.add('hidden'); return; }
+    const dom = dominantErrorPattern(prof);
+    if(!dom){ errPatternCoach.classList.add('hidden'); return; } // no dominant pattern — say nothing
+    const fixKey = 'errFix' + capitalize(dom.type);
+    const fix = t(fixKey);
+    if(fix === fixKey){ errPatternCoach.classList.add('hidden'); return; }
+    errPatternCoach.innerHTML =
+      `<span class="syn-ic">${nxIcon('lightbulb')}</span><span><b>${fmt('errPatternTitle', { p: t('errType' + capitalize(dom.type)), n: dom.share })}</b><br>${fix}</span>`;
+    errPatternCoach.classList.remove('hidden');
+  }
   function renderReviewCta(){
     const prof = PROFILES[currentProfile];
     if(!prof || challengeMode || raceMode){ reviewCta.classList.add('hidden'); return; }
@@ -12762,6 +12989,7 @@
   }
   function renderTodayMission(){
     renderReviewCta();
+    renderErrorPatternCoach();
     const p = PROFILES[currentProfile];
     if(!p || challengeMode || raceMode){ todayMissionCard.classList.add('hidden'); return; }
     todayMissionCard.classList.remove('hidden');
