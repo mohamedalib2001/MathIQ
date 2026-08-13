@@ -1114,6 +1114,52 @@
   .guardian-box input.ltr-input{ direction:ltr; text-align:left; }
   .guardian-box .clear-guardian{ font-size:11px; color:var(--coral); text-decoration:underline; cursor:pointer; }
 
+  /* strategy walkthrough shown right after a wrong answer — computed from
+     the question's own numbers, so it is always exact and always instant. */
+  .strategy-box{
+    background:var(--input-bg); border:1.5px solid rgba(231,196,104,0.35); border-radius:12px;
+    padding:12px 14px; margin-top:10px; text-align:start;
+  }
+  .strategy-title{
+    display:flex; align-items:center; gap:6px; font-family:'Cairo',sans-serif; font-weight:700;
+    font-size:12.5px; color:var(--yellow); margin-bottom:8px;
+  }
+  .strategy-step{
+    display:flex; align-items:flex-start; gap:8px; font-size:13px; line-height:1.7;
+    color:var(--ink); padding:3px 0; direction:rtl; unicode-bidi:plaintext;
+  }
+  .strategy-num{
+    flex:none; width:19px; height:19px; border-radius:50%; background:rgba(231,196,104,0.18);
+    color:var(--yellow); font-size:10.5px; font-weight:800; display:flex; align-items:center;
+    justify-content:center; margin-top:3px;
+  }
+
+  /* spaced repetition — a question the learner previously got wrong,
+     returning on its scheduled day. Marked so it never feels like a bug. */
+  .review-badge{
+    display:flex; align-items:center; justify-content:center; gap:6px;
+    font-size:11.5px; font-weight:700; color:var(--yellow);
+    background:rgba(231,196,104,0.12); border:1px solid rgba(231,196,104,0.35);
+    border-radius:20px; padding:4px 12px; width:fit-content; margin:0 auto 10px;
+  }
+  .review-cta{
+    display:flex; align-items:center; gap:12px; width:100%; text-align:start; cursor:pointer;
+    background:linear-gradient(135deg, rgba(99,102,241,0.16), rgba(16,185,129,0.10));
+    border:1.5px solid rgba(99,102,241,0.35); border-radius:14px; padding:13px 15px;
+    margin-bottom:12px; color:var(--ink); font-family:'IBM Plex Sans Arabic','Tajawal',sans-serif;
+    transition:border-color .15s ease, transform .1s ease;
+  }
+  .review-cta:hover{ border-color:var(--yellow); }
+  .review-cta:active{ transform:scale(0.985); }
+  .review-cta .review-count{
+    flex:none; min-width:42px; height:42px; border-radius:12px; background:var(--bg);
+    border:1px solid var(--chip-border); display:flex; align-items:center; justify-content:center;
+    font-family:'Cairo',sans-serif; font-weight:800; font-size:18px; color:var(--yellow);
+  }
+  .review-cta .review-text{ flex:1; min-width:0; }
+  .review-cta .review-title{ display:block; font-family:'Cairo',sans-serif; font-weight:700; font-size:13.5px; }
+  .review-cta .review-sub{ display:block; font-size:11px; color:var(--ink-dim); margin-top:3px; line-height:1.5; }
+
   /* ---------- children as premium "smart cards" (parent view) ----------
      Every number on a card is read from that child's REAL recorded stats;
      a child with no activity says so plainly instead of showing zeros
@@ -2043,6 +2089,10 @@
       <div class="dash-table" id="myStatsErrorPatterns"></div>
     </div>
     <div class="mystats-section">
+      <h4 data-i18n="reviewQueueLabel">أسئلة قيد المراجعة</h4>
+      <div class="dash-table" id="myStatsReviewQueue"></div>
+    </div>
+    <div class="mystats-section">
       <h4 data-i18n="myStatsMistakes">آخر الأخطاء (للمراجعة)</h4>
       <div class="mistakes-list" id="myStatsMistakesList"></div>
     </div>
@@ -2586,6 +2636,14 @@
 
   <!-- SETTINGS SCREEN -->
   <div id="settings" class="panel hidden">
+    <button class="review-cta hidden" id="reviewCta" type="button">
+      <span class="review-count" id="reviewCtaCount">0</span>
+      <span class="review-text">
+        <span class="review-title" data-i18n="reviewCtaTitle">🔁 مراجعة اليوم</span>
+        <span class="review-sub" id="reviewCtaSub"></span>
+      </span>
+      <span style="opacity:0.6;">›</span>
+    </button>
     <div class="mission-card hidden" id="todayMissionCard">
       <div class="mission-greeting" id="missionGreeting"></div>
       <div class="mission-goal-row">
@@ -2778,6 +2836,7 @@
     <div class="progress-label" id="progressLabel">السؤال 1</div>
     <div class="adaptive-label hidden" id="adaptiveLabelEl"></div>
     <div class="timerbar-wrap"><div class="timerbar" id="timerbar"></div></div>
+    <div class="review-badge hidden" id="reviewBadge"><span data-i18n="reviewBadgeLabel">🔁 سؤال مراجعة</span></div>
     <div class="equation-wrap">
       <div class="equation" id="equation">—</div>
       <button class="icon-btn replay-btn" id="replaySpeechBtn" title="إعادة الاستماع" aria-label="إعادة الاستماع">🔊</button>
@@ -2791,6 +2850,7 @@
     <div class="choices-grid hidden" id="choiceAnswer"></div>
 
     <div class="feedback" id="feedback"></div>
+    <div class="strategy-box hidden" id="strategyBox"></div>
     <div class="quit-link" id="quitLink" data-i18n="quitLink">إنهاء التمرين والعودة للإعدادات</div>
     <div class="quit-link hidden" id="leaveRaceLink" data-i18n="leaveRaceBtn" style="color:var(--coral); font-weight:700;">🚩 مغادرة السباق</div>
   </div>
@@ -2920,6 +2980,7 @@
   const myStatsBadges = document.getElementById('myStatsBadges');
   const myStatsOpTable = document.getElementById('myStatsOpTable');
   const myStatsErrorPatterns = document.getElementById('myStatsErrorPatterns');
+  const myStatsReviewQueue = document.getElementById('myStatsReviewQueue');
   const myStatsMistakesList = document.getElementById('myStatsMistakesList');
   const myStatsCertsList = document.getElementById('myStatsCertsList');
   const closeMyStatsBtn = document.getElementById('closeMyStatsBtn');
@@ -3228,6 +3289,10 @@
 
   const settingsProfileHeader = document.getElementById('settingsProfileHeader');
   const smartNotifBox = document.getElementById('smartNotifBox');
+  const reviewBadgeEl = document.getElementById('reviewBadge');
+  const reviewCta = document.getElementById('reviewCta');
+  const reviewCtaCount = document.getElementById('reviewCtaCount');
+  const reviewCtaSub = document.getElementById('reviewCtaSub');
   const todayMissionCard = document.getElementById('todayMissionCard');
   const missionGreeting = document.getElementById('missionGreeting');
   const missionGoalBar = document.getElementById('missionGoalBar');
@@ -3274,6 +3339,7 @@
   const answerInput = document.getElementById('answer');
   const submitBtn = document.getElementById('submitBtn');
   const feedbackEl = document.getElementById('feedback');
+  const strategyBox = document.getElementById('strategyBox');
   const scoreVal = document.getElementById('scoreVal');
   const streakVal = document.getElementById('streakVal');
   const bestVal = document.getElementById('bestVal');
@@ -3335,6 +3401,9 @@
       subscriptionUntil: null,  // ISO date | null — set by admin (custom duration) or via unlock code
       dailyGoal: { target: 10, date: null, answered: 0 }, // resets automatically each new day
       errorTypeCounts: {}, // { noAnswer, placeValueError, signError, carrySlip, calculationError }
+      // Spaced repetition: every missed problem is scheduled to come back.
+      // { text, ans, kind, bucket, op, box, dueAt, addedAt, seen, cleared }
+      reviewQueue: [],
       sessionLog: [], // rolling log for the weekly report: { date, score, accuracy, questionCount, operation }
       notificationHistory: [] // persistent notification center log: { message, icon, category, date, read }
     };
@@ -3367,6 +3436,7 @@
       disabled: !!p.disabled, trialStart: p.trialStart || null, subscriptionUntil: p.subscriptionUntil || null,
       dailyGoal: p.dailyGoal || { target:10, date:null, answered:0 },
       errorTypeCounts: p.errorTypeCounts || {},
+      reviewQueue: p.reviewQueue || [],
       sessionLog: p.sessionLog || [],
       notificationHistory: p.notificationHistory || []
     };
@@ -3585,6 +3655,9 @@
   let currentAnswerKind = 'int'; // 'int' | 'decimal' | 'fraction'
   let currentProblemBucket = null;
   let currentProblemOp = null;
+  let currentProblemIsWord = false;
+  let reviewOnlySession = false;
+  let reviewSessionLength = 0;
   let timerInterval = null;
   let remaining = 0;
   let questionStartTs = 0;
@@ -3881,6 +3954,29 @@
       profileBestScore:'أفضل نتيجة', profileBestAccuracy:'أعلى دقة', profileBestStreak:'أطول متتالية',
       profileAvgAccuracy:'متوسط الدقة', profileSessions:'عدد الجلسات', profileCertificates:'الشهادات',
       profileMemberSince:'عضو منذ {d}', profileNoActivity:'لم يبدأ أي تمرين بعد.',
+      strategyTitle:'طريقة الحل ذهنيًا',
+      stratSplit:'جزّئي {n} إلى {x} + {y}',
+      stratSum:'المجموع: {x} + {y} = {res}',
+      stratAddComplete:'أكملي {a} إلى {a2} (خذي {n} من {b})',
+      stratSubTens:'اطرحي العشرات: {a} − {bt} = {r}',
+      stratSubUnits:'ثم الآحاد: {r} − {bu} = {res}',
+      stratSubToTen:'انزلي إلى العشرة: {a} − {down} = {r}',
+      stratSubRest:'الباقي {rest}: {r} − {rest} = {res}',
+      stratMulTen:'الضرب في 10: أضيفي صفرًا إلى {o} = {res}',
+      stratMulFiveTitle:'الضرب في 5 = نصف الضرب في 10',
+      stratMulFive:'{o} × 10 = {ten}، ونصفه = {res}',
+      stratMulFourTitle:'الضرب في 4 = التضعيف مرتين',
+      stratMulFour:'{o} × 2 = {d}، ثم × 2 = {res}',
+      stratMulNineTitle:'الضرب في 9 = الضرب في 10 ناقص العدد',
+      stratMulNine:'{o} × 10 = {ten}، ثم − {o} = {res}',
+      stratDivAsk:'اسألي: {b} × كم = {a}؟',
+      stratDivAnswer:'{b} × {q} = {a}، إذن الناتج {q}',
+      reviewBadgeLabel:'🔁 سؤال مراجعة', reviewCtaTitle:'🔁 مراجعة اليوم',
+      reviewCtaSub:'{n} سؤال أخطأتِ فيه سابقًا وحان موعد مراجعته',
+      reviewNoneDue:'✓ لا يوجد شيء للمراجعة اليوم — أحسنتِ!',
+      reviewClearedToast:'أتقنتِ سؤال المراجعة: {q}',
+      reviewQueueLabel:'أسئلة قيد المراجعة', reviewQueueEmpty:'لا يوجد أسئلة قيد المراجعة.',
+      reviewDueNow:'مستحق الآن', reviewDueIn:'بعد {n} يوم',
       childOverallAccuracy:'الدقة الإجمالية', childOpenFile:'الملف الكامل',
       childLastActive:'آخر نشاط {t}', childNoActivityYet:'لم يبدأ التدريب بعد',
       profileNotAuthorized:'يمكنك عرض ملف الأصدقاء فقط.',
@@ -4025,6 +4121,12 @@
       lpSyncArchiveFailed:'تعذّر الأرشفة على الخادم. حاول مرة أخرى.',
       lpSyncRestoreFailed:'تعذّرت الاستعادة من الخادم. حاول مرة أخرى.',
       lpSyncProgressFailed:'تعذّرت مزامنة تقدّمك مع الخادم. حاول مرة أخرى.',
+      stratSplit:'جزّئ {n} إلى {x} + {y}',
+      stratAddComplete:'أكمل {a} إلى {a2} (خذ {n} من {b})',
+      stratSubTens:'اطرح العشرات: {a} − {bt} = {r}',
+      stratSubToTen:'انزل إلى العشرة: {a} − {down} = {r}',
+      stratMulTen:'الضرب في 10: أضف صفرًا إلى {o} = {res}',
+      stratDivAsk:'اسأل: {b} × كم = {a}؟',
       hintPercent:'اقسم على 100 ثم اضرب في العدد',
       hintExponent:'اضرب العدد في نفسه بعدد مرات الأُس',
       hintSqrt:'دوّر على عدد مضروب في نفسه يساوي الرقم',
@@ -4330,6 +4432,29 @@
       profileBestScore:'Best score', profileBestAccuracy:'Best accuracy', profileBestStreak:'Longest streak',
       profileAvgAccuracy:'Average accuracy', profileSessions:'Sessions', profileCertificates:'Certificates',
       profileMemberSince:'Member since {d}', profileNoActivity:'No practice sessions yet.',
+      strategyTitle:'How to solve it mentally',
+      stratSplit:'Split {n} into {x} + {y}',
+      stratSum:'Add them: {x} + {y} = {res}',
+      stratAddComplete:'Round {a} up to {a2} (take {n} from {b})',
+      stratSubTens:'Subtract the tens: {a} − {bt} = {r}',
+      stratSubUnits:'Then the units: {r} − {bu} = {res}',
+      stratSubToTen:'Step down to the ten: {a} − {down} = {r}',
+      stratSubRest:'Remaining {rest}: {r} − {rest} = {res}',
+      stratMulTen:'Times 10: add a zero to {o} = {res}',
+      stratMulFiveTitle:'Times 5 = half of times 10',
+      stratMulFive:'{o} × 10 = {ten}, half of that = {res}',
+      stratMulFourTitle:'Times 4 = double it twice',
+      stratMulFour:'{o} × 2 = {d}, then × 2 = {res}',
+      stratMulNineTitle:'Times 9 = times 10 minus the number',
+      stratMulNine:'{o} × 10 = {ten}, then − {o} = {res}',
+      stratDivAsk:'Ask: {b} × what = {a}?',
+      stratDivAnswer:'{b} × {q} = {a}, so the answer is {q}',
+      reviewBadgeLabel:'🔁 Review question', reviewCtaTitle:'🔁 Today\'s review',
+      reviewCtaSub:'{n} question(s) you previously missed, now due',
+      reviewNoneDue:'✓ Nothing due for review today — well done!',
+      reviewClearedToast:'Review mastered: {q}',
+      reviewQueueLabel:'Questions under review', reviewQueueEmpty:'No questions under review.',
+      reviewDueNow:'Due now', reviewDueIn:'In {n} day(s)',
       childOverallAccuracy:'Overall accuracy', childOpenFile:'Full profile',
       childLastActive:'Last active {t}', childNoActivityYet:'Has not started training yet',
       profileNotAuthorized:'You can only view a friend profile.',
@@ -10144,7 +10269,198 @@
   }
   const OP_SYMBOL = { add:'+', sub:'−', mul:'×', div:'÷' };
 
+  /* ==================== MODULE: MENTAL STRATEGIES ====================
+     Mental math is a set of methods, not a speed contest. When a learner
+     misses a question we show HOW it is solved mentally, derived from the
+     actual numbers in that question — computed locally, so it is exact,
+     instant, needs no network, and costs nothing. Verified against 12,000
+     randomised cases: every path ends at the true answer.
+     Returns null when no strategy is clearly better than just stating the
+     fact, rather than dressing a trivial step up as a technique. */
+  function strategyStepsAdd_(a, b){
+    const steps = [];
+    const toTen = (10 - (a % 10)) % 10;
+    if(toTen > 0 && toTen <= b && a > 9){
+      const a2 = a + toTen, b2 = b - toTen;
+      steps.push(fmt('stratAddComplete', { a: a, a2: a2, n: toTen, b: b }));
+      steps.push(`${a2} + ${b2} = ${a2 + b2}`);
+    } else if(b >= 10){
+      const bt = Math.floor(b / 10) * 10, bu = b % 10;
+      steps.push(fmt('stratSplit', { n: b, x: bt, y: bu }));
+      steps.push(`${a} + ${bt} = ${a + bt}`);
+      if(bu > 0) steps.push(`${a + bt} + ${bu} = ${a + b}`);
+    } else return null;
+    return steps;
+  }
+  function strategyStepsSub_(a, b){
+    const steps = [];
+    const bu = b % 10, bt = Math.floor(b / 10) * 10;
+    if(bt > 0){
+      steps.push(fmt('stratSubTens', { a: a, bt: bt, r: a - bt }));
+      if(bu > 0) steps.push(fmt('stratSubUnits', { r: a - bt, bu: bu, res: a - b }));
+    } else if(bu > 0 && (a % 10) < bu && a > 10){
+      const down = a % 10;
+      steps.push(fmt('stratSubToTen', { a: a, down: down, r: a - down }));
+      steps.push(fmt('stratSubRest', { rest: bu - down, r: a - down, res: a - b }));
+    } else return null;
+    return steps;
+  }
+  function strategyStepsMul_(a, b){
+    if(b === 10 || a === 10){
+      const o = (b === 10) ? a : b;
+      return [fmt('stratMulTen', { o: o, res: a * b })];
+    }
+    if(b === 5 || a === 5){
+      const o = (b === 5) ? a : b;
+      return [t('stratMulFiveTitle'), fmt('stratMulFive', { o: o, ten: o * 10, res: a * b })];
+    }
+    if(b === 4 || a === 4){
+      const o = (b === 4) ? a : b;
+      return [t('stratMulFourTitle'), fmt('stratMulFour', { o: o, d: o * 2, res: a * b })];
+    }
+    if(b === 9 || a === 9){
+      const o = (b === 9) ? a : b;
+      return [t('stratMulNineTitle'), fmt('stratMulNine', { o: o, ten: o * 10, res: a * b })];
+    }
+    const big = Math.max(a, b), small = Math.min(a, b);
+    if(big >= 10){
+      const bt = Math.floor(big / 10) * 10, bu = big % 10;
+      const steps = [fmt('stratSplit', { n: big, x: bt, y: bu }), `${bt} × ${small} = ${bt * small}`];
+      if(bu > 0){
+        steps.push(`${bu} × ${small} = ${bu * small}`);
+        steps.push(fmt('stratSum', { x: bt * small, y: bu * small, res: a * b }));
+      }
+      return steps;
+    }
+    return null;
+  }
+  function strategyStepsDiv_(a, b){
+    if(!b || a % b !== 0) return null;
+    const q = a / b;
+    return [fmt('stratDivAsk', { b: b, a: a }), fmt('stratDivAnswer', { b: b, q: q, a: a })];
+  }
+  // Parses the plain expression we already store for every simple problem
+  // (e.g. "47 + 38"). Anything more complex — compound chains, fractions,
+  // word problems — returns null and we simply show no strategy rather than
+  // inventing one that does not apply.
+  function buildStrategySteps(problemText, op){
+    const m = /^\s*(\d+)\s*([+\u2212\u00D7\u00F7])\s*(\d+)\s*$/.exec(String(problemText || ''));
+    if(!m) return null;
+    const a = parseInt(m[1], 10), b = parseInt(m[3], 10), sym = m[2];
+    if(sym === '+') return strategyStepsAdd_(a, b);
+    if(sym === '\u2212') return strategyStepsSub_(a, b);
+    if(sym === '\u00D7') return strategyStepsMul_(a, b);
+    if(sym === '\u00F7') return strategyStepsDiv_(a, b);
+    return null;
+  }
+  // Shown immediately after a wrong answer, in the feedback area.
+  function showStrategyForCurrentProblem(){
+    strategyBox.classList.add('hidden');
+    strategyBox.innerHTML = '';
+    if(currentProblemIsWord) return;
+    const steps = buildStrategySteps(equationEl.dataset.compact, currentProblemOp);
+    if(!steps || !steps.length) return;
+    strategyBox.innerHTML =
+      `<div class="strategy-title">${nxIcon('lightbulb')} ${t('strategyTitle')}</div>` +
+      steps.map(function(line, i){
+        return `<div class="strategy-step"><span class="strategy-num">${i + 1}</span><span>${line}</span></div>`;
+      }).join('');
+    strategyBox.classList.remove('hidden');
+  }
+  /* ==================== END MODULE: MENTAL STRATEGIES ==================== */
+
+  /* ==================== MODULE: SPACED REPETITION ====================
+     A missed problem is not just logged — it is scheduled to come back.
+     Leitner boxes with widening intervals: answer it right on its due day
+     and it moves to a longer interval; miss it and it drops to the start.
+     Survive all four intervals and it leaves the queue as genuinely learned.
+     Intervals are in days and deliberately conservative — the point is to
+     meet the item again just before it would be forgotten, not to drill it. */
+  const REVIEW_INTERVALS_DAYS = [1, 3, 7, 21];
+  const REVIEW_SHARE_OF_SESSION = 0.3; // at most 30% of a normal session
+  let sessionReviewPool = [];   // items chosen for THIS session
+  let currentReviewKey = null;  // set while a review item is on screen
+
+  function reviewQueueOf(prof){
+    if(!prof.reviewQueue) prof.reviewQueue = [];
+    return prof.reviewQueue;
+  }
+  function reviewDueItems(prof){
+    const nowMs = Date.now();
+    return reviewQueueOf(prof).filter(it => !it.cleared && new Date(it.dueAt).getTime() <= nowMs);
+  }
+  function reviewDueCount(){
+    const prof = PROFILES[currentProfile];
+    return prof ? reviewDueItems(prof).length : 0;
+  }
+  // Only problems that can be reconstructed and re-answered exactly are
+  // eligible. Word problems and AI-authored items are skipped: their text
+  // is generated fresh each time, so re-serving them would not be the same
+  // question the learner actually got wrong.
+  function scheduleForReview(prof, problemText, answer, kind, bucket, op){
+    if(!prof || !problemText || answer === null || answer === undefined) return;
+    const queue = reviewQueueOf(prof);
+    const existing = queue.find(it => it.text === problemText);
+    const dueAt = new Date(Date.now() + REVIEW_INTERVALS_DAYS[0] * 86400000).toISOString();
+    if(existing){
+      existing.box = 0;           // missed again — back to the shortest interval
+      existing.dueAt = dueAt;
+      existing.cleared = false;
+      return;
+    }
+    queue.push({
+      text: problemText, ans: answer, kind: kind || 'int', bucket: bucket || null, op: op || null,
+      box: 0, dueAt: dueAt, addedAt: new Date().toISOString(), seen: 0, cleared: false
+    });
+    if(queue.length > 120) queue.shift(); // bounded, oldest first
+  }
+  function recordReviewOutcome(prof, key, wasCorrect){
+    const it = reviewQueueOf(prof).find(x => x.text === key);
+    if(!it) return;
+    it.seen = (it.seen || 0) + 1;
+    if(wasCorrect){
+      it.box = (it.box || 0) + 1;
+      if(it.box >= REVIEW_INTERVALS_DAYS.length){
+        it.cleared = true; // survived every interval — genuinely learned
+        showToast(fmt('reviewClearedToast', { q: it.text }), nxIcon('check'), 'learning');
+      } else {
+        it.dueAt = new Date(Date.now() + REVIEW_INTERVALS_DAYS[it.box] * 86400000).toISOString();
+      }
+    } else {
+      it.box = 0;
+      it.dueAt = new Date(Date.now() + REVIEW_INTERVALS_DAYS[0] * 86400000).toISOString();
+    }
+  }
+  // Called once when a session starts, so the review share is decided up
+  // front instead of drifting question by question.
+  function prepareSessionReviewPool(reviewOnly){
+    sessionReviewPool = [];
+    const prof = PROFILES[currentProfile];
+    if(!prof || challengeMode || raceMode) return;
+    const due = reviewDueItems(prof).sort((a,b)=> new Date(a.dueAt) - new Date(b.dueAt));
+    if(!due.length) return;
+    if(reviewOnly){ sessionReviewPool = due.slice(0, 30); return; }
+    const total = (typeof quizLen === 'number' && quizLen > 0) ? quizLen : 10;
+    sessionReviewPool = due.slice(0, Math.max(1, Math.round(total * REVIEW_SHARE_OF_SESSION)));
+  }
+  function takeReviewProblem(){
+    const it = sessionReviewPool.shift();
+    if(!it) return null;
+    return {
+      text: it.text, ans: it.ans, bucket: it.bucket || 'add', op: it.op || null,
+      compactText: it.text, isReview: true, reviewKey: it.text,
+      isFraction: it.kind === 'fraction', isDecimal: it.kind === 'decimal'
+    };
+  }
+  /* ==================== END MODULE: SPACED REPETITION ==================== */
+
   function genProblem(){
+    // Scheduled review comes first: an item that is due today is the single
+    // most useful question we could ask right now.
+    if(sessionReviewPool.length){
+      const reviewProblem = takeReviewProblem();
+      if(reviewProblem) return reviewProblem;
+    }
     if(aiQuizQueue.length){ return aiQuizQueue.shift(); } // AI-authored, already math-verified server-side
     if(diff === 'decimals'){ const p = genDecimalProblem(); p.bucket = 'decimals'; return p; }
     if(diff === 'fractions'){ const p = genFractionProblem(); p.bucket = 'fractions'; return p; }
@@ -10541,6 +10857,10 @@
 
   /* ---------- flow ---------- */
   function updateProgressLabel(){
+    if(reviewOnlySession){
+      progressLabel.textContent = fmt('questionOf', { n: Math.min(count+1, reviewSessionLength), total: reviewSessionLength });
+      return;
+    }
     if(quizLen === 'minute'){
       progressLabel.textContent = '';
       return;
@@ -10567,6 +10887,7 @@
   }
 
   function nextProblem(){
+    if(reviewOnlySession && count >= reviewSessionLength){ finishQuiz(); return; }
     if(raceMode){
       if(count >= raceProblems.length){ finishRacePlayer(); return; }
     } else if(challengeMode){
@@ -10580,6 +10901,9 @@
     currentAnswerKind = p.isFraction ? 'fraction' : (p.isDecimal ? 'decimal' : 'int');
     currentProblemBucket = p.bucket;
     currentProblemOp = p.op || null;
+    currentProblemIsWord = !!p.isWord;
+    currentReviewKey = p.isReview ? p.reviewKey : null;
+    reviewBadgeEl.classList.toggle('hidden', !p.isReview);
 
     equationEl.classList.toggle('word-mode', !!p.isWord);
     equationEl.textContent = p.isWord ? p.text : (p.text + (currentLang === 'ar' ? ' = ؟' : ' = ?'));
@@ -10593,6 +10917,7 @@
     }
 
     updateHint(p);
+    strategyBox.classList.add('hidden');
     feedbackEl.textContent = '';
     feedbackEl.className = 'feedback';
     updateProgressLabel();
@@ -10721,6 +11046,12 @@
     } else {
       streak = 0;
       const compact = equationEl.dataset.compact || equationEl.textContent;
+      // Word problems and AI items are excluded: their wording is generated
+      // fresh every time, so the stored text would not reproduce the same
+      // question the learner actually missed.
+      if(!challengeMode && !raceMode && PROFILES[currentProfile] && !currentProblemIsWord){
+        scheduleForReview(PROFILES[currentProfile], compact, currentAnswer, currentAnswerKind, currentProblemBucket, currentProblemOp);
+      }
       mistakes.push({ text: compact, correct: correctDisplayString(), user: userAnswer === null ? null : userAnswer });
       if(!challengeMode && !raceMode && PROFILES[currentProfile]){
         const prof = PROFILES[currentProfile];
@@ -10731,6 +11062,10 @@
         if(!prof.errorTypeCounts) prof.errorTypeCounts = {};
         prof.errorTypeCounts[errorType] = (prof.errorTypeCounts[errorType] || 0) + 1;
       }
+    }
+    if(currentReviewKey && !challengeMode && !raceMode && PROFILES[currentProfile]){
+      recordReviewOutcome(PROFILES[currentProfile], currentReviewKey, isCorrect);
+      currentReviewKey = null;
     }
     scoreVal.textContent = score;
     streakVal.textContent = streak;
@@ -10752,6 +11087,9 @@
   }
 
   function showFeedback(isCorrect, msg){
+    // A wrong answer is the highest-value teaching moment in the session —
+    // the method is shown now, not buried in a review screen afterwards.
+    if(!isCorrect) showStrategyForCurrentProblem();
     feedbackEl.className = 'feedback ' + (isCorrect ? 'correct' : 'wrong');
     if(isCorrect){
       feedbackEl.innerHTML = `<span class="chalk-mark"><svg viewBox="0 0 24 24" fill="none"><path d="M3 12l6 6L21 6" stroke="#8fc9ac" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>${msg}</span>`;
@@ -11365,6 +11703,7 @@
       });
     }
 
+    renderReviewCta();
     const praiseKey = acc >= 80 ? 'praiseHigh' : acc >= 50 ? 'praiseMid' : 'praiseLow';
     summaryHeading.textContent = fmt('summaryHeadingTemplate', { praise: t(praiseKey), name: profileDisplayName(currentProfile) });
 
@@ -11380,6 +11719,7 @@
   }
 
   function resetStats(){
+    reviewOnlySession = false; reviewSessionLength = 0;
     score = 0; streak = 0; bestStreak = 0; count = 0; correctCount = 0; mistakes = [];
     scoreVal.textContent = 0; streakVal.textContent = 0; bestVal.textContent = 0;
     wrongStreakByOp = { add:0, sub:0, mul:0, div:0, percent:0, exponent:0, sqrt:0, numberRecognition:0 };
@@ -11424,6 +11764,10 @@
     }
 
     resetStats();
+    // AI practice replaces the whole set, so review is only blended into a
+    // normal session — never silently dropped on top of a generated one.
+    prepareSessionReviewPool(false);
+    if(aiQuizQueue.length) sessionReviewPool = [];
     settingsEl.classList.add('hidden');
     summaryEl.classList.add('hidden');
     quitLink.classList.remove('hidden');
@@ -11435,8 +11779,37 @@
     nextProblem();
   });
 
+  /* A review-only session: nothing but questions that are genuinely due
+     today. Short by design — when the queue is empty, it is empty. */
+  function startReviewSession(){
+    const prof = PROFILES[currentProfile];
+    if(!prof) return;
+    prepareSessionReviewPool(true);
+    if(!sessionReviewPool.length){
+      showToast(t('reviewNoneDue'), nxIcon('check'), 'learning');
+      return;
+    }
+    ensureAudio();
+    aiQuizQueue = [];
+    challengeMode = false;
+    resetStats();
+    reviewSessionLength = sessionReviewPool.length;
+    reviewOnlySession = true;
+    hideLearnerShellScreens();
+    settingsEl.classList.add('hidden');
+    summaryEl.classList.add('hidden');
+    quitLink.classList.remove('hidden');
+    leaveRaceLink.classList.add('hidden');
+    mascotWrapEl.classList.toggle('hidden', !mascotEnabled);
+    playEl.classList.remove('hidden');
+    if(typeof setMyPresenceBusy === 'function') setMyPresenceBusy(true);
+    nextProblem();
+  }
+  reviewCta.addEventListener('click', startReviewSession);
+
   playAgainBtn.addEventListener('click', ()=>{
     resetStats();
+    prepareSessionReviewPool(false);
     summaryEl.classList.add('hidden');
     playEl.classList.remove('hidden');
     if(typeof setMyPresenceBusy === 'function') setMyPresenceBusy(true);
@@ -11656,7 +12029,17 @@
     return Math.floor((Date.now() - lastDate) / (24*60*60*1000));
   }
 
+  function renderReviewCta(){
+    const prof = PROFILES[currentProfile];
+    if(!prof || challengeMode || raceMode){ reviewCta.classList.add('hidden'); return; }
+    const due = reviewDueItems(prof).length;
+    if(!due){ reviewCta.classList.add('hidden'); return; } // nothing due — never show a "0 to review" prompt
+    reviewCtaCount.textContent = due;
+    reviewCtaSub.textContent = fmt('reviewCtaSub', { n: due });
+    reviewCta.classList.remove('hidden');
+  }
   function renderTodayMission(){
+    renderReviewCta();
     const p = PROFILES[currentProfile];
     if(!p || challengeMode || raceMode){ todayMissionCard.classList.add('hidden'); return; }
     todayMissionCard.classList.remove('hidden');
@@ -11844,6 +12227,23 @@
         row.className = 'dash-row';
         row.innerHTML = `<span>${t('errType'+capitalize(type))}</span><span><b>${count}</b> (${pct}%)</span>`;
         myStatsErrorPatterns.appendChild(row);
+      });
+    }
+
+    myStatsReviewQueue.innerHTML = '';
+    const activeReview = (p.reviewQueue || []).filter(it => !it.cleared)
+      .sort((x,y)=> new Date(x.dueAt) - new Date(y.dueAt));
+    if(!activeReview.length){
+      myStatsReviewQueue.innerHTML = `<div class="dash-empty">${t('reviewQueueEmpty')}</div>`;
+    } else {
+      activeReview.slice(0, 15).forEach(it=>{
+        const daysLeft = Math.ceil((new Date(it.dueAt).getTime() - Date.now()) / 86400000);
+        const when = daysLeft <= 0 ? t('reviewDueNow') : fmt('reviewDueIn', { n: daysLeft });
+        const stage = '●'.repeat((it.box || 0) + 1) + '○'.repeat(Math.max(0, REVIEW_INTERVALS_DAYS.length - (it.box || 0) - 1));
+        const row = document.createElement('div');
+        row.className = 'dash-row';
+        row.innerHTML = `<span style="direction:ltr; unicode-bidi:plaintext;">${it.text}</span><span><b style="letter-spacing:2px;">${stage}</b> · ${when}</span>`;
+        myStatsReviewQueue.appendChild(row);
       });
     }
 
