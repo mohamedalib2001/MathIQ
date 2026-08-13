@@ -671,6 +671,26 @@
   .abacus-target{ text-align:center; font-size:15px; font-weight:700; margin-bottom:10px; }
   .abacus-target b{ color:var(--yellow); font-size:22px; }
 
+  .ab-stage-badge{
+    display:flex; align-items:center; justify-content:center; gap:6px; width:fit-content; margin:0 auto 10px;
+    font-size:11.5px; font-weight:700; color:#06B6D4;
+    background:rgba(6,182,212,0.1); border:1px solid rgba(6,182,212,0.35); border-radius:20px; padding:5px 14px;
+  }
+  .ab-stage-progress{
+    font-size:11.5px; color:var(--ink-dim); text-align:center; line-height:1.7;
+    background:var(--input-bg); border:1px solid var(--chip-border); border-radius:10px;
+    padding:9px 12px; margin-bottom:10px;
+  }
+  /* The instrument fades rather than vanishing, so the learner sees it leave
+     and keeps the mental image of where the beads were. */
+  .abacus-frame{ transition:opacity .45s ease, filter .45s ease; }
+  .abacus-frame.ab-hidden{ opacity:0; filter:blur(6px); pointer-events:none; }
+  .abacus-frame.ab-flash{ opacity:1; }
+  @media (prefers-reduced-motion: reduce){
+    .abacus-frame{ transition:none; }
+    .abacus-frame.ab-hidden{ filter:none; opacity:0; }
+  }
+
   .ab-path-strategy{
     font-family:'Cairo',sans-serif; font-weight:700; font-size:13px; color:var(--mint);
     background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.3);
@@ -2197,6 +2217,7 @@
       <div class="abacus-mode-tab" id="abacusModeRead" data-i18n="abacusModeRead">اقرئي الرقم</div>
       <div class="abacus-mode-tab" id="abacusModeSet" data-i18n="abacusModeSet">مثّلي الرقم</div>
     </div>
+    <div class="ab-stage-badge hidden" id="abacusStageBadge"></div>
     <div class="abacus-target hidden" id="abacusTargetLine"></div>
     <div class="abacus-value-display" id="abacusValueDisplay">0</div>
     <div class="abacus-frame">
@@ -2207,9 +2228,11 @@
       <button class="secondary-btn" id="abacusCheckBtn" data-i18n="submitBtn" style="flex:none;">تحقق</button>
     </div>
     <div class="feedback" id="abacusFeedback"></div>
+    <div class="ab-stage-progress hidden" id="abacusStageProgress"></div>
     <div class="strategy-box hidden" id="abacusPathBox"></div>
     <div class="editor-actions" style="margin-top:10px;">
       <button class="secondary-btn" id="abacusResetBtn" data-i18n="abacusResetBtn">🔄 صفّري الأباكوس</button>
+      <button class="secondary-btn hidden" id="abacusPeekBtn" data-i18n="abacusPeekBtn">👁 نظرة سريعة</button>
       <button class="secondary-btn" id="abacusUndoBtn" data-i18n="abacusUndoBtn">↶ تراجع</button>
       <button class="secondary-btn" id="abacusNewBtn" data-i18n="abacusNewBtn">🎲 رقم جديد</button>
     </div>
@@ -3324,6 +3347,9 @@
   const abacusCheckBtn = document.getElementById('abacusCheckBtn');
   const abacusFeedback = document.getElementById('abacusFeedback');
   const abacusResetBtn = document.getElementById('abacusResetBtn');
+  const abStageBadge = document.getElementById('abacusStageBadge');
+  const abStageProgress = document.getElementById('abacusStageProgress');
+  const abacusPeekBtn = document.getElementById('abacusPeekBtn');
   const abacusUndoBtn = document.getElementById('abacusUndoBtn');
   const abPathBox = document.getElementById('abacusPathBox');
   const abacusNewBtn = document.getElementById('abacusNewBtn');
@@ -3613,6 +3639,7 @@
       recentByBucket: {},          // rolling window of recent attempts per operation
       knowledgeQueue: [],          // spaced retrieval for the nine programs, not just math
       abacusLog: [],               // compressed solution-path summaries, bounded at 40
+      abacusStage: 1,              // 1..5 — visible abacus through to mental (Anzan)
       twinSessions: [],            // recorded sessions, replayable as an opponent
       cogSnapshots: [],            // weekly indicator snapshots, for trajectory
       sessionLog: [], // rolling log for the weekly report: { date, score, accuracy, questionCount, operation }
@@ -3652,6 +3679,7 @@
       recentByBucket: p.recentByBucket || {},
       knowledgeQueue: p.knowledgeQueue || [],
       abacusLog: p.abacusLog || [],
+      abacusStage: p.abacusStage || 1,
       twinSessions: p.twinSessions || [],
       cogSnapshots: p.cogSnapshots || [],
       sessionLog: p.sessionLog || [],
@@ -4271,6 +4299,18 @@
       aiPracticeLoading:'جارٍ توليد تمرين ذكي...', aiPracticeFailed:'تعذّر توليد التمرين الذكي — تم استخدام التمرين العادي بدلًا منه.',
       abacusOpenBtn:'🧮 مدرّب الأباكوس (Abacus)', abacusTitle:'🧮 مدرّب الأباكوس',
       abacusModeFree:'تدريب حر', abacusModeRead:'اقرئي الرقم', abacusModeSet:'مثّلي الرقم',
+      abacusPeekBtn:'👁 نظرة سريعة',
+      abStageBadge:'المرحلة {n} · {label}',
+      abStage1:'أباكوس كامل', abStage2:'بدون إظهار القيمة', abStage3:'الأباكوس يظهر لحظة',
+      abStage4:'بدون أباكوس', abStage5:'حساب ذهني (أنزان)',
+      abStageUp:'🎓 انتقلتِ للمرحلة {n}: {label} — بدقة {acc}% في هذه المرحلة',
+      abStageDown:'رجعنا للمرحلة {n}: {label} — لنبني الأساس أقوى، ولم تفقدي شيئًا مما أتقنتِه',
+      abStageNoData:'ابدئي المحاولات في هذه المرحلة لنعرف متى تكونين جاهزة للتالية',
+      abStageNeeds:'للانتقال للمرحلة التالية: {list}',
+      abStageReady:'✓ أداؤك يكفي للانتقال للمرحلة التالية — ستنتقلين بعد المحاولة القادمة',
+      abStageFinal:'أنتِ في المرحلة الأخيرة: الحساب الذهني الكامل',
+      abNeedAttempts:'{n} محاولات إضافية', abNeedAccuracy:'دقتك {a}% والمطلوب {target}%',
+      abNeedSpeed:'زمنك {s}ث والمطلوب أقل من {target}ث',
       abacusUndoBtn:'↶ تراجع',
       abacusBeadHeavenAria:'خرزة السماء في العمود {c}', abacusBeadEarthAria:'خرزة الأرض في العمود {c}',
       abEvidencePending:'الأباكوس: {n} من {need} محاولات — نحتاج المزيد قبل عرض أي ملاحظة',
@@ -4437,6 +4477,11 @@
       cmdStartMission:'ابدأ تدريب اليوم',
       explainBtn:'اشرحلي',
       explainFailed:'حاول مرة أخرى',
+      abStageUp:'🎓 انتقلت للمرحلة {n}: {label} — بدقة {acc}% في هذه المرحلة',
+      abStageDown:'رجعنا للمرحلة {n}: {label} — لنبني الأساس أقوى، ولم تفقد شيئًا مما أتقنته',
+      abStageNoData:'ابدأ المحاولات في هذه المرحلة لنعرف متى تكون جاهزًا للتالية',
+      abStageReady:'✓ أداؤك يكفي للانتقال للمرحلة التالية — ستنتقل بعد المحاولة القادمة',
+      abStageFinal:'أنت في المرحلة الأخيرة: الحساب الذهني الكامل',
       abStratTrialAndError:'محاولة وخطأ — جرّب التفكير في العدد كاملًا قبل تحريك أول خرزة',
       abStratLeftToRight:'حللت من اليسار لليمين — جرّب البدء من الآحاد',
       abStratSelfCorrected:'صحّحت نفسك بنفسك قرب النهاية — مهارة مهمة',
@@ -4835,6 +4880,18 @@
       aiPracticeLoading:'Generating a smart practice set...', aiPracticeFailed:'Could not generate the AI practice set — using the regular practice instead.',
       abacusOpenBtn:'🧮 Abacus Trainer', abacusTitle:'🧮 Abacus Trainer',
       abacusModeFree:'Free practice', abacusModeRead:'Read the number', abacusModeSet:'Set the number',
+      abacusPeekBtn:'👁 Quick peek',
+      abStageBadge:'Stage {n} · {label}',
+      abStage1:'Full abacus', abStage2:'Value hidden', abStage3:'Abacus flashes briefly',
+      abStage4:'No abacus', abStage5:'Mental (Anzan)',
+      abStageUp:'🎓 You moved to stage {n}: {label} — at {acc}% accuracy on this stage',
+      abStageDown:'Back to stage {n}: {label} — to build a stronger base. You have lost nothing you mastered',
+      abStageNoData:'Start attempting at this stage so we can tell when you are ready for the next',
+      abStageNeeds:'To reach the next stage: {list}',
+      abStageReady:'✓ Your performance is enough for the next stage — you will move up after the next attempt',
+      abStageFinal:'You are at the final stage: full mental calculation',
+      abNeedAttempts:'{n} more attempt(s)', abNeedAccuracy:'accuracy {a}%, target {target}%',
+      abNeedSpeed:'{s}s per solve, target under {target}s',
       abacusUndoBtn:'↶ Undo',
       abacusBeadHeavenAria:'Heaven bead on column {c}', abacusBeadEarthAria:'Earth bead on column {c}',
       abEvidencePending:'Abacus: {n} of {need} attempts — more are needed before any observation',
@@ -11591,6 +11648,7 @@
       reviewStats: prof.reviewStats || { c:0, t:0 },
       knowledgeQueue: prof.knowledgeQueue || [],
       abacusLog: prof.abacusLog || [],
+      abacusStage: prof.abacusStage || 1,
       cogSnapshots: prof.cogSnapshots || [],
       twinSessions: prof.twinSessions || [],
       errorTypeCounts: prof.errorTypeCounts || {},
@@ -11617,6 +11675,7 @@
     prof.reviewStats = state.reviewStats || { c:0, t:0 };
     prof.knowledgeQueue = state.knowledgeQueue || [];
     prof.abacusLog = state.abacusLog || [];
+    prof.abacusStage = state.abacusStage || 1;
     prof.cogSnapshots = state.cogSnapshots || [];
     prof.twinSessions = state.twinSessions || [];
     prof.errorTypeCounts = state.errorTypeCounts || {};
@@ -14619,6 +14678,7 @@
       pauseCount: abSession.pauses,
       longestPauseMs: abSession.longestPauseMs,
       columnsUsed: cols,
+      peeks: abSession.peeks || 0,
       columnOrder: abColumnOrder(abSession.events),
       strategy: abClassifyStrategy(abSession, finalCorrect),
       at: new Date().toISOString()
@@ -14678,12 +14738,92 @@
 
     return { id:'unclassified', reason:'no_clear_pattern' };
   }
+
+  /* ---------- INVISIBLE ABACUS: PROGRESSION ENGINE ----------
+     The goal of abacus training is not mastering the tool — it is no longer
+     needing it. These five stages take the learner from a fully visible
+     instrument to solving in their head (Anzan).
+
+     Promotion is EARNED from measured performance, never from a session
+     counter, and demotion is automatic when performance falls. A learner who
+     was promoted on a good week and then struggles is quietly moved back
+     rather than left failing at a stage they are not ready for. */
+  const ABACUS_STAGES = [
+    { id:1, key:'abStage1', showAbacus:true,  showValue:true,  flashMs:0 },
+    { id:2, key:'abStage2', showAbacus:true,  showValue:false, flashMs:0 },
+    { id:3, key:'abStage3', showAbacus:true,  showValue:false, flashMs:2200 },
+    { id:4, key:'abStage4', showAbacus:false, showValue:false, flashMs:0 },
+    { id:5, key:'abStage5', showAbacus:false, showValue:false, flashMs:0, mental:true }
+  ];
+  // Deliberately demanding: a stage change alters what the learner sees, so
+  // it must rest on a real sample, not a lucky streak.
+  const AB_PROMOTE_MIN_ATTEMPTS = 8;
+  const AB_PROMOTE_ACCURACY = 85;
+  const AB_PROMOTE_MAX_AVG_SEC = 22;
+  const AB_DEMOTE_ACCURACY = 45;
+  const AB_DEMOTE_MIN_ATTEMPTS = 6;
+
+  function abStageOf(prof){
+    const n = prof && prof.abacusStage;
+    return (n >= 1 && n <= ABACUS_STAGES.length) ? n : 1;
+  }
+  function abStageConfig(prof){ return ABACUS_STAGES[abStageOf(prof) - 1]; }
+
+  // Only attempts made AT the current stage count — performance at an easier
+  // stage says nothing about readiness for the next one.
+  function abStageAttempts(prof, stage){
+    return ((prof && prof.abacusLog) || []).filter(x => (x.stage || 1) === stage);
+  }
+  function abStageStats(prof, stage){
+    const rows = abStageAttempts(prof, stage).slice(-12);
+    if(!rows.length) return null;
+    const correct = rows.filter(x => x.finalCorrect).length;
+    const timed = rows.filter(x => x.solveTimeMs > 0);
+    const avgSec = timed.length ? (timed.reduce((a,b)=>a+b.solveTimeMs,0) / timed.length) / 1000 : null;
+    return {
+      n: rows.length,
+      accuracy: Math.round((correct / rows.length) * 100),
+      avgSec: avgSec === null ? null : Math.round(avgSec * 10) / 10
+    };
+  }
+  /* Returns { action:'promote'|'demote'|'hold', reason, stats }.
+     'hold' also carries WHY, so the learner can see what is still missing
+     instead of waiting on an invisible rule. */
+  function abEvaluateStage(prof){
+    const stage = abStageOf(prof);
+    const st = abStageStats(prof, stage);
+    if(!st) return { action:'hold', reason:'no_data', stats:null, stage:stage };
+
+    if(st.n >= AB_DEMOTE_MIN_ATTEMPTS && st.accuracy < AB_DEMOTE_ACCURACY && stage > 1){
+      return { action:'demote', reason:'accuracy_dropped', stats:st, stage:stage };
+    }
+    if(stage >= ABACUS_STAGES.length) return { action:'hold', reason:'final_stage', stats:st, stage:stage };
+    if(st.n < AB_PROMOTE_MIN_ATTEMPTS) return { action:'hold', reason:'need_attempts', stats:st, stage:stage };
+    if(st.accuracy < AB_PROMOTE_ACCURACY) return { action:'hold', reason:'need_accuracy', stats:st, stage:stage };
+    if(st.avgSec !== null && st.avgSec > AB_PROMOTE_MAX_AVG_SEC) return { action:'hold', reason:'need_speed', stats:st, stage:stage };
+    return { action:'promote', reason:'ready', stats:st, stage:stage };
+  }
+  function abApplyStageChange(prof, verdict){
+    if(!prof || !verdict) return null;
+    if(verdict.action === 'promote'){
+      prof.abacusStage = Math.min(ABACUS_STAGES.length, abStageOf(prof) + 1);
+      return { moved:'up', to: prof.abacusStage, stats: verdict.stats };
+    }
+    if(verdict.action === 'demote'){
+      prof.abacusStage = Math.max(1, abStageOf(prof) - 1);
+      return { moved:'down', to: prof.abacusStage, stats: verdict.stats };
+    }
+    return null;
+  }
+
   /* ==================== END MODULE: ABACUS INTERACTION TRACKING ==================== */
 
   const ABACUS_ROD_COUNT = 5; // supports values 0–99999
   let abacusRods = [];
   let abacusMode = 'free'; // 'free' | 'read' | 'set'
   let abacusTargetValue = 0;
+  let abFlashTimer = null;
+  let abLastVerdict = null;
 
   function freshAbacusRods(n){
     return Array.from({ length: n }, () => ({ heaven: false, earth: 0 }));
@@ -14788,6 +14928,33 @@
     }
   }
 
+  /* Applies the current stage to the display: hide the value, flash the
+     abacus then hide it, or remove it entirely. The abacus stays in the DOM
+     and stays interactive at stage 3 — only its visibility changes — so the
+     learner keeps building the mental image rather than losing the tool. */
+  function abApplyStageVisibility(){
+    const prof = PROFILES[currentProfile];
+    const cfg = abStageConfig(prof);
+    if(abFlashTimer){ clearTimeout(abFlashTimer); abFlashTimer = null; }
+
+    abacusValueDisplay.classList.toggle('hidden', !cfg.showValue && abacusMode !== 'free');
+    const frame = abacusSvgWrap.closest('.abacus-frame');
+    if(frame){
+      frame.classList.remove('ab-hidden', 'ab-flash');
+      // Free practice always shows the instrument — it is the sandbox, not a test.
+      if(abacusMode !== 'free'){
+        if(!cfg.showAbacus) frame.classList.add('ab-hidden');
+        else if(cfg.flashMs > 0){
+          frame.classList.add('ab-flash');
+          abFlashTimer = setTimeout(function(){ frame.classList.add('ab-hidden'); }, cfg.flashMs);
+        }
+      }
+    }
+    abStageBadge.textContent = fmt('abStageBadge', { n: abStageOf(prof), label: t(cfg.key) });
+    abStageBadge.classList.toggle('hidden', abacusMode === 'free');
+    const hidesTool = abacusMode !== 'free' && (!cfg.showAbacus || cfg.flashMs > 0);
+    abacusPeekBtn.classList.toggle('hidden', !hidesTool);
+  }
   function switchAbacusMode(mode){
     abacusMode = mode;
     [abacusModeFree, abacusModeRead, abacusModeSet].forEach(el=> el.classList.remove('active'));
@@ -14816,6 +14983,7 @@
       abStartQuestion({ concept: 'abacus:set', target: abacusTargetValue, mode: 'set' });
     }
     abPathBox.classList.add('hidden');
+    abApplyStageVisibility();
     renderAbacus();
   }
 
@@ -14894,6 +15062,22 @@
       if(p.abacusLog.length > 40) p.abacusLog.shift();
     }
 
+    if(summary) summary.stage = abStageOf(p); // which stage this evidence belongs to
+
+    // Re-evaluate readiness after every attempt, using only attempts made at
+    // the current stage.
+    const verdict = abEvaluateStage(p);
+    const change = abApplyStageChange(p, verdict);
+    if(change){
+      const cfg = ABACUS_STAGES[change.to - 1];
+      // Moving down is framed as a step back to build strength, never as a
+      // failure — the learner did not lose anything they had earned.
+      showToast(fmt(change.moved === 'up' ? 'abStageUp' : 'abStageDown',
+        { n: change.to, label: t(cfg.key), acc: change.stats ? change.stats.accuracy : 0 }),
+        nxIcon(change.moved === 'up' ? 'award' : 'refresh'), 'learning');
+    }
+    abLastVerdict = verdict;
+
     incrementDailyGoalProgress(p);
     learnerStateDirty = true;
     saveProfilesToStorage();
@@ -14910,11 +15094,44 @@
     if(correct) setTimeout(()=> switchAbacusMode('read'), 2600);
   });
   abacusUndoBtn.addEventListener('click', abUndo);
+  // A peek is allowed but recorded. Removing the tool without any way back
+  // makes a stuck learner quit; an unlimited reveal makes the stage
+  // meaningless. Counting it keeps both honest.
+  abacusPeekBtn.addEventListener('click', function(){
+    const frame = abacusSvgWrap.closest('.abacus-frame');
+    if(!frame) return;
+    frame.classList.remove('ab-hidden');
+    if(abSession) abSession.peeks = (abSession.peeks || 0) + 1;
+    if(abFlashTimer) clearTimeout(abFlashTimer);
+    abFlashTimer = setTimeout(function(){ frame.classList.add('ab-hidden'); }, 1400);
+  });
 
   /* Shows what the events actually recorded. When the moves do not support a
      classification it says exactly that, rather than naming a strategy the
      learner never demonstrated. */
+  // Tells the learner exactly what stands between them and the next stage.
+  function renderAbacusStageProgress(){
+    const prof = PROFILES[currentProfile];
+    if(!prof || abacusMode === 'free'){ abStageProgress.classList.add('hidden'); return; }
+    const v = abLastVerdict || abEvaluateStage(prof);
+    const st = v.stats;
+    if(!st){
+      abStageProgress.innerHTML = `<span>${t('abStageNoData')}</span>`;
+      abStageProgress.classList.remove('hidden');
+      return;
+    }
+    const needs = [];
+    if(st.n < AB_PROMOTE_MIN_ATTEMPTS) needs.push(fmt('abNeedAttempts', { n: AB_PROMOTE_MIN_ATTEMPTS - st.n }));
+    if(st.accuracy < AB_PROMOTE_ACCURACY) needs.push(fmt('abNeedAccuracy', { a: st.accuracy, target: AB_PROMOTE_ACCURACY }));
+    if(st.avgSec !== null && st.avgSec > AB_PROMOTE_MAX_AVG_SEC) needs.push(fmt('abNeedSpeed', { s: st.avgSec, target: AB_PROMOTE_MAX_AVG_SEC }));
+    const line = (abStageOf(prof) >= ABACUS_STAGES.length)
+      ? t('abStageFinal')
+      : (needs.length ? fmt('abStageNeeds', { list: needs.join('، ') }) : t('abStageReady'));
+    abStageProgress.innerHTML = `<span>${line}</span>`;
+    abStageProgress.classList.remove('hidden');
+  }
   function renderAbacusPath(summary){
+    renderAbacusStageProgress();
     if(!summary){ abPathBox.classList.add('hidden'); return; }
     const rows = [];
     if(summary.solveTimeMs) rows.push([t('abPathTime'), (summary.solveTimeMs/1000).toFixed(1) + t('secLabel')]);
