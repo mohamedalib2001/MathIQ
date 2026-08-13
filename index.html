@@ -1849,6 +1849,29 @@
   </div>
 </div>
 
+<!-- Owner password recovery. The owner has no one above them to reset it,
+     so without this a lost password meant losing the control panel. The code
+     goes only to the address already stored on the account. -->
+<div id="adminResetModal" class="hidden" role="dialog" aria-modal="true">
+  <div class="forgot-account-card">
+    <button class="forgot-account-close" id="adminResetCloseBtn" aria-label="إغلاق">✕</button>
+    <div class="forgot-account-title" data-i18n="adminResetTitle">استعادة كلمة مرور الإدارة</div>
+    <div id="adminResetStep1">
+      <div class="forgot-account-text" data-i18n="adminResetIntro">سنرسل كودًا إلى البريد المسجَّل على حساب الإدارة.</div>
+      <input type="text" id="adminResetUser" class="ltr-input" placeholder="username" style="margin-top:10px;">
+      <div class="feedback wrong" id="adminResetError1" style="min-height:16px;"></div>
+      <button class="start-btn" id="adminResetSendBtn" data-i18n="adminResetSendBtn">إرسال الكود</button>
+    </div>
+    <div id="adminResetStep2" class="hidden">
+      <div class="forgot-account-text" data-i18n="adminResetEnter">أدخل الكود وكلمة المرور الجديدة.</div>
+      <input type="text" id="adminResetCode" class="ltr-input" maxlength="6" placeholder="123456" style="margin-top:10px; text-align:center; letter-spacing:4px;">
+      <input type="password" id="adminResetNewPin" placeholder="كلمة المرور الجديدة" style="margin-top:8px;">
+      <div class="feedback wrong" id="adminResetError2" style="min-height:16px;"></div>
+      <button class="start-btn" id="adminResetConfirmBtn" data-i18n="adminResetConfirmBtn">تغيير كلمة المرور</button>
+    </div>
+  </div>
+</div>
+
 <div id="loginCodeModal" class="hidden" role="dialog" aria-modal="true">
   <div class="forgot-account-card">
     <button class="forgot-account-close" id="loginCodeCloseBtn" aria-label="إغلاق">✕</button>
@@ -3265,6 +3288,17 @@
   const adminLoginTitleEl = document.getElementById('adminLoginTitle');
   const adminUserInput = document.getElementById('adminUserInput');
   const adminPinInput = document.getElementById('adminPinInput');
+  const adminResetModal = document.getElementById('adminResetModal');
+  const adminResetCloseBtn = document.getElementById('adminResetCloseBtn');
+  const adminResetStep1 = document.getElementById('adminResetStep1');
+  const adminResetStep2 = document.getElementById('adminResetStep2');
+  const adminResetUser = document.getElementById('adminResetUser');
+  const adminResetCode = document.getElementById('adminResetCode');
+  const adminResetNewPin = document.getElementById('adminResetNewPin');
+  const adminResetSendBtn = document.getElementById('adminResetSendBtn');
+  const adminResetConfirmBtn = document.getElementById('adminResetConfirmBtn');
+  const adminResetError1 = document.getElementById('adminResetError1');
+  const adminResetError2 = document.getElementById('adminResetError2');
   const adminLoginError = document.getElementById('adminLoginError');
   const adminLoginBtn = document.getElementById('adminLoginBtn');
   const adminLoginCancelBtn = document.getElementById('adminLoginCancelBtn');
@@ -4491,6 +4525,15 @@
       cameraNeedsHttps:'⚠️ الكاميرا تحتاج استضافة الملف على الإنترنت (https) — لن تعمل من ملف مفتوح مباشرة على الجهاز.',
       cameraPermissionDenied:'تعذّر الوصول للكاميرا — تأكدي من السماح لها من إعدادات المتصفح.',
       cameraConnecting:'⏳ جارٍ الاتصال بكاميرا صديقتك...', cameraConnected:'متصلة!', cameraFailed:'⚠️ تعذّر الاتصال — يمكنكما إكمال السباق بدون فيديو.',
+      adminExistsHint:'يوجد حساب إدارة مُسجَّل بالفعل على الخادم. أدخل بياناته للدخول — لا حاجة لإنشاء حساب جديد.',
+      adminWrongPassword:'كلمة المرور غير صحيحة لحساب الإدارة الموجود.',
+      adminResetLink:'نسيت كلمة مرور الإدارة؟', adminResetTitle:'استعادة كلمة مرور الإدارة',
+      adminResetIntro:'سنرسل كودًا إلى البريد المسجَّل على حساب الإدارة.',
+      adminResetSendBtn:'إرسال الكود', adminResetEnter:'أدخل الكود وكلمة المرور الجديدة.',
+      adminResetConfirmBtn:'تغيير كلمة المرور',
+      adminResetNoEmail:'لا يوجد بريد مسجَّل على حساب الإدارة هذا، فلا يمكن استعادته بالبريد. أضف البريد في عمود Email بشيت Admin ثم أعد المحاولة.',
+      adminResetDone:'✓ تم تغيير كلمة المرور. سجّل الدخول بها الآن.',
+      newPasswordPlaceholder:'كلمة المرور الجديدة',
       adminLoginTitle:'دخول المالك', adminSetupTitle:'إنشاء حساب المالك (أول مرة)',
       adminSetupNote:'هذا الحساب له صلاحية كاملة على التطبيق. أنشئيه الآن مرة واحدة فقط — لن يظهر هذا الطلب مجددًا.',
       levelLabel:'المستوى {n}', levelUpMsg:'🎉 المستوى {n}!', dailyStreakLabel:'🔥 {n} يوم متتالي',
@@ -5160,6 +5203,15 @@
       cameraNeedsHttps:'⚠️ The camera needs the file to be hosted online (https) — it will not work from a file opened directly on the device.',
       cameraPermissionDenied:'Could not access the camera — check that it is allowed in your browser settings.',
       cameraConnecting:"⏳ Connecting to your friend's camera...", cameraConnected:'Connected!', cameraFailed:'⚠️ Could not connect — you can still finish the race without video.',
+      adminExistsHint:'An admin account already exists on the server. Sign in with it — there is no need to create a new one.',
+      adminWrongPassword:'Incorrect password for the existing admin account.',
+      adminResetLink:'Forgot the admin password?', adminResetTitle:'Recover admin password',
+      adminResetIntro:'We will send a code to the address on file for this admin account.',
+      adminResetSendBtn:'Send code', adminResetEnter:'Enter the code and a new password.',
+      adminResetConfirmBtn:'Change password',
+      adminResetNoEmail:'This admin account has no email on file, so it cannot be recovered by email. Add an address in the Email column of the Admin sheet and try again.',
+      adminResetDone:'✓ Password changed. Sign in with it now.',
+      newPasswordPlaceholder:'New password',
       adminLoginTitle:'Owner login', adminSetupTitle:'Create owner account (first time)',
       adminSetupNote:'This account has full control over the app. Create it once now — this prompt will never show again.',
       levelLabel:'Level {n}', levelUpMsg:'🎉 Level {n}!', dailyStreakLabel:'🔥 {n} day streak',
@@ -6432,7 +6484,25 @@
 
   function openAdminGate(){
     adminUserInput.value = ''; adminPinInput.value = ''; adminLoginError.textContent = '';
+    // Local storage is not the source of truth here. After a cache wipe the
+    // owner account still exists on the server, but this screen used to
+    // announce "create owner account (first time)" — so a returning owner was
+    // told to create an account that already existed, then rejected with
+    // "wrong password". Ask the server and label the screen honestly.
     adminLoginTitleEl.textContent = ADMIN ? t('adminLoginTitle') : t('adminSetupTitle');
+    adminResetLink.classList.toggle('hidden', !ADMIN);
+    if(!ADMIN && SHEET_API_URL){
+      postToSheet('admin_exists', {}).then(function(res){
+        if(res && res.ok && res.exists){
+          adminLoginTitleEl.textContent = t('adminLoginTitle');
+          adminLoginHint.textContent = t('adminExistsHint');
+          adminLoginHint.classList.remove('hidden');
+          adminResetLink.classList.remove('hidden');
+        } else {
+          adminLoginHint.classList.add('hidden');
+        }
+      });
+    }
     usernameLoginEl.classList.add('hidden');
     adminLoginGateEl.classList.remove('hidden');
   }
@@ -6515,6 +6585,54 @@
     adminLoginGateEl.classList.add('hidden');
     usernameLoginEl.classList.remove('hidden');
   });
+  adminResetLink.addEventListener('click', ()=>{
+    adminResetUser.value = adminUserInput.value.trim();
+    adminResetCode.value = ''; adminResetNewPin.value = '';
+    adminResetError1.textContent = ''; adminResetError2.textContent = '';
+    adminResetStep1.classList.remove('hidden');
+    adminResetStep2.classList.add('hidden');
+    adminResetModal.classList.remove('hidden');
+    adminResetUser.focus();
+  });
+  adminResetCloseBtn.addEventListener('click', ()=> adminResetModal.classList.add('hidden'));
+  adminResetSendBtn.addEventListener('click', async ()=>{
+    const username = adminResetUser.value.trim();
+    adminResetError1.textContent = '';
+    if(!username){ adminResetError1.textContent = t('enterUsernameOnly'); return; }
+    if(!SHEET_API_URL){ adminResetError1.textContent = t('forgotAccountNoBackend'); return; }
+    setBtnSaving(adminResetSendBtn, true);
+    const res = await postToSheet('request_admin_reset', { username });
+    setBtnSaving(adminResetSendBtn, false);
+    // An admin account with no address cannot be recovered by email — say so
+    // rather than sending them to a code screen that can never be satisfied.
+    if(res && res.error === 'no_email_on_file'){ adminResetError1.textContent = t('adminResetNoEmail'); return; }
+    if(!res || !res.ok){ adminResetError1.textContent = describeSyncFailure(res, 'forgotAccountRequestFailed'); return; }
+    adminResetStep1.classList.add('hidden');
+    adminResetStep2.classList.remove('hidden');
+    adminResetCode.focus();
+  });
+  adminResetConfirmBtn.addEventListener('click', async ()=>{
+    const username = adminResetUser.value.trim();
+    const code = adminResetCode.value.trim();
+    const pw = adminResetNewPin.value;
+    adminResetError2.textContent = '';
+    if(!code || !pw){ adminResetError2.textContent = t('enterBothFields'); return; }
+    if(pw.length < 4){ adminResetError2.textContent = t('resetPasswordTooShort'); return; }
+    setBtnSaving(adminResetConfirmBtn, true);
+    // Hashed with the same salt rule used everywhere else, so the new password
+    // works through the normal login path with no special case.
+    const newHash = await computePasswordHash(username, pw);
+    const res = await postToSheet('confirm_admin_reset', { username, code, newPin: newHash });
+    setBtnSaving(adminResetConfirmBtn, false);
+    if(!res || !res.ok){ adminResetError2.textContent = t('emailCodeInvalid'); return; }
+    adminResetModal.classList.add('hidden');
+    adminUserInput.value = username;
+    adminPinInput.value = '';
+    adminLoginError.textContent = '';
+    adminLoginHint.textContent = t('adminResetDone');
+    adminLoginHint.classList.remove('hidden');
+  });
+
   adminLoginBtn.addEventListener('click', async ()=>{
     const username = adminUserInput.value.trim();
     const password = adminPinInput.value;
@@ -6532,10 +6650,17 @@
         goToProfiles();
         return;
       }
-      // Server login failed — could be a genuinely wrong password, OR this
-      // could be the very first admin account ever (nothing registered
-      // yet). Try registering; the backend itself decides which case this
-      // is (bootstraps as owner only if the roster is truly empty).
+      // Server login failed. Before assuming this is a first-ever setup, ask
+      // whether any admin exists: if one does, this is simply a wrong
+      // password, and saying so is far more useful than a silent failed
+      // registration attempt that reports the same generic error.
+      const existsRes = await postToSheet('admin_exists', {});
+      if(existsRes && existsRes.ok && existsRes.exists){
+        adminLoginBtn.disabled = false;
+        adminLoginError.textContent = t('adminWrongPassword');
+        adminResetLink.classList.remove('hidden');
+        return;
+      }
       const registerRes = await postToSheet('register_admin', { username, pin: hash, name: username, role: 'owner' });
       adminLoginBtn.disabled = false;
       if(registerRes && registerRes.ok){
