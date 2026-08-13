@@ -4285,6 +4285,8 @@
       friendAcceptBtn:'قبول', friendDeclineBtn:'رفض', friendRemoveBtn:'إزالة',
       friendRemoveConfirm:'هل تريدين إزالة هذا الصديق؟',
       friendsNavLabel:'أصدقائي', myChildrenNavLabel:'أبنائي',
+      guardianNoLinksTitle:'<b>لا يوجد أبناء مرتبطون بهذا الحساب بعد.</b>',
+      guardianNoLinksHow:'لربط ابنك أو ابنتك: سجّلي الدخول بحسابها ← «حسابي» ← حسابات أولياء الأمور ← اكتبي اسم المستخدم وكلمة المرور الخاصة بكِ في خانة الأم أو الأب ← احفظي. بعدها سيظهر اسمها هنا مباشرة.',
       guardianUnlockTitle:'👪 متابعة أبنائي', guardianUnlockBtn:'عرض أبنائي',
       guardianUnlockHint:'أدخل كلمة مرور حساب ولي الأمر للاطّلاع على نشاط أبنائك.', friendAccepted:'✓ صرتما صديقين الآن!',
       friendUnnamed:'متعلّم لم يُكمل بياناته بعد',
@@ -4952,6 +4954,8 @@
       friendAcceptBtn:'Accept', friendDeclineBtn:'Decline', friendRemoveBtn:'Remove',
       friendRemoveConfirm:'Remove this friend?',
       friendsNavLabel:'Friends', myChildrenNavLabel:'My children',
+      guardianNoLinksTitle:'<b>No children are linked to this account yet.</b>',
+      guardianNoLinksHow:'To link a child: sign in to their account, open "My account" → guardian accounts, enter YOUR username and password under mother or father, and save. Their name will then appear here.',
       guardianUnlockTitle:'👪 My children', guardianUnlockBtn:'View my children',
       guardianUnlockHint:"Enter your guardian account password to view your children's activity.", friendAccepted:'✓ You are friends now!',
       friendUnnamed:'Learner has not completed their profile yet',
@@ -10204,6 +10208,16 @@
   }
   function iAmAGuardian(){ return myGuardianLinks().length > 0; }
 
+  // Tells a parent exactly why no children are showing and what to do,
+  // rather than leaving them staring at a menu item that does nothing.
+  function explainNoChildrenLinked(){
+    hideLearnerShellScreens();
+    renderParentDashboard([]);
+    parentChildrenList.innerHTML =
+      `<div class="syn-locked">${t('guardianNoLinksTitle')}<br><br>${t('guardianNoLinksHow')}</div>`;
+    parentDashboardBackBtn.classList.remove('hidden');
+    parentDashboardScreenEl.classList.remove('hidden');
+  }
   function openParentViewFromLearner(){
     if(guardianUnlockedChildren && guardianUnlockedChildren.length){
       showParentView(guardianUnlockedChildren);
@@ -10265,8 +10279,13 @@
         { icon:nxIcon('puzzle'), label:t('shellNavSkills'), run: ()=>{ hideLearnerShellScreens(); mySkillsScreen.classList.remove('hidden'); renderMySkills(); renderShellNav('learner'); } },
         { icon:nxIcon('award'), label:t('shellNavAchievements'), run: ()=> myStatsLink.click() },
         { icon:nxIcon('users'), label:t('friendsNavLabel'), run: ()=> friendsLink.click(), badgeCount: pendingFriendRequestCount },
-        ...(typeof iAmAGuardian === 'function' && iAmAGuardian()
-          ? [{ icon:nxIcon('users'), label:t('myChildrenNavLabel'), run: ()=> openParentViewFromLearner() }]
+        // Shown whenever this account HAS children linked. When the links are
+        // missing, the item still appears but explains how to restore them —
+        // silently removing it left a parent with no way to tell whether the
+        // feature was gone, broken, or simply not set up.
+        ...(typeof iAmAGuardian === 'function'
+          ? [{ icon:nxIcon('users'), label:t('myChildrenNavLabel'),
+               run: ()=> iAmAGuardian() ? openParentViewFromLearner() : explainNoChildrenLinked() }]
           : []),
         { icon:nxIcon('settings'), label:t('shellNavAccount'), run: ()=> editMyProfileLink.click() },
         { icon:nxIcon('logout'), label:t('shellNavLogout'), run: ()=> goToLoginGate() }
@@ -12096,6 +12115,12 @@
       totalAnswered: prof.totalAnswered || 0,
       totalCorrect: prof.totalCorrect || 0,
       badges: prof.badges ? Array.from(prof.badges) : [],
+      // Guardian links live ONLY in local storage, so on a new device — or
+      // after the browser cache is cleared — a parent's children vanished and
+      // the "My children" item disappeared from the sidebar even though the
+      // accounts still existed. They are portable account data, not device
+      // preferences, so they belong in the synced state.
+      guardians: prof.guardians || { mother:null, father:null },
       reviewQueue: prof.reviewQueue || [],
       reviewStats: prof.reviewStats || { c:0, t:0 },
       knowledgeQueue: prof.knowledgeQueue || [],
@@ -12124,6 +12149,13 @@
     prof.totalAnswered = remoteAnswered;
     prof.totalCorrect = state.totalCorrect || 0;
     prof.badges = new Set(state.badges || []);
+    // Never let an older device wipe guardian links it simply never had.
+    // An empty object from the server means "nothing recorded", not "remove
+    // the parents" — and losing these silently locks a parent out of their
+    // own children's results.
+    if(state.guardians && (state.guardians.mother || state.guardians.father)){
+      prof.guardians = state.guardians;
+    }
     prof.reviewQueue = state.reviewQueue || [];
     prof.reviewStats = state.reviewStats || { c:0, t:0 };
     prof.knowledgeQueue = state.knowledgeQueue || [];
