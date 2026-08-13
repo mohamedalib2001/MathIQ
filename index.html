@@ -13080,20 +13080,43 @@
   // that can otherwise leave the photo blank in the exported PNG.
   // Local base64 photos (the common case on the uploading device) already
   // start with "data:" and skip this entirely — no behavior change there.
-  async function resolvePhotoForCanvas(photoUrl){
-    if(!photoUrl || photoUrl.indexOf('http') !== 0) return photoUrl;
+  // html2canvas can only draw an image it is allowed to read. A Google Drive
+  // URL is NOT such an image: Drive sends no CORS header, so both a direct
+  // fetch and html2canvas's own load are blocked, and the certificate ends up
+  // with an empty photo circle.
+  //
+  // Order of attempts, best first:
+  //   1. already a data: URL (photo uploaded on this device) — use it
+  //   2. direct fetch — works for any genuinely CORS-enabled host
+  //   3. relay through the backend, which owns the Drive file and can read it
+  //   4. give up and return '' so the caller draws the initial instead of a
+  //      blank circle. Returning the unusable URL, as before, guaranteed a
+  //      blank photo on every device that had not uploaded it locally.
+  async function resolvePhotoForCanvas(photoUrl, username){
+    if(!photoUrl) return '';
+    if(photoUrl.indexOf('data:') === 0) return photoUrl;
+    if(photoUrl.indexOf('http') !== 0) return photoUrl;
+
+    const toDataUrl = (blob)=> new Promise((resolve, reject)=>{
+      const reader = new FileReader();
+      reader.onload = ()=> resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+
     try{
       const res = await fetch(photoUrl);
-      const blob = await res.blob();
-      return await new Promise((resolve, reject)=>{
-        const reader = new FileReader();
-        reader.onload = ()=> resolve(reader.result);
-        reader.onerror = reject;
-        reader.readAsDataURL(blob);
-      });
-    }catch(e){
-      return photoUrl; // best effort — certificate still generates, just may show the fallback avatar
+      if(res.ok){
+        const blob = await res.blob();
+        if(blob && blob.size > 0 && String(blob.type).indexOf('image') === 0) return await toDataUrl(blob);
+      }
+    }catch(e){ /* expected for Drive — fall through to the relay */ }
+
+    if(SHEET_API_URL && username){
+      const res2 = await postToSheet('get_photo_base64', { username: username });
+      if(res2 && res2.ok && res2.found && res2.dataUrl) return res2.dataUrl;
     }
+    return '';
   }
   async function downloadCertificate(){
     if(typeof html2canvas !== 'function' || certBtn.disabled) return;
@@ -13149,10 +13172,19 @@
     // It was previously injected at 150px into a 118px circle, so the image
     // overflowed its own frame and only a fragment survived the clip.
     const CERT_PHOTO_PX = 118;
-    const safePhoto = await resolvePhotoForCanvas(prof.photo);
+    const safePhoto = await resolvePhotoForCanvas(prof.photo, (prof.username || currentProfile));
+    // A photo that could not be made drawable is replaced by the learner's
+    // initial. An empty gold circle on a certificate they keep looks broken;
+    // a clean initial looks deliberate.
+    if(prof.photo && safePhoto && safePhoto !== prof.photo){
+      prof.photo = safePhoto;      // cache the usable form for next time
+      saveProfilesToStorage();
+    }
     setAvatarElement(certPhotoEl, Object.assign({}, prof, { photo: safePhoto }), CERT_PHOTO_PX);
-    if(!prof.photo){
+    if(!safePhoto){
+      certPhotoEl.innerHTML = '';
       certPhotoEl.style.fontSize = '50px';
+      certPhotoEl.textContent = (profileDisplayName(currentProfile) || '?').charAt(0);
     } else {
       // If the photo cannot actually load (a Drive link that failed to convert,
       // an expired URL), fall back to the initial rather than capturing an
