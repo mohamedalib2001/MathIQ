@@ -214,6 +214,18 @@
   .notif-panel-item .notif-msg{ line-height:1.5; }
   .notif-panel-item .notif-date{ font-size:10px; color:var(--ink-dim); margin-top:2px; }
 
+  /* presence indicator */
+  .presence-dot{
+    width:10px; height:10px; border-radius:50%; flex:none; display:inline-block;
+    border:2px solid var(--card-bg); box-shadow:0 0 0 1px rgba(0,0,0,0.12);
+  }
+  .presence-online{ background:#22c55e; box-shadow:0 0 0 1px rgba(0,0,0,0.12), 0 0 7px rgba(34,197,94,0.85); }
+  .presence-busy{ background:#f59e0b; box-shadow:0 0 0 1px rgba(0,0,0,0.12), 0 0 7px rgba(245,158,11,0.8); }
+  .presence-away{ background:#facc15; }
+  .presence-offline{ background:#9ca3af; }
+  .presence-legend{ display:flex; gap:14px; justify-content:center; flex-wrap:wrap; font-size:11.5px; color:var(--ink-dim); margin:8px 0 4px; }
+  .presence-legend span{ display:flex; align-items:center; gap:5px; }
+
   .cert-verify-result{ margin-top:14px; }
   .cert-verify-result.loading{ text-align:center; font-size:12.5px; color:var(--ink-dim); }
   .cert-verify-result.valid{
@@ -3682,6 +3694,9 @@
       friendRemoveConfirm:'هل تريدين إزالة هذا الصديق؟',
       friendsNavLabel:'أصدقائي', friendAccepted:'✓ صرتما صديقين الآن!',
       friendUnnamed:'متعلّم لم يُكمل بياناته بعد',
+      presence_online:'متصل الآن', presence_busy:'في تمرين الآن', presence_away:'بعيد مؤقتًا', presence_offline:'غير متصل',
+      presenceLastSeen:'آخر ظهور {t}', presenceJustNow:'منذ لحظات', presenceMinsAgo:'منذ {n} دقيقة',
+      presenceHoursAgo:'منذ {n} ساعة', presenceDaysAgo:'منذ {n} يوم', presenceUnknown:'غير معروف',
       friendChallengeBtn:'🏁 تحدّيها', friendsShareAppBtn:'🔗 دعوة صديق للانضمام للأكاديمية',
       friendsShareText:'{name} تدعوكِ للانضمام إلى أكاديمية نِكسورا — منصة تعلّم ذكية!',
       friendsShareCopied:'✓ تم نسخ رابط الدعوة',
@@ -3780,7 +3795,7 @@
       teachersListLink:'المعلّمون', teachersListTitle:'👥 المعلّمون', teachersLoading:'جارٍ التحميل...',
       teachersNone:'لا يوجد معلّمون مسجَّلون بعد.', teacherNoClasses:'لا توجد فصول لهذا المعلّم بعد.',
       teacherStudentCount:'{n} طالب مسجَّل', teacherAssignmentsLabel:'الواجبات المخصّصة:', costCurrencyLabel:'ريال',
-      totalStudentsLabel:'إجمالي الطلاب', activeSubsLabel:'اشتراكات فعّالة', disabledAccountsLabel:'حسابات معطّلة',
+      totalStudentsLabel:'إجمالي الطلاب', activeSubsLabel:'اشتراكات فعّالة', disabledAccountsLabel:'حسابات معطّلة', onlineNowLabel:'متصل الآن',
       subInactive:'غير مفعّل', subActive:'مفعّل — حتى {date}',
       challengeRound:'الجولة {n}: دور {name}',
       handoffTitleTpl:'سلّمي الجهاز لـ {name}',
@@ -4108,6 +4123,9 @@
       friendRemoveConfirm:'Remove this friend?',
       friendsNavLabel:'Friends', friendAccepted:'✓ You are friends now!',
       friendUnnamed:'Learner has not completed their profile yet',
+      presence_online:'Online now', presence_busy:'In a session', presence_away:'Away', presence_offline:'Offline',
+      presenceLastSeen:'Last seen {t}', presenceJustNow:'moments ago', presenceMinsAgo:'{n} min ago',
+      presenceHoursAgo:'{n} h ago', presenceDaysAgo:'{n} d ago', presenceUnknown:'unknown',
       friendChallengeBtn:'🏁 Challenge', friendsShareAppBtn:'🔗 Invite a friend to the academy',
       friendsShareText:'{name} is inviting you to join NEXORA Academy — a smart learning platform!',
       friendsShareCopied:'✓ Invite link copied',
@@ -4206,7 +4224,7 @@
       teachersListLink:'Teachers', teachersListTitle:'👥 Teachers', teachersLoading:'Loading...',
       teachersNone:'No teachers registered yet.', teacherNoClasses:'This teacher has no classes yet.',
       teacherStudentCount:'{n} enrolled students', teacherAssignmentsLabel:'Assignments given:', costCurrencyLabel:'SAR',
-      totalStudentsLabel:'Total students', activeSubsLabel:'Active subscriptions', disabledAccountsLabel:'Disabled accounts',
+      totalStudentsLabel:'Total students', activeSubsLabel:'Active subscriptions', disabledAccountsLabel:'Disabled accounts', onlineNowLabel:'Online now',
       subInactive:'Not active', subActive:'Active — until {date}',
       challengeRound:"Round {n}: {name}'s turn",
       handoffTitleTpl:'Hand the device to {name}',
@@ -4507,7 +4525,17 @@
       <div class="admin-stat"><b>${s.total}</b><span>${t('totalStudentsLabel')}</span></div>
       <div class="admin-stat"><b>${s.activeSubs}</b><span>${t('activeSubsLabel')}</span></div>
       <div class="admin-stat"><b>${s.disabled}</b><span>${t('disabledAccountsLabel')}</span></div>
+      <div class="admin-stat"><b id="adminOnlineCount">—</b><span>${t('onlineNowLabel')}</span></div>
     `;
+    refreshAdminOnlineCount();
+  }
+  // Live count of who is actually using the platform right now. Shows "—"
+  // until the real number arrives, rather than a misleading 0.
+  async function refreshAdminOnlineCount(){
+    if(!SHEET_API_URL) return;
+    const res = await postToSheet('list_online', {});
+    const el = document.getElementById('adminOnlineCount');
+    if(el && res && res.ok) el.textContent = res.count;
   }
 
   function renderProfiles(){
@@ -4672,6 +4700,7 @@
     applyServiceFlags();
     renderShellNav('learner');
     if(typeof refreshPendingFriendCount === 'function') refreshPendingFriendCount();
+    if(typeof startPresence === 'function') startPresence();
     showProgramsHub();
   }
 
@@ -5801,6 +5830,8 @@
     hideLoginTransition();
   });
   function logSessionLogout(){
+    if(typeof goOfflineNow === 'function') goOfflineNow();
+    if(typeof stopPresence === 'function') stopPresence();
     if(loggedInKey && SHEET_API_URL) postToSheet('logout', { username: loggedInKey });
     loggedInKey = null;
     currentGender = 'female'; // back to the default login-screen forms until a specific profile is active again
@@ -8756,6 +8787,81 @@
     const p = PROFILES[currentProfile];
     return (p && p.username) || currentProfile;
   }
+  /* ---------- PRESENCE ----------
+     Google Apps Script has no push channel, so presence is a heartbeat plus
+     polling. Intervals are deliberately conservative: Apps Script enforces a
+     daily quota on web-app calls, and a chatty heartbeat would exhaust it and
+     take the whole backend down. 45s/25s keeps status fresh within about a
+     minute while staying well inside the budget. */
+  const HEARTBEAT_MS = 45000;
+  const PRESENCE_POLL_MS = 25000;
+  let heartbeatTimer = null, presenceTimer = null;
+  let presenceCache = {};          // username -> { state, lastSeen }
+  let myPresenceState = 'active';  // flipped to 'busy' during a quiz/race
+
+  function setMyPresenceBusy(isBusy){
+    const next = isBusy ? 'busy' : 'active';
+    if(next === myPresenceState) return;
+    myPresenceState = next;
+    sendHeartbeat(); // reflect the change immediately rather than waiting
+  }
+  function sendHeartbeat(){
+    if(!SHEET_API_URL || !currentProfile) return;
+    postToSheet('heartbeat', { username: currentServerUsername(), state: myPresenceState });
+  }
+  function startPresence(){
+    stopPresence();
+    sendHeartbeat();
+    heartbeatTimer = setInterval(sendHeartbeat, HEARTBEAT_MS);
+    presenceTimer = setInterval(refreshWatchedPresence, PRESENCE_POLL_MS);
+  }
+  function stopPresence(){
+    if(heartbeatTimer) clearInterval(heartbeatTimer);
+    if(presenceTimer) clearInterval(presenceTimer);
+    heartbeatTimer = presenceTimer = null;
+  }
+  function goOfflineNow(){
+    if(!SHEET_API_URL || !currentProfile) return;
+    postToSheet('go_offline', { username: currentServerUsername() });
+  }
+  // Only usernames actually visible on screen are polled — no point paying
+  // for status of people nobody is looking at.
+  let watchedUsernames = [];
+  function watchPresenceFor(usernames){
+    watchedUsernames = Array.from(new Set(usernames.filter(Boolean)));
+    refreshWatchedPresence();
+  }
+  async function refreshWatchedPresence(){
+    if(!SHEET_API_URL || !watchedUsernames.length) return;
+    const res = await postToSheet('get_presence', { usernames: watchedUsernames });
+    if(!res || !res.ok || !res.presence) return; // silent: presence is decoration, never blocks the UI
+    presenceCache = Object.assign({}, presenceCache, res.presence);
+    applyPresenceToDom();
+  }
+  function applyPresenceToDom(){
+    document.querySelectorAll('[data-presence-for]').forEach(el=>{
+      const p = presenceCache[el.dataset.presenceFor];
+      const state = (p && p.state) || 'offline';
+      el.className = 'presence-dot presence-' + state;
+      el.title = t('presence_' + state);
+      const label = el.parentElement && el.parentElement.querySelector('[data-presence-label]');
+      if(label) label.textContent = state === 'offline'
+        ? (p && p.lastSeen ? fmt('presenceLastSeen', { t: relativeTimeLabel(p.lastSeen) }) : t('presence_offline'))
+        : t('presence_' + state);
+    });
+  }
+  // Human "last seen" text derived from the real timestamp.
+  function relativeTimeLabel(iso){
+    const then = new Date(iso).getTime();
+    if(!then || isNaN(then)) return t('presenceUnknown');
+    const mins = Math.floor((Date.now() - then) / 60000);
+    if(mins < 1) return t('presenceJustNow');
+    if(mins < 60) return fmt('presenceMinsAgo', { n: mins });
+    const hrs = Math.floor(mins / 60);
+    if(hrs < 24) return fmt('presenceHoursAgo', { n: hrs });
+    return fmt('presenceDaysAgo', { n: Math.floor(hrs / 24) });
+  }
+
   function myPhotoUrlForSharing(){
     const p = PROFILES[currentProfile];
     const photo = p && p.photo ? String(p.photo) : '';
@@ -10700,6 +10806,7 @@
 
   /* ---------- finish / reset ---------- */
   function finishQuiz(){
+    if(typeof setMyPresenceBusy === 'function') setMyPresenceBusy(false);
     clearInterval(timerInterval);
     clearInterval(minuteInterval);
     if('speechSynthesis' in window) window.speechSynthesis.cancel();
@@ -10802,6 +10909,7 @@
     leaveRaceLink.classList.add('hidden');
     mascotWrapEl.classList.toggle('hidden', !mascotEnabled);
     playEl.classList.remove('hidden');
+    if(typeof setMyPresenceBusy === 'function') setMyPresenceBusy(true);
     if(quizLen === 'minute') startMinuteTimer();
     nextProblem();
   });
@@ -10810,6 +10918,7 @@
     resetStats();
     summaryEl.classList.add('hidden');
     playEl.classList.remove('hidden');
+    if(typeof setMyPresenceBusy === 'function') setMyPresenceBusy(true);
     if(quizLen === 'minute') startMinuteTimer();
     nextProblem();
   });
@@ -10852,6 +10961,7 @@
     playPlayerName.textContent = profileDisplayName('jory');
     mascotWrapEl.classList.toggle('hidden', !mascotEnabled);
     playEl.classList.remove('hidden');
+    if(typeof setMyPresenceBusy === 'function') setMyPresenceBusy(true);
     nextProblem();
   }
 
@@ -10888,6 +10998,7 @@
         playPlayerName.textContent = profileDisplayName(nextKey);
         handoffEl.classList.add('hidden');
         playEl.classList.remove('hidden');
+    if(typeof setMyPresenceBusy === 'function') setMyPresenceBusy(true);
         nextProblem();
       };
     } else {
@@ -11354,7 +11465,8 @@
       const looksUnnamed = !rawName || rawName === f.username;
       const display = looksUnnamed ? t('friendUnnamed') : rawName;
       const ageLine = f.birthDate && typeof formatAge === 'function' ? formatAge(f.birthDate) : '';
-      return { avatar, display, ageLine };
+      const dot = `<span class="presence-dot presence-offline" data-presence-for="${f.username}"></span>`;
+      return { avatar, display, ageLine, dot };
     };
     friendsIncomingArea.innerHTML = res.incoming.length
       ? `<div class="group-label">${t('friendsIncomingLabel')}</div>` + res.incoming.map(f=>{
@@ -11371,7 +11483,7 @@
           const c = friendCard(f);
           return `<div class="lp-row" style="cursor:default;">
             ${c.avatar}
-            <div style="flex:1;"><div style="font-weight:700;">${c.display}</div><div style="font-size:11px; color:var(--ink-dim);">@${f.username}${c.ageLine ? ' · ' + c.ageLine : ''}</div></div>
+            <div style="flex:1;"><div style="font-weight:700; display:flex; align-items:center; gap:6px;">${c.dot}${c.display}</div><div style="font-size:11px; color:var(--ink-dim);">@${f.username} · <span data-presence-label></span></div></div>
             <button class="secondary-btn" data-challenge="${f.username}" style="width:auto; padding:6px 12px; margin:0;">${t('friendChallengeBtn')}</button>
             <button class="secondary-btn" data-remove="${f.username}" style="width:auto; padding:6px 12px; margin:0;">${t('friendRemoveBtn')}</button>
           </div>`; }).join('')
@@ -11380,6 +11492,10 @@
       friendsListArea.innerHTML += `<div class="group-label">${t('friendsOutgoingLabel')}</div>` + res.outgoing.map(f=>{
         const c = friendCard(f);
         return `<div class="lp-row" style="cursor:default; opacity:0.7;">${c.avatar}<div style="flex:1;"><div style="font-weight:700;">${c.display}</div><div style="font-size:11px; color:var(--ink-dim);">@${f.username}</div></div><span>⏳</span></div>`; }).join('');
+    }
+    // Watch exactly the usernames now rendered — nothing more.
+    if(typeof watchPresenceFor === 'function'){
+      watchPresenceFor([].concat(res.friends, res.incoming, res.outgoing).map(x=>x.username));
     }
     friendsScreen.querySelectorAll('[data-accept]').forEach(b=> b.addEventListener('click', async ()=>{
       setBtnSaving(b, true, t('friendSending'));
@@ -11512,6 +11628,7 @@
     quitLink.classList.add('hidden');
     leaveRaceLink.classList.remove('hidden');
     playEl.classList.remove('hidden');
+    if(typeof setMyPresenceBusy === 'function') setMyPresenceBusy(true);
     nextProblem();
     clearInterval(racePollInterval);
     racePollInterval = setInterval(pollRaceState, 2500);
