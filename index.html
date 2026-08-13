@@ -414,15 +414,48 @@
     position:absolute; top:-5px; inset-inline-end:-8px; margin:0;
   }
 
+  /* The bar is position:fixed, so it sits ON TOP of the page rather than
+     taking space in it. Without this reserve the last cards on every screen
+     were hidden behind it — visible in the programs grid, where the accuracy
+     line under each card was cut off. The bar only exists below 1024px, so
+     the reserve is scoped to the same range. */
+  @media (max-width:1023px){
+    .frame, .panel{ padding-bottom: calc(78px + env(safe-area-inset-bottom)); }
+  }
   .app-bottom-nav{
-    position:fixed; bottom:0; inset-inline:0; z-index:500; display:flex; justify-content:space-around;
+    position:fixed; bottom:0; inset-inline:0; z-index:500; display:flex;
+    /* Scrolls instead of truncating. justify-content:space-around would
+       compress every item to fit, which is what made the labels unreadable
+       and hid the overflow entirely. */
+    justify-content:flex-start; overflow-x:auto; overflow-y:hidden;
+    -webkit-overflow-scrolling:touch; scroll-behavior:smooth;
+    scrollbar-width:none; scroll-snap-type:x proximity;
     background:var(--input-bg); border-top:1.5px solid var(--chip-border);
     padding:6px 4px max(6px, env(safe-area-inset-bottom));
   }
+  .app-bottom-nav::-webkit-scrollbar{ display:none; }
+  /* A fade at the edge is the only honest way to say "there is more this
+     way" on a touch device with no visible scrollbar. It disappears once
+     the end is reached so it never lies about remaining content. */
+  .app-bottom-nav.has-more::after{
+    content:""; position:fixed; bottom:0; inset-inline-start:0; width:34px;
+    height:var(--bottom-nav-h, 62px); pointer-events:none;
+    background:linear-gradient(to var(--fade-dir, right), var(--input-bg), transparent);
+    transition:opacity .2s ease;
+  }
+  .app-bottom-nav.has-more.at-end::after{ opacity:0; }
+  html[dir="rtl"] .app-bottom-nav.has-more::after{ --fade-dir: right; }
+  html[dir="ltr"] .app-bottom-nav.has-more::after{ --fade-dir: left; }
   @media (min-width:1024px){ .app-bottom-nav{ display:none !important; } }
   .bottom-nav-item{
+    flex:0 0 auto; scroll-snap-align:start;
     display:flex; flex-direction:column; align-items:center; gap:2px; padding:6px 10px; border-radius:9px;
-    cursor:pointer; font-size:9.5px; font-weight:700; color:var(--ink-dim); min-width:44px; min-height:44px; justify-content:center;
+    cursor:pointer; font-size:9.5px; font-weight:700; color:var(--ink-dim);
+    /* One min-width only. Two competing declarations meant the 44px tap
+       target silently won and squeezed the labels. 70px keeps a full Arabic
+       label readable while still meeting the 44px accessibility minimum. */
+    min-width:70px; min-height:44px; justify-content:center;
+    text-align:center; line-height:1.3;
   }
   .bottom-nav-item.active{ color:var(--yellow); }
   .bottom-nav-item .nav-icon{ font-size:19px; }
@@ -451,6 +484,19 @@
     pointer-events:none; opacity:var(--line-op);
   }
   .topbar{ position:absolute; top: clamp(10px,3vw,16px); inset-inline-start: clamp(10px,3vw,16px); display:flex; gap:8px; z-index:5; }
+  /* On a narrow screen four 38px buttons plus gaps take ~176px, which is a
+     large share of the width — floating them over the header meant the
+     "NEXORA Academy" line ran underneath them. Below 560px they join the
+     normal flow above the title instead of overlapping it. */
+  @media (max-width:560px){
+    .topbar{
+      position:static; justify-content:flex-end; gap:6px;
+      padding:10px 12px 0; margin-bottom:-4px;
+    }
+    .icon-btn{ width:34px; height:34px; font-size:15px; }
+    header{ padding-top:4px; }
+    .eyebrow{ font-size:11.5px; }
+  }
   .icon-btn{
     width:38px; height:38px; border-radius:9px; border:1.5px solid var(--chip-border);
     background:transparent; color:var(--ink); font-size:17px;
@@ -10492,8 +10538,13 @@
       sidebarNav.appendChild(el);
     });
 
+    // The bottom bar used to render items.slice(0, 5) — everything past the
+    // fifth entry was silently dropped, so "My children", "My account",
+    // "Friends" and "Log out" simply did not exist on a phone, with nothing
+    // on screen to suggest anything was missing. It now carries EVERY item
+    // and scrolls horizontally.
     appBottomNav.innerHTML = '';
-    items.slice(0, 5).forEach(item=>{
+    items.forEach(item=>{
       const el = document.createElement('div');
       el.className = 'bottom-nav-item';
       const badge = item.badgeCount > 0 ? `<span class="nav-badge">${item.badgeCount}</span>` : '';
@@ -10502,7 +10553,25 @@
       appBottomNav.appendChild(el);
     });
     appBottomNav.classList.remove('hidden');
+    updateBottomNavScrollHint();
   }
+  /* A scrollable bar that gives no sign it scrolls is the same as a bar that
+     was cut short. This marks the container only while content actually
+     overflows, and clears the marker once the end is reached. */
+  function updateBottomNavScrollHint(){
+    if(!appBottomNav) return;
+    requestAnimationFrame(function(){
+      const overflows = appBottomNav.scrollWidth > appBottomNav.clientWidth + 4;
+      appBottomNav.classList.toggle('has-more', overflows);
+      if(overflows) appBottomNav.scrollLeft = appBottomNav.scrollWidth; // start at the first item in RTL
+    });
+  }
+  appBottomNav.addEventListener('scroll', function(){
+    const atEnd = Math.abs(appBottomNav.scrollLeft) + appBottomNav.clientWidth >= appBottomNav.scrollWidth - 6;
+    appBottomNav.classList.toggle('at-end', atEnd);
+  }, { passive:true });
+  window.addEventListener('resize', updateBottomNavScrollHint);
+
   cmdkTopbarBtn.addEventListener('click', openCommandPalette);
   notifBellBtn.addEventListener('click', ()=>{
     const willOpen = notifPanel.classList.contains('hidden');
