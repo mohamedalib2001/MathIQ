@@ -1887,6 +1887,13 @@
     <button class="secondary-btn" id="friendsBackBtn" data-i18n="closeBtn">إغلاق</button>
   </div>
 
+  <!-- FRIEND PROFILE — real stats from the learner's own history, shown
+       only to accepted friends (enforced server-side, not just hidden here). -->
+  <div id="friendProfileScreen" class="panel hidden">
+    <div id="friendProfileArea"></div>
+    <button class="secondary-btn" id="friendProfileBackBtn" data-i18n="backBtn">رجوع</button>
+  </div>
+
   <div id="myStatsScreen" class="panel hidden">
     <div class="profile-header">
       <div class="big-avatar" id="myStatsAvatar">👧</div>
@@ -2762,6 +2769,9 @@
   const friendsListArea = document.getElementById('friendsListArea');
   const friendsBackBtn = document.getElementById('friendsBackBtn');
   const friendsShareAppBtn = document.getElementById('friendsShareAppBtn');
+  const friendProfileScreen = document.getElementById('friendProfileScreen');
+  const friendProfileArea = document.getElementById('friendProfileArea');
+  const friendProfileBackBtn = document.getElementById('friendProfileBackBtn');
   const myStatsAvatar = document.getElementById('myStatsAvatar');
   const myStatsName = document.getElementById('myStatsName');
   const myStatsBestScore = document.getElementById('myStatsBestScore');
@@ -3697,6 +3707,10 @@
       presence_online:'متصل الآن', presence_busy:'في تمرين الآن', presence_away:'بعيد مؤقتًا', presence_offline:'غير متصل',
       presenceLastSeen:'آخر ظهور {t}', presenceJustNow:'منذ لحظات', presenceMinsAgo:'منذ {n} دقيقة',
       presenceHoursAgo:'منذ {n} ساعة', presenceDaysAgo:'منذ {n} يوم', presenceUnknown:'غير معروف',
+      profileBestScore:'أفضل نتيجة', profileBestAccuracy:'أعلى دقة', profileBestStreak:'أطول متتالية',
+      profileAvgAccuracy:'متوسط الدقة', profileSessions:'عدد الجلسات', profileCertificates:'الشهادات',
+      profileMemberSince:'عضو منذ {d}', profileNoActivity:'لم يبدأ أي تمرين بعد.',
+      profileNotAuthorized:'يمكنك عرض ملف الأصدقاء فقط.',
       friendChallengeBtn:'🏁 تحدّيها', friendsShareAppBtn:'🔗 دعوة صديق للانضمام للأكاديمية',
       friendsShareText:'{name} تدعوكِ للانضمام إلى أكاديمية نِكسورا — منصة تعلّم ذكية!',
       friendsShareCopied:'✓ تم نسخ رابط الدعوة',
@@ -4126,6 +4140,10 @@
       presence_online:'Online now', presence_busy:'In a session', presence_away:'Away', presence_offline:'Offline',
       presenceLastSeen:'Last seen {t}', presenceJustNow:'moments ago', presenceMinsAgo:'{n} min ago',
       presenceHoursAgo:'{n} h ago', presenceDaysAgo:'{n} d ago', presenceUnknown:'unknown',
+      profileBestScore:'Best score', profileBestAccuracy:'Best accuracy', profileBestStreak:'Longest streak',
+      profileAvgAccuracy:'Average accuracy', profileSessions:'Sessions', profileCertificates:'Certificates',
+      profileMemberSince:'Member since {d}', profileNoActivity:'No practice sessions yet.',
+      profileNotAuthorized:'You can only view a friend profile.',
       friendChallengeBtn:'🏁 Challenge', friendsShareAppBtn:'🔗 Invite a friend to the academy',
       friendsShareText:'{name} is inviting you to join NEXORA Academy — a smart learning platform!',
       friendsShareCopied:'✓ Invite link copied',
@@ -4883,6 +4901,7 @@
     // Screens added in later sprints must be listed here too — otherwise
     // they stay visible on top of the login screen after logout.
     friendsScreen.classList.add('hidden');
+    friendProfileScreen.classList.add('hidden');
     teachersListScreen.classList.add('hidden');
     teacherOverviewScreen.classList.add('hidden');
   }
@@ -11474,6 +11493,58 @@
         : describeSyncFailure(res, 'lpSyncCreateFailed');
     }
   });
+  friendProfileBackBtn.addEventListener('click', ()=>{
+    friendProfileScreen.classList.add('hidden');
+    friendsScreen.classList.remove('hidden');
+    renderFriends();
+  });
+  async function openFriendProfile(username){
+    friendsScreen.classList.add('hidden');
+    friendProfileScreen.classList.remove('hidden');
+    friendProfileArea.innerHTML = `<div class="dash-empty">${t('teachersLoading')}</div>`;
+    const res = await postToSheet('get_public_profile', { username, requesterUsername: currentServerUsername() });
+    if(!res || !res.ok){
+      friendProfileArea.innerHTML = `<div class="dash-empty">${
+        res && res.error === 'not_authorized' ? t('profileNotAuthorized') : describeSyncFailure(res, 'lpSyncCreateFailed')}</div>`;
+      return;
+    }
+    const p = res.profile;
+    const shownName = (p.name || '').trim() || username;
+    const age = p.birthDate && typeof formatAge === 'function' ? formatAge(p.birthDate) : '';
+    const since = p.memberSince ? new Date(p.memberSince).toLocaleDateString(currentLang === 'ar' ? 'ar-EG' : 'en-US') : '';
+    const stateTxt = p.presence.state === 'offline'
+      ? (p.presence.lastSeen ? fmt('presenceLastSeen', { t: relativeTimeLabel(p.presence.lastSeen) }) : t('presence_offline'))
+      : t('presence_' + p.presence.state);
+    const avatar = p.photoURL
+      ? `<img src="${driveImageUrl(p.photoURL)}" alt="" class="fp-avatar" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'fp-avatar fp-avatar-fallback',textContent:'${shownName.charAt(0)}'}))">`
+      : `<div class="fp-avatar fp-avatar-fallback">${shownName.charAt(0)}</div>`;
+    // Every number below comes from the learner's real recorded history.
+    friendProfileArea.innerHTML = `
+      <div class="fp-head">
+        ${avatar}
+        <div class="fp-name">${shownName}</div>
+        <div class="fp-sub">@${p.username}${age ? ' · ' + age : ''}</div>
+        <div class="fp-state"><span class="presence-dot presence-${p.presence.state}"></span>${stateTxt}</div>
+        ${since ? `<div class="fp-since">${fmt('profileMemberSince', { d: since })}</div>` : ''}
+      </div>
+      <div class="fp-grid">
+        <div class="fp-stat"><b>${p.bestScore}</b><span>${t('profileBestScore')}</span></div>
+        <div class="fp-stat"><b>${p.bestAccuracy}%</b><span>${t('profileBestAccuracy')}</span></div>
+        <div class="fp-stat"><b>${p.bestStreak}</b><span>${t('profileBestStreak')}</span></div>
+        <div class="fp-stat"><b>${p.avgAccuracy}%</b><span>${t('profileAvgAccuracy')}</span></div>
+        <div class="fp-stat"><b>${p.sessions}</b><span>${t('profileSessions')}</span></div>
+        <div class="fp-stat"><b>${p.certificates}</b><span>${t('profileCertificates')}</span></div>
+      </div>
+      ${p.sessions === 0 ? `<div class="dash-empty">${t('profileNoActivity')}</div>` : ''}
+      <button class="secondary-btn" id="fpChallengeBtn">${t('friendChallengeBtn')}</button>`;
+    const chBtn = document.getElementById('fpChallengeBtn');
+    if(chBtn) chBtn.addEventListener('click', ()=>{
+      friendProfileScreen.classList.add('hidden');
+      raceLobbyEl.classList.remove('hidden');
+      raceLobbyError.textContent = '';
+      createRaceBtn.click();
+    });
+  }
   async function renderFriends(){
     friendsListArea.innerHTML = `<div class="dash-empty">${t('teachersLoading')}</div>`;
     friendsIncomingArea.innerHTML = '';
@@ -11521,7 +11592,7 @@
     friendsListArea.innerHTML = res.friends.length
       ? `<div class="group-label">${t('friendsListLabel')}</div>` + res.friends.map(f=>{
           const c = friendCard(f);
-          return `<div class="lp-row" style="cursor:default;">
+          return `<div class="lp-row" data-openprofile="${f.username}" style="cursor:pointer;">
             ${c.avatar}
             <div style="flex:1;"><div style="font-weight:700; display:flex; align-items:center; gap:6px;">${c.dot}${c.display}</div><div style="font-size:11px; color:var(--ink-dim);">@${f.username} · <span data-presence-label></span></div></div>
             <button class="secondary-btn" data-challenge="${f.username}" style="width:auto; padding:6px 12px; margin:0;">${t('friendChallengeBtn')}</button>
@@ -11560,6 +11631,10 @@
     // "Challenge a friend" — creates a REAL race via the existing race
     // system and hands the learner the actual code to share, rather than
     // pretending to deliver an in-app invite the backend can't push.
+    friendsScreen.querySelectorAll('[data-openprofile]').forEach(row=> row.addEventListener('click', e=>{
+      if(e.target.closest('button')) return; // let Challenge/Remove do their own thing
+      openFriendProfile(row.dataset.openprofile);
+    }));
     friendsScreen.querySelectorAll('[data-challenge]').forEach(b=> b.addEventListener('click', async ()=>{
       friendsScreen.classList.add('hidden');
       raceLobbyEl.classList.remove('hidden');
