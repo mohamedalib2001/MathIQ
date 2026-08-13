@@ -1114,6 +1114,59 @@
   .guardian-box input.ltr-input{ direction:ltr; text-align:left; }
   .guardian-box .clear-guardian{ font-size:11px; color:var(--coral); text-decoration:underline; cursor:pointer; }
 
+  /* ---------- children as premium "smart cards" (parent view) ----------
+     Every number on a card is read from that child's REAL recorded stats;
+     a child with no activity says so plainly instead of showing zeros
+     dressed up as progress. */
+  .child-grid{ display:grid; grid-template-columns:1fr; gap:12px; margin-bottom:14px; }
+  @media (min-width:700px){ .child-grid{ grid-template-columns:1fr 1fr; } }
+  .child-tile{
+    position:relative; overflow:hidden; cursor:pointer; text-align:start;
+    background:
+      radial-gradient(120% 90% at 100% 0%, rgba(99,102,241,0.16), transparent 60%),
+      var(--input-bg);
+    border:1.5px solid var(--input-border); border-radius:18px; padding:16px 16px 14px;
+    transition:border-color .18s ease, transform .12s ease, box-shadow .18s ease;
+    font-family:'IBM Plex Sans Arabic','Tajawal',sans-serif; color:var(--ink); width:100%;
+  }
+  .child-tile:hover{ border-color:var(--yellow); box-shadow:0 14px 34px rgba(0,0,0,0.24); }
+  .child-tile:active{ transform:scale(0.985); }
+  .child-tile::after{
+    content:""; position:absolute; inset-inline-start:0; top:0; bottom:0; width:4px;
+    background:linear-gradient(180deg, var(--yellow), var(--mint)); opacity:0.85;
+  }
+  .child-tile-head{ display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+  .child-ring{
+    position:relative; width:60px; height:60px; border-radius:50%; flex:none;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .child-ring-inner{
+    width:50px; height:50px; border-radius:50%; overflow:hidden; background:var(--bg);
+    display:flex; align-items:center; justify-content:center; font-size:26px;
+  }
+  .child-ring-inner img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .child-tile-id{ flex:1; min-width:0; display:flex; flex-direction:column; }
+  .child-tile-name{
+    display:block; font-family:'Cairo',sans-serif; font-weight:800; font-size:16px; line-height:1.25;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+  .child-tile-sub{ display:block; font-size:11.5px; color:var(--ink-dim); margin-top:3px; direction:ltr; unicode-bidi:plaintext; text-align:start; }
+  .child-tile-chev{ flex:none; color:var(--ink-dim); font-size:18px; opacity:0.7; }
+  .child-stats{ display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+  .child-stat{
+    background:var(--bg); border:1px solid var(--chip-border); border-radius:12px;
+    padding:10px 6px; text-align:center;
+  }
+  .child-stat b{ display:block; font-family:'Cairo',sans-serif; font-size:18px; color:var(--yellow); line-height:1.15; }
+  .child-stat span{ display:block; font-size:10px; color:var(--ink-dim); margin-top:4px; }
+  .child-tile-foot{
+    display:flex; align-items:center; justify-content:space-between; gap:8px;
+    margin-top:12px; padding-top:10px; border-top:1px solid var(--chip-border);
+    font-size:10.5px; color:var(--ink-dim);
+  }
+  .child-tile-open{ color:var(--yellow); font-weight:700; }
+  .child-tile.no-activity .child-stat b{ color:var(--ink-dim); }
+
   /* parent / teacher dashboards */
   .role-banner{
     text-align:center; font-family:'Cairo',sans-serif; font-weight:700; font-size:13px; color:var(--ink-dim);
@@ -1864,6 +1917,14 @@
     <div id="parentChildrenList"></div>
     <button class="secondary-btn hidden" id="parentDashboardBackBtn" data-i18n="backBtn">رجوع</button>
     <button class="secondary-btn" id="parentDashboardLogoutBtn" data-i18n="logoutLinkText">🚪 تسجيل الخروج</button>
+  </div>
+
+  <!-- ONE CHILD'S FULL FILE — opened by tapping that child's card. Shows the
+       same real, already-recorded statistics that used to be crammed onto
+       the list itself, with room to actually read them. -->
+  <div id="childDetailScreen" class="panel hidden">
+    <div id="childDetailArea"></div>
+    <button class="secondary-btn" id="childDetailBackBtn" data-i18n="backBtn">رجوع</button>
   </div>
 
   <!-- Guardian unlock — viewing children's activity from inside a learner
@@ -2831,6 +2892,9 @@
 
   const parentDashboardScreenEl = document.getElementById('parentDashboardScreen');
   const parentChildrenList = document.getElementById('parentChildrenList');
+  const childDetailScreen = document.getElementById('childDetailScreen');
+  const childDetailArea = document.getElementById('childDetailArea');
+  const childDetailBackBtn = document.getElementById('childDetailBackBtn');
   const parentDashboardLogoutBtn = document.getElementById('parentDashboardLogoutBtn');
 
   const editMyProfileLink = document.getElementById('editMyProfileLink');
@@ -3817,6 +3881,8 @@
       profileBestScore:'أفضل نتيجة', profileBestAccuracy:'أعلى دقة', profileBestStreak:'أطول متتالية',
       profileAvgAccuracy:'متوسط الدقة', profileSessions:'عدد الجلسات', profileCertificates:'الشهادات',
       profileMemberSince:'عضو منذ {d}', profileNoActivity:'لم يبدأ أي تمرين بعد.',
+      childOverallAccuracy:'الدقة الإجمالية', childOpenFile:'الملف الكامل',
+      childLastActive:'آخر نشاط {t}', childNoActivityYet:'لم يبدأ التدريب بعد',
       profileNotAuthorized:'يمكنك عرض ملف الأصدقاء فقط.',
       friendChallengeBtn:'🏁 تحدّيها', friendsShareAppBtn:'🔗 دعوة صديق للانضمام للأكاديمية',
       friendsShareText:'{name} تدعوكِ للانضمام إلى أكاديمية نِكسورا — منصة تعلّم ذكية!',
@@ -4264,6 +4330,8 @@
       profileBestScore:'Best score', profileBestAccuracy:'Best accuracy', profileBestStreak:'Longest streak',
       profileAvgAccuracy:'Average accuracy', profileSessions:'Sessions', profileCertificates:'Certificates',
       profileMemberSince:'Member since {d}', profileNoActivity:'No practice sessions yet.',
+      childOverallAccuracy:'Overall accuracy', childOpenFile:'Full profile',
+      childLastActive:'Last active {t}', childNoActivityYet:'Has not started training yet',
       profileNotAuthorized:'You can only view a friend profile.',
       friendChallengeBtn:'🏁 Challenge', friendsShareAppBtn:'🔗 Invite a friend to the academy',
       friendsShareText:'{name} is inviting you to join NEXORA Academy — a smart learning platform!',
@@ -4865,6 +4933,8 @@
     programPlayerEl.classList.add('hidden');
     settingsEl.classList.add('hidden');
     abacusTrainerEl.classList.add('hidden');
+    childDetailScreen.classList.add('hidden');
+    parentDashboardScreenEl.classList.add('hidden');
   }
   function hideTeacherShellScreens(){
     // Same principle as hideLearnerShellScreens(), for the teacher role's
@@ -5025,6 +5095,7 @@
     friendProfileScreen.classList.add('hidden');
     guardianAuditScreen.classList.add('hidden');
     parentDashboardScreenEl.classList.add('hidden');
+    childDetailScreen.classList.add('hidden');
     parentDashboardBackBtn.classList.add('hidden');
     teachersListScreen.classList.add('hidden');
     teacherOverviewScreen.classList.add('hidden');
@@ -9136,6 +9207,7 @@
   guardianUnlockPin.addEventListener('keydown', e=>{ if(e.key === 'Enter') guardianUnlockBtn.click(); });
   parentDashboardBackBtn.addEventListener('click', ()=>{
     parentDashboardScreenEl.classList.add('hidden');
+    childDetailScreen.classList.add('hidden');
     parentDashboardBackBtn.classList.add('hidden');
     showProgramsHub();
   });
@@ -9646,48 +9718,151 @@
     }, 900);
   });
 
-  /* ---------- parent dashboard rendering ---------- */
+  /* ---------- parent dashboard: children as smart cards ----------
+     The card is a summary; tapping it opens that child's full file. Every
+     figure shown is computed from data the child actually generated — a
+     child who hasn't trained yet is labelled as such rather than being
+     shown zeros that look like results. ---------- */
+  function childSummary(p){
+    const answered = p.totalAnswered || 0;
+    const accuracy = answered > 0 ? Math.round((p.totalCorrect / answered) * 100) : null;
+    let lastActive = null;
+    const log = p.sessionLog || [];
+    if(log.length) lastActive = log[log.length - 1].date;
+    return {
+      answered: answered,
+      accuracy: accuracy,
+      bestScore: p.best ? p.best.score : 0,
+      bestStreak: p.best ? p.best.streak : 0,
+      badges: p.badges ? p.badges.size : 0,
+      lastActive: lastActive
+    };
+  }
   function renderParentDashboard(childKeys){
     parentChildrenList.innerHTML = '';
     if(!childKeys.length){
       parentChildrenList.innerHTML = `<div class="dash-empty">${t('noLinkedChildren')}</div>`;
       return;
     }
+    const grid = document.createElement('div');
+    grid.className = 'child-grid';
+    parentChildrenList.appendChild(grid);
+
     childKeys.forEach(key=>{
       const p = PROFILES[key];
       if(!p) return;
-      const box = document.createElement('div');
-      box.className = 'dash-profile';
-      let rowsHtml = '';
-      let any = false;
-      Object.keys(p.opStats).forEach(bucket=>{
-        const st = p.opStats[bucket];
-        if(st.t > 0){
-          any = true;
-          const acc = Math.round((st.c/st.t)*100);
-          const avgTime = (st.time/st.t).toFixed(1);
-          rowsHtml += `<div class="dash-row"><span>${t('bucket'+capitalize(bucket))}</span><span><b>${acc}%</b> · ${avgTime}${t('secLabel')}</span></div>`;
-        }
-      });
-      const summary = `<div class="dash-row"><span>${t('statBest')}</span><b>${p.best.score} ${t('pointsWord')}</b></div>`;
-      const insightId = 'insight_' + key;
-      const avatarSlotId = 'parentAvatarSlot_' + key;
-      box.innerHTML = `
-        <h3><span class="dash-avatar-slot" id="${avatarSlotId}" style="display:inline-block; vertical-align:middle; width:22px; height:22px; margin-inline-end:6px;"></span>${profileDisplayName(key)}</h3>
-        <div class="dash-table">${summary}${any ? rowsHtml : `<div class="dash-empty">${t('dashNoData')}</div>`}</div>
-        <div class="mystats-section" style="margin-top:10px;">
-          <h4 style="font-size:12px;">📅 ${t('weeklyReportTitle')}</h4>
-          <div class="dash-table">${weeklyReportHtml(p)}</div>
+      const sum = childSummary(p);
+      const hasActivity = sum.answered > 0;
+      const ageStr = formatAge(p.birthDate);
+      // The ring is a real accuracy gauge: the filled arc equals the child's
+      // actual overall accuracy. With no data it stays a neutral track.
+      const pct = sum.accuracy === null ? 0 : sum.accuracy;
+      const ringStyle = hasActivity
+        ? `background:conic-gradient(var(--mint) 0turn ${pct/100}turn, var(--chip-border) ${pct/100}turn 1turn);`
+        : 'background:var(--chip-border);';
+      const avatarSlotId = 'childAvatar_' + key;
+      const lastLine = sum.lastActive
+        ? fmt('childLastActive', { t: relativeTimeLabel(sum.lastActive) })
+        : t('childNoActivityYet');
+
+      const tile = document.createElement('button');
+      tile.type = 'button';
+      tile.className = 'child-tile' + (hasActivity ? '' : ' no-activity');
+      tile.innerHTML = `
+        <div class="child-tile-head">
+          <span class="child-ring" style="${ringStyle}">
+            <span class="child-ring-inner" id="${avatarSlotId}"></span>
+          </span>
+          <span class="child-tile-id">
+            <span class="child-tile-name">${profileDisplayName(key)}</span>
+            <span class="child-tile-sub">${ageStr || (p.username ? '@' + p.username : '')}</span>
+          </span>
+          <span class="child-tile-chev">›</span>
         </div>
-        <div class="ai-insight" id="${insightId}"></div>
-        <button class="secondary-btn" data-print-report="${key}" style="margin-top:8px; font-size:12px;">🖨️ ${t('printReportBtn')}</button>
-      `;
-      box.querySelector('[data-print-report]').addEventListener('click', ()=> printChildReport(key));
-      parentChildrenList.appendChild(box);
-      backfillAndRenderAvatar(key, document.getElementById(avatarSlotId), 22);
-      if(any) loadDashboardInsight(key, document.getElementById(insightId));
+        <div class="child-stats">
+          <div class="child-stat"><b>${sum.accuracy === null ? '—' : sum.accuracy + '%'}</b><span>${t('childOverallAccuracy')}</span></div>
+          <div class="child-stat"><b>${sum.bestScore}</b><span>${t('bestScoreLabel')}</span></div>
+          <div class="child-stat"><b>${sum.badges}</b><span>${t('achievementsTitle')}</span></div>
+        </div>
+        <div class="child-tile-foot">
+          <span>${lastLine}</span>
+          <span class="child-tile-open">${t('childOpenFile')} ›</span>
+        </div>`;
+      tile.addEventListener('click', ()=> openChildDetail(key));
+      grid.appendChild(tile);
+      backfillAndRenderAvatar(key, document.getElementById(avatarSlotId), 50);
     });
   }
+
+  /* ---------- one child's full file ----------
+     Contains exactly the detail the old inline list used to show, plus the
+     summary figures — nothing invented, just given room to be readable. */
+  function openChildDetail(key){
+    const p = PROFILES[key];
+    if(!p) return;
+    const sum = childSummary(p);
+    const hasActivity = sum.answered > 0;
+
+    let rowsHtml = '';
+    Object.keys(p.opStats).forEach(bucket=>{
+      const st = p.opStats[bucket];
+      if(st.t > 0){
+        const acc = Math.round((st.c/st.t)*100);
+        const avgTime = (st.time/st.t).toFixed(1);
+        rowsHtml += `<div class="dash-row"><span>${t('bucket'+capitalize(bucket))}</span><span><b>${acc}%</b> · ${avgTime}${t('secLabel')}</span></div>`;
+      }
+    });
+
+    let badgesHtml = '';
+    if(p.badges && p.badges.size){
+      BADGES.forEach(b=>{
+        if(p.badges.has(b.id)) badgesHtml += `<div class="badge-chip"><span>${b.icon}</span><span>${t(b.key)}</span></div>`;
+      });
+    }
+
+    const insightId = 'childInsight_' + key;
+    const heroAvatarId = 'childHeroAvatar_' + key;
+    const ageStr = formatAge(p.birthDate);
+
+    childDetailArea.innerHTML = `
+      <div class="fp-hero">
+        <div class="fp-avatar-wrap"><span class="fp-avatar" id="${heroAvatarId}" style="display:flex; align-items:center; justify-content:center; font-size:44px; overflow:hidden;"></span></div>
+        <div class="fp-name">${profileDisplayName(key)}</div>
+        ${p.username ? `<div class="fp-sub">@${p.username}</div>` : ''}
+        ${ageStr ? `<div class="fp-since">${ageStr}</div>` : ''}
+      </div>
+      <div class="fp-grid">
+        <div class="fp-stat"><b>${sum.accuracy === null ? '—' : sum.accuracy + '%'}</b><span>${t('childOverallAccuracy')}</span></div>
+        <div class="fp-stat"><b>${sum.bestScore}</b><span>${t('bestScoreLabel')}</span></div>
+        <div class="fp-stat"><b>${sum.bestStreak}</b><span>${t('statBest')}</span></div>
+        <div class="fp-stat"><b>${sum.answered}</b><span>${t('statTotalAnswered')}</span></div>
+        <div class="fp-stat"><b>${sum.badges}</b><span>${t('achievementsTitle')}</span></div>
+        <div class="fp-stat"><b>${(p.certificatesIssued || []).length}</b><span>${t('profileCertificates')}</span></div>
+      </div>
+      ${hasActivity ? '' : `<div class="dash-empty">${t('childNoActivityYet')}</div>`}
+      <div class="mystats-section">
+        <h4>${t('myStatsOpBreakdown')}</h4>
+        <div class="dash-table">${rowsHtml || `<div class="dash-empty">${t('dashNoData')}</div>`}</div>
+      </div>
+      <div class="mystats-section">
+        <h4>📅 ${t('weeklyReportTitle')}</h4>
+        <div class="dash-table">${weeklyReportHtml(p)}</div>
+      </div>
+      ${badgesHtml ? `<div class="mystats-section"><h4>${t('achievementsTitle')}</h4><div class="badges-row">${badgesHtml}</div></div>` : ''}
+      <div class="ai-insight" id="${insightId}"></div>
+      <button class="secondary-btn" id="childPrintBtn" style="margin-top:10px;">🖨️ ${t('printReportBtn')}</button>
+    `;
+    document.getElementById('childPrintBtn').addEventListener('click', ()=> printChildReport(key));
+    backfillAndRenderAvatar(key, document.getElementById(heroAvatarId), 112);
+    if(hasActivity) loadDashboardInsight(key, document.getElementById(insightId));
+
+    parentDashboardScreenEl.classList.add('hidden');
+    childDetailScreen.classList.remove('hidden');
+  }
+  childDetailBackBtn.addEventListener('click', ()=>{
+    childDetailScreen.classList.add('hidden');
+    parentDashboardScreenEl.classList.remove('hidden');
+  });
   parentDashboardLogoutBtn.addEventListener('click', goToLoginGate);
 
   /* ---------- AI-generated one-line insight for parent/teacher dashboards ---------- */
