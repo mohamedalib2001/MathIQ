@@ -1114,6 +1114,86 @@
   .guardian-box input.ltr-input{ direction:ltr; text-align:left; }
   .guardian-box .clear-guardian{ font-size:11px; color:var(--coral); text-decoration:underline; cursor:pointer; }
 
+  /* ---------- NEXORA SYNAPSE ----------
+     A synapse strengthens with use and fades with neglect — the same shape
+     as spaced retrieval, which is why it is the mark for this service. */
+  .syn-hero{
+    position:relative; overflow:hidden; text-align:center; padding:24px 18px 20px; margin-bottom:16px;
+    border-radius:20px; border:1.5px solid rgba(99,102,241,0.3);
+    background:radial-gradient(130% 100% at 50% 0%, rgba(99,102,241,0.20), transparent 62%), var(--input-bg);
+  }
+  .syn-mark-svg{ width:104px; height:52px; display:block; margin:0 auto 10px; }
+  .syn-arc{ stroke:#6366F1; stroke-width:3; stroke-linecap:round; }
+  .syn-node{ fill:#6366F1; }
+  .syn-node-b{ fill:#06B6D4; }
+  @media (prefers-reduced-motion: no-preference){
+    .syn-arc{ stroke-dasharray:120; animation:syn-flow 3.2s ease-in-out infinite; }
+    .syn-node{ animation:syn-pulse 3.2s ease-in-out infinite; }
+    .syn-node-b{ animation-delay:1.6s; }
+  }
+  @keyframes syn-flow{ 0%{ stroke-dashoffset:120; opacity:.45; } 50%{ stroke-dashoffset:0; opacity:1; } 100%{ stroke-dashoffset:-120; opacity:.45; } }
+  @keyframes syn-pulse{ 0%,100%{ opacity:.55; } 50%{ opacity:1; } }
+  .syn-title{ font-family:'Cairo',sans-serif; font-weight:800; font-size:19px; letter-spacing:1.5px; color:var(--ink); }
+  .syn-sub{ font-size:12px; color:var(--ink-dim); margin-top:3px; }
+  .syn-trajectory{
+    font-family:'Cairo',sans-serif; font-weight:700; font-size:14px; color:var(--mint);
+    margin-top:14px; line-height:1.6; min-height:20px;
+  }
+  .syn-trajectory.pending{ color:var(--ink-dim); font-weight:600; font-size:12.5px; }
+  .syn-radar{ width:100%; max-width:340px; height:auto; display:block; margin:0 auto 6px; }
+  .syn-axis-line{ stroke:var(--chip-border); stroke-width:1; }
+  .syn-web{ stroke:var(--chip-border); stroke-width:0.8; fill:none; opacity:0.55; }
+  .syn-shape{ fill:rgba(99,102,241,0.26); stroke:#6366F1; stroke-width:1.8; }
+  .syn-dot{ fill:#06B6D4; }
+  .syn-label{ font-size:9.5px; fill:var(--ink-dim); font-family:'IBM Plex Sans Arabic','Tajawal',sans-serif; }
+  .syn-legend{ display:flex; flex-wrap:wrap; gap:6px; justify-content:center; margin-bottom:14px; }
+  .syn-chip{
+    display:flex; align-items:center; gap:5px; font-size:11px; padding:5px 10px; border-radius:20px;
+    background:var(--input-bg); border:1px solid var(--chip-border); color:var(--ink); cursor:pointer;
+  }
+  .syn-chip b{ color:var(--yellow); font-family:'Cairo',sans-serif; }
+  .syn-chip.unmeasured{ opacity:0.5; }
+  .syn-chip.unmeasured b{ color:var(--ink-dim); }
+  .syn-how{
+    font-size:11px; color:var(--ink-dim); line-height:1.7; background:var(--bg);
+    border:1px solid var(--chip-border); border-radius:10px; padding:9px 12px; margin-bottom:12px;
+  }
+  .syn-locked{
+    text-align:center; font-size:12.5px; color:var(--ink-dim); line-height:1.8;
+    background:var(--input-bg); border:1.5px dashed var(--chip-border); border-radius:14px;
+    padding:20px 16px; margin-bottom:14px;
+  }
+  .syn-locked b{ color:var(--yellow); font-family:'Cairo',sans-serif; }
+  .syn-insight{
+    display:flex; align-items:flex-start; gap:9px; font-size:12.5px; line-height:1.7; color:var(--ink);
+    background:var(--input-bg); border:1px solid var(--chip-border); border-radius:12px;
+    padding:11px 13px; margin-bottom:8px;
+  }
+  .syn-insight .syn-ic{ flex:none; color:var(--yellow); margin-top:2px; }
+  .syn-action{
+    display:flex; align-items:center; gap:12px; width:100%; text-align:start; cursor:pointer;
+    background:var(--input-bg); border:1.5px solid var(--input-border); border-radius:14px;
+    padding:14px 15px; margin-bottom:9px; color:var(--ink);
+    font-family:'IBM Plex Sans Arabic','Tajawal',sans-serif;
+    transition:border-color .15s ease, transform .1s ease;
+  }
+  .syn-action:hover{ border-color:var(--yellow); }
+  .syn-action:active{ transform:scale(0.985); }
+  .syn-action:disabled{ opacity:0.5; cursor:default; }
+  .syn-action .syn-action-ic{ flex:none; font-size:20px; width:26px; text-align:center; color:var(--yellow); }
+  .syn-action .syn-action-txt{ flex:1; min-width:0; }
+  .syn-action .syn-action-title{ display:block; font-family:'Cairo',sans-serif; font-weight:700; font-size:13.5px; }
+  .syn-action .syn-action-sub{ display:block; font-size:11px; color:var(--ink-dim); margin-top:3px; line-height:1.6; }
+  .syn-disclaimer{
+    font-size:10.5px; color:var(--ink-dim); line-height:1.7; text-align:center;
+    opacity:0.75; margin:14px 0 10px; padding:0 6px;
+  }
+  .twin-banner{
+    display:flex; align-items:center; justify-content:center; gap:7px; font-size:11.5px; font-weight:700;
+    color:#06B6D4; background:rgba(6,182,212,0.1); border:1px solid rgba(6,182,212,0.35);
+    border-radius:20px; padding:5px 13px; width:fit-content; margin:0 auto 10px;
+  }
+
   /* strategy walkthrough shown right after a wrong answer — computed from
      the question's own numbers, so it is always exact and always instant. */
   .strategy-box{
@@ -1965,6 +2045,31 @@
     <button class="secondary-btn" id="parentDashboardLogoutBtn" data-i18n="logoutLinkText">🚪 تسجيل الخروج</button>
   </div>
 
+  <!-- NEXORA SYNAPSE — the cognitive mirror. Everything on this screen is
+       derived from the learner's own recorded behaviour; nothing is
+       estimated, and indicators stay hidden until there is enough data. -->
+  <div id="synapseScreen" class="panel hidden">
+    <div class="syn-hero">
+      <div class="syn-mark" aria-hidden="true">
+        <svg viewBox="0 0 120 60" class="syn-mark-svg">
+          <path class="syn-arc" d="M18 30 Q60 2 102 30" fill="none"/>
+          <circle class="syn-node" cx="18" cy="30" r="7"/>
+          <circle class="syn-node syn-node-b" cx="102" cy="30" r="7"/>
+        </svg>
+      </div>
+      <div class="syn-title">NEXORA SYNAPSE</div>
+      <div class="syn-sub" data-i18n="synapseSubtitle">مختبر الذكاء والذاكرة</div>
+      <div class="syn-trajectory" id="synTrajectory"></div>
+    </div>
+    <div id="synRadarWrap"></div>
+    <div id="synInsights"></div>
+    <div id="synActions"></div>
+    <div class="syn-disclaimer" data-i18n="synapseDisclaimer">
+      مؤشرات أداء تعليمي داخل المنصة، محسوبة من تدريبك الفعلي — وليست قياسًا للذكاء ولا تشخيصًا من أي نوع.
+    </div>
+    <button class="secondary-btn" id="synapseBackBtn" data-i18n="backBtn">رجوع</button>
+  </div>
+
   <!-- ONE CHILD'S FULL FILE — opened by tapping that child's card. Shows the
        same real, already-recorded statistics that used to be crammed onto
        the list itself, with room to actually read them. -->
@@ -2616,6 +2721,14 @@
        extensibility mechanism the architecture change was about. -->
   <div id="programsHub" class="panel hidden">
     <div class="hub-greeting" id="programsHubGreeting"></div>
+    <button type="button" class="syn-action" id="synapseGateBtn" style="margin-bottom:14px;">
+      <span class="syn-action-ic">◠</span>
+      <span class="syn-action-txt">
+        <span class="syn-action-title">NEXORA SYNAPSE</span>
+        <span class="syn-action-sub" id="synapseGateSub" data-i18n="synapseSubtitle">مختبر الذكاء والذاكرة</span>
+      </span>
+      <span style="opacity:0.6;">›</span>
+    </button>
     <div class="hub-subtitle" data-i18n="hubSubtitle">اختاري برنامجًا لتبدئي</div>
     <div class="programs-grid" id="programsGrid">
       <div class="program-card" id="programMentalMathCard">
@@ -2836,6 +2949,7 @@
     <div class="progress-label" id="progressLabel">السؤال 1</div>
     <div class="adaptive-label hidden" id="adaptiveLabelEl"></div>
     <div class="timerbar-wrap"><div class="timerbar" id="timerbar"></div></div>
+    <div class="twin-banner hidden" id="twinBanner"><span data-i18n="synTwinBannerLabel">🧠 مواجهة مع نفسك</span></div>
     <div class="review-badge hidden" id="reviewBadge"><span data-i18n="reviewBadgeLabel">🔁 سؤال مراجعة</span></div>
     <div class="equation-wrap">
       <div class="equation" id="equation">—</div>
@@ -2952,6 +3066,12 @@
 
   const parentDashboardScreenEl = document.getElementById('parentDashboardScreen');
   const parentChildrenList = document.getElementById('parentChildrenList');
+  const synapseScreen = document.getElementById('synapseScreen');
+  const synTrajectory = document.getElementById('synTrajectory');
+  const synRadarWrap = document.getElementById('synRadarWrap');
+  const synInsights = document.getElementById('synInsights');
+  const synActions = document.getElementById('synActions');
+  const synapseBackBtn = document.getElementById('synapseBackBtn');
   const childDetailScreen = document.getElementById('childDetailScreen');
   const childDetailArea = document.getElementById('childDetailArea');
   const childDetailBackBtn = document.getElementById('childDetailBackBtn');
@@ -3055,6 +3175,8 @@
   const serviceActivationBackBtn = document.getElementById('serviceActivationBackBtn');
   const programsHubEl = document.getElementById('programsHub');
   const programsHubGreeting = document.getElementById('programsHubGreeting');
+  const synapseGateBtn = document.getElementById('synapseGateBtn');
+  const synapseGateSub = document.getElementById('synapseGateSub');
   const programMentalMathCard = document.getElementById('programMentalMathCard');
   const programMentalMathStat = document.getElementById('programMentalMathStat');
   const programAbacusCard = document.getElementById('programAbacusCard');
@@ -3289,6 +3411,7 @@
 
   const settingsProfileHeader = document.getElementById('settingsProfileHeader');
   const smartNotifBox = document.getElementById('smartNotifBox');
+  const twinBannerEl = document.getElementById('twinBanner');
   const reviewBadgeEl = document.getElementById('reviewBadge');
   const reviewCta = document.getElementById('reviewCta');
   const reviewCtaCount = document.getElementById('reviewCtaCount');
@@ -3404,6 +3527,11 @@
       // Spaced repetition: every missed problem is scheduled to come back.
       // { text, ans, kind, bucket, op, box, dueAt, addedAt, seen, cleared }
       reviewQueue: [],
+      // NEXORA SYNAPSE — every field below is filled from the learner's own
+      // recorded behaviour. Nothing here is estimated or invented.
+      reviewStats: { c:0, t:0 },   // recall: how review items actually went
+      twinSessions: [],            // recorded sessions, replayable as an opponent
+      cogSnapshots: [],            // weekly indicator snapshots, for trajectory
       sessionLog: [], // rolling log for the weekly report: { date, score, accuracy, questionCount, operation }
       notificationHistory: [] // persistent notification center log: { message, icon, category, date, read }
     };
@@ -3437,6 +3565,9 @@
       dailyGoal: p.dailyGoal || { target:10, date:null, answered:0 },
       errorTypeCounts: p.errorTypeCounts || {},
       reviewQueue: p.reviewQueue || [],
+      reviewStats: p.reviewStats || { c:0, t:0 },
+      twinSessions: p.twinSessions || [],
+      cogSnapshots: p.cogSnapshots || [],
       sessionLog: p.sessionLog || [],
       notificationHistory: p.notificationHistory || []
     };
@@ -3658,6 +3789,8 @@
   let currentProblemIsWord = false;
   let reviewOnlySession = false;
   let reviewSessionLength = 0;
+  let twinQueue = [];
+  let twinSessionLength = 0;
   let timerInterval = null;
   let remaining = 0;
   let questionStartTs = 0;
@@ -3954,6 +4087,41 @@
       profileBestScore:'أفضل نتيجة', profileBestAccuracy:'أعلى دقة', profileBestStreak:'أطول متتالية',
       profileAvgAccuracy:'متوسط الدقة', profileSessions:'عدد الجلسات', profileCertificates:'الشهادات',
       profileMemberSince:'عضو منذ {d}', profileNoActivity:'لم يبدأ أي تمرين بعد.',
+      synapseNavLabel:'سينابس', synapseSubtitle:'مختبر الذكاء والذاكرة',
+      synapseRadarAria:'رسم بياني لمؤشرات أدائك التعليمية',
+      synapseDisclaimer:'مؤشرات أداء تعليمي داخل المنصة، محسوبة من تدريبك الفعلي — وليست قياسًا للذكاء ولا تشخيصًا من أي نوع.',
+      cogAccuracy:'الدقة', cogSpeed:'سرعة المعالجة', cogRecall:'الاستدعاء', cogFocus:'التركيز',
+      cogResilience:'المرونة', cogConsistency:'الاستمرارية', cogProblem:'حل المشكلات', cogCritical:'التفكير النقدي',
+      cogHowAccuracy:'محسوبة من دقتك في آخر 24 جلسة، مع إعطاء الجلسات الأحدث وزنًا أكبر.',
+      cogHowSpeed:'مقارنة متوسط زمن إجابتك بالزمن المستهدف لكل عملية — مقارنة بنفسك أنتِ فقط، لا بأحد آخر.',
+      cogHowRecall:'نسبة نجاحك في أسئلة المراجعة المجدولة التي حان موعدها.',
+      cogHowFocus:'مقارنة دقتك في النصف الثاني من الجلسة بالنصف الأول — هل يصمد أداؤك حتى النهاية؟',
+      cogHowResilience:'كم مرة أجبتِ صح في السؤال الذي يلي خطأً مباشرة.',
+      cogHowConsistency:'عدد الأيام المختلفة التي تدرّبتِ فيها خلال آخر 14 يومًا.',
+      cogHowProblem:'من نتائج تقييمات البرامج المرتبطة بمهارة حل المشكلات.',
+      cogHowCritical:'من نتائج تقييمات البرامج المرتبطة بمهارة التفكير النقدي.',
+      cogTrajUp:'{m} تحسّنت {n}% خلال {w} أسبوع', cogTrajDown:'{m} تراجعت {n}% خلال {w} أسبوع — وقت المراجعة',
+      cogTrajPending:'مسار تطوّرك سيظهر بعد أسبوعين من التدريب المنتظم',
+      cogLockedMsg:'مؤشراتك تحتاج بيانات كافية أولًا.<br>أنجزتِ <b>{a}</b> من <b>{A}</b> سؤال، على <b>{d}</b> من <b>{D}</b> أيام مختلفة.<br>نعرض المؤشر فقط عندما يصبح قياسًا حقيقيًا، لا تخمينًا.',
+      cogInsightFatigue:'تركيزك يبدأ بالتراجع بعد السؤال {n} تقريبًا — جرّبي جولات أقصر.',
+      cogInsightPeak:'أفضل أداء لكِ في {band} — أعلى بـ {n}% من باقي اليوم.',
+      cogInsightFastLoose:'أنتِ سريعة جدًا لكن الدقة أقل — جرّبي التمهّل قليلًا قبل الإجابة.',
+      cogInsightSlowSure:'دقتك ممتازة! الخطوة التالية هي بناء السرعة تدريجيًا.',
+      band_morning:'الصباح', band_afternoon:'بعد الظهر', band_evening:'المساء',
+      synTwinTitle:'🧠 التوأم المعرفي', synTwinBannerLabel:'🧠 مواجهة مع نفسك',
+      synTwinReady:'واجهي نفسك يوم {d} — {n} سؤال بنفس الترتيب وبنفس سرعتك وقتها',
+      synTwinWait:'تسجيلك جارٍ — يصبح خصمًا بعد {n} يوم',
+      synTwinNone:'أنهي جولة كاملة أولًا ليبدأ التسجيل',
+      synTwinOpponentName:'أنتِ يوم {d}',
+      synTwinWin:'🏆 هزمتِ مستواكِ السابق!', synTwinTie:'🤝 تعادلتِ مع نفسك',
+      synTwinLose:'مستواكِ السابق تفوّق هذه المرة — راجعي وأعيدي المحاولة',
+      synTwinCompare:'دقتك اليوم {me}% مقابل {old}% وقتها',
+      synUnknownTitle:'🎯 التحدي المجهول', synUnknownSub:'يختاره النظام من نقطة ضعفك الحقيقية — ويخبرك لماذا',
+      synGateDue:'{n} سؤال حان موعد مراجعته', synGateTwin:'توأمك المعرفي جاهز للمواجهة',
+      unkReasonReview:'اخترت لكِ مراجعة: {n} سؤال حان موعد استرجاعه',
+      unkReasonWeak:'اخترت لكِ {op} — دقتك فيها {acc}% وهي أضعف نقطة حاليًا',
+      unkReasonRotate:'اخترت لكِ {op} للحفاظ على إتقانك فيها',
+      unkReasonStart:'نبدأ بالجمع لبناء أساس متين',
       strategyTitle:'طريقة الحل ذهنيًا',
       stratSplit:'جزّئي {n} إلى {x} + {y}',
       stratSum:'المجموع: {x} + {y} = {res}',
@@ -4432,6 +4600,41 @@
       profileBestScore:'Best score', profileBestAccuracy:'Best accuracy', profileBestStreak:'Longest streak',
       profileAvgAccuracy:'Average accuracy', profileSessions:'Sessions', profileCertificates:'Certificates',
       profileMemberSince:'Member since {d}', profileNoActivity:'No practice sessions yet.',
+      synapseNavLabel:'Synapse', synapseSubtitle:'Your intelligence & memory lab',
+      synapseRadarAria:'Chart of your learning performance indicators',
+      synapseDisclaimer:'In-platform learning performance indicators computed from your own practice — not an intelligence measure and not a diagnosis of any kind.',
+      cogAccuracy:'Accuracy', cogSpeed:'Processing speed', cogRecall:'Recall', cogFocus:'Focus',
+      cogResilience:'Resilience', cogConsistency:'Consistency', cogProblem:'Problem solving', cogCritical:'Critical thinking',
+      cogHowAccuracy:'From your accuracy across the last 24 sessions, with recent sessions weighted more heavily.',
+      cogHowSpeed:'Your average answer time against the target time per operation — compared only to yourself.',
+      cogHowRecall:'How often you got scheduled review questions right when they came due.',
+      cogHowFocus:'Your accuracy in the second half of a session compared with the first half.',
+      cogHowResilience:'How often you answer correctly on the question straight after a mistake.',
+      cogHowConsistency:'How many different days you practised in the last 14.',
+      cogHowProblem:'From assessment results linked to the problem-solving skill.',
+      cogHowCritical:'From assessment results linked to the critical-thinking skill.',
+      cogTrajUp:'{m} improved {n}% over {w} week(s)', cogTrajDown:'{m} dropped {n}% over {w} week(s) — time to review',
+      cogTrajPending:'Your trajectory appears after two weeks of regular practice',
+      cogLockedMsg:'Your indicators need enough data first.<br>You have answered <b>{a}</b> of <b>{A}</b> questions, across <b>{d}</b> of <b>{D}</b> different days.<br>We only show an indicator once it is a real measurement, not a guess.',
+      cogInsightFatigue:'Your focus starts slipping around question {n} — try shorter rounds.',
+      cogInsightPeak:'You perform best in the {band} — {n}% above the rest of the day.',
+      cogInsightFastLoose:'You are very fast but less accurate — try slowing down slightly before answering.',
+      cogInsightSlowSure:'Your accuracy is excellent. The next step is building speed gradually.',
+      band_morning:'morning', band_afternoon:'afternoon', band_evening:'evening',
+      synTwinTitle:'🧠 Cognitive Twin', synTwinBannerLabel:'🧠 Facing your past self',
+      synTwinReady:'Face yourself from {d} — {n} questions, same order, at the speed you had then',
+      synTwinWait:'Recording in progress — becomes an opponent in {n} day(s)',
+      synTwinNone:'Finish a full round first to start recording',
+      synTwinOpponentName:'You on {d}',
+      synTwinWin:'🏆 You beat your past self!', synTwinTie:'🤝 A tie with yourself',
+      synTwinLose:'Your past self won this time — review and try again',
+      synTwinCompare:'Your accuracy today {me}% vs {old}% back then',
+      synUnknownTitle:'🎯 Unknown challenge', synUnknownSub:'Chosen from your real weak point — and it tells you why',
+      synGateDue:'{n} question(s) due for review', synGateTwin:'Your cognitive twin is ready',
+      unkReasonReview:'Picked review for you: {n} question(s) are due for recall',
+      unkReasonWeak:'Picked {op} — you are at {acc}% there, your weakest point right now',
+      unkReasonRotate:'Picked {op} to keep your mastery from fading',
+      unkReasonStart:'Starting with addition to build a solid base',
       strategyTitle:'How to solve it mentally',
       stratSplit:'Split {n} into {x} + {y}',
       stratSum:'Add them: {x} + {y} = {res}',
@@ -5059,6 +5262,7 @@
     settingsEl.classList.add('hidden');
     abacusTrainerEl.classList.add('hidden');
     childDetailScreen.classList.add('hidden');
+    synapseScreen.classList.add('hidden');
     parentDashboardScreenEl.classList.add('hidden');
   }
   function hideTeacherShellScreens(){
@@ -5084,6 +5288,11 @@
       const abacusAcc = overallAccuracyFor(p, ['abacus']);
       programAbacusStat.textContent = abacusAcc !== null ? fmt('programAccuracyStat', { acc: abacusAcc }) : t('programNotStartedStat');
     }
+
+    const due = reviewDueItems(p).length;
+    const twinReady = !!findTwinOpponent(p);
+    synapseGateSub.textContent = due ? fmt('synGateDue', { n: due })
+      : (twinReady ? t('synGateTwin') : t('synapseSubtitle'));
 
     // real Sprint-1 programs, rendered as additional cards before the "coming soon" placeholders
     renderRealProgramCards();
@@ -5146,6 +5355,7 @@
     programsHubEl.classList.add('hidden');
     abacusOpenBtn.click();
   });
+  synapseGateBtn.addEventListener('click', openSynapse);
   backToProgramsLink.addEventListener('click', ()=>{
     settingsEl.classList.add('hidden');
     showProgramsHub();
@@ -5219,6 +5429,7 @@
     friendsScreen.classList.add('hidden');
     friendProfileScreen.classList.add('hidden');
     guardianAuditScreen.classList.add('hidden');
+    synapseScreen.classList.add('hidden');
     parentDashboardScreenEl.classList.add('hidden');
     childDetailScreen.classList.add('hidden');
     parentDashboardBackBtn.classList.add('hidden');
@@ -9357,6 +9568,7 @@
     if(role === 'learner'){
       return [
         { icon:nxIcon('home'), label:t('shellNavPrograms'), run: ()=> showProgramsHub() },
+        { icon:nxIcon('target'), label:t('synapseNavLabel'), run: ()=> openSynapse() },
         { icon:nxIcon('book'), label:t('shellNavJourney'), run: ()=>{ if(isServiceOn('knowledgeMap')) knowledgeMapOpenBtn.click(); } },
         { icon:nxIcon('puzzle'), label:t('shellNavSkills'), run: ()=>{ hideLearnerShellScreens(); mySkillsScreen.classList.remove('hidden'); renderMySkills(); renderShellNav('learner'); } },
         { icon:nxIcon('award'), label:t('shellNavAchievements'), run: ()=> myStatsLink.click() },
@@ -9922,6 +10134,18 @@
   /* ---------- one child's full file ----------
      Contains exactly the detail the old inline list used to show, plus the
      summary figures — nothing invented, just given room to be readable. */
+  function openSynapse(){
+    if(!currentProfile || !PROFILES[currentProfile]) return;
+    hideLearnerShellScreens();
+    synapseScreen.classList.remove('hidden');
+    renderSynapseProfile();
+    renderShellNav('learner');
+  }
+  synapseBackBtn.addEventListener('click', ()=>{
+    synapseScreen.classList.add('hidden');
+    showProgramsHub();
+  });
+
   function openChildDetail(key){
     const p = PROFILES[key];
     if(!p) return;
@@ -10269,6 +10493,479 @@
   }
   const OP_SYMBOL = { add:'+', sub:'−', mul:'×', div:'÷' };
 
+  /* ==================== MODULE: NEXORA SYNAPSE ====================
+     A cognitive performance profile built ONLY from behaviour the learner
+     actually produced inside the platform. Deliberate constraints, because
+     a number shown to a child is read as a verdict about themselves:
+
+       1. No indicator is shown before MIN_ATTEMPTS across MIN_DAYS.
+          Less than that is noise, not measurement.
+       2. Trajectory is the headline, not the level.
+       3. Indicators are never used to rank children against each other.
+       4. Every indicator can explain how it was computed.
+
+     This is an educational performance profile. It is not an intelligence
+     test, not a diagnosis, and is never described as either. */
+  const SYNAPSE_MIN_ATTEMPTS = 20;
+  const SYNAPSE_MIN_DAYS = 3;
+  const TWIN_MIN_AGE_DAYS = 7;      // an opponent must be genuinely "past you"
+  const TWIN_MIN_QUESTIONS = 8;
+  const TWIN_MAX_SESSIONS = 12;
+
+  function synapseDistinctDays(prof){
+    const days = new Set((prof.sessionLog || []).map(x => String(x.date).slice(0,10)));
+    return days.size;
+  }
+  function synapseHasEnoughData(prof){
+    return prof && (prof.totalAnswered || 0) >= SYNAPSE_MIN_ATTEMPTS && synapseDistinctDays(prof) >= SYNAPSE_MIN_DAYS;
+  }
+  // Recent sessions count for more than old ones: a profile that reports a
+  // level someone reached six months ago is lying to them politely.
+  function synapseRecencyWeightedAccuracy(prof){
+    const log = (prof.sessionLog || []).slice(-24);
+    if(!log.length) return null;
+    let num = 0, den = 0;
+    log.forEach(function(sess, i){
+      const w = 1 + i; // linear recency weight, newest heaviest
+      num += (sess.accuracy || 0) * w;
+      den += w;
+    });
+    return den ? Math.round(num / den) : null;
+  }
+  // Speed is expressed against the learner's OWN target times per operation,
+  // never against other children.
+  function synapseSpeedIndex(prof){
+    let scoreSum = 0, weight = 0;
+    Object.keys(prof.opStats || {}).forEach(function(bucket){
+      const st = prof.opStats[bucket];
+      if(!st || st.t < 3) return;
+      const avg = st.time / st.t;
+      const target = LEVEL_TARGET_TIME[bucket] || 8;
+      scoreSum += Math.min(100, Math.max(0, (target / avg) * 100)) * st.t;
+      weight += st.t;
+    });
+    return weight ? Math.round(scoreSum / weight) : null;
+  }
+  function synapseRecallIndex(prof){
+    const rs = prof.reviewStats || { c:0, t:0 };
+    if(rs.t < 5) return null; // too few scheduled recalls to say anything
+    return Math.round((rs.c / rs.t) * 100);
+  }
+  // Consistency = how many distinct days were trained in the last 14.
+  function synapseConsistencyIndex(prof){
+    const log = prof.sessionLog || [];
+    if(!log.length) return null;
+    const cutoff = Date.now() - 14 * 86400000;
+    const days = new Set(log.filter(x => new Date(x.date).getTime() >= cutoff).map(x => String(x.date).slice(0,10)));
+    return Math.round((days.size / 14) * 100);
+  }
+  // Focus = does performance hold up across a session, or fall apart near
+  // the end? Computed from real per-question records, not guessed.
+  function synapseFocusIndex(prof){
+    const sessions = (prof.twinSessions || []).filter(t => (t.answers || []).length >= 6);
+    if(sessions.length < 2) return null;
+    let firstHalf = 0, secondHalf = 0, n = 0;
+    sessions.slice(-8).forEach(function(t){
+      const ans = t.answers, mid = Math.floor(ans.length / 2);
+      const a1 = ans.slice(0, mid).filter(x => x.correct).length / mid;
+      const a2 = ans.slice(mid).filter(x => x.correct).length / (ans.length - mid);
+      firstHalf += a1; secondHalf += a2; n++;
+    });
+    if(!n) return null;
+    const holdRatio = (secondHalf / n) / Math.max(0.01, firstHalf / n);
+    return Math.round(Math.min(100, holdRatio * 100));
+  }
+  // Resilience = how often the learner answers correctly on the question
+  // immediately AFTER getting one wrong.
+  function synapseResilienceIndex(prof){
+    let recovered = 0, chances = 0;
+    (prof.twinSessions || []).slice(-8).forEach(function(t){
+      const ans = t.answers || [];
+      for(let i = 0; i < ans.length - 1; i++){
+        if(!ans[i].correct){ chances++; if(ans[i+1].correct) recovered++; }
+      }
+    });
+    if(chances < 4) return null;
+    return Math.round((recovered / chances) * 100);
+  }
+  function synapseSkillIndex(skillId){
+    const r = lpComputeSkillProgress(currentProfile, skillId);
+    return (r && r.level !== null && r.attemptCount >= 2) ? r.level : null;
+  }
+
+  function computeCognitiveProfile(prof){
+    return [
+      { id:'accuracy',    key:'cogAccuracy',    value: synapseRecencyWeightedAccuracy(prof), howKey:'cogHowAccuracy' },
+      { id:'speed',       key:'cogSpeed',       value: synapseSpeedIndex(prof),              howKey:'cogHowSpeed' },
+      { id:'recall',      key:'cogRecall',      value: synapseRecallIndex(prof),             howKey:'cogHowRecall' },
+      { id:'focus',       key:'cogFocus',       value: synapseFocusIndex(prof),              howKey:'cogHowFocus' },
+      { id:'resilience',  key:'cogResilience',  value: synapseResilienceIndex(prof),         howKey:'cogHowResilience' },
+      { id:'consistency', key:'cogConsistency', value: synapseConsistencyIndex(prof),        howKey:'cogHowConsistency' },
+      { id:'problem',     key:'cogProblem',     value: synapseSkillIndex('skill_problem'),   howKey:'cogHowProblem' },
+      { id:'critical',    key:'cogCritical',    value: synapseSkillIndex('skill_critical'),  howKey:'cogHowCritical' }
+    ];
+  }
+  // A weekly snapshot is what makes trajectory possible at all. Taken at
+  // most once per calendar week so the history stays meaningful.
+  function maybeSnapshotCognitiveProfile(prof){
+    if(!synapseHasEnoughData(prof)) return;
+    if(!prof.cogSnapshots) prof.cogSnapshots = [];
+    const last = prof.cogSnapshots[prof.cogSnapshots.length - 1];
+    if(last && (Date.now() - new Date(last.date).getTime()) < 7 * 86400000) return;
+    const ind = {};
+    computeCognitiveProfile(prof).forEach(function(m){ if(m.value !== null) ind[m.id] = m.value; });
+    if(!Object.keys(ind).length) return;
+    prof.cogSnapshots.push({ date: new Date().toISOString(), ind: ind });
+    if(prof.cogSnapshots.length > 26) prof.cogSnapshots.shift();
+  }
+  // Trajectory: the single sentence the learner should read first.
+  function computeCognitiveTrajectory(prof){
+    const snaps = prof.cogSnapshots || [];
+    if(snaps.length < 2) return null;
+    const first = snaps[0], last = snaps[snaps.length - 1];
+    let bestId = null, bestDelta = 0;
+    Object.keys(last.ind).forEach(function(id){
+      if(first.ind[id] === undefined) return;
+      const d = last.ind[id] - first.ind[id];
+      if(Math.abs(d) > Math.abs(bestDelta)){ bestDelta = d; bestId = id; }
+    });
+    if(!bestId || bestDelta === 0) return null;
+    const weeks = Math.max(1, Math.round((new Date(last.date) - new Date(first.date)) / (7 * 86400000)));
+    const label = t('cog' + capitalize(bestId));
+    return { id: bestId, delta: bestDelta, weeks: weeks, label: label };
+  }
+
+  /* ---------- COGNITIVE TWIN ----------
+     The opponent is not a bot and never simulates anything. It is a real
+     recording of a session this learner actually played: the same questions
+     in the same order, replayed at the exact per-question times they took.
+
+     This is what makes the match honest by construction — there is no code
+     path where the opponent could cheat, throw the match, or be tuned to
+     flatter the child, because there is no decision being made at all.
+     Beating it is documented evidence that they improved. */
+  let twinRecording = null;   // buffer for the session being played now
+  let twinOpponent = null;    // the recorded session being replayed
+  let twinTimers = [];
+
+  function startTwinRecording(mode){
+    twinRecording = { id: 'twin_' + Date.now(), date: new Date().toISOString(), mode: mode || 'practice', problems: [], answers: [] };
+  }
+  function twinRecordProblem(p){
+    if(!twinRecording) return;
+    twinRecording.problems.push({
+      text: p.compactText || p.text, ans: p.ans,
+      kind: p.isFraction ? 'fraction' : (p.isDecimal ? 'decimal' : 'int'),
+      bucket: p.bucket || null, isWord: !!p.isWord
+    });
+  }
+  function twinRecordAnswer(correct, ms){
+    if(!twinRecording) return;
+    twinRecording.answers.push({ correct: !!correct, ms: Math.round(ms) });
+  }
+  function commitTwinRecording(prof, score, accuracy){
+    if(!twinRecording || !prof) { twinRecording = null; return; }
+    // Only complete, replayable sessions are kept. A half-finished or
+    // word-problem session cannot be replayed faithfully, so it is discarded
+    // rather than stored as a twin that would not reproduce.
+    const rec = twinRecording;
+    twinRecording = null;
+    if(rec.answers.length < TWIN_MIN_QUESTIONS) return;
+    if(rec.problems.length !== rec.answers.length) return;
+    if(rec.problems.some(q => q.isWord)) return;
+    rec.score = score; rec.accuracy = accuracy;
+    rec.totalMs = rec.answers.reduce((a,b)=> a + b.ms, 0);
+    if(!prof.twinSessions) prof.twinSessions = [];
+    prof.twinSessions.push(rec);
+    if(prof.twinSessions.length > TWIN_MAX_SESSIONS) prof.twinSessions.shift();
+  }
+  // Eligible = old enough to genuinely be "past you".
+  function findTwinOpponent(prof){
+    const cutoff = Date.now() - TWIN_MIN_AGE_DAYS * 86400000;
+    const eligible = (prof.twinSessions || []).filter(t => new Date(t.date).getTime() <= cutoff);
+    if(!eligible.length) return null;
+    return eligible[eligible.length - 1]; // the most recent qualifying one
+  }
+  function daysUntilTwinReady(prof){
+    const sessions = prof.twinSessions || [];
+    if(!sessions.length) return null;
+    const oldest = sessions[0];
+    const age = (Date.now() - new Date(oldest.date).getTime()) / 86400000;
+    return Math.max(1, Math.ceil(TWIN_MIN_AGE_DAYS - age));
+  }
+  function clearTwinTimers(){
+    twinTimers.forEach(clearTimeout);
+    twinTimers = [];
+  }
+  // Replays the recording in real time against the live session, so the
+  // learner watches their past self answer at the pace they really had.
+  function startTwinPlayback(){
+    clearTwinTimers();
+    if(!twinOpponent) return;
+    let elapsed = 0, oppScore = 0, oppCorrect = 0;
+    const total = twinOpponent.answers.length;
+    twinOpponent.answers.forEach(function(a, i){
+      elapsed += a.ms;
+      twinTimers.push(setTimeout(function(){
+        if(!twinOpponent) return;
+        if(a.correct){ oppScore += 10; oppCorrect++; }
+        opponentBar.style.width = Math.min(100, Math.round(((i+1)/total)*100)) + '%';
+        opponentScore.textContent = oppScore;
+        twinOpponent.liveScore = oppScore;
+        twinOpponent.liveCorrect = oppCorrect;
+      }, elapsed));
+    });
+  }
+
+
+  /* ---------- SYNAPSE UI ---------- */
+  function renderSynapseRadar(metrics){
+    const measured = metrics.filter(m => m.value !== null);
+    if(measured.length < 3) return ''; // a radar of two points is a line, not a picture
+    const cx = 170, cy = 150, R = 108, n = measured.length;
+    const pt = (i, r)=>{
+      const ang = (Math.PI * 2 * i / n) - Math.PI / 2;
+      return [cx + Math.cos(ang) * r, cy + Math.sin(ang) * r];
+    };
+    let web = '';
+    [0.25, 0.5, 0.75, 1].forEach(function(f){
+      const pts = [];
+      for(let i = 0; i < n; i++){ const q = pt(i, R * f); pts.push(q[0].toFixed(1) + ',' + q[1].toFixed(1)); }
+      web += `<polygon class="syn-web" points="${pts.join(' ')}"/>`;
+    });
+    let axes = '', labels = '', dots = '';
+    const shape = [];
+    measured.forEach(function(m, i){
+      const outer = pt(i, R);
+      axes += `<line class="syn-axis-line" x1="${cx}" y1="${cy}" x2="${outer[0].toFixed(1)}" y2="${outer[1].toFixed(1)}"/>`;
+      const lp = pt(i, R + 20);
+      const anchorAttr = Math.abs(lp[0] - cx) < 8 ? 'middle' : (lp[0] > cx ? 'start' : 'end');
+      labels += `<text class="syn-label" x="${lp[0].toFixed(1)}" y="${(lp[1]+3).toFixed(1)}" text-anchor="${anchorAttr}">${t(m.key)}</text>`;
+      const v = pt(i, R * Math.max(0.06, Math.min(1, m.value / 100)));
+      shape.push(v[0].toFixed(1) + ',' + v[1].toFixed(1));
+      dots += `<circle class="syn-dot" cx="${v[0].toFixed(1)}" cy="${v[1].toFixed(1)}" r="3"/>`;
+    });
+    return `<svg class="syn-radar" viewBox="0 0 340 300" role="img" aria-label="${t('synapseRadarAria')}">
+      ${web}${axes}<polygon class="syn-shape" points="${shape.join(' ')}"/>${dots}${labels}</svg>`;
+  }
+
+  function renderSynapseProfile(){
+    const prof = PROFILES[currentProfile];
+    if(!prof) return;
+    const metrics = computeCognitiveProfile(prof);
+    const enough = synapseHasEnoughData(prof);
+
+    // Trajectory leads, because "you improved" is the message — not "you are a 42".
+    const traj = enough ? computeCognitiveTrajectory(prof) : null;
+    if(traj){
+      const dir = traj.delta > 0 ? '↑' : '↓';
+      synTrajectory.className = 'syn-trajectory';
+      synTrajectory.textContent = dir + ' ' + fmt(traj.delta > 0 ? 'cogTrajUp' : 'cogTrajDown',
+        { m: traj.label, n: Math.abs(traj.delta), w: traj.weeks });
+    } else {
+      synTrajectory.className = 'syn-trajectory pending';
+      synTrajectory.textContent = t('cogTrajPending');
+    }
+
+    synRadarWrap.innerHTML = '';
+    if(!enough){
+      const done = prof.totalAnswered || 0;
+      const days = synapseDistinctDays(prof);
+      synRadarWrap.innerHTML = `<div class="syn-locked">${
+        fmt('cogLockedMsg', { a: done, A: SYNAPSE_MIN_ATTEMPTS, d: days, D: SYNAPSE_MIN_DAYS })}</div>`;
+    } else {
+      const radar = renderSynapseRadar(metrics);
+      const chips = metrics.map(function(m){
+        const un = m.value === null;
+        return `<button type="button" class="syn-chip${un ? ' unmeasured' : ''}" data-how="${m.howKey}">
+          <span>${t(m.key)}</span><b>${un ? '—' : m.value + '%'}</b></button>`;
+      }).join('');
+      synRadarWrap.innerHTML = radar +
+        `<div class="syn-legend">${chips}</div><div class="syn-how hidden" id="synHowBox"></div>`;
+      const howBox = document.getElementById('synHowBox');
+      synRadarWrap.querySelectorAll('.syn-chip').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          howBox.textContent = nxIcon ? t(btn.dataset.how) : t(btn.dataset.how);
+          howBox.classList.remove('hidden');
+        });
+      });
+    }
+
+    renderSynapseInsights(prof);
+    renderSynapseActions(prof);
+  }
+
+  /* Behavioural observations — each one is only shown when the underlying
+     pattern is actually present in the data, never as generic advice. */
+  function renderSynapseInsights(prof){
+    const out = [];
+
+    // When does performance start to fall apart inside a session?
+    const sessions = (prof.twinSessions || []).filter(x => (x.answers || []).length >= 8);
+    if(sessions.length >= 3){
+      let drops = 0, dropIndexSum = 0;
+      sessions.slice(-6).forEach(function(sess){
+        const ans = sess.answers, mid = Math.floor(ans.length / 2);
+        const a1 = ans.slice(0, mid).filter(x => x.correct).length / mid;
+        const a2 = ans.slice(mid).filter(x => x.correct).length / (ans.length - mid);
+        if(a1 - a2 >= 0.25){ drops++; dropIndexSum += mid; }
+      });
+      if(drops >= 3){
+        out.push({ ic: nxIcon('clock'), text: fmt('cogInsightFatigue', { n: Math.round(dropIndexSum / drops) }) });
+      }
+    }
+
+    // Which hour of the day does this learner genuinely perform best in?
+    const log = prof.sessionLog || [];
+    if(log.length >= 6){
+      const byHour = {};
+      log.forEach(function(sess){
+        const h = new Date(sess.date).getHours();
+        const band = h < 12 ? 'morning' : (h < 17 ? 'afternoon' : 'evening');
+        if(!byHour[band]) byHour[band] = { sum:0, n:0 };
+        byHour[band].sum += (sess.accuracy || 0); byHour[band].n++;
+      });
+      const bands = Object.keys(byHour).filter(b => byHour[b].n >= 3);
+      if(bands.length >= 2){
+        bands.sort((a,b)=> (byHour[b].sum/byHour[b].n) - (byHour[a].sum/byHour[a].n));
+        const best = bands[0], worst = bands[bands.length-1];
+        const gap = Math.round(byHour[best].sum/byHour[best].n - byHour[worst].sum/byHour[worst].n);
+        if(gap >= 8) out.push({ ic: nxIcon('target'), text: fmt('cogInsightPeak', { band: t('band_' + best), n: gap }) });
+      }
+    }
+
+    // Fast-but-inaccurate vs accurate-but-slow — a real, actionable split.
+    const acc = synapseRecencyWeightedAccuracy(prof), spd = synapseSpeedIndex(prof);
+    if(acc !== null && spd !== null){
+      if(spd >= 75 && acc <= 65) out.push({ ic: nxIcon('alertTriangle'), text: t('cogInsightFastLoose') });
+      else if(spd <= 45 && acc >= 80) out.push({ ic: nxIcon('check'), text: t('cogInsightSlowSure') });
+    }
+
+    synInsights.innerHTML = out.length
+      ? out.map(o => `<div class="syn-insight"><span class="syn-ic">${o.ic}</span><span>${o.text}</span></div>`).join('')
+      : '';
+  }
+
+  /* The unknown challenge picks from the learner's real weakest signal —
+     and then TELLS them why it picked it. The explanation is the feature;
+     an unexplained pick is just a slot machine. */
+  function pickUnknownChallenge(prof){
+    const due = reviewDueItems(prof).length;
+    if(due >= 3) return { kind:'review', reason: fmt('unkReasonReview', { n: due }) };
+    const weak = computeWeakestBucket(prof);
+    if(weak && weak.acc < 75 && ['add','sub','mul','div','percent','exponent','sqrt','numberRecognition'].includes(weak.bucket)){
+      return { kind:'op', bucket: weak.bucket, reason: fmt('unkReasonWeak', { op: t('bucket'+capitalize(weak.bucket)), acc: weak.acc }) };
+    }
+    // Nothing is weak — find the level left untouched the longest instead.
+    const untouched = KNOWLEDGE_LEVELS.filter(l => {
+      const st = prof.opStats[l.bucket];
+      return st && st.t > 0 && computeLevelMastery(prof, l.bucket) !== null;
+    });
+    if(due > 0) return { kind:'review', reason: fmt('unkReasonReview', { n: due }) };
+    if(untouched.length){
+      const pick = untouched[Math.floor(Math.random() * untouched.length)];
+      return { kind:'op', bucket: pick.bucket, reason: fmt('unkReasonRotate', { op: t(pick.nameKey) }) };
+    }
+    return { kind:'op', bucket:'add', reason: t('unkReasonStart') };
+  }
+  function runUnknownChallenge(){
+    const prof = PROFILES[currentProfile];
+    if(!prof) return;
+    const pick = pickUnknownChallenge(prof);
+    showToast(pick.reason, nxIcon('lightbulb'), 'learning');
+    if(pick.kind === 'review'){ synapseScreen.classList.add('hidden'); startReviewSession(); return; }
+    if(['add','sub','mul','div','percent','exponent','sqrt','numberRecognition'].includes(pick.bucket)){
+      selectChip(opChips, 'op', pick.bucket, v=>op=v);
+      updateTableFocusVisibility();
+    } else if(pick.bucket === 'decimals' || pick.bucket === 'fractions'){
+      selectChip(diffChips, 'diff', pick.bucket, v=>diff=v);
+    } else if(pick.bucket === 'compound'){
+      selectChip(typeChips, 'type', 'compound', v=>problemType=v);
+    }
+    synapseScreen.classList.add('hidden');
+    settingsEl.classList.remove('hidden');
+    startBtn.click();
+  }
+
+  function renderSynapseActions(prof){
+    const twin = findTwinOpponent(prof);
+    const wait = daysUntilTwinReady(prof);
+    const due = reviewDueItems(prof).length;
+    const twinSub = twin
+      ? fmt('synTwinReady', { d: new Date(twin.date).toLocaleDateString(currentLang === 'ar' ? 'ar-EG' : 'en-US'), n: twin.answers.length })
+      : (wait ? fmt('synTwinWait', { n: wait }) : t('synTwinNone'));
+    synActions.innerHTML = `
+      <button type="button" class="syn-action" id="synTwinBtn" ${twin ? '' : 'disabled'}>
+        <span class="syn-action-ic">${nxIcon('users')}</span>
+        <span class="syn-action-txt"><span class="syn-action-title">${t('synTwinTitle')}</span>
+        <span class="syn-action-sub">${twinSub}</span></span></button>
+      <button type="button" class="syn-action" id="synUnknownBtn">
+        <span class="syn-action-ic">${nxIcon('target')}</span>
+        <span class="syn-action-txt"><span class="syn-action-title">${t('synUnknownTitle')}</span>
+        <span class="syn-action-sub">${t('synUnknownSub')}</span></span></button>
+      <button type="button" class="syn-action" id="synReviewBtn" ${due ? '' : 'disabled'}>
+        <span class="syn-action-ic">${nxIcon('refresh')}</span>
+        <span class="syn-action-txt"><span class="syn-action-title">${t('reviewCtaTitle')}</span>
+        <span class="syn-action-sub">${due ? fmt('reviewCtaSub', { n: due }) : t('reviewNoneDue')}</span></span></button>`;
+    const tb = document.getElementById('synTwinBtn');
+    if(twin) tb.addEventListener('click', ()=> startTwinMatch(twin));
+    document.getElementById('synUnknownBtn').addEventListener('click', runUnknownChallenge);
+    const rb = document.getElementById('synReviewBtn');
+    if(due) rb.addEventListener('click', ()=>{ synapseScreen.classList.add('hidden'); startReviewSession(); });
+  }
+
+  /* ---------- the twin match ---------- */
+  let twinMatchActive = false;
+  function startTwinMatch(rec){
+    const prof = PROFILES[currentProfile];
+    if(!prof || !rec) return;
+    ensureAudio();
+    aiQuizQueue = [];
+    sessionReviewPool = [];
+    challengeMode = false;
+    resetStats();
+    twinOpponent = Object.assign({}, rec, { liveScore: 0, liveCorrect: 0 });
+    twinMatchActive = true;
+    // Replay the EXACT recorded questions, in the recorded order.
+    twinQueue = rec.problems.map(q => ({
+      text: q.text, ans: q.ans, bucket: q.bucket || 'add', compactText: q.text,
+      isFraction: q.kind === 'fraction', isDecimal: q.kind === 'decimal'
+    }));
+    twinSessionLength = twinQueue.length;
+    startTwinRecording('twin');
+    opponentPanel.classList.remove('hidden');
+    opponentName.textContent = fmt('synTwinOpponentName', { d: new Date(rec.date).toLocaleDateString(currentLang === 'ar' ? 'ar-EG' : 'en-US') });
+    opponentBar.style.width = '0%';
+    opponentScore.textContent = '0';
+    twinBannerEl.classList.remove('hidden');
+    synapseScreen.classList.add('hidden');
+    settingsEl.classList.add('hidden');
+    summaryEl.classList.add('hidden');
+    quitLink.classList.remove('hidden');
+    leaveRaceLink.classList.add('hidden');
+    mascotWrapEl.classList.toggle('hidden', !mascotEnabled);
+    playEl.classList.remove('hidden');
+    if(typeof setMyPresenceBusy === 'function') setMyPresenceBusy(true);
+    startTwinPlayback();
+    nextProblem();
+  }
+  function finishTwinMatch(myAccuracy){
+    clearTwinTimers();
+    const opp = twinOpponent;
+    twinMatchActive = false;
+    twinBannerEl.classList.add('hidden');
+    opponentPanel.classList.add('hidden');
+    if(!opp) return;
+    const oppScore = opp.answers.filter(a => a.correct).length * 10;
+    const oppAcc = Math.round((opp.answers.filter(a => a.correct).length / opp.answers.length) * 100);
+    const banner = score > oppScore ? t('synTwinWin') : (score === oppScore ? t('synTwinTie') : t('synTwinLose'));
+    aiEncourageCard.textContent = banner + ' — ' + fmt('synTwinCompare', { me: myAccuracy, old: oppAcc });
+    aiEncourageCard.classList.remove('hidden');
+    twinOpponent = null;
+  }
+
+  /* ==================== END MODULE: NEXORA SYNAPSE ==================== */
+
   /* ==================== MODULE: MENTAL STRATEGIES ====================
      Mental math is a set of methods, not a speed contest. When a learner
      misses a question we show HOW it is solved mentally, derived from the
@@ -10455,6 +11152,9 @@
   /* ==================== END MODULE: SPACED REPETITION ==================== */
 
   function genProblem(){
+    // A twin match replays a real recording — the questions are fixed and
+    // must not be substituted, or the comparison would be meaningless.
+    if(twinMatchActive && twinQueue.length) return twinQueue.shift();
     // Scheduled review comes first: an item that is due today is the single
     // most useful question we could ask right now.
     if(sessionReviewPool.length){
@@ -10857,6 +11557,10 @@
 
   /* ---------- flow ---------- */
   function updateProgressLabel(){
+    if(twinMatchActive){
+      progressLabel.textContent = fmt('questionOf', { n: Math.min(count+1, twinSessionLength), total: twinSessionLength });
+      return;
+    }
     if(reviewOnlySession){
       progressLabel.textContent = fmt('questionOf', { n: Math.min(count+1, reviewSessionLength), total: reviewSessionLength });
       return;
@@ -10887,6 +11591,7 @@
   }
 
   function nextProblem(){
+    if(twinMatchActive && count >= twinSessionLength){ finishQuiz(); return; }
     if(reviewOnlySession && count >= reviewSessionLength){ finishQuiz(); return; }
     if(raceMode){
       if(count >= raceProblems.length){ finishRacePlayer(); return; }
@@ -10902,6 +11607,7 @@
     currentProblemBucket = p.bucket;
     currentProblemOp = p.op || null;
     currentProblemIsWord = !!p.isWord;
+    twinRecordProblem(p);
     currentReviewKey = p.isReview ? p.reviewKey : null;
     reviewBadgeEl.classList.toggle('hidden', !p.isReview);
 
@@ -11009,6 +11715,7 @@
   function registerResult(isCorrect, userAnswer){
     count += 1;
     const elapsed = (performance.now() - questionStartTs) / 1000;
+    twinRecordAnswer(isCorrect, elapsed * 1000);
 
     if(!challengeMode && !raceMode){
       const prof = PROFILES[currentProfile];
@@ -11064,7 +11771,10 @@
       }
     }
     if(currentReviewKey && !challengeMode && !raceMode && PROFILES[currentProfile]){
-      recordReviewOutcome(PROFILES[currentProfile], currentReviewKey, isCorrect);
+      const rp = PROFILES[currentProfile];
+      if(!rp.reviewStats) rp.reviewStats = { c:0, t:0 };
+      rp.reviewStats.t++; if(isCorrect) rp.reviewStats.c++;
+      recordReviewOutcome(rp, currentReviewKey, isCorrect);
       currentReviewKey = null;
     }
     scoreVal.textContent = score;
@@ -11131,7 +11841,10 @@
       x: '<svg class="nx-icon" viewBox="0 0 24 24"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg>',
       ban: '<svg class="nx-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M4.9 4.9l14.2 14.2"/></svg>',
       flame: '<svg class="nx-icon" viewBox="0 0 24 24"><path d="M12 2c1 4-4 5-4 10a4 4 0 0 0 8 0c1.5 1 2 3 2 4a6 6 0 0 1-12 0c0-5 3-6 4-10 1 1 2 2 2 3 1-2 0-5 0-7z"/></svg>',
-      target: '<svg class="nx-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1" class="nx-icon-filled"/></svg>'
+      target: '<svg class="nx-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1" class="nx-icon-filled"/></svg>',
+      clock: '<svg class="nx-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>',
+      refresh: '<svg class="nx-icon" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v6h-6"/></svg>',
+      brain: '<svg class="nx-icon" viewBox="0 0 24 24"><path d="M9 3a3 3 0 0 0-3 3 3 3 0 0 0-2 5.2A3 3 0 0 0 6 17a3 3 0 0 0 3 3z"/><path d="M15 3a3 3 0 0 1 3 3 3 3 0 0 1 2 5.2A3 3 0 0 1 18 17a3 3 0 0 1-3 3z"/><path d="M12 3v18"/></svg>'
     };
     return icons[name] || '';
   }
@@ -11689,6 +12402,9 @@
     if(!prof.sessionLog) prof.sessionLog = [];
     prof.sessionLog.push({ date: new Date().toISOString(), score, accuracy: acc, questionCount: count, operation: op });
     if(prof.sessionLog.length > 90) prof.sessionLog.shift(); // keep roughly 2-3 months of daily use
+    commitTwinRecording(prof, score, acc);
+    maybeSnapshotCognitiveProfile(prof);
+    if(twinMatchActive) finishTwinMatch(acc);
     if(prof.dailyGoal && prof.dailyGoal.answered >= prof.dailyGoal.target && !prof.dailyGoal.toastShown){
       showToast(t('toastDailyGoalDone'), nxIcon('party'));
       prof.dailyGoal.toastShown = true;
@@ -11720,6 +12436,10 @@
 
   function resetStats(){
     reviewOnlySession = false; reviewSessionLength = 0;
+    twinMatchActive = false; twinQueue = []; twinSessionLength = 0;
+    if(typeof clearTwinTimers === 'function') clearTwinTimers();
+    twinOpponent = null;
+    if(typeof twinBannerEl !== 'undefined' && twinBannerEl) twinBannerEl.classList.add('hidden');
     score = 0; streak = 0; bestStreak = 0; count = 0; correctCount = 0; mistakes = [];
     scoreVal.textContent = 0; streakVal.textContent = 0; bestVal.textContent = 0;
     wrongStreakByOp = { add:0, sub:0, mul:0, div:0, percent:0, exponent:0, sqrt:0, numberRecognition:0 };
@@ -11764,6 +12484,7 @@
     }
 
     resetStats();
+    startTwinRecording('practice');
     // AI practice replaces the whole set, so review is only blended into a
     // normal session — never silently dropped on top of a generated one.
     prepareSessionReviewPool(false);
@@ -11809,6 +12530,7 @@
 
   playAgainBtn.addEventListener('click', ()=>{
     resetStats();
+    startTwinRecording('practice');
     prepareSessionReviewPool(false);
     summaryEl.classList.add('hidden');
     playEl.classList.remove('hidden');
