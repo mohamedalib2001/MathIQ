@@ -5286,6 +5286,7 @@
   function selectProfileAndGoToSettings(key){
     hideAllScreens(); // guarantees no other screen (e.g. the login form) stays visible underneath
     currentProfile = key;
+    learnerStateVersion = 0; learnerStateDirty = false;
     challengeMode = false;
     logSessionLogin(key);
     const p = PROFILES[key];
@@ -5305,6 +5306,13 @@
     renderShellNav('learner');
     if(typeof refreshPendingFriendCount === 'function') refreshPendingFriendCount();
     if(typeof startPresence === 'function') startPresence();
+    // ONE read of the whole learning state, here — not per screen, not per question.
+    if(key !== 'guest' && SHEET_API_URL){
+      const p2 = PROFILES[key];
+      loadLearnerState(p2, (p2 && p2.username) || key).then(function(applied){
+        if(applied && !programsHubEl.classList.contains('hidden')) showProgramsHub();
+      });
+    }
     showProgramsHub();
   }
 
@@ -6505,6 +6513,9 @@
     hideLoginTransition();
   });
   function logSessionLogout(){
+    // Flush any unsynced learning state before the session ends, otherwise
+    // it would be stranded on this device until the next login.
+    if(learnerStateDirty && currentProfile && currentProfile !== 'guest') syncLearnerStateNow();
     guardianUnlockedChildren = null; // never carry a guardian unlock across sessions
     if(typeof goOfflineNow === 'function') goOfflineNow();
     if(typeof stopPresence === 'function') stopPresence();
@@ -11196,6 +11207,154 @@
 
   /* ==================== END MODULE: NEXORA SYNAPSE ==================== */
 
+  /* ==================== MODULE: LEARNER STATE SYNC ====================
+     Everything the learning engines produce — review schedules, cognitive
+     snapshots, twin recordings, knowledge retention, per-operation stats —
+     lives in ONE document per learner, synced with exactly one read at login
+     and one write at the end of a session.
+
+     The alternative, writing a row per answered question, would have been
+     the thing that eventually broke this backend: Apps Script serialises a
+     user's requests, so per-question traffic queues in front of whatever the
+     learner is actively doing. Session-level batching keeps the cost flat no
+     matter how much they practise. */
+  let learnerStateVersion = 0;
+  let learnerStateDirty = false;
+  let learnerStateSyncing = false;
+
+  // Only genuinely portable learning data. Device-local preferences (theme,
+  // mascot) and credentials are deliberately NOT synced here.
+  function buildLearnerState(prof){
+    if(!prof) return null;
+    return {
+      v: 1,
+      opStats: prof.opStats || {},
+      recentByBucket: prof.recentByBucket || {},
+      best: prof.best || { score:0, streak:0 },
+      totalAnswered: prof.totalAnswered || 0,
+      totalCorrect: prof.totalCorrect || 0,
+      badges: prof.badges ? Array.from(prof.badges) : [],
+      reviewQueue: prof.reviewQueue || [],
+      reviewStats: prof.reviewStats || { c:0, t:0 },
+      knowledgeQueue: prof.knowledgeQueue || [],
+      cogSnapshots: prof.cogSnapshots || [],
+      twinSessions: prof.twinSessions || [],
+      errorTypeCounts: prof.errorTypeCounts || {},
+      sessionLog: prof.sessionLog || [],
+      recentMistakes: prof.recentMistakes || [],
+      certificatesIssued: prof.certificatesIssued || [],
+      dailyGoal: prof.dailyGoal || null
+    };
+  }
+  // Merge rule: the side with more recorded practice wins per field, so
+  // opening the app on a second device can never erase work done on the first.
+  function applyLearnerState(prof, state){
+    if(!prof || !state) return false;
+    const remoteAnswered = state.totalAnswered || 0;
+    const localAnswered = prof.totalAnswered || 0;
+    if(remoteAnswered < localAnswered) return false; // local is ahead — keep it and let the next save push it up
+    prof.opStats = state.opStats || prof.opStats;
+    prof.recentByBucket = state.recentByBucket || prof.recentByBucket || {};
+    prof.best = state.best || prof.best;
+    prof.totalAnswered = remoteAnswered;
+    prof.totalCorrect = state.totalCorrect || 0;
+    prof.badges = new Set(state.badges || []);
+    prof.reviewQueue = state.reviewQueue || [];
+    prof.reviewStats = state.reviewStats || { c:0, t:0 };
+    prof.knowledgeQueue = state.knowledgeQueue || [];
+    prof.cogSnapshots = state.cogSnapshots || [];
+    prof.twinSessions = state.twinSessions || [];
+    prof.errorTypeCounts = state.errorTypeCounts || {};
+    prof.sessionLog = state.sessionLog || [];
+    prof.recentMistakes = state.recentMistakes || [];
+    prof.certificatesIssued = state.certificatesIssued || [];
+    if(state.dailyGoal) prof.dailyGoal = state.dailyGoal;
+    return true;
+  }
+  // Keeps the document under the server's per-row limit by dropping the
+  // OLDEST history first — never the schedules, which are what the learning
+  // engines actually depend on.
+  function trimLearnerState(state){
+    const LIMIT = 44000;
+    // Trim history before schedules, and oldest before newest. Twin
+    // recordings are by far the largest objects, so they give way first.
+    const HISTORY = [
+      { field:'twinSessions', min:1 }, { field:'sessionLog', min:5 },
+      { field:'recentMistakes', min:3 }, { field:'certificatesIssued', min:3 },
+      { field:'cogSnapshots', min:4 }
+    ];
+    const size = ()=> JSON.stringify(state).length;
+    let guard = 0;
+    while(size() > LIMIT && guard < 5000){
+      guard++;
+      let trimmed = false;
+      for(const h of HISTORY){
+        if(Array.isArray(state[h.field]) && state[h.field].length > h.min){ state[h.field].shift(); trimmed = true; break; }
+      }
+      if(!trimmed) break;
+    }
+    // Still too large: drop items already CLEARED from the schedules — those
+    // are completed history, not pending work.
+    if(size() > LIMIT){
+      ['reviewQueue', 'knowledgeQueue'].forEach(function(f){
+        if(Array.isArray(state[f])) state[f] = state[f].filter(x => !x.cleared);
+      });
+    }
+    // Last resort: keep the items due SOONEST, since those are the ones the
+    // learner actually needs next. Reported honestly rather than done silently.
+    guard = 0;
+    while(size() > LIMIT && guard < 5000){
+      guard++;
+      const rq = state.reviewQueue || [], kq = state.knowledgeQueue || [];
+      if(kq.length > 20){ kq.sort((a,b)=> new Date(a.dueAt) - new Date(b.dueAt)); kq.pop(); }
+      else if(rq.length > 20){ rq.sort((a,b)=> new Date(a.dueAt) - new Date(b.dueAt)); rq.pop(); }
+      else break;
+    }
+    if(size() > LIMIT) console.warn('Learner state still exceeds the limit after trimming:', size());
+    return state;
+  }
+  async function loadLearnerState(prof, username){
+    if(!SHEET_API_URL || !prof || !username) return false;
+    const res = await postToSheet('get_learner_state', { username: username });
+    if(!res || !res.ok) return false;           // silent — local data stays authoritative
+    learnerStateVersion = res.version || 0;
+    if(!res.found || !res.state) return false;
+    const applied = applyLearnerState(prof, res.state);
+    if(applied) saveProfilesToStorage();
+    return applied;
+  }
+  async function saveLearnerState(prof, username){
+    if(!SHEET_API_URL || !prof || !username || learnerStateSyncing) return false;
+    learnerStateSyncing = true;
+    try{
+      const state = trimLearnerState(buildLearnerState(prof));
+      const res = await postToSheet('save_learner_state', { username: username, state: state, baseVersion: learnerStateVersion });
+      if(res && res.ok){
+        learnerStateVersion = res.version || learnerStateVersion + 1;
+        learnerStateDirty = false;
+        return true;
+      }
+      // A newer state exists on another device: pull it rather than clobber it.
+      if(res && res.error === 'version_conflict'){
+        const fresh = await postToSheet('get_learner_state', { username: username });
+        if(fresh && fresh.ok && fresh.state){
+          learnerStateVersion = fresh.version || 0;
+          applyLearnerState(prof, fresh.state);
+          saveProfilesToStorage();
+        }
+      }
+      learnerStateDirty = true;                  // retried at the end of the next session
+      return false;
+    } finally {
+      learnerStateSyncing = false;
+    }
+  }
+  function syncLearnerStateNow(){
+    const prof = PROFILES[currentProfile];
+    if(!prof || currentProfile === 'guest') return;
+    saveLearnerState(prof, currentServerUsername());
+  }
+
   /* ==================== MODULE: KNOWLEDGE RETENTION ====================
      The nine programs had no retention mechanism at all: a learner could
      pass an English or Programming assessment and never meet that content
@@ -12877,12 +13036,14 @@
     if(prof.sessionLog.length > 90) prof.sessionLog.shift(); // keep roughly 2-3 months of daily use
     commitTwinRecording(prof, score, acc);
     maybeSnapshotCognitiveProfile(prof);
+    learnerStateDirty = true;
     if(twinMatchActive) finishTwinMatch(acc);
     if(prof.dailyGoal && prof.dailyGoal.answered >= prof.dailyGoal.target && !prof.dailyGoal.toastShown){
       showToast(t('toastDailyGoalDone'), nxIcon('party'));
       prof.dailyGoal.toastShown = true;
     }
     saveProfilesToStorage();
+    syncLearnerStateNow(); // one write per session, whatever the question count
     if(typeof loadAiEncouragement === 'function') loadAiEncouragement(profileDisplayName(currentProfile), score, acc);
 
     if(SHEET_API_URL){
