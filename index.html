@@ -2390,8 +2390,10 @@
         <span class="field-icon"><svg class="nx-icon" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
         <input type="password" id="adminPinInput" class="ltr-input" data-i18n-placeholder="pinPlaceholder" placeholder="كلمة المرور">
       </div>
+      <div class="conn-note hidden" id="adminLoginHint"></div>
       <div class="feedback wrong" id="adminLoginError" style="min-height:16px;"></div>
       <button class="start-btn" id="adminLoginBtn" data-i18n="loginConfirm">دخول</button>
+      <div class="link-line subtle-link hidden" id="adminResetLink" data-i18n="adminResetLink">نسيت كلمة مرور الإدارة؟</div>
       <button class="secondary-btn" id="adminLoginCancelBtn" data-i18n="cancelBtn">إلغاء</button>
     </div>
   </div>
@@ -3288,6 +3290,8 @@
   const adminLoginTitleEl = document.getElementById('adminLoginTitle');
   const adminUserInput = document.getElementById('adminUserInput');
   const adminPinInput = document.getElementById('adminPinInput');
+  const adminLoginHint = document.getElementById('adminLoginHint');
+  const adminResetLink = document.getElementById('adminResetLink');
   const adminResetModal = document.getElementById('adminResetModal');
   const adminResetCloseBtn = document.getElementById('adminResetCloseBtn');
   const adminResetStep1 = document.getElementById('adminResetStep1');
@@ -10569,8 +10573,12 @@
     mailDiagArea.innerHTML = '';
   });
   mailDiagBackBtn.addEventListener('click', ()=>{
+    // Returns to the same screen its sibling admin tools return to.
+    // This previously referenced a variable that does not exist, which threw
+    // at load and stopped the entire script — the page never left the boot
+    // screen. node --check cannot catch this; only a reference scan can.
     mailDiagScreen.classList.add('hidden');
-    adminPanelEl.classList.remove('hidden');
+    profilesEl.classList.remove('hidden');
   });
   mailDiagRunBtn.addEventListener('click', async ()=>{
     if(!SHEET_API_URL){ mailDiagArea.innerHTML = `<div class="dash-empty">${t('mailDiagNoApi')}</div>`; return; }
