@@ -3291,6 +3291,10 @@
     return {
       nameKey: p.nameKey, customName: p.customName, avatar: p.avatar, color: p.color,
       photo: p.photo, birthDate: p.birthDate, pin: p.pin, theme: p.theme, username: p.username,
+      // These were previously omitted, so every one of them was silently lost
+      // on page reload even though it had just been saved successfully.
+      gender: p.gender || null, email: p.email || null, emailVerified: !!p.emailVerified,
+      phone: p.phone || null,
       guardians: p.guardians || { mother:null, father:null },
       customAge: p.customAge, defaults: p.defaults, best: p.best,
       totalAnswered: p.totalAnswered, totalCorrect: p.totalCorrect,
@@ -5883,6 +5887,7 @@
           res.user.birthDate || null, hashedPin, null, username);
         if(res.user.photoURL) PROFILES[key].photo = driveImageUrl(res.user.photoURL); // real cross-device photo sync
         if(res.user.email) PROFILES[key].email = res.user.email;
+        if(res.user.phone) PROFILES[key].phone = res.user.phone; // cross-device sync, same as photo/email
         profileOrder.push(key);
         startTrialForStudent(key);
         saveProfilesToStorage();
