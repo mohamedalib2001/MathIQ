@@ -516,6 +516,11 @@
   .program-card .program-icon{ font-size:30px; }
   .program-card .program-name{ font-family:'Cairo',sans-serif; font-weight:700; font-size:13px; }
   .program-card .program-stat{ font-size:10.5px; color:var(--ink-dim); }
+  .program-scope{
+    display:block; font-size:9.5px; margin-top:5px; padding:2px 8px; border-radius:8px;
+    background:var(--bg); border:1px solid var(--chip-border); color:var(--ink-dim);
+  }
+  .program-scope.foundation{ color:#F59E0B; border-color:rgba(245,158,11,0.35); }
   .program-card.coming-soon{ cursor:default; opacity:0.55; }
   .program-card.coming-soon:hover{ border-color:var(--input-border); }
   .program-card .program-badge{
@@ -2496,11 +2501,6 @@
       <button class="oauth-btn" disabled title="قريبًا"><span>Google</span> <span class="oauth-soon" data-i18n="oauthComingSoonBadge">قريبًا</span></button>
       <button class="oauth-btn" disabled title="قريبًا"><span>Microsoft</span> <span class="oauth-soon" data-i18n="oauthComingSoonBadge">قريبًا</span></button>
     </div>
-    <div class="secondary-options">
-      <button class="secondary-link-btn" id="guestBtn" data-i18n="guestBtn">👤 متابعة كضيف</button>
-      <button class="secondary-link-btn" id="challengeBtnLogin" data-i18n="challengeBtn">🏆 تحدي بين طالبتين</button>
-    </div>
-    <div class="guest-note" id="guestNote"></div>
     <div class="security-note"><span class="security-note-icon">🛡</span><span data-i18n="securityNoteText">اتصال آمن — بياناتكِ محمية داخل أكاديمية نِكسورا</span></div>
     <div class="login-utility-row">
       <span class="link-line subtle-link" id="adminLink" data-i18n="adminLinkShort">إدارة الحسابات</span>
@@ -3147,6 +3147,10 @@
   const profileCardsWrap = document.getElementById('profileCardsWrap');
   const adminStatsBar = document.getElementById('adminStatsBar');
   const challengeBtn = document.getElementById('challengeBtn');
+  // These two controls were removed from the login screen. The guest and
+  // challenge FLOWS still exist and are still reachable elsewhere, so the
+  // references are kept and every use below is null-guarded — deleting the
+  // logic would have broken the guest gate and the challenge screen.
   const guestBtn = document.getElementById('guestBtn');
   const guestNote = document.getElementById('guestNote');
   const dashboardLink = document.getElementById('dashboardLink');
@@ -3972,6 +3976,29 @@
       brandTagline:'منصة ذكية للتعلم والتطوير — تعلّم. تطوّر. أنجز.', aiPoweredBadge:'مدعوم بالذكاء الاصطناعي',
       hubGreeting:'مرحبًا {name} 👋', hubSubtitle:'اختاري برنامجًا لتبدئي',
       programMentalMathName:'الحساب الذهني', programAbacusName:'الأباكوس',
+      pgPracticeTitle:'🎯 تمرين مولَّد بلا حدود', pgPracticeSub:'أسئلة جديدة في كل مرة — {skills}',
+      pgNoneAvailable:'لا يوجد تمرين مولَّد متاح لهذا البرنامج',
+      pgAgainBtn:'🔄 جولة جديدة',
+      pgSkillPattern:'الأنماط', pgSkillVerbal:'الاستدلال اللفظي', pgSkillSpatial:'الاستدلال المكاني',
+      pgSkillMemory:'الذاكرة العاملة', pgSkillLogic:'الاستنتاج المنطقي',
+      pgPatternQ:'ما العدد التالي في هذه المتتالية؟<br><b style="letter-spacing:2px; direction:ltr; display:inline-block; margin-top:6px;">{seq} ، ؟</b>',
+      pgRuleArith:'القاعدة: كل عدد يزيد {d} عن الذي قبله',
+      pgRuleGeom:'القاعدة: كل عدد يساوي الذي قبله مضروبًا في {r}',
+      pgRuleAlt:'القاعدة: نزيد {up} ثم ننقص {down} بالتناوب',
+      pgRuleFib:'القاعدة: كل عدد هو مجموع العددين اللذين قبله',
+      pgRuleSquare:'القاعدة: مربعات الأعداد المتتالية',
+      pgAnalogyQ:'أكملي التناظر:<br><b>{a} : {b} :: {c} : ؟</b>',
+      pgAnalogyRule:'العلاقة بين الطرفين: {rel}',
+      pgSpatialQ:'تقفين متجهة نحو <b>{start}</b>، ثم تدورين {n} ربع دورة في اتجاه {dir}. نحو أي جهة تتجهين الآن؟',
+      pgSpatialRule:'كل ربع دورة = 90 درجة، والمجموع {n} درجة',
+      pgClockwise:'عقارب الساعة', pgCounterClockwise:'عكس عقارب الساعة',
+      pgNorth:'الشمال', pgEast:'الشرق', pgSouth:'الجنوب', pgWest:'الغرب',
+      pgMemoryQ:'احفظي هذه الأرقام ثم اكتبيها بترتيب <b>عكسي</b>:<br><b style="letter-spacing:4px; direction:ltr; display:inline-block; margin-top:6px;">{seq}</b>',
+      pgMemoryRule:'الترتيب العكسي يعني البدء من آخر رقم والانتهاء بأوله',
+      pgLogicQ:'{people} — كل واحدة تحب مادة مختلفة من: {things}.<br>{clues}<br>فما المادة التي تحبها <b>{who}</b>؟',
+      pgLogicClueNot:'{p} لا تحب {x}.',
+      pgLogicRule:'بالاستبعاد: نشطب ما لا يمكن، فيتبقى احتمال واحد فقط لكل واحدة',
+      programScopeFoundation:'نسخة تأسيسية · {n} دروس', programScopeFull:'{n} درسًا',
       programAccuracyStat:'الدقة {acc}%', programNotStartedStat:'لم تبدئي بعد', backToProgramsLink:'🏠 كل البرامج',
       shellRoleLearner:'متعلّمة', shellRoleAdmin:'المالك', shellRoleTeacher:'معلّمة',
       shellNavPrograms:'البرامج', shellNavJourney:'رحلتي التعليمية', shellNavAchievements:'إنجازاتي',
@@ -4603,6 +4630,29 @@
       brandTagline:'Intelligent Learning & Development — Learn. Grow. Perform.', aiPoweredBadge:'AI-Powered',
       hubGreeting:'Hi {name} 👋', hubSubtitle:'Choose a program to get started',
       programMentalMathName:'Mental Math', programAbacusName:'Abacus',
+      pgPracticeTitle:'🎯 Unlimited generated practice', pgPracticeSub:'New questions every time — {skills}',
+      pgNoneAvailable:'No generated practice is available for this program',
+      pgAgainBtn:'🔄 New round',
+      pgSkillPattern:'Patterns', pgSkillVerbal:'Verbal reasoning', pgSkillSpatial:'Spatial reasoning',
+      pgSkillMemory:'Working memory', pgSkillLogic:'Logical deduction',
+      pgPatternQ:'What comes next in this sequence?<br><b style="letter-spacing:2px; direction:ltr; display:inline-block; margin-top:6px;">{seq} , ?</b>',
+      pgRuleArith:'Rule: each number is {d} more than the one before',
+      pgRuleGeom:'Rule: each number is the previous one times {r}',
+      pgRuleAlt:'Rule: add {up}, then subtract {down}, alternating',
+      pgRuleFib:'Rule: each number is the sum of the two before it',
+      pgRuleSquare:'Rule: squares of consecutive numbers',
+      pgAnalogyQ:'Complete the analogy:<br><b>{a} : {b} :: {c} : ?</b>',
+      pgAnalogyRule:'The relation between the pairs: {rel}',
+      pgSpatialQ:'You face <b>{start}</b>, then turn {n} quarter-turn(s) {dir}. Which way do you face now?',
+      pgSpatialRule:'Each quarter-turn is 90 degrees, {n} degrees in total',
+      pgClockwise:'clockwise', pgCounterClockwise:'anti-clockwise',
+      pgNorth:'North', pgEast:'East', pgSouth:'South', pgWest:'West',
+      pgMemoryQ:'Memorise these digits, then give them in <b>reverse</b> order:<br><b style="letter-spacing:4px; direction:ltr; display:inline-block; margin-top:6px;">{seq}</b>',
+      pgMemoryRule:'Reverse order means starting from the last digit and ending with the first',
+      pgLogicQ:'{people} — each likes a different subject from: {things}.<br>{clues}<br>Which subject does <b>{who}</b> like?',
+      pgLogicClueNot:'{p} does not like {x}.',
+      pgLogicRule:'By elimination: rule out what is impossible and exactly one option remains for each',
+      programScopeFoundation:'Foundation edition · {n} lessons', programScopeFull:'{n} lessons',
       programAccuracyStat:'{acc}% accuracy', programNotStartedStat:'Not started yet', backToProgramsLink:'🏠 All Programs',
       shellRoleLearner:'Learner', shellRoleAdmin:'Owner', shellRoleTeacher:'Instructor',
       shellNavPrograms:'Programs', shellNavJourney:'My Journey', shellNavAchievements:'Achievements',
@@ -5683,7 +5733,15 @@
       card.className = 'program-card lp-real-program-card';
       const progress = lpComputeProgramProgress(currentProfile, pr.id);
       const stat = progress > 0 ? fmt('programAccuracyStat', { acc: progress }) : t('programNotStartedStat');
-      card.innerHTML = `<span class="program-icon">${pickProgramIcon_(pr.title)}</span><span class="program-name">${pr.title}</span><span class="program-stat">${stat}</span>`;
+      // The card states the program's REAL size. A card that looks like a full
+      // curriculum when it holds six lessons is a promise the platform cannot
+      // keep, and a parent discovers that only after subscribing.
+      const lessonCount = lpGetLessonsForProgram(pr.id).length;
+      const scope = lessonCount > 0
+        ? `<span class="program-scope${lessonCount < 25 ? ' foundation' : ''}">${
+            lessonCount < 25 ? fmt('programScopeFoundation', { n: lessonCount }) : fmt('programScopeFull', { n: lessonCount })}</span>`
+        : '';
+      card.innerHTML = `<span class="program-icon">${pickProgramIcon_(pr.title)}</span><span class="program-name">${pr.title}</span><span class="program-stat">${stat}</span>${scope}`;
       card.addEventListener('click', ()=> openProgramPlayer(pr));
       programAbacusCard.insertAdjacentElement('afterend', card);
     });
@@ -6454,7 +6512,7 @@
   adminPinInput.addEventListener('keydown', e=>{ if(e.key === 'Enter') adminLoginBtn.click(); });
 
   backToLoginLink.addEventListener('click', goToLoginGate);
-  challengeBtnLogin.addEventListener('click', ()=> challengeBtn.click());
+  if(challengeBtnLogin) challengeBtnLogin.addEventListener('click', ()=> challengeBtn.click());
 
   function findProfileByUsername(username){
     const uname = username.toLowerCase();
@@ -6829,7 +6887,7 @@
   function updateGuestNote(){
     const used = getGuestUsesUsed();
     const left = Math.max(0, 20 - used);
-    guestNote.textContent = fmt('guestUsesLeft', { n: left });
+    if(guestNote) guestNote.textContent = fmt('guestUsesLeft', { n: left });
   }
   updateGuestNote();
 
@@ -6876,7 +6934,7 @@
     return true; // exempt, subscribed, active trial, or no trial started yet
   }
 
-  guestBtn.addEventListener('click', ()=>{
+  if(guestBtn) guestBtn.addEventListener('click', ()=>{
     if(getGuestUsesUsed() >= 20){
       usernameLoginEl.classList.add('hidden');
       guestGateEl.classList.remove('hidden');
@@ -7763,7 +7821,7 @@
      it genuinely CAN check: recognizing correct phrases in writing. */
   const ENGLISH_PROGRAM_SEED = {
     title: 'اللغة الإنجليزية | English Language',
-    description: 'برنامج متكامل لتعلّم اللغة الإنجليزية من المبتدئ إلى المتقدم — مفردات، قواعد، قراءة، استماع، كتابة، ومحادثة.',
+    description: 'أساس تعلّم اللغة الإنجليزية: مفردات، قواعد، قراءة، استماع، كتابة، ومحادثة — نسخة تأسيسية تُبنى عليها دروس إضافية.',
     level: 'beginner',
     courses: [
       {
@@ -8015,7 +8073,7 @@
      field already) — no new content type or schema needed. */
   const PROGRAMMING_PROGRAM_SEED = {
     title: 'البرمجة | Programming',
-    description: 'مسار متكامل لتعلّم البرمجة من الصفر: التفكير الحاسوبي، الخوارزميات، تطوير الويب، JavaScript، Python، ومشاريع تطبيقية حقيقية.',
+    description: 'أساس تعلّم البرمجة من الصفر: التفكير الحاسوبي، الخوارزميات، HTML/CSS، JavaScript، Python — نسخة تأسيسية تُبنى عليها دروس إضافية.',
     level: 'beginner',
     courses: [
       {
@@ -9509,6 +9567,21 @@
         row.addEventListener('click', ()=> ppNavigate('modules', c));
         ppContentArea.appendChild(row);
       });
+      // Unlimited generated practice for programs whose skills are genuinely
+      // generable. This is what turns six fixed lessons into a program a
+      // learner can return to — and what makes spaced review possible here.
+      const genSkills = pgSkillsForProgram(ppProgram.title);
+      if(genSkills){
+        const gen = document.createElement('button');
+        gen.type = 'button';
+        gen.className = 'syn-action';
+        gen.style.marginTop = '10px';
+        gen.innerHTML = `<span class="syn-action-ic">${nxIcon('target')}</span>
+          <span class="syn-action-txt"><span class="syn-action-title">${t('pgPracticeTitle')}</span>
+          <span class="syn-action-sub">${fmt('pgPracticeSub', { skills: genSkills.map(function(k){ return t(PG_GENERATORS[k].key); }).join('، ') })}</span></span>`;
+        gen.addEventListener('click', ()=> startGeneratedPractice(ppProgram, genSkills));
+        ppContentArea.appendChild(gen);
+      }
 
     } else if(ppLevel === 'modules'){
       ppBreadcrumb.innerHTML = `<span class="switch-player" id="ppCrumbCourses">${ppProgram.title}</span> › ${ppCourse.title}`;
@@ -9802,6 +9875,86 @@
       }
     }
   }
+  /* A generated practice round. Uses the SAME scorer and the SAME progress
+     plumbing as an authored assessment, so results are comparable and feed
+     the identical engines — this is practice inside the program, not a
+     separate game bolted on. */
+  let pgSet = [], pgIndex = 0, pgCorrect = 0, pgProgram = null, pgSkills = null, pgStart = 0;
+
+  function startGeneratedPractice(program, skills){
+    pgSet = pgBuildSet(skills, 10);
+    if(!pgSet.length){ showToast(t('pgNoneAvailable'), nxIcon('alertTriangle'), 'learning'); return; }
+    pgIndex = 0; pgCorrect = 0; pgProgram = program; pgSkills = skills; pgStart = Date.now();
+    renderGeneratedQuestion();
+  }
+  function renderGeneratedQuestion(){
+    if(pgIndex >= pgSet.length){ renderGeneratedSummary(); return; }
+    const q = pgSet[pgIndex];
+    ppBreadcrumb.textContent = pgProgram.title + ' › ' + t('pgPracticeTitle');
+    ppContentArea.innerHTML = `
+      <div class="conn-note" style="text-align:center;">${fmt('questionOf', { n: pgIndex + 1, total: pgSet.length })}</div>
+      <div class="lp-question-block"><b style="line-height:1.9;">${q.text}</b>
+        ${q.options.map(function(o, i){ return `<div style="margin-top:8px;"><label><input type="radio" name="pgq" value="${i}"> ${o}</label></div>`; }).join('')}
+      </div>
+      <div class="feedback" id="pgFeedback" style="min-height:22px;"></div>
+      <div id="pgExplain"></div>
+      <button class="start-btn" id="pgSubmitBtn">${t('submitBtn')}</button>`;
+    document.getElementById('pgSubmitBtn').addEventListener('click', submitGeneratedAnswer);
+  }
+  function submitGeneratedAnswer(){
+    const q = pgSet[pgIndex];
+    const sel = document.querySelector('input[name="pgq"]:checked');
+    const fb = document.getElementById('pgFeedback');
+    // The retrieval attempt is the part that teaches, so an answer is required
+    // before anything is revealed.
+    if(!sel){ fb.className = 'feedback wrong'; fb.textContent = t('knowRevAnswerFirst'); return; }
+    const correct = Number(sel.value) === q.correctIndex;
+    if(correct) pgCorrect++;
+    fb.className = 'feedback ' + (correct ? 'correct' : 'wrong');
+    fb.textContent = correct ? t('correctFeedback') : t('wrongFeedbackShort');
+    // The rule is shown either way — knowing WHY is the point, not the score.
+    document.getElementById('pgExplain').innerHTML =
+      `<div class="strategy-box"><div class="strategy-step"><span class="strategy-num">${nxIcon('lightbulb')}</span><span>${
+        (correct ? '' : t('remedCorrectAnswer') + ': <b>' + q.options[q.correctIndex] + '</b><br>') + q.explain}</span></div></div>`;
+
+    const prof = PROFILES[currentProfile];
+    if(prof && !correct && q.concept){
+      // A missed generated concept enters the same spaced-review schedule.
+      scheduleForReview(prof, 'gen:' + q.concept + ':' + q.text.slice(0, 40), q.options[q.correctIndex], 'text', 'compound', null);
+      saveProfilesToStorage();
+    }
+    const btn = document.getElementById('pgSubmitBtn');
+    btn.textContent = t('nextBtn');
+    btn.replaceWith(btn.cloneNode(true));
+    document.getElementById('pgSubmitBtn').addEventListener('click', function(){ pgIndex++; renderGeneratedQuestion(); });
+  }
+  function renderGeneratedSummary(){
+    const pct = Math.round((pgCorrect / pgSet.length) * 100);
+    const prof = PROFILES[currentProfile];
+    if(prof){
+      // Recorded through the same session log every other program uses, so it
+      // counts toward accuracy, consistency and the cognitive profile.
+      if(!prof.sessionLog) prof.sessionLog = [];
+      prof.sessionLog.push({ date: new Date().toISOString(), score: pgCorrect * 10, accuracy: pct,
+        questionCount: pgSet.length, operation: 'generated:' + (pgSkills || []).join('+') });
+      if(prof.sessionLog.length > 90) prof.sessionLog.shift();
+      prof.totalAnswered = (prof.totalAnswered || 0) + pgSet.length;
+      prof.totalCorrect = (prof.totalCorrect || 0) + pgCorrect;
+      maybeSnapshotCognitiveProfile(prof);
+      learnerStateDirty = true;
+      saveProfilesToStorage();
+      syncLearnerStateNow();
+    }
+    ppContentArea.innerHTML = `
+      <div class="cert-verify-result ${pct >= 60 ? 'valid' : 'invalid'}">
+        <div class="cvr-row"><b>${fmt('knowRevResult', { c: pgCorrect, n: pgSet.length, p: pct })}</b></div>
+      </div>
+      <button class="start-btn" id="pgAgainBtn" style="margin-top:10px;">${t('pgAgainBtn')}</button>
+      <button class="secondary-btn" id="pgDoneBtn" style="margin-top:8px;">${t('closeBtn')}</button>`;
+    document.getElementById('pgAgainBtn').addEventListener('click', ()=> startGeneratedPractice(pgProgram, pgSkills));
+    document.getElementById('pgDoneBtn').addEventListener('click', ()=> ppNavigate('courses'));
+  }
+
   ppBackBtn.addEventListener('click', ()=>{
     clearInterval(ppAssessmentTimerInterval);
     programPlayerEl.classList.add('hidden');
@@ -11920,6 +12073,191 @@
     if(!prof || currentProfile === 'guest') return;
     saveLearnerState(prof, currentServerUsername());
   }
+
+  /* ==================== MODULE: PROGRAM EXERCISE GENERATORS ====================
+     The nine programs held 72 hand-written lessons between them — about
+     thirteen pages of text for the whole academy. Written content cannot
+     scale by hand, and a fixed set of six lessons cannot support spaced
+     review, mastery measurement or a cognitive twin, because a learner meets
+     every item once and then it is exhausted.
+
+     These generators produce UNLIMITED, mathematically-verified exercises for
+     the programs whose skills are genuinely generable: pattern recognition,
+     verbal reasoning, spatial rotation, working memory, and logic. Each item
+     is constructed so the answer is derivable from the item itself — the
+     generator never invents a fact it cannot prove.
+
+     Programs whose content is genuinely knowledge-based (English vocabulary,
+     robotics concepts, design principles) are NOT generated here: inventing
+     facts is exactly what we refuse to do. Those stay authored. */
+
+  function pgRand(min, max){ return Math.floor(Math.random() * (max - min + 1)) + min; }
+  function pgPick(arr){ return arr[pgRand(0, arr.length - 1)]; }
+  function pgShuffle(arr){
+    const a = arr.slice();
+    for(let i = a.length - 1; i > 0; i--){ const j = pgRand(0, i); const t2 = a[i]; a[i] = a[j]; a[j] = t2; }
+    return a;
+  }
+  // Builds a 4-option MCQ whose distractors are guaranteed distinct from the
+  // answer, so a generated question can never have two correct options.
+  function pgMcq(text, answer, distractors, meta){
+    const pool = [];
+    distractors.forEach(function(d){ if(String(d) !== String(answer) && pool.indexOf(String(d)) === -1) pool.push(String(d)); });
+    if(pool.length < 3) return null;
+    const options = pgShuffle([String(answer)].concat(pool.slice(0, 3)));
+    return Object.assign({ type:'mcq', text: text, options: options, correctIndex: options.indexOf(String(answer)), generated:true }, meta || {});
+  }
+
+  /* ---------- PATTERN RECOGNITION ---------- */
+  function pgPatternItem(){
+    const kind = pgPick(['arith','geom','alt','fib','square']);
+    let seq = [], next = 0, rule = '';
+    if(kind === 'arith'){
+      const a = pgRand(1, 20), d = pgRand(2, 12);
+      for(let i = 0; i < 5; i++) seq.push(a + d * i);
+      next = a + d * 5; rule = fmt('pgRuleArith', { d: d });
+    } else if(kind === 'geom'){
+      const a = pgRand(1, 5), r = pgRand(2, 4);
+      for(let i = 0; i < 5; i++) seq.push(a * Math.pow(r, i));
+      next = a * Math.pow(r, 5); rule = fmt('pgRuleGeom', { r: r });
+    } else if(kind === 'alt'){
+      const a = pgRand(2, 15), up = pgRand(3, 9), down = pgRand(1, 2);
+      let v = a;
+      for(let i = 0; i < 5; i++){ seq.push(v); v += (i % 2 === 0) ? up : -down; }
+      next = v; rule = fmt('pgRuleAlt', { up: up, down: down });
+    } else if(kind === 'fib'){
+      let x = pgRand(1, 6), y = pgRand(1, 6);
+      seq = [x, y];
+      for(let i = 0; i < 3; i++){ const z = x + y; seq.push(z); x = y; y = z; }
+      next = x + y; rule = t('pgRuleFib');
+    } else {
+      const st = pgRand(1, 6);
+      for(let i = 0; i < 5; i++) seq.push((st + i) * (st + i));
+      next = (st + 5) * (st + 5); rule = t('pgRuleSquare');
+    }
+    const d = [next + pgRand(1, 4), next - pgRand(1, 4), next + pgRand(5, 12), Math.round(next * 1.5)];
+    return pgMcq(fmt('pgPatternQ', { seq: seq.join(' ، ') }), next, d, { explain: rule, concept: 'pattern:' + kind });
+  }
+
+  /* ---------- VERBAL ANALOGY ----------
+     Drawn from a fixed, author-checked relation table. The GENERATION is
+     unlimited; the relations themselves are not invented at runtime. */
+  const PG_ANALOGIES = [
+    { a:'طائر', b:'يطير', c:'سمكة', d:'تسبح', rel:'حركة', dist:['تمشي','تقفز','تزحف'] },
+    { a:'معلّم', b:'مدرسة', c:'طبيب', d:'مستشفى', rel:'مكان عمل', dist:['مطعم','ملعب','متجر'] },
+    { a:'قلم', b:'كتابة', c:'مقص', d:'قص', rel:'وظيفة', dist:['لصق','رسم','قياس'] },
+    { a:'شمس', b:'نهار', c:'قمر', d:'ليل', rel:'زمن', dist:['فجر','ظهر','مساء'] },
+    { a:'جوع', b:'طعام', c:'عطش', d:'ماء', rel:'حاجة وعلاج', dist:['نوم','هواء','دواء'] },
+    { a:'كتاب', b:'قراءة', c:'أغنية', d:'استماع', rel:'طريقة تلقٍّ', dist:['مشاهدة','كتابة','شم'] },
+    { a:'بذرة', b:'شجرة', c:'بيضة', d:'طائر', rel:'أصل ونتيجة', dist:['عش','ريشة','سمكة'] },
+    { a:'ساعة', b:'وقت', c:'ميزان', d:'وزن', rel:'أداة وقياس', dist:['طول','حرارة','سرعة'] },
+    { a:'كبير', b:'صغير', c:'طويل', d:'قصير', rel:'تضاد', dist:['عريض','ثقيل','سريع'] },
+    { a:'يد', b:'خمسة', c:'أسبوع', d:'سبعة', rel:'عدد الأجزاء', dist:['ثلاثة','عشرة','اثنا عشر'] }
+  ];
+  function pgAnalogyItem(){
+    const x = pgPick(PG_ANALOGIES);
+    return pgMcq(fmt('pgAnalogyQ', { a:x.a, b:x.b, c:x.c }), x.d, x.dist,
+      { explain: fmt('pgAnalogyRule', { rel: x.rel }), concept: 'verbal:analogy' });
+  }
+
+  /* ---------- SPATIAL ROTATION ----------
+     Computed from real clock arithmetic, so the answer is always provable. */
+  const PG_DIRS = ['pgNorth','pgEast','pgSouth','pgWest'];
+  function pgSpatialItem(){
+    const startIdx = pgRand(0, 3);
+    const quarters = pgRand(1, 3);
+    const clockwise = Math.random() < 0.5;
+    const endIdx = (((startIdx + (clockwise ? quarters : -quarters)) % 4) + 4) % 4;
+    const answer = t(PG_DIRS[endIdx]);
+    const dist = PG_DIRS.filter(function(_, i){ return i !== endIdx; }).map(function(k){ return t(k); });
+    return pgMcq(fmt('pgSpatialQ', {
+      start: t(PG_DIRS[startIdx]), n: quarters, dir: t(clockwise ? 'pgClockwise' : 'pgCounterClockwise')
+    }), answer, dist, { explain: fmt('pgSpatialRule', { n: quarters * 90 }), concept: 'spatial:rotation' });
+  }
+
+  /* ---------- WORKING MEMORY (reverse span) ---------- */
+  function pgMemoryItem(){
+    const len = pgRand(4, 6);
+    const digits = [];
+    while(digits.length < len){ const d = pgRand(1, 9); if(digits.indexOf(d) === -1) digits.push(d); }
+    const answer = digits.slice().reverse().join('');
+    const d1 = digits.join('');
+    const swapped = digits.slice().reverse(); const tmp = swapped[0]; swapped[0] = swapped[1]; swapped[1] = tmp;
+    const d3 = digits.slice().reverse(); d3.pop();
+    return pgMcq(fmt('pgMemoryQ', { seq: digits.join(' - ') }), answer,
+      [d1, swapped.join(''), d3.join('')], { explain: t('pgMemoryRule'), concept: 'memory:reverseSpan' });
+  }
+
+  /* ---------- LOGICAL ELIMINATION ----------
+     A three-person, three-attribute puzzle solved by construction, so the
+     stated answer is always the only consistent one. */
+  function pgLogicItem(){
+    // FOUR people and four subjects, not three. A three-way puzzle leaves only
+    // two distractors, so no valid four-option question could ever be built
+    // and the generator silently produced nothing at all.
+    const people = pgShuffle(['سارة','نور','لين','مريم','هدى','جنى']).slice(0, 4);
+    const things = pgShuffle(['الرياضيات','الرسم','القراءة','الموسيقى','العلوم','الرياضة']).slice(0, 4);
+    const map = {}; people.forEach(function(p, i){ map[p] = things[i]; });
+    // Exclusion clues in strict triangular form: person i is ruled out of every
+    // subject after their own. That leaves exactly ONE consistent assignment,
+    // which is what makes the puzzle solvable rather than merely plausible.
+    const clues = [];
+    for(let i = 0; i < people.length; i++){
+      for(let j = i + 1; j < things.length; j++){
+        clues.push(fmt('pgLogicClueNot', { p: people[i], x: things[j] }));
+      }
+    }
+    const askIdx = pgRand(0, people.length - 1);
+    const answer = map[people[askIdx]];
+    return pgMcq(
+      fmt('pgLogicQ', { people: people.join('، '), things: things.join('، '), clues: clues.join(' '), who: people[askIdx] }),
+      answer, things.filter(function(x){ return x !== answer; }),
+      { explain: t('pgLogicRule'), concept: 'logic:elimination' });
+  }
+
+  const PG_GENERATORS = {
+    'pattern':  { fn: pgPatternItem, key:'pgSkillPattern' },
+    'verbal':   { fn: pgAnalogyItem, key:'pgSkillVerbal' },
+    'spatial':  { fn: pgSpatialItem, key:'pgSkillSpatial' },
+    'memory':   { fn: pgMemoryItem,  key:'pgSkillMemory' },
+    'logic':    { fn: pgLogicItem,   key:'pgSkillLogic' }
+  };
+  // Which generated skills belong to which authored program, so a generated
+  // set always matches the program the learner opened.
+  const PG_PROGRAM_SKILLS = [
+    { match:/منطق|logic/i,              skills:['logic','pattern','verbal'] },
+    { match:/ذاكرة|memory|عقل/i,        skills:['memory','pattern','spatial'] },
+    { match:/قدرات عقلية|cognitive|ذكاء و/i, skills:['spatial','verbal','pattern','logic'] },
+    { match:/stem|علوم/i,               skills:['pattern','logic'] },
+    { match:/روبوت|robotic/i,           skills:['spatial','logic'] },
+    { match:/تصميم|design/i,            skills:['spatial','pattern'] },
+    { match:/برمجة|programming/i,       skills:['logic','pattern'] },
+    { match:/ذكاء اصطناعي|\bai\b/i,     skills:['pattern','logic'] }
+  ];
+  function pgSkillsForProgram(title){
+    const hit = PG_PROGRAM_SKILLS.find(function(x){ return x.match.test(title || ''); });
+    return hit ? hit.skills : null; // null = this program is not generable
+  }
+  // Builds a verified set. Any item a generator could not build validly is
+  // dropped rather than patched, so a malformed question never reaches a child.
+  function pgBuildSet(skills, count){
+    const items = [], seen = {};
+    let guard = 0;
+    while(items.length < count && guard < count * 20){
+      guard++;
+      const skill = pgPick(skills);
+      const gen = PG_GENERATORS[skill];
+      if(!gen) continue;
+      const item = gen.fn();
+      if(!item || !item.options || item.correctIndex < 0) continue;
+      if(seen[item.text]) continue;          // no duplicates within one set
+      seen[item.text] = true;
+      item.skill = skill;
+      items.push(item);
+    }
+    return items;
+  }
+  /* ==================== END MODULE: PROGRAM EXERCISE GENERATORS ==================== */
 
   /* ==================== MODULE: KNOWLEDGE RETENTION ====================
      The nine programs had no retention mechanism at all: a learner could
