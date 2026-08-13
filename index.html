@@ -4673,7 +4673,7 @@
     if(!SHEET_API_URL || p.photo || !(p.username || key)) return;
     postToSheet('get_user_photo', { username: p.username || key }).then(res=>{
       if(res && res.ok && res.photoURL){
-        p.photo = res.photoURL;
+        p.photo = driveImageUrl(res.photoURL);
         saveProfilesToStorage();
         if(document.body.contains(targetEl)) setAvatarElement(targetEl, p, sizePx);
       }
@@ -5692,7 +5692,7 @@
         PROFILES[key] = freshProfile(null, res.user.avatar || AVATAR_OPTIONS[0], res.user.color || COLOR_OPTIONS[0],
           { op:'add', diff:'units', time:'15', len:'10', mode:'type' }, true, res.user.name || username,
           res.user.birthDate || null, hashedPin, null, username);
-        if(res.user.photoURL) PROFILES[key].photo = res.user.photoURL; // real cross-device photo sync
+        if(res.user.photoURL) PROFILES[key].photo = driveImageUrl(res.user.photoURL); // real cross-device photo sync
         if(res.user.email) PROFILES[key].email = res.user.email;
         profileOrder.push(key);
         startTrialForStudent(key);
@@ -5818,7 +5818,7 @@
       profileOrder.push(key);
       startTrialForStudent(key);
     }
-    if(res.user.photoURL) PROFILES[key].photo = res.user.photoURL;
+    if(res.user.photoURL) PROFILES[key].photo = driveImageUrl(res.user.photoURL);
     if(res.user.email) PROFILES[key].email = res.user.email;
     saveProfilesToStorage();
     if(!checkStudentAccessGate(key)){ usernameLoginEl.classList.add('hidden'); return; }
@@ -8793,9 +8793,19 @@
      daily quota on web-app calls, and a chatty heartbeat would exhaust it and
      take the whole backend down. 45s/25s keeps status fresh within about a
      minute while staying well inside the budget. */
-  const HEARTBEAT_MS = 45000;
-  const PRESENCE_POLL_MS = 25000;
+  const HEARTBEAT_MS = 90000;
+  const PRESENCE_POLL_MS = 60000;
   let heartbeatTimer = null, presenceTimer = null;
+  // Apps Script executes a single user's requests SERIALLY. Background
+  // presence traffic therefore queues ahead of whatever the person is
+  // actively doing, and a foreground action can time out waiting its turn.
+  // These guards keep presence strictly opportunistic: it never queues on
+  // top of itself, and it yields entirely while a user action is running.
+  let presenceInFlight = false;
+  let friendIdentitySynced = false;
+  let foregroundBusy = 0;
+  function beginForegroundRequest(){ foregroundBusy++; }
+  function endForegroundRequest(){ foregroundBusy = Math.max(0, foregroundBusy - 1); }
   let presenceCache = {};          // username -> { state, lastSeen }
   let myPresenceState = 'active';  // flipped to 'busy' during a quiz/race
 
@@ -8807,7 +8817,11 @@
   }
   function sendHeartbeat(){
     if(!SHEET_API_URL || !currentProfile) return;
-    postToSheet('heartbeat', { username: currentServerUsername(), state: myPresenceState });
+    if(foregroundBusy > 0 || presenceInFlight) return;   // never compete with a user action
+    if(document.hidden) return;                          // tab in the background: nobody is looking
+    presenceInFlight = true;
+    postToSheet('heartbeat', { username: currentServerUsername(), state: myPresenceState })
+      .finally(()=>{ presenceInFlight = false; });
   }
   function startPresence(){
     stopPresence();
@@ -8833,7 +8847,12 @@
   }
   async function refreshWatchedPresence(){
     if(!SHEET_API_URL || !watchedUsernames.length) return;
-    const res = await postToSheet('get_presence', { usernames: watchedUsernames });
+    if(foregroundBusy > 0 || presenceInFlight) return;   // yield to whatever the user is doing
+    if(document.hidden) return;
+    presenceInFlight = true;
+    let res = null;
+    try{ res = await postToSheet('get_presence', { usernames: watchedUsernames }); }
+    finally{ presenceInFlight = false; }
     if(!res || !res.ok || !res.presence) return; // silent: presence is decoration, never blocks the UI
     presenceCache = Object.assign({}, presenceCache, res.presence);
     applyPresenceToDom();
@@ -8862,6 +8881,15 @@
     return fmt('presenceDaysAgo', { n: Math.floor(hrs / 24) });
   }
 
+  // Drive's file.getUrl() returns a VIEWER PAGE (/file/d/<id>/view), which can
+  // never load in an <img>. This converts it to Drive's direct image
+  // endpoint. Non-Drive URLs and data: URLs pass through untouched.
+  function driveImageUrl(url){
+    const u = String(url || '');
+    if(!u) return '';
+    const m = u.match(/\/file\/d\/([-\w]{10,})/) || u.match(/[?&]id=([-\w]{10,})/);
+    return m ? `https://drive.google.com/thumbnail?id=${m[1]}&sz=w400` : u;
+  }
   function myPhotoUrlForSharing(){
     const p = PROFILES[currentProfile];
     const photo = p && p.photo ? String(p.photo) : '';
@@ -8869,6 +8897,7 @@
   }
   async function refreshPendingFriendCount(){
     if(!SHEET_API_URL || !currentProfile) return;
+    if(foregroundBusy > 0) return; // badge is cosmetic — never delay a real action for it
     const res = await postToSheet('list_friends', { username: currentServerUsername() });
     if(!res || !res.ok) return; // silent — a badge is not worth an error toast
     const next = res.incoming.length;
@@ -11385,12 +11414,16 @@
     friendsError.textContent = '';
     // Repair any older friendship rows that predate the name/photo columns.
     // Each account can only fill its own side, so this runs per account.
-    if(SHEET_API_URL){
+    // The identity repair only needs to run once per session — repeating it
+    // on every open added a request for no benefit.
+    if(SHEET_API_URL && !friendIdentitySynced){
+      friendIdentitySynced = true;
+      beginForegroundRequest();
       postToSheet('sync_my_friend_identity', {
         username: currentServerUsername(),
         myName: profileDisplayName(currentProfile),
         myPhotoURL: myPhotoUrlForSharing()
-      }).then(()=> renderFriends());
+      }).finally(()=>{ endForegroundRequest(); renderFriends(); });
     } else {
       renderFriends();
     }
@@ -11419,7 +11452,11 @@
     if(!toUsername) return;
     if(!SHEET_API_URL){ friendsError.className = 'feedback wrong'; friendsError.textContent = t('lpSeedNoBackend'); return; }
     setBtnSaving(friendAddBtn, true, t('friendSending'));
-    const res = await postToSheet('send_friend_request', { fromUsername: currentServerUsername(), toUsername, fromName: profileDisplayName(currentProfile), fromPhotoURL: myPhotoUrlForSharing() });
+    beginForegroundRequest();
+    let res = null;
+    try{
+      res = await postToSheet('send_friend_request', { fromUsername: currentServerUsername(), toUsername, fromName: profileDisplayName(currentProfile), fromPhotoURL: myPhotoUrlForSharing() });
+    } finally { endForegroundRequest(); }
     setBtnSaving(friendAddBtn, false);
     if(res && res.ok){
       friendsError.className = 'feedback correct';
@@ -11441,7 +11478,10 @@
     friendsListArea.innerHTML = `<div class="dash-empty">${t('teachersLoading')}</div>`;
     friendsIncomingArea.innerHTML = '';
     if(!SHEET_API_URL){ friendsListArea.innerHTML = `<div class="dash-empty">${t('lpSeedNoBackend')}</div>`; return; }
-    const res = await postToSheet('list_friends', { username: currentServerUsername() });
+    beginForegroundRequest();
+    let res = null;
+    try{ res = await postToSheet('list_friends', { username: currentServerUsername() }); }
+    finally{ endForegroundRequest(); }
     if(!res || !res.ok){
       friendsListArea.innerHTML = `<div class="dash-empty">${describeSyncFailure(res, 'lpSyncCreateFailed')}</div>`;
       return;
@@ -11456,7 +11496,7 @@
     };
     const friendCard = (f)=>{
       const avatar = f.photoURL
-        ? `<img src="${f.photoURL}" alt="" style="width:38px;height:38px;border-radius:50%;object-fit:cover;flex:none;">`
+        ? `<img src="${driveImageUrl(f.photoURL)}" alt="" style="width:38px;height:38px;border-radius:50%;object-fit:cover;flex:none;" onerror="this.replaceWith(Object.assign(document.createElement('span'),{textContent:'${initialFor(f)}',style:'width:38px;height:38px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;background:var(--input-bg);border:1.5px solid var(--input-border);font-weight:800;'}))">`
         : `<span style="width:38px;height:38px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;background:var(--input-bg);border:1.5px solid var(--input-border);font-weight:800;">${initialFor(f)}</span>`;
       // Decide from the DATA, not from one flag: older backends don't send
       // `hasProfile` at all, and a name that merely echoes the username is
