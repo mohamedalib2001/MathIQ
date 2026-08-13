@@ -3761,6 +3761,7 @@
       loginRequiredTitle:'تسجيل الدخول', guestName:'ضيف', orDivider:'أو', logoutLinkText:'🚪 تسجيل الخروج',
       guardiansLabel:'👪 حسابات أولياء الأمور (اختياري)', motherAccount:'حساب الأم', fatherAccount:'حساب الأب',
       removeGuardianLink:'🗑️ إزالة الحساب', guardianUsernameTaken:'اسم المستخدم هذا مستخدم بالفعل',
+      guardianPinRequired:'اكتبي كلمة مرور لحساب ولي الأمر — بدونها لن يستطيع تسجيل الدخول.',
       addTeacherLink:'➕ إضافة حساب معلم', addTeacherTitle:'إضافة حساب معلم', teacherNamePh:'اسم المعلم/ة',
       teacherUsernameTaken:'اسم المستخدم مستخدم بالفعل', teacherCreated:'✓ تم إنشاء الحساب',
       parentBannerText:'👪 نتائج أبنائك فقط', teacherBannerText:'🏫 نتائج جميع الطلاب',
@@ -4199,6 +4200,7 @@
       loginRequiredTitle:'Log in', guestName:'Guest', orDivider:'or', logoutLinkText:'🚪 Log out',
       guardiansLabel:'👪 Guardian accounts (optional)', motherAccount:"Mother's account", fatherAccount:"Father's account",
       removeGuardianLink:'🗑️ Remove account', guardianUsernameTaken:'That username is already taken',
+      guardianPinRequired:'Set a password for the guardian account — without one it cannot sign in.',
       addTeacherLink:'➕ Add a teacher account', addTeacherTitle:'Add a teacher account', teacherNamePh:"Teacher's name",
       teacherUsernameTaken:'That username is already taken', teacherCreated:'✓ Account created',
       parentBannerText:"👪 Your children's results only", teacherBannerText:"🏫 All students' results",
@@ -5223,6 +5225,15 @@
     }
     if(guardianClash(motherUser, existingMotherUser) || guardianClash(fatherUser, existingFatherUser)){
       editorError.textContent = t('guardianUsernameTaken');
+      return;
+    }
+    // A guardian username with no password — and no previously saved password
+    // to keep — used to be stored with an EMPTY password hash, producing an
+    // account that could never be logged into. Refuse it instead.
+    const motherKeepsOld = !!existingMotherUser && existingMotherUser === motherUser.toLowerCase();
+    const fatherKeepsOld = !!existingFatherUser && existingFatherUser === fatherUser.toLowerCase();
+    if((motherUser && !motherPass && !motherKeepsOld) || (fatherUser && !fatherPass && !fatherKeepsOld)){
+      editorError.textContent = t('guardianPinRequired');
       return;
     }
     editorError.textContent = '';
