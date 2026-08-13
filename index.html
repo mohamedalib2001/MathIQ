@@ -1853,7 +1853,22 @@
   <div id="parentDashboardScreen" class="panel hidden">
     <div class="role-banner" data-i18n="parentBannerText">👪 نتائج أبنائك فقط</div>
     <div id="parentChildrenList"></div>
+    <button class="secondary-btn hidden" id="parentDashboardBackBtn" data-i18n="backBtn">رجوع</button>
     <button class="secondary-btn" id="parentDashboardLogoutBtn" data-i18n="logoutLinkText">🚪 تسجيل الخروج</button>
+  </div>
+
+  <!-- Guardian unlock — viewing children's activity from inside a learner
+       account still requires the guardian password, so simply being logged
+       in as the parent's own learner account is never enough on its own. -->
+  <div id="guardianUnlockModal" class="hidden" role="dialog" aria-modal="true">
+    <div class="forgot-account-card">
+      <button class="forgot-account-close" id="guardianUnlockCloseBtn" aria-label="إغلاق">✕</button>
+      <div class="forgot-account-title" data-i18n="guardianUnlockTitle">👪 متابعة أبنائي</div>
+      <div class="forgot-account-text" data-i18n="guardianUnlockHint">أدخل كلمة مرور حساب ولي الأمر للاطّلاع على نشاط أبنائك.</div>
+      <input type="password" id="guardianUnlockPin" data-i18n-placeholder="pinPlaceholder" placeholder="كلمة المرور" autocomplete="current-password">
+      <div class="feedback wrong" id="guardianUnlockError" style="min-height:16px;"></div>
+      <button class="start-btn" id="guardianUnlockBtn" data-i18n="guardianUnlockBtn">عرض أبنائي</button>
+    </div>
   </div>
 
   <!-- PLACEMENT TEST -->
@@ -3339,14 +3354,18 @@
     });
     return links;
   }
-  function isUsernameTakenGlobally(username, excludeStudentKey){
+  // `forGuardian` relaxes the check for guardian accounts: one parent is
+  // normally the guardian of several children, and the login flow already
+  // groups a guardian's children by matching password. Blocking a repeated
+  // guardian username prevented a real, ordinary family setup.
+  function isUsernameTakenGlobally(username, excludeStudentKey, forGuardian){
     if(!username) return false;
     const uname = username.toLowerCase();
     for(const k of Object.keys(PROFILES)){
       if(k === excludeStudentKey) continue;
       const p = PROFILES[k];
       if(p.username && p.username.toLowerCase() === uname) return true;
-      if(p.guardians){
+      if(!forGuardian && p.guardians){
         if(p.guardians.mother && p.guardians.mother.username && p.guardians.mother.username.toLowerCase() === uname) return true;
         if(p.guardians.father && p.guardians.father.username && p.guardians.father.username.toLowerCase() === uname) return true;
       }
@@ -3750,7 +3769,9 @@
       friendsNone:'لا يوجد أصدقاء بعد. أضيفي صديقًا باسم المستخدم أعلاه!',
       friendAcceptBtn:'قبول', friendDeclineBtn:'رفض', friendRemoveBtn:'إزالة',
       friendRemoveConfirm:'هل تريدين إزالة هذا الصديق؟',
-      friendsNavLabel:'أصدقائي', friendAccepted:'✓ صرتما صديقين الآن!',
+      friendsNavLabel:'أصدقائي', myChildrenNavLabel:'أبنائي',
+      guardianUnlockTitle:'👪 متابعة أبنائي', guardianUnlockBtn:'عرض أبنائي',
+      guardianUnlockHint:'أدخل كلمة مرور حساب ولي الأمر للاطّلاع على نشاط أبنائك.', friendAccepted:'✓ صرتما صديقين الآن!',
       friendUnnamed:'متعلّم لم يُكمل بياناته بعد',
       presence_online:'متصل الآن', presence_busy:'في تمرين الآن', presence_away:'بعيد مؤقتًا', presence_offline:'غير متصل',
       presenceLastSeen:'آخر ظهور {t}', presenceJustNow:'منذ لحظات', presenceMinsAgo:'منذ {n} دقيقة',
@@ -3828,7 +3849,7 @@
       genderLabel:'صيغة المخاطبة', genderFemale:'مؤنّثة (أنتِ)', genderMale:'مذكّرة (أنت)',
       passwordLabel:'كلمة المرور', usernameLoginLink:'🔑 دخول باسم مستخدم وكلمة مرور',
       usernameTaken:'اسم المستخدم مستخدم بالفعل، اختاري اسمًا آخر',
-      userNotFound:'لا يوجد حساب بهذا الاسم', enterBothFields:'أدخلي اسم المستخدم وكلمة المرور',
+      userNotFound:'لا يوجد حساب بهذا الاسم', enterBothFields:'أدخلي اسم المستخدم وكلمة المرور', enterPinFirst:'أدخل كلمة المرور أولًا',
       themeBtnTitle:'اختيار المظهر', themePickerTitle:'اختاري المظهر المفضّل',
       themeChalkboard:'سبورة', themePaper:'ورقة', themeSunset:'غروب', themeOcean:'محيط', themeCandy:'حلوى', themeForest:'غابة', themeGalaxy:'مجرّة',
       guestBtn:'👤 متابعة كضيف', guestUsesLeft:'متبقٍ {n} من 20 محاولة',
@@ -4186,7 +4207,9 @@
       friendsNone:'No friends yet. Add one by username above!',
       friendAcceptBtn:'Accept', friendDeclineBtn:'Decline', friendRemoveBtn:'Remove',
       friendRemoveConfirm:'Remove this friend?',
-      friendsNavLabel:'Friends', friendAccepted:'✓ You are friends now!',
+      friendsNavLabel:'Friends', myChildrenNavLabel:'My children',
+      guardianUnlockTitle:'👪 My children', guardianUnlockBtn:'View my children',
+      guardianUnlockHint:"Enter your guardian account password to view your children's activity.", friendAccepted:'✓ You are friends now!',
       friendUnnamed:'Learner has not completed their profile yet',
       presence_online:'Online now', presence_busy:'In a session', presence_away:'Away', presence_offline:'Offline',
       presenceLastSeen:'Last seen {t}', presenceJustNow:'moments ago', presenceMinsAgo:'{n} min ago',
@@ -4264,7 +4287,7 @@
       genderLabel:'Address me as', genderFemale:'Feminine (she/her)', genderMale:'Masculine (he/him)',
       passwordLabel:'Password', usernameLoginLink:'🔑 Log in with username & password',
       usernameTaken:'That username is already taken, pick another', 
-      userNotFound:'No account found with that username', enterBothFields:'Enter both username and password',
+      userNotFound:'No account found with that username', enterBothFields:'Enter both username and password', enterPinFirst:'Enter the password first',
       themeBtnTitle:'Choose theme', themePickerTitle:'Choose your favorite theme',
       themeChalkboard:'Chalkboard', themePaper:'Paper', themeSunset:'Sunset', themeOcean:'Ocean', themeCandy:'Candy', themeForest:'Forest', themeGalaxy:'Galaxy',
       guestBtn:'👤 Continue as guest', guestUsesLeft:'{n} of 20 tries left',
@@ -4956,6 +4979,8 @@
     // they stay visible on top of the login screen after logout.
     friendsScreen.classList.add('hidden');
     friendProfileScreen.classList.add('hidden');
+    parentDashboardScreenEl.classList.add('hidden');
+    parentDashboardBackBtn.classList.add('hidden');
     teachersListScreen.classList.add('hidden');
     teacherOverviewScreen.classList.add('hidden');
   }
@@ -5185,7 +5210,7 @@
       if(!u) return false;
       if(previouslySaved && u.toLowerCase() === previouslySaved) return false; // unchanged — nothing being claimed
       return u.toLowerCase() === requestedUsername.toLowerCase() ||
-             isUsernameTakenGlobally(u, editingProfileKey);
+             isUsernameTakenGlobally(u, editingProfileKey, true);
     };
     if(motherUser && fatherUser && motherUser.toLowerCase() === fatherUser.toLowerCase()){
       editorError.textContent = t('guardianUsernameTaken');
@@ -5764,11 +5789,14 @@
     if(guardianLinks.length){
       const hash = await computePasswordHash(username, password);
       setLoginLoading(false);
-      const validLink = guardianLinks.find(l => l.pin === hash);
-      if(!validLink){ hideLoginTransition(); ulError.textContent = t('loginErrorMsg'); return; }
+      // Only the children whose guardian password ACTUALLY matches. Taking
+      // every link with this username would expose another family's children
+      // to anyone who happened to pick the same guardian username.
+      const myLinks = guardianLinks.filter(l => l.pin === hash);
+      if(!myLinks.length){ hideLoginTransition(); ulError.textContent = t('loginErrorMsg'); return; }
       ulError.textContent = '';
       updateLoginTransitionStep(t('loginStepPreparing'), 80);
-      const childKeys = [...new Set(guardianLinks.map(l => l.studentKey))];
+      const childKeys = [...new Set(myLinks.map(l => l.studentKey))];
       hideAllScreens();
       renderParentDashboard(childKeys);
       parentDashboardScreenEl.classList.remove('hidden');
@@ -5926,6 +5954,7 @@
     hideLoginTransition();
   });
   function logSessionLogout(){
+    guardianUnlockedChildren = null; // never carry a guardian unlock across sessions
     if(typeof goOfflineNow === 'function') goOfflineNow();
     if(typeof stopPresence === 'function') stopPresence();
     if(loggedInKey && SHEET_API_URL) postToSheet('logout', { username: loggedInKey });
@@ -8986,6 +9015,61 @@
     const m = u.match(/\/file\/d\/([-\w]{10,})/) || u.match(/[?&]id=([-\w]{10,})/);
     return m ? `https://drive.google.com/thumbnail?id=${m[1]}&sz=w400` : u;
   }
+  /* ---------- PARENT VIEW FROM INSIDE A LEARNER ACCOUNT ----------
+     A parent who also learns on the platform shouldn't need a second login.
+     Access is still gated by the guardian password, and only the children
+     whose guardian password actually matches are ever shown. */
+  const guardianUnlockModal = document.getElementById('guardianUnlockModal');
+  const guardianUnlockCloseBtn = document.getElementById('guardianUnlockCloseBtn');
+  const guardianUnlockPin = document.getElementById('guardianUnlockPin');
+  const guardianUnlockError = document.getElementById('guardianUnlockError');
+  const guardianUnlockBtn = document.getElementById('guardianUnlockBtn');
+  const parentDashboardBackBtn = document.getElementById('parentDashboardBackBtn');
+  let guardianUnlockedChildren = null; // cached for this session only, after a successful unlock
+
+  function myGuardianLinks(){
+    if(!currentProfile) return [];
+    const uname = (PROFILES[currentProfile] && PROFILES[currentProfile].username) || currentProfile;
+    // A profile is never its own guardian.
+    return findGuardianLinks(uname).filter(l => l.studentKey !== currentProfile);
+  }
+  function iAmAGuardian(){ return myGuardianLinks().length > 0; }
+
+  function openParentViewFromLearner(){
+    if(guardianUnlockedChildren && guardianUnlockedChildren.length){
+      showParentView(guardianUnlockedChildren);
+      return;
+    }
+    guardianUnlockPin.value = '';
+    guardianUnlockError.textContent = '';
+    guardianUnlockModal.classList.remove('hidden');
+    guardianUnlockPin.focus();
+  }
+  function showParentView(childKeys){
+    hideLearnerShellScreens();
+    renderParentDashboard(childKeys);
+    parentDashboardBackBtn.classList.remove('hidden');
+    parentDashboardScreenEl.classList.remove('hidden');
+  }
+  guardianUnlockCloseBtn.addEventListener('click', ()=> guardianUnlockModal.classList.add('hidden'));
+  guardianUnlockBtn.addEventListener('click', async ()=>{
+    const pass = guardianUnlockPin.value;
+    if(!pass){ guardianUnlockError.textContent = t('enterPinFirst'); return; }
+    const uname = (PROFILES[currentProfile] && PROFILES[currentProfile].username) || currentProfile;
+    const hash = await computePasswordHash(uname, pass);
+    const links = myGuardianLinks().filter(l => l.pin === hash); // only children this password unlocks
+    if(!links.length){ guardianUnlockError.textContent = t('loginErrorMsg'); return; }
+    guardianUnlockedChildren = [...new Set(links.map(l => l.studentKey))];
+    guardianUnlockModal.classList.add('hidden');
+    showParentView(guardianUnlockedChildren);
+  });
+  guardianUnlockPin.addEventListener('keydown', e=>{ if(e.key === 'Enter') guardianUnlockBtn.click(); });
+  parentDashboardBackBtn.addEventListener('click', ()=>{
+    parentDashboardScreenEl.classList.add('hidden');
+    parentDashboardBackBtn.classList.add('hidden');
+    showProgramsHub();
+  });
+
   function myPhotoUrlForSharing(){
     const p = PROFILES[currentProfile];
     const photo = p && p.photo ? String(p.photo) : '';
@@ -9010,6 +9094,9 @@
         { icon:nxIcon('puzzle'), label:t('shellNavSkills'), run: ()=>{ hideLearnerShellScreens(); mySkillsScreen.classList.remove('hidden'); renderMySkills(); renderShellNav('learner'); } },
         { icon:nxIcon('award'), label:t('shellNavAchievements'), run: ()=> myStatsLink.click() },
         { icon:nxIcon('users'), label:t('friendsNavLabel'), run: ()=> friendsLink.click(), badgeCount: pendingFriendRequestCount },
+        ...(typeof iAmAGuardian === 'function' && iAmAGuardian()
+          ? [{ icon:nxIcon('users'), label:t('myChildrenNavLabel'), run: ()=> openParentViewFromLearner() }]
+          : []),
         { icon:nxIcon('settings'), label:t('shellNavAccount'), run: ()=> editMyProfileLink.click() },
         { icon:nxIcon('logout'), label:t('shellNavLogout'), run: ()=> goToLoginGate() }
       ];
