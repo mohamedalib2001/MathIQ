@@ -1566,8 +1566,19 @@
   .subs-status-row span:first-child{ color:var(--ink-dim); }
 
   /* certificate template (rendered off-screen, captured via html2canvas) */
+  /* Kept off-screen with PHYSICAL offsets, never logical ones.
+     inset-inline-start follows the element's own direction, and this element
+     is direction:rtl — so it resolved to `right`, pushing a 1600px-wide
+     template off the RIGHT edge and leaving its top-left corner visible in
+     the page corner. The stray box on the login screen was this element's
+     header. left/right are direction-independent and cannot invert.
+     Note: hiding it with visibility:hidden or opacity:0 would be WRONG here.
+     html2canvas honours both, so the captured certificate would come out
+     blank. Off-screen positioning is the only method that hides the element
+     from the user while leaving it fully rasterisable. */
   #certTemplate{
-    position:fixed; top:0; inset-inline-start:-99999px;
+    position:fixed; top:0; left:-99999px; right:auto;
+    pointer-events:none;
     /* Height grows with the content instead of clipping it. The PDF is built
        from the captured canvas dimensions, so a slightly taller certificate
        simply produces a slightly taller page — it can never cut the seal,
@@ -6222,8 +6233,13 @@
           username: p.username || key, pin: p.pin, name: profileDisplayName(key),
           birthDate: p.birthDate || '', avatar: p.avatar, color: p.color,
           photoURL: photoURL || '', // sending ALL fields together — handleSignup_ overwrites the whole row,
-          email: p.email || '',     // so photoURL/email must travel with the rest, never in a separate call, or it wipes them.
-          phone: p.phone || ''
+          // Omit these keys entirely when there is no value, rather than
+          // sending an empty string. An empty string is a positive statement
+          // ("this account has no address"); a missing key means "I have
+          // nothing to say about this field" — and only the second is true
+          // when the value simply was not loaded on this device.
+          ...(p.email ? { email: p.email } : {}),
+          ...(p.phone ? { phone: p.phone } : {})
         });
       };
       if(photoToSave){
