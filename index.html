@@ -1519,6 +1519,7 @@
       linear-gradient(155deg,#fffdf8 0%,#faf4e6 60%,#f5eddb 100%);
     display:flex; flex-direction:column; align-items:center;
     direction:rtl; unicode-bidi:plaintext;
+    padding-bottom:18px;
   }
   /* sweeping gold/green curve on the left edge */
   #certTemplate .cert-curve{
@@ -1547,7 +1548,7 @@
   #certTemplate .cert-banner-stars{ font-size:12px; letter-spacing:3px; margin-top:8px; color:#c9a227; }
 
   /* centred brand */
-  #certTemplate .cert-brand{ position:relative; z-index:2; margin-top:44px; text-align:center; }
+  #certTemplate .cert-brand{ position:relative; z-index:2; margin-top:26px; text-align:center; flex:none; }
   #certTemplate .cert-brand-row{ display:flex; align-items:center; justify-content:center; gap:14px; direction:ltr; }
   #certTemplate .cert-brand-mark{
     width:62px; height:62px; border-radius:12px; flex:none;
@@ -1561,8 +1562,8 @@
 
   #certTemplate .cert-body{
     position:relative; z-index:2; display:flex; flex-direction:column; align-items:center;
-    text-align:center; margin-top:20px; width:100%; padding:0 300px; box-sizing:border-box;
-    direction:rtl; unicode-bidi:plaintext;
+    text-align:center; margin-top:14px; width:100%; padding:0 300px; box-sizing:border-box;
+    direction:rtl; unicode-bidi:plaintext; flex:none;
   }
   #certTemplate .cert-title-row, #certTemplate .cert-name-row{ display:flex; align-items:center; justify-content:center; gap:20px; }
   #certTemplate .cert-flourish{ color:#c9a227; font-size:26px; opacity:0.85; }
@@ -1574,29 +1575,29 @@
     background:#14402f; color:#f0e3bd; font-size:13px; font-weight:700;
     padding:6px 24px; border-radius:6px; margin-top:12px;
   }
-  #certTemplate .cert-attest{ font-size:17px; color:#4f4a38; margin-top:16px; }
+  #certTemplate .cert-attest{ font-size:17px; color:#4f4a38; margin-top:10px; }
 
-  #certTemplate .cert-photo-wrap{ position:relative; width:230px; height:200px; margin-top:8px; }
-  #certTemplate .cert-wreath{ position:absolute; left:15px; top:0; width:200px; height:200px; }
+  #certTemplate .cert-photo-wrap{ position:relative; width:200px; height:176px; margin-top:6px; }
+  #certTemplate .cert-wreath{ position:absolute; left:12px; top:0; width:176px; height:176px; }
   #certTemplate .cert-photo{
     position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
-    width:132px; height:132px; border-radius:50%; overflow:hidden;
+    width:118px; height:118px; border-radius:50%; overflow:hidden;
     border:4px solid #c9a227; background:#f1e9cf;
-    display:flex; align-items:center; justify-content:center; font-size:56px;
+    display:flex; align-items:center; justify-content:center; font-size:50px;
     box-shadow:0 5px 16px rgba(20,64,47,0.2);
   }
-  #certTemplate .cert-photo img{ width:100%; height:100%; object-fit:cover; }
+  #certTemplate .cert-photo img{ width:100% !important; height:100% !important; object-fit:cover; display:block; }
 
   #certTemplate .cert-name{ font-weight:800; font-size:46px; color:#14402f; }
-  #certTemplate .cert-age{ font-size:16px; color:#6b6250; margin-top:8px; }
-  #certTemplate .cert-completed{ font-size:16px; color:#4f4a38; margin-top:14px; }
+  #certTemplate .cert-age{ font-size:15px; color:#6b6250; margin-top:6px; }
+  #certTemplate .cert-completed{ font-size:16px; color:#4f4a38; margin-top:9px; }
   #certTemplate .cert-program{
     background:#14402f; color:#f0e3bd; font-weight:700; font-size:21px;
     padding:11px 38px; border-radius:28px; margin-top:12px;
   }
-  #certTemplate .cert-issuer{ font-size:14.5px; color:#5e5433; margin-top:14px; line-height:1.7; }
+  #certTemplate .cert-issuer{ font-size:14px; color:#5e5433; margin-top:9px; line-height:1.55; }
 
-  #certTemplate .cert-stats{ display:flex; gap:14px; margin-top:26px; }
+  #certTemplate .cert-stats{ display:flex; gap:12px; margin-top:16px; flex-wrap:nowrap; }
   #certTemplate .cert-stat{
     background:#fffdf6; border:1.5px solid rgba(201,162,39,0.5); border-radius:12px;
     padding:13px 22px; min-width:140px; text-align:center;
@@ -1606,14 +1607,19 @@
   #certTemplate .cert-stat b{ font-size:27px; color:#14402f; }
   #certTemplate .cert-stat span{ display:block; font-size:12px; color:#6b6250; margin-top:5px; }
 
-  #certTemplate .cert-badges-row{ display:flex; gap:10px; margin-top:18px; justify-content:center; flex-wrap:wrap; min-height:30px; }
+  #certTemplate .cert-badges-row{ display:flex; gap:8px; margin-top:10px; justify-content:center; flex-wrap:wrap; }
   #certTemplate .cert-badge-chip{
     background:#14402f; color:#f0e3bd; border-radius:20px; padding:8px 18px; font-size:13px; font-weight:600;
   }
 
   /* bottom band */
+  /* In normal flow with margin-top:auto — it is pushed to the bottom by the
+     remaining space rather than pinned to a fixed offset. When the body
+     grows, this moves down with it instead of being drawn underneath it,
+     which is what produced the overlapping seal/signatures/QR. */
   #certTemplate .cert-bottom{
-    position:absolute; bottom:80px; left:272px; right:70px; z-index:3;
+    position:relative; z-index:3; margin-top:auto; width:100%;
+    padding-inline-start:70px; padding-inline-end:272px; box-sizing:border-box;
     display:flex; align-items:flex-end; justify-content:space-between; gap:14px;
     direction:rtl; unicode-bidi:plaintext;
   }
@@ -1630,7 +1636,7 @@
   #certTemplate .cert-sign-role{ font-size:12px; color:#6b6250; margin-top:3px; }
   #certTemplate .cert-sign-label{ font-size:12.5px; color:#6b6250; }
 
-  #certTemplate .cert-seal-wrap{ position:relative; width:118px; flex:none; }
+  #certTemplate .cert-seal-wrap{ position:relative; width:118px; height:142px; flex:none; }
   #certTemplate .cert-seal{
     position:relative; width:118px; height:118px; border-radius:50%; z-index:2;
     background:conic-gradient(from 0deg,#e8cd7d,#c9a227,#f0dfa4,#c9a227,#e8cd7d);
@@ -1650,7 +1656,8 @@
   #certTemplate .cert-date-h{ font-size:12px; color:#6b6250; margin-top:4px; }
 
   #certTemplate .cert-footline{
-    position:absolute; bottom:22px; left:272px; right:70px; text-align:center; z-index:3;
+    position:relative; z-index:3; width:100%; margin-top:10px; text-align:center;
+    padding-inline-start:70px; padding-inline-end:272px; box-sizing:border-box;
     font-size:12.5px; color:#6b6250; direction:rtl; unicode-bidi:plaintext;
   }
   #certTemplate .cert-foot-sep{ margin:0 10px; color:rgba(201,162,39,0.85); }
@@ -2696,7 +2703,6 @@
 
         <div class="cert-footline">
           <span id="certRoleLabelEl">الطالب</span><span class="cert-foot-sep">|</span>
-          <span id="certAgeEl"></span><span class="cert-foot-sep">|</span>
           <span class="cert-foot-lbl">رقم الشهادة</span> <span id="certNumEl"></span>
         </div>
       </div>
@@ -12756,7 +12762,7 @@
   const certProgramEl = document.getElementById('certProgramEl');
   const certPhotoEl = document.getElementById('certPhotoEl');
   const certNameEl = document.getElementById('certNameEl');
-  const certAgeEl = document.getElementById('certAgeEl');
+  const certAgeEl = document.getElementById('certAgeEl'); // removed from the footline; kept null-safe below
   const certScoreEl = document.getElementById('certScoreEl');
   const certScoreLabelEl = document.getElementById('certScoreLabelEl');
   const certAccEl = document.getElementById('certAccEl');
@@ -12891,7 +12897,7 @@
     certProgramEl.textContent = programName;
     certNameEl.textContent = profileDisplayName(currentProfile);
     const ageStr = formatAge(prof.birthDate);
-    certAgeEl.textContent = ageStr ? `${t('certAgeLabel')}: ${ageStr}` : '';
+    if(certAgeEl) certAgeEl.textContent = ageStr ? `${t('certAgeLabel')}: ${ageStr}` : '';
     certAgeInlineEl.textContent = ageStr ? `${t('certAgeLabel')}: ${ageStr}` : '';
     certScoreEl.textContent = sumScore.textContent;
     certScoreLabelEl.textContent = t('statScore');
@@ -12927,9 +12933,37 @@
     certSigTitleEl.textContent = t('certIssuedBy');
     const certId = generateCertId(currentProfile, Date.now());
     certNumEl.textContent = certId;
+    // The photo is injected at the SAME size as the circle that holds it.
+    // It was previously injected at 150px into a 118px circle, so the image
+    // overflowed its own frame and only a fragment survived the clip.
+    const CERT_PHOTO_PX = 118;
     const safePhoto = await resolvePhotoForCanvas(prof.photo);
-    setAvatarElement(certPhotoEl, Object.assign({}, prof, { photo: safePhoto }), 150);
-    if(!prof.photo) certPhotoEl.style.fontSize = '70px';
+    setAvatarElement(certPhotoEl, Object.assign({}, prof, { photo: safePhoto }), CERT_PHOTO_PX);
+    if(!prof.photo){
+      certPhotoEl.style.fontSize = '50px';
+    } else {
+      // If the photo cannot actually load (a Drive link that failed to convert,
+      // an expired URL), fall back to the initial rather than capturing an
+      // empty circle into a certificate the learner keeps.
+      const certImg = certPhotoEl.querySelector('img');
+      if(certImg){
+        certImg.onerror = function(){
+          certPhotoEl.innerHTML = '';
+          certPhotoEl.style.fontSize = '50px';
+          certPhotoEl.textContent = (profileDisplayName(currentProfile) || '?').charAt(0);
+        };
+        // html2canvas captures whatever is in the DOM at that moment, so wait
+        // for the image to be genuinely decoded before capturing.
+        if(!certImg.complete){
+          await new Promise(function(resolve){
+            certImg.onload = resolve;
+            const onErr = certImg.onerror;
+            certImg.onerror = function(){ if(onErr) onErr(); resolve(); };
+            setTimeout(resolve, 3000); // never hang the download on a dead URL
+          });
+        }
+      }
+    }
 
     // Real earned badges only — never fabricated, and simply omitted (empty row) if the learner has none yet.
     const earnedBadgeIds = prof.badges ? Array.from(prof.badges) : [];
