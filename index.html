@@ -671,6 +671,14 @@
   .abacus-target{ text-align:center; font-size:15px; font-weight:700; margin-bottom:10px; }
   .abacus-target b{ color:var(--yellow); font-size:22px; }
 
+  .ab-hint-box{
+    background:rgba(231,196,104,0.08); border:1px solid rgba(231,196,104,0.35); border-radius:12px;
+    padding:11px 14px; margin-bottom:10px; text-align:start;
+  }
+  .ab-hint-level{ font-size:10.5px; font-weight:700; color:var(--yellow); margin-bottom:5px; }
+  .ab-hint-text{ font-size:13px; line-height:1.75; color:var(--ink); }
+  .ab-hint-note{ font-size:11px; color:var(--ink-dim); margin-top:7px; line-height:1.6; }
+
   .ab-exp-q{ font-size:12.5px; color:var(--ink); line-height:1.7; margin-bottom:10px; }
   .ab-exp-opt{
     display:block; width:100%; text-align:start; margin-bottom:7px; cursor:pointer;
@@ -2242,11 +2250,13 @@
       <button class="secondary-btn" id="abacusCheckBtn" data-i18n="submitBtn" style="flex:none;">تحقق</button>
     </div>
     <div class="feedback" id="abacusFeedback"></div>
+    <div class="ab-hint-box hidden" id="abacusHintBox"></div>
     <div class="ab-stage-progress hidden" id="abacusStageProgress"></div>
     <div class="strategy-box hidden" id="abacusExplainBox"></div>
     <div class="strategy-box hidden" id="abacusPathBox"></div>
     <div class="editor-actions" style="margin-top:10px;">
       <button class="secondary-btn" id="abacusResetBtn" data-i18n="abacusResetBtn">🔄 صفّري الأباكوس</button>
+      <button class="secondary-btn hidden" id="abacusHintBtn" data-i18n="abacusHintBtn">💡 تلميح</button>
       <button class="secondary-btn hidden" id="abacusPeekBtn" data-i18n="abacusPeekBtn">👁 نظرة سريعة</button>
       <button class="secondary-btn" id="abacusUndoBtn" data-i18n="abacusUndoBtn">↶ تراجع</button>
       <button class="secondary-btn" id="abacusNewBtn" data-i18n="abacusNewBtn">🎲 رقم جديد</button>
@@ -3364,6 +3374,8 @@
   const abacusResetBtn = document.getElementById('abacusResetBtn');
   const abStageBadge = document.getElementById('abacusStageBadge');
   const abStageProgress = document.getElementById('abacusStageProgress');
+  const abacusHintBtn = document.getElementById('abacusHintBtn');
+  const abHintBox = document.getElementById('abacusHintBox');
   const abacusPeekBtn = document.getElementById('abacusPeekBtn');
   const abacusUndoBtn = document.getElementById('abacusUndoBtn');
   const abExplainBox = document.getElementById('abacusExplainBox');
@@ -4317,6 +4329,31 @@
       aiPracticeLoading:'جارٍ توليد تمرين ذكي...', aiPracticeFailed:'تعذّر توليد التمرين الذكي — تم استخدام التمرين العادي بدلًا منه.',
       abacusOpenBtn:'🧮 مدرّب الأباكوس (Abacus)', abacusTitle:'🧮 مدرّب الأباكوس',
       abacusModeFree:'تدريب حر', abacusModeRead:'اقرئي الرقم', abacusModeSet:'مثّلي الرقم',
+      abacusHintBtn:'💡 تلميح', abHintExhausted:'لا مزيد من التلميحات',
+      abHintLevel:'تلميح {n} من {total}',
+      abHint1:'ابدئي من العمود الأيمن (الآحاد) واتجهي لليسار. هذا الرقم يحتاج {n} أعمدة فقط.',
+      abHint2:'الأعمدة المطلوبة: {places}. باقي الأعمدة تبقى صفرًا.',
+      abHint3:'ابدئي بـ{place}: الرقم {d} = {h} خرزة سماء + {e} خرزات أرض. أكملي الباقي بنفسك.',
+      abHint3Zero:'كل الأعمدة أصفار — اتركي الأباكوس فارغًا.',
+      abHint4:'التفصيل الكامل: {parts}',
+      abHint4Part:'{place}: {d} ({h} سماء + {e} أرض)',
+      abHintFinalNote:'استخدمتِ التلميح الكامل — هذه المحاولة لن تُحتسب ضمن جاهزيتك للمرحلة التالية، وهذا عادل: التمرين هو أن تصلي بنفسك.',
+      abPlaceUnits:'الآحاد', abPlaceTens:'العشرات', abPlaceHundreds:'المئات',
+      abPlaceThousands:'الآلاف', abPlaceTenThousands:'عشرات الآلاف',
+      abPathHints:'تلميحات استُخدمت', abPathPeeks:'نظرات سريعة',
+      abTwinAccUp:'دقتك في المرحلة {stage} ارتفعت {n}% مقارنة بأدائك قبل أسبوع',
+      abTwinAccDown:'دقتك في المرحلة {stage} انخفضت {n}% عن أدائك السابق — مراجعة قصيرة ستعيدها',
+      abTwinFaster:'صرتِ أسرع بـ{s} ثانية في المتوسط عن نفسك قبل أسبوع',
+      abTwinFewerHints:'تحتاجين تلميحات أقل بـ{n} في المتوسط — استقلالية أكبر',
+      abTeachTitle:'🧮 دلائل الأباكوس',
+      abTeachPending:'{n} من {need} محاولات — نحتاج المزيد قبل عرض أي دليل',
+      abTeachNothing:'لا يوجد نمط لافت في آخر {n} محاولة',
+      abTeachSample:'بناءً على {n} محاولة',
+      abTeachAccNoSpeed:'الدقة ارتفعت {n}% بينما بقي الزمن حول {s}ث — الطريقة مفهومة والسرعة لم تتأتمت بعد. تمارين قصيرة متكررة أنسب من مسائل أطول.',
+      abTeachHintReliance:'{n}% من المحاولات احتاجت التلميح الكامل — المفهوم غالبًا غير مستقر، وإعادة شرحه أنفع من مزيد من التمرين.',
+      abTeachColumn:'الأخطاء تتركز في العمود {c} ({n} مرة) — يُرجَّح أن المشكلة في قيمة هذه المنزلة تحديدًا لا في الحساب.',
+      abTeachTrial:'{n}% من الحلول بالمحاولة والخطأ — يبدو أن طريقة منهجية للحل لم تُرسَّخ بعد.',
+      abTeachPeeks:'{n} نظرة سريعة في المرحلة {stage} — قد يكون الانتقال لهذه المرحلة مبكرًا قليلًا.',
       abExplainTitle:'اشرحي حركتك',
       abExplainQuestion:'قبل ما نعرض التحليل — كيف حللتِ هذه المسألة؟',
       abExpDirect:'حللتُ مباشرة من اليمين لليسار بلا تردد',
@@ -4507,6 +4544,13 @@
       cmdStartMission:'ابدأ تدريب اليوم',
       explainBtn:'اشرحلي',
       explainFailed:'حاول مرة أخرى',
+      abHint1:'ابدأ من العمود الأيمن (الآحاد) واتجه لليسار. هذا الرقم يحتاج {n} أعمدة فقط.',
+      abHint3:'ابدأ بـ{place}: الرقم {d} = {h} خرزة سماء + {e} خرزات أرض. أكمل الباقي بنفسك.',
+      abHint3Zero:'كل الأعمدة أصفار — اترك الأباكوس فارغًا.',
+      abHintFinalNote:'استخدمت التلميح الكامل — هذه المحاولة لن تُحتسب ضمن جاهزيتك للمرحلة التالية، وهذا عادل: التمرين هو أن تصل بنفسك.',
+      abTwinAccUp:'دقتك في المرحلة {stage} ارتفعت {n}% مقارنة بأدائك قبل أسبوع',
+      abTwinFaster:'صرت أسرع بـ{s} ثانية في المتوسط عن نفسك قبل أسبوع',
+      abTwinFewerHints:'تحتاج تلميحات أقل بـ{n} في المتوسط — استقلالية أكبر',
       abExplainTitle:'اشرح حركتك',
       abExplainQuestion:'قبل ما نعرض التحليل — كيف حللت هذه المسألة؟',
       abExpDirect:'حللتُ مباشرة من اليمين لليسار بلا تردد',
@@ -4916,6 +4960,31 @@
       aiPracticeLoading:'Generating a smart practice set...', aiPracticeFailed:'Could not generate the AI practice set — using the regular practice instead.',
       abacusOpenBtn:'🧮 Abacus Trainer', abacusTitle:'🧮 Abacus Trainer',
       abacusModeFree:'Free practice', abacusModeRead:'Read the number', abacusModeSet:'Set the number',
+      abacusHintBtn:'💡 Hint', abHintExhausted:'No more hints',
+      abHintLevel:'Hint {n} of {total}',
+      abHint1:'Start from the rightmost column (units) and work left. This number needs only {n} columns.',
+      abHint2:'The columns involved: {places}. The rest stay at zero.',
+      abHint3:'Start with {place}: the digit {d} = {h} heaven bead + {e} earth beads. Work out the rest yourself.',
+      abHint3Zero:'Every column is zero — leave the abacus empty.',
+      abHint4:'Full breakdown: {parts}',
+      abHint4Part:'{place}: {d} ({h} heaven + {e} earth)',
+      abHintFinalNote:'You used the full hint — this attempt will not count toward readiness for the next stage, and that is fair: the point is getting there yourself.',
+      abPlaceUnits:'units', abPlaceTens:'tens', abPlaceHundreds:'hundreds',
+      abPlaceThousands:'thousands', abPlaceTenThousands:'ten thousands',
+      abPathHints:'Hints used', abPathPeeks:'Quick peeks',
+      abTwinAccUp:'Your accuracy at stage {stage} is up {n}% on your own work a week ago',
+      abTwinAccDown:'Your accuracy at stage {stage} is down {n}% on your earlier work — a short review will bring it back',
+      abTwinFaster:'You are {s}s faster on average than yourself a week ago',
+      abTwinFewerHints:'You need {n} fewer hints on average — greater independence',
+      abTeachTitle:'🧮 Abacus evidence',
+      abTeachPending:'{n} of {need} attempts — more are needed before any evidence',
+      abTeachNothing:'No notable pattern in the last {n} attempts',
+      abTeachSample:'Based on {n} attempts',
+      abTeachAccNoSpeed:'Accuracy rose {n}% while time stayed around {s}s — the method is understood but not yet automatic. Short frequent drills suit this better than longer problems.',
+      abTeachHintReliance:'{n}% of attempts needed the full hint — the concept is likely unstable; re-teaching it will help more than more practice.',
+      abTeachColumn:'Errors cluster on column {c} ({n} times) — this points at that specific place value rather than at arithmetic.',
+      abTeachTrial:'{n}% of solutions were trial and error — a systematic method does not appear to be established yet.',
+      abTeachPeeks:'{n} quick peeks at stage {stage} — the move to this stage may have been slightly early.',
       abExplainTitle:'Explain your move',
       abExplainQuestion:'Before we show the analysis — how did you solve this one?',
       abExpDirect:'Straight through, right to left, no hesitation',
@@ -10513,6 +10582,24 @@
     showProgramsHub();
   });
 
+  /* Abacus evidence for whoever is supervising. Each line names its sample,
+     and describes the WORK — never the child. */
+  function abTeacherBlock(prof){
+    const res = abTeacherInsights(prof);
+    if(!res.ready){
+      return `<div class="mystats-section"><h4>${t('abTeachTitle')}</h4><div class="dash-empty">${
+        fmt('abTeachPending', { n: res.have, need: res.need })}</div></div>`;
+    }
+    if(!res.items.length){
+      return `<div class="mystats-section"><h4>${t('abTeachTitle')}</h4><div class="dash-empty">${
+        fmt('abTeachNothing', { n: res.sample })}</div></div>`;
+    }
+    return `<div class="mystats-section"><h4>${t('abTeachTitle')}</h4>` +
+      res.items.map(function(i){
+        return `<div class="syn-insight"><span class="syn-ic">${nxIcon('lightbulb')}</span><span>${
+          fmt(i.key, i.vars)}<br><span style="opacity:0.65; font-size:11px;">${fmt('abTeachSample', { n: i.sample })}</span></span></div>`;
+      }).join('') + `</div>`;
+  }
   function openChildDetail(key){
     const p = PROFILES[key];
     if(!p) return;
@@ -10565,6 +10652,7 @@
         <div class="dash-table">${weeklyReportHtml(p)}</div>
       </div>
       ${badgesHtml ? `<div class="mystats-section"><h4>${t('achievementsTitle')}</h4><div class="badges-row">${badgesHtml}</div></div>` : ''}
+      ${abTeacherBlock(p)}
       <div class="ai-insight" id="${insightId}"></div>
       <button class="secondary-btn" id="childPrintBtn" style="margin-top:10px;">🖨️ ${t('printReportBtn')}</button>
     `;
@@ -11261,6 +11349,14 @@
     const aw = abAwareness(prof);
     if(aw){
       out.push({ ic: nxIcon('brain'), text: fmt('abAwarenessLine', { n: aw.pct, t: aw.n }) });
+    }
+    // Progress against the learner's own earlier work at the SAME stage.
+    const tw = abTwinComparison(prof);
+    if(tw.ready){
+      if(tw.accuracyDelta >= 8) out.push({ ic: nxIcon('trending'), text: fmt('abTwinAccUp', { n: tw.accuracyDelta, stage: tw.stage }) });
+      else if(tw.accuracyDelta <= -8) out.push({ ic: nxIcon('refresh'), text: fmt('abTwinAccDown', { n: Math.abs(tw.accuracyDelta), stage: tw.stage }) });
+      if(tw.speedDelta !== null && tw.speedDelta >= 2) out.push({ ic: nxIcon('clock'), text: fmt('abTwinFaster', { s: tw.speedDelta }) });
+      if(tw.hintDelta >= 0.5) out.push({ ic: nxIcon('award'), text: fmt('abTwinFewerHints', { n: tw.hintDelta }) });
     }
     return { pending: null, items: out, evidence: e };
   }
@@ -14735,6 +14831,7 @@
       longestPauseMs: abSession.longestPauseMs,
       columnsUsed: cols,
       peeks: abSession.peeks || 0,
+      hints: abSession.hints || 0,
       columnOrder: abColumnOrder(abSession.events),
       strategy: abClassifyStrategy(abSession, finalCorrect),
       at: new Date().toISOString()
@@ -14793,6 +14890,150 @@
     if(revisited && finalCorrect) return { id:'carryPattern', reason:'column_revisited' };
 
     return { id:'unclassified', reason:'no_clear_pattern' };
+  }
+
+  /* ---------- ABACUS TWIN: PROGRESS AGAINST YOUR PAST SELF ----------
+     Not an opponent to race, because racing an abacus rewards haste over
+     method. Instead it compares the learner's recent recorded work with
+     their own older recorded work on the SAME stage — a like-for-like
+     comparison, since stage 4 attempts are not comparable to stage 1.
+
+     No simulation, no model: both sides are attempts that actually happened. */
+  const AB_TWIN_MIN_PER_SIDE = 5;
+  const AB_TWIN_GAP_DAYS = 7;
+
+  function abTwinComparison(prof){
+    const log = (prof && prof.abacusLog) || [];
+    const stage = abStageOf(prof);
+    const rows = log.filter(x => (x.stage || 1) === stage && x.at);
+    if(rows.length < AB_TWIN_MIN_PER_SIDE * 2) return { ready:false, have: rows.length, need: AB_TWIN_MIN_PER_SIDE * 2 };
+
+    const cutoff = Date.now() - AB_TWIN_GAP_DAYS * 86400000;
+    const past = rows.filter(x => new Date(x.at).getTime() <= cutoff);
+    const now = rows.filter(x => new Date(x.at).getTime() > cutoff);
+    if(past.length < AB_TWIN_MIN_PER_SIDE || now.length < AB_TWIN_MIN_PER_SIDE){
+      return { ready:false, have: rows.length, need: AB_TWIN_MIN_PER_SIDE * 2, needsTime:true };
+    }
+    const side = function(set){
+      const timed = set.filter(x => x.solveTimeMs > 0);
+      return {
+        n: set.length,
+        accuracy: Math.round((set.filter(x=>x.finalCorrect).length / set.length) * 100),
+        avgSec: timed.length ? Math.round((timed.reduce((a,b)=>a+b.solveTimeMs,0)/timed.length)/100)/10 : null,
+        hints: Math.round((set.reduce((a,b)=>a+(b.hints||0),0) / set.length) * 10) / 10
+      };
+    };
+    const p = side(past.slice(-15)), n = side(now.slice(-15));
+    return {
+      ready:true, stage:stage, past:p, now:n,
+      accuracyDelta: n.accuracy - p.accuracy,
+      speedDelta: (p.avgSec !== null && n.avgSec !== null) ? Math.round((p.avgSec - n.avgSec) * 10) / 10 : null,
+      hintDelta: Math.round((p.hints - n.hints) * 10) / 10
+    };
+  }
+
+  /* ---------- TEACHER INTELLIGENCE ----------
+     Turns abacus evidence into observations a teacher could not otherwise
+     see. Framed as evidence about the WORK, never as judgements about the
+     child, and every line carries the sample it rests on. */
+  const AB_TEACHER_MIN = 8;
+
+  function abTeacherInsights(prof){
+    const log = (prof && prof.abacusLog) || [];
+    if(log.length < AB_TEACHER_MIN) return { ready:false, have: log.length, need: AB_TEACHER_MIN };
+    const recent = log.slice(-25);
+    const out = [];
+
+    // Accuracy rising while speed is flat is a real, actionable pattern:
+    // the method is understood, the automaticity is not there yet.
+    const half = Math.floor(recent.length / 2);
+    const older = recent.slice(0, half), newer = recent.slice(half);
+    const acc = function(set){ return Math.round((set.filter(x=>x.finalCorrect).length / set.length) * 100); };
+    const spd = function(set){
+      const t2 = set.filter(x=>x.solveTimeMs>0);
+      return t2.length ? (t2.reduce((a,b)=>a+b.solveTimeMs,0)/t2.length)/1000 : null;
+    };
+    const accGain = acc(newer) - acc(older);
+    const s1 = spd(older), s2 = spd(newer);
+    if(accGain >= 12 && s1 !== null && s2 !== null && Math.abs(s1 - s2) < 2){
+      out.push({ key:'abTeachAccNoSpeed', vars:{ n: accGain, s: s2.toFixed(1) }, sample: recent.length });
+    }
+    // Heavy reliance on the final hint means the concept is not held.
+    const fullHints = recent.filter(x => (x.hints||0) >= AB_HINT_LEVELS).length;
+    if(fullHints / recent.length >= 0.3){
+      out.push({ key:'abTeachHintReliance', vars:{ n: Math.round((fullHints/recent.length)*100) }, sample: recent.length });
+    }
+    // A specific place value failing repeatedly points at a lesson, not a child.
+    const colFails = {};
+    recent.filter(x => !x.finalCorrect && Array.isArray(x.columnsUsed)).forEach(function(x){
+      x.columnsUsed.forEach(function(c){ colFails[c] = (colFails[c] || 0) + 1; });
+    });
+    const worstCol = Object.keys(colFails).sort((a,b)=> colFails[b]-colFails[a])[0];
+    if(worstCol !== undefined && colFails[worstCol] >= 4){
+      out.push({ key:'abTeachColumn', vars:{ c: Number(worstCol) + 1, n: colFails[worstCol] }, sample: recent.length });
+    }
+    // Trial and error dominating means the method was never taught, not that
+    // the learner is careless.
+    const trial = recent.filter(x => x.strategy && x.strategy.id === 'trialAndError').length;
+    if(trial / recent.length >= 0.35){
+      out.push({ key:'abTeachTrial', vars:{ n: Math.round((trial/recent.length)*100) }, sample: recent.length });
+    }
+    // Peeking a lot at a hidden stage = promoted too early.
+    const peeks = recent.reduce((a,b)=>a+(b.peeks||0),0);
+    if(peeks >= recent.length * 0.6 && abStageOf(prof) >= 3){
+      out.push({ key:'abTeachPeeks', vars:{ n: peeks, stage: abStageOf(prof) }, sample: recent.length });
+    }
+    return { ready:true, items: out, sample: recent.length };
+  }
+
+  /* ---------- GRADED HINTS (MINIMISE COGNITIVE OFFLOADING) ----------
+     A hint system that hands over the answer teaches the learner to ask
+     instead of to think. These four levels each give strictly less help than
+     the next, and the full answer is only ever reachable after three earlier
+     attempts to think it through.
+
+     Every hint is COMPUTED from the target number — never text an author had
+     to write, and never generated, so it is always exact for any value. */
+  const AB_HINT_LEVELS = 4;
+
+  function abHintFor(level, target, rodCount){
+    if(target === null || target === undefined) return null;
+    const digits = String(Math.max(0, Math.floor(target))).padStart(rodCount, '0').split('').map(Number);
+    const nonZero = [];
+    digits.forEach(function(d, i){ if(d > 0) nonZero.push({ d: d, col: i + 1, place: rodCount - i }); });
+    const placeName = function(p){
+      return t(['abPlaceUnits','abPlaceTens','abPlaceHundreds','abPlaceThousands','abPlaceTenThousands'][p-1] || 'abPlaceUnits');
+    };
+    if(level === 1){
+      // Direction only — where to start, nothing about the value.
+      return fmt('abHint1', { n: nonZero.length });
+    }
+    if(level === 2){
+      // Structure — which places are involved, still not the digits.
+      const names = nonZero.map(function(x){ return placeName(x.place); });
+      return fmt('abHint2', { places: names.join('، ') });
+    }
+    if(level === 3){
+      // One place worked through, chosen as the first non-zero one. The rest
+      // is still the learner's to do.
+      const f = nonZero[0];
+      if(!f) return fmt('abHint3Zero', {});
+      const heaven = f.d >= 5 ? 1 : 0, earth = f.d >= 5 ? f.d - 5 : f.d;
+      return fmt('abHint3', { place: placeName(f.place), d: f.d, h: heaven, e: earth });
+    }
+    // Level 4: the full breakdown, and only after three earlier steps.
+    const parts = nonZero.map(function(x){
+      const heaven = x.d >= 5 ? 1 : 0, earth = x.d >= 5 ? x.d - 5 : x.d;
+      return fmt('abHint4Part', { place: placeName(x.place), d: x.d, h: heaven, e: earth });
+    });
+    return fmt('abHint4', { parts: parts.join(' · ') });
+  }
+  // Hints are counted per question and carried into the summary, so a
+  // solution reached with four hints is never recorded as independent work.
+  function abTakeHint(){
+    if(!abSession) return null;
+    abSession.hints = Math.min(AB_HINT_LEVELS, (abSession.hints || 0) + 1);
+    return abSession.hints;
   }
 
   /* ---------- EXPLAIN MY MOVE (METACOGNITION) ----------
@@ -14889,7 +15130,9 @@
     return ((prof && prof.abacusLog) || []).filter(x => (x.stage || 1) === stage);
   }
   function abStageStats(prof, stage){
-    const rows = abStageAttempts(prof, stage).slice(-12);
+    // An attempt that needed the full breakdown was not solved independently,
+    // so it cannot be evidence of readiness to lose the tool.
+    const rows = abStageAttempts(prof, stage).filter(x => (x.hints || 0) < AB_HINT_LEVELS).slice(-12);
     if(!rows.length) return null;
     const correct = rows.filter(x => x.finalCorrect).length;
     const timed = rows.filter(x => x.solveTimeMs > 0);
@@ -15068,6 +15311,10 @@
     abStageBadge.classList.toggle('hidden', abacusMode === 'free');
     const hidesTool = abacusMode !== 'free' && (!cfg.showAbacus || cfg.flashMs > 0);
     abacusPeekBtn.classList.toggle('hidden', !hidesTool);
+    // Hints exist only where there is a target to reason toward.
+    abacusHintBtn.classList.toggle('hidden', abacusMode !== 'set');
+    abacusHintBtn.disabled = false;
+    abacusHintBtn.textContent = t('abacusHintBtn');
   }
   function switchAbacusMode(mode){
     abacusMode = mode;
@@ -15098,6 +15345,7 @@
     }
     abPathBox.classList.add('hidden');
     abExplainBox.classList.add('hidden');
+    abHintBox.classList.add('hidden');
     abApplyStageVisibility();
     renderAbacus();
   }
@@ -15208,6 +15456,19 @@
     renderAbacusPath(summary);
     if(correct) setTimeout(()=> switchAbacusMode('read'), 2600);
   });
+  abacusHintBtn.addEventListener('click', function(){
+    const level = abTakeHint();
+    if(!level) return;
+    const text = abHintFor(level, abacusTargetValue, ABACUS_ROD_COUNT);
+    if(!text) return;
+    abHintBox.innerHTML =
+      `<div class="ab-hint-level">${fmt('abHintLevel', { n: level, total: AB_HINT_LEVELS })}</div>` +
+      `<div class="ab-hint-text">${text}</div>` +
+      (level >= AB_HINT_LEVELS ? `<div class="ab-hint-note">${t('abHintFinalNote')}</div>` : '');
+    abHintBox.classList.remove('hidden');
+    abacusHintBtn.textContent = level >= AB_HINT_LEVELS ? t('abHintExhausted') : t('abacusHintBtn');
+    abacusHintBtn.disabled = level >= AB_HINT_LEVELS;
+  });
   abacusUndoBtn.addEventListener('click', abUndo);
   // A peek is allowed but recorded. Removing the tool without any way back
   // makes a stuck learner quit; an unlimited reveal makes the stage
@@ -15294,6 +15555,8 @@
     if(summary.firstInteractionMs !== null) rows.push([t('abPathThink'), (summary.firstInteractionMs/1000).toFixed(1) + t('secLabel')]);
     rows.push([t('abPathMoves'), summary.moveCount]);
     if(summary.correctionCount) rows.push([t('abPathCorrections'), summary.correctionCount]);
+    if(summary.hints) rows.push([t('abPathHints'), summary.hints + ' / ' + AB_HINT_LEVELS]);
+    if(summary.peeks) rows.push([t('abPathPeeks'), summary.peeks]);
     if(summary.pauseCount) rows.push([t('abPathPauses'), summary.pauseCount + ' · ' + (summary.longestPauseMs/1000).toFixed(1) + t('secLabel')]);
 
     const st = summary.strategy || { id:'unclassified' };
