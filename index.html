@@ -3364,7 +3364,12 @@
     for(const k of Object.keys(PROFILES)){
       if(k === excludeStudentKey) continue;
       const p = PROFILES[k];
-      if(p.username && p.username.toLowerCase() === uname) return true;
+      // A guardian username MAY match an existing learner username: a parent
+      // who also learns here uses one identity for both. Login resolves it to
+      // the learner account, and that account reaches its children through
+      // "My children", which still demands the guardian password. Guardians
+      // must still not collide with staff accounts (checked below).
+      if(!forGuardian && p.username && p.username.toLowerCase() === uname) return true;
       if(!forGuardian && p.guardians){
         if(p.guardians.mother && p.guardians.mother.username && p.guardians.mother.username.toLowerCase() === uname) return true;
         if(p.guardians.father && p.guardians.father.username && p.guardians.father.username.toLowerCase() === uname) return true;
