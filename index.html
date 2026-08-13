@@ -2070,6 +2070,16 @@
     <button class="secondary-btn" id="synapseBackBtn" data-i18n="backBtn">رجوع</button>
   </div>
 
+  <!-- KNOWLEDGE REVIEW — spaced retrieval across all nine programs. The
+       questions are the instructor's own authored items, re-served on
+       schedule; nothing is generated here. -->
+  <div id="knowledgeReviewScreen" class="panel hidden">
+    <div class="group-label" style="text-align:center;" data-i18n="knowRevTitle">🧩 مراجعة المعرفة</div>
+    <div class="conn-note" id="knowRevProgress"></div>
+    <div id="knowRevArea"></div>
+    <button class="secondary-btn" id="knowRevBackBtn" data-i18n="closeBtn">إغلاق</button>
+  </div>
+
   <!-- ONE CHILD'S FULL FILE — opened by tapping that child's card. Shows the
        same real, already-recorded statistics that used to be crammed onto
        the list itself, with room to actually read them. -->
@@ -3067,6 +3077,10 @@
 
   const parentDashboardScreenEl = document.getElementById('parentDashboardScreen');
   const parentChildrenList = document.getElementById('parentChildrenList');
+  const knowledgeReviewScreen = document.getElementById('knowledgeReviewScreen');
+  const knowRevProgress = document.getElementById('knowRevProgress');
+  const knowRevArea = document.getElementById('knowRevArea');
+  const knowRevBackBtn = document.getElementById('knowRevBackBtn');
   const synapseScreen = document.getElementById('synapseScreen');
   const synTrajectory = document.getElementById('synTrajectory');
   const synRadarWrap = document.getElementById('synRadarWrap');
@@ -3533,6 +3547,7 @@
       // recorded behaviour. Nothing here is estimated or invented.
       reviewStats: { c:0, t:0 },   // recall: how review items actually went
       recentByBucket: {},          // rolling window of recent attempts per operation
+      knowledgeQueue: [],          // spaced retrieval for the nine programs, not just math
       twinSessions: [],            // recorded sessions, replayable as an opponent
       cogSnapshots: [],            // weekly indicator snapshots, for trajectory
       sessionLog: [], // rolling log for the weekly report: { date, score, accuracy, questionCount, operation }
@@ -3570,6 +3585,7 @@
       reviewQueue: p.reviewQueue || [],
       reviewStats: p.reviewStats || { c:0, t:0 },
       recentByBucket: p.recentByBucket || {},
+      knowledgeQueue: p.knowledgeQueue || [],
       twinSessions: p.twinSessions || [],
       cogSnapshots: p.cogSnapshots || [],
       sessionLog: p.sessionLog || [],
@@ -4095,6 +4111,17 @@
       synapseNavLabel:'سينابس', synapseSubtitle:'مختبر الذكاء والذاكرة',
       synapseRadarAria:'رسم بياني لمؤشرات أدائك التعليمية',
       synapseDisclaimer:'مؤشرات أداء تعليمي داخل المنصة، محسوبة من تدريبك الفعلي — وليست قياسًا للذكاء ولا تشخيصًا من أي نوع.',
+      knowRevTitle:'🧩 مراجعة المعرفة', knowRevDueSub:'{n} سؤال من برامجك حان موعد استرجاعه',
+      knowRevNoneDue:'لا يوجد أسئلة معرفة للمراجعة الآن',
+      knowRevAnswerFirst:'أجيبي أولًا — محاولة الاسترجاع نفسها هي ما يُثبّت المعلومة',
+      knowRevResult:'أجبتِ {c} من {n} صحيحة ({p}%)',
+      knowRevRescheduled:'الأسئلة التي أخطأتِ فيها ستعود قريبًا، والصحيحة ستعود بعد فترة أطول.',
+      wrongFeedbackShort:'إجابة غير صحيحة', nextBtn:'التالي',
+      remedTitle:'راجعي هذه الأسئلة ({n})', remedCorrectAnswer:'الإجابة الصحيحة',
+      remedScheduled:'أضفناها لمراجعتك — ستعود إليكِ بعد {d} يوم للتأكد من ثباتها.',
+      remedBackToLesson:'📘 مراجعة درس: {l}',
+      remedAllCorrect:'✓ كل إجاباتك صحيحة — سنعيد اختبارك لاحقًا للتأكد من الثبات.',
+      unkReasonKnowledge:'اخترت لكِ مراجعة معرفة: {n} سؤال من برامجك حان موعده',
       errPatternTitle:'نمط متكرر: {p} ({n}% من أخطائك)',
       errFixPlaceValueError:'خطؤك غالبًا في ترتيب المنازل لا في الحساب نفسه. اقرئي العدد بصوتٍ مسموع قبل الإجابة: كم عشرة؟ كم آحاد؟',
       errFixSignError:'انتبهي لإشارة العملية قبل الحل — ضعي إصبعك عليها وقوليها بصوتك: جمع أم طرح؟',
@@ -4302,6 +4329,11 @@
       lpSyncArchiveFailed:'تعذّر الأرشفة على الخادم. حاول مرة أخرى.',
       lpSyncRestoreFailed:'تعذّرت الاستعادة من الخادم. حاول مرة أخرى.',
       lpSyncProgressFailed:'تعذّرت مزامنة تقدّمك مع الخادم. حاول مرة أخرى.',
+      knowRevAnswerFirst:'أجب أولًا — محاولة الاسترجاع نفسها هي ما يُثبّت المعلومة',
+      remedTitle:'راجع هذه الأسئلة ({n})', remedBackToLesson:'📘 مراجعة درس: {l}',
+      remedAllCorrect:'✓ كل إجاباتك صحيحة — سنعيد اختبارك لاحقًا للتأكد من الثبات.',
+      remedScheduled:'أضفناها لمراجعتك — ستعود إليك بعد {d} يوم للتأكد من ثباتها.',
+      unkReasonKnowledge:'اخترت لك مراجعة معرفة: {n} سؤال من برامجك حان موعده',
       errFixPlaceValueError:'خطؤك غالبًا في ترتيب المنازل لا في الحساب نفسه. اقرأ العدد بصوتٍ مسموع قبل الإجابة: كم عشرة؟ كم آحاد؟',
       errFixSignError:'انتبه لإشارة العملية قبل الحل — ضع إصبعك عليها وقلها بصوتك: جمع أم طرح؟',
       errFixCarrySlip:'إجاباتك قريبة جدًا من الصحيح — الخلل في خطوة الحمل. أعد التحقق من آخر خانة فقط قبل التأكيد.',
@@ -4621,6 +4653,17 @@
       synapseNavLabel:'Synapse', synapseSubtitle:'Your intelligence & memory lab',
       synapseRadarAria:'Chart of your learning performance indicators',
       synapseDisclaimer:'In-platform learning performance indicators computed from your own practice — not an intelligence measure and not a diagnosis of any kind.',
+      knowRevTitle:'🧩 Knowledge review', knowRevDueSub:'{n} question(s) from your programs are due',
+      knowRevNoneDue:'No knowledge questions due right now',
+      knowRevAnswerFirst:'Answer first — the retrieval attempt itself is what makes it stick',
+      knowRevResult:'You got {c} of {n} right ({p}%)',
+      knowRevRescheduled:'Questions you missed will return soon; the ones you got right return after a longer gap.',
+      wrongFeedbackShort:'Incorrect', nextBtn:'Next',
+      remedTitle:'Review these questions ({n})', remedCorrectAnswer:'Correct answer',
+      remedScheduled:'Added to your review — they will come back in {d} days to confirm they stuck.',
+      remedBackToLesson:'📘 Review lesson: {l}',
+      remedAllCorrect:'✓ All correct — we will test you again later to confirm it holds.',
+      unkReasonKnowledge:'Picked knowledge review: {n} question(s) from your programs are due',
       errPatternTitle:'Recurring pattern: {p} ({n}% of your mistakes)',
       errFixPlaceValueError:'Your slips are about digit position, not the arithmetic. Read the number aloud first: how many tens? how many units?',
       errFixSignError:'Check the operation sign before solving — point at it and say it out loud: add or subtract?',
@@ -5289,6 +5332,7 @@
     abacusTrainerEl.classList.add('hidden');
     childDetailScreen.classList.add('hidden');
     synapseScreen.classList.add('hidden');
+    knowledgeReviewScreen.classList.add('hidden');
     parentDashboardScreenEl.classList.add('hidden');
   }
   function hideTeacherShellScreens(){
@@ -5316,9 +5360,12 @@
     }
 
     const due = reviewDueItems(p).length;
+    pruneKnowledgeQueue(p);
+    const knowDue = knowledgeDueItems(p).length;
     const twinReady = !!findTwinOpponent(p);
     synapseGateSub.textContent = due ? fmt('synGateDue', { n: due })
-      : (twinReady ? t('synGateTwin') : t('synapseSubtitle'));
+      : (knowDue ? fmt('knowRevDueSub', { n: knowDue })
+      : (twinReady ? t('synGateTwin') : t('synapseSubtitle')));
 
     // real Sprint-1 programs, rendered as additional cards before the "coming soon" placeholders
     renderRealProgramCards();
@@ -5456,6 +5503,7 @@
     friendProfileScreen.classList.add('hidden');
     guardianAuditScreen.classList.add('hidden');
     synapseScreen.classList.add('hidden');
+    knowledgeReviewScreen.classList.add('hidden');
     parentDashboardScreenEl.classList.add('hidden');
     childDetailScreen.classList.add('hidden');
     parentDashboardBackBtn.classList.add('hidden');
@@ -9365,13 +9413,49 @@
         }
         lpUpdateEnrollmentActivity(currentProfile, ppProgram.id);
         const expiredNote = timeExpired ? `<div class="conn-note">${t('ppTimeExpiredNote')}</div>` : '';
+
+        // REMEDIATION LOOP — a score on its own teaches nothing. Every missed
+        // question is shown with its correct answer, linked back to the lesson
+        // it came from, and scheduled to return days later. Passing an
+        // assessment once is a snapshot; meeting it again is learning.
+        const submitted = collectAnswers();
+        const prof = PROFILES[currentProfile];
+        const missed = [];
+        assessment.questions.forEach(function(q, i){
+          if(lpScoreQuestion(q, submitted[i])) return;
+          missed.push({ q: q, i: i });
+          if(prof) scheduleKnowledgeReview(prof, assessment.id, i, ppLesson ? ppLesson.id : null, ppProgram ? ppProgram.id : null);
+        });
+        if(prof && missed.length) saveProfilesToStorage();
+
+        const answerTextOf = function(q){
+          if(q.type === 'mcq') return q.options[q.correctIndex];
+          if(q.type === 'truefalse') return q.correctAnswer ? t('pbTrueLabel') : t('pbFalseLabel');
+          return q.correctAnswer;
+        };
+        const remediation = missed.length ? `
+          <div class="mystats-section" style="margin-top:14px;">
+            <h4>${fmt('remedTitle', { n: missed.length })}</h4>
+            ${missed.map(function(m){
+              return `<div class="lp-question-block">
+                <b>${m.q.text}</b>
+                <div class="strategy-step" style="margin-top:6px;"><span class="strategy-num">${nxIcon('check')}</span><span>${t('remedCorrectAnswer')}: <b>${answerTextOf(m.q)}</b></span></div>
+              </div>`;
+            }).join('')}
+            <div class="conn-note" style="margin-top:8px;">${fmt('remedScheduled', { d: KNOWLEDGE_INTERVALS_DAYS[0] })}</div>
+            ${ppLesson ? `<button class="secondary-btn" id="ppReviewLessonBtn" style="margin-top:8px;">${fmt('remedBackToLesson', { l: ppLesson.title })}</button>` : ''}
+          </div>` : `<div class="conn-note" style="margin-top:12px;">${t('remedAllCorrect')}</div>`;
+
         ppContentArea.innerHTML = `
           ${expiredNote}
           <div class="cert-verify-result ${attempt.passed ? 'valid' : 'invalid'}">
             <div class="cvr-row"><b>${attempt.passed ? nxIcon('check') : nxIcon('x')} ${fmt('ppScoreResult', { score: attempt.score })}</b></div>
           </div>
-          <button class="secondary-btn" id="ppBackToLessonBtn">${t('closeBtn')}</button>`;
+          ${remediation}
+          <button class="secondary-btn" id="ppBackToLessonBtn" style="margin-top:8px;">${t('closeBtn')}</button>`;
         showToast(fmt('toastAssessmentResult', { score: attempt.score }), attempt.passed ? nxIcon('check') : nxIcon('clipboard'), 'learning');
+        const revBtn = document.getElementById('ppReviewLessonBtn');
+        if(revBtn) revBtn.addEventListener('click', ()=> ppNavigate('lesson', ppCourse, ppModule, ppLesson));
         document.getElementById('ppBackToLessonBtn').addEventListener('click', ()=> ppNavigate('lesson', ppCourse, ppModule, ppLesson));
       }
       document.getElementById('ppSubmitAssessmentBtn').addEventListener('click', ()=> finishAssessment(false));
@@ -10878,6 +10962,9 @@
   function pickUnknownChallenge(prof){
     const due = reviewDueItems(prof).length;
     if(due >= 3) return { kind:'review', reason: fmt('unkReasonReview', { n: due }) };
+    pruneKnowledgeQueue(prof);
+    const knowDue = knowledgeDueItems(prof).length;
+    if(knowDue >= 3) return { kind:'knowledge', reason: fmt('unkReasonKnowledge', { n: knowDue }) };
     // A dominant error pattern outranks a merely weak operation: fixing HOW
     // they go wrong helps more than drilling WHERE they go wrong.
     const dom = dominantErrorPattern(prof);
@@ -10906,6 +10993,7 @@
     const pick = pickUnknownChallenge(prof);
     showToast(pick.reason, nxIcon('lightbulb'), 'learning');
     if(pick.kind === 'review'){ synapseScreen.classList.add('hidden'); startReviewSession(); return; }
+    if(pick.kind === 'knowledge'){ synapseScreen.classList.add('hidden'); startKnowledgeReview(); return; }
     if(['add','sub','mul','div','percent','exponent','sqrt','numberRecognition'].includes(pick.bucket)){
       selectChip(opChips, 'op', pick.bucket, v=>op=v);
       updateTableFocusVisibility();
@@ -10923,6 +11011,8 @@
     const twin = findTwinOpponent(prof);
     const wait = daysUntilTwinReady(prof);
     const due = reviewDueItems(prof).length;
+    pruneKnowledgeQueue(prof);
+    const knowDue = knowledgeDueItems(prof).length;
     const twinSub = twin
       ? fmt('synTwinReady', { d: new Date(twin.date).toLocaleDateString(currentLang === 'ar' ? 'ar-EG' : 'en-US'), n: twin.answers.length })
       : (wait ? fmt('synTwinWait', { n: wait }) : t('synTwinNone'));
@@ -10935,6 +11025,10 @@
         <span class="syn-action-ic">${nxIcon('target')}</span>
         <span class="syn-action-txt"><span class="syn-action-title">${t('synUnknownTitle')}</span>
         <span class="syn-action-sub">${t('synUnknownSub')}</span></span></button>
+      <button type="button" class="syn-action" id="synKnowRevBtn" ${knowDue ? '' : 'disabled'}>
+        <span class="syn-action-ic">${nxIcon('bookOpen')}</span>
+        <span class="syn-action-txt"><span class="syn-action-title">${t('knowRevTitle')}</span>
+        <span class="syn-action-sub">${knowDue ? fmt('knowRevDueSub', { n: knowDue }) : t('knowRevNoneDue')}</span></span></button>
       <button type="button" class="syn-action" id="synReviewBtn" ${due ? '' : 'disabled'}>
         <span class="syn-action-ic">${nxIcon('refresh')}</span>
         <span class="syn-action-txt"><span class="syn-action-title">${t('reviewCtaTitle')}</span>
@@ -10944,7 +11038,111 @@
     document.getElementById('synUnknownBtn').addEventListener('click', runUnknownChallenge);
     const rb = document.getElementById('synReviewBtn');
     if(due) rb.addEventListener('click', ()=>{ synapseScreen.classList.add('hidden'); startReviewSession(); });
+    const kb = document.getElementById('synKnowRevBtn');
+    if(knowDue) kb.addEventListener('click', ()=>{ synapseScreen.classList.add('hidden'); startKnowledgeReview(); });
   }
+
+  /* ---------- KNOWLEDGE REVIEW SESSION ----------
+     Re-serves real authored questions from any program on their due date,
+     grades them with the SAME scorer used in the original assessment
+     (lpScoreQuestion), and feeds the result back into the schedule. */
+  let knowRevQueue = [], knowRevIndex = 0, knowRevCorrect = 0;
+
+  function startKnowledgeReview(){
+    const prof = PROFILES[currentProfile];
+    if(!prof) return;
+    pruneKnowledgeQueue(prof);
+    const due = knowledgeDueItems(prof)
+      .map(resolveKnowledgeItem).filter(Boolean)
+      .sort((a,b)=> new Date(a.item.dueAt) - new Date(b.item.dueAt))
+      .slice(0, 15);
+    if(!due.length){ showToast(t('knowRevNoneDue'), nxIcon('check'), 'learning'); return; }
+    knowRevQueue = due; knowRevIndex = 0; knowRevCorrect = 0;
+    hideLearnerShellScreens();
+    knowledgeReviewScreen.classList.remove('hidden');
+    renderKnowledgeQuestion();
+  }
+  function renderKnowledgeQuestion(){
+    if(knowRevIndex >= knowRevQueue.length){ renderKnowledgeSummary(); return; }
+    const entry = knowRevQueue[knowRevIndex];
+    const q = entry.question;
+    knowRevProgress.textContent = fmt('questionOf', { n: knowRevIndex + 1, total: knowRevQueue.length });
+    let inputHtml = '';
+    if(q.type === 'mcq'){
+      inputHtml = q.options.map((opt, oi)=>
+        `<div style="margin-top:7px;"><label><input type="radio" name="krq" value="${oi}"> ${opt}</label></div>`).join('');
+    } else if(q.type === 'truefalse'){
+      inputHtml = `<div style="margin-top:7px;"><label><input type="radio" name="krq" value="true"> ${t('pbTrueLabel')}</label></div>
+                   <div style="margin-top:7px;"><label><input type="radio" name="krq" value="false"> ${t('pbFalseLabel')}</label></div>`;
+    } else {
+      inputHtml = `<input type="text" id="krShortAnswer" style="margin-top:8px; width:100%; padding:10px; border-radius:8px; border:1.5px solid var(--input-border); background:var(--input-bg); color:var(--ink);">`;
+    }
+    const source = entry.lesson ? `<div class="lp-row-sub" style="margin-bottom:8px;">${nxIcon('bookOpen')} ${entry.lesson.title}</div>` : '';
+    knowRevArea.innerHTML = `
+      <div class="review-badge"><span>${t('reviewBadgeLabel')}</span></div>
+      ${source}
+      <div class="lp-question-block"><b>${q.text}</b>${inputHtml}</div>
+      <div class="feedback" id="krFeedback" style="min-height:22px;"></div>
+      <div id="krExplain"></div>
+      <button class="start-btn" id="krSubmitBtn">${t('submitBtn')}</button>`;
+    document.getElementById('krSubmitBtn').addEventListener('click', submitKnowledgeAnswer);
+  }
+  function collectKnowledgeAnswer(q){
+    if(q.type === 'mcq'){
+      const sel = document.querySelector('input[name="krq"]:checked');
+      return sel ? parseInt(sel.value, 10) : -1;
+    }
+    if(q.type === 'truefalse'){
+      const sel = document.querySelector('input[name="krq"]:checked');
+      return sel ? sel.value === 'true' : null;
+    }
+    const el = document.getElementById('krShortAnswer');
+    return el ? el.value : '';
+  }
+  function submitKnowledgeAnswer(){
+    const entry = knowRevQueue[knowRevIndex];
+    const q = entry.question;
+    const given = collectKnowledgeAnswer(q);
+    // Require an actual answer before revealing anything — otherwise the
+    // retrieval attempt never happened, and that is the part that teaches.
+    const empty = (q.type === 'shortanswer') ? !String(given).trim() : (given === null || given === -1);
+    const fb = document.getElementById('krFeedback');
+    if(empty){ fb.className = 'feedback wrong'; fb.textContent = t('knowRevAnswerFirst'); return; }
+
+    const correct = lpScoreQuestion(q, given);
+    if(correct) knowRevCorrect++;
+    const prof = PROFILES[currentProfile];
+    if(prof){ recordKnowledgeOutcome(prof, entry.item.key, correct); saveProfilesToStorage(); }
+
+    fb.className = 'feedback ' + (correct ? 'correct' : 'wrong');
+    fb.textContent = correct ? t('correctFeedback') : t('wrongFeedbackShort');
+    if(!correct){
+      const answerText = q.type === 'mcq' ? q.options[q.correctIndex]
+        : (q.type === 'truefalse' ? (q.correctAnswer ? t('pbTrueLabel') : t('pbFalseLabel')) : q.correctAnswer);
+      document.getElementById('krExplain').innerHTML =
+        `<div class="strategy-box"><div class="strategy-step"><span class="strategy-num">${nxIcon('check')}</span><span>${t('remedCorrectAnswer')}: <b>${answerText}</b></span></div></div>`;
+    }
+    const btn = document.getElementById('krSubmitBtn');
+    btn.textContent = t('nextBtn');
+    btn.replaceWith(btn.cloneNode(true)); // drop the submit handler cleanly
+    document.getElementById('krSubmitBtn').addEventListener('click', function(){
+      knowRevIndex++; renderKnowledgeQuestion();
+    });
+  }
+  function renderKnowledgeSummary(){
+    const pct = knowRevQueue.length ? Math.round((knowRevCorrect / knowRevQueue.length) * 100) : 0;
+    knowRevProgress.textContent = '';
+    knowRevArea.innerHTML = `
+      <div class="cert-verify-result ${pct >= 60 ? 'valid' : 'invalid'}">
+        <div class="cvr-row"><b>${fmt('knowRevResult', { c: knowRevCorrect, n: knowRevQueue.length, p: pct })}</b></div>
+      </div>
+      <div class="conn-note" style="margin-top:8px;">${t('knowRevRescheduled')}</div>`;
+    if(typeof renderReviewCta === 'function') renderReviewCta();
+  }
+  knowRevBackBtn.addEventListener('click', ()=>{
+    knowledgeReviewScreen.classList.add('hidden');
+    showProgramsHub();
+  });
 
   /* ---------- the twin match ---------- */
   let twinMatchActive = false;
@@ -10997,6 +11195,66 @@
   }
 
   /* ==================== END MODULE: NEXORA SYNAPSE ==================== */
+
+  /* ==================== MODULE: KNOWLEDGE RETENTION ====================
+     The nine programs had no retention mechanism at all: a learner could
+     pass an English or Programming assessment and never meet that content
+     again. Passing once is not learning — it is a snapshot.
+
+     This applies the same spaced-retrieval principle already used for
+     mental math, but to real assessment questions from any program. The
+     questions are the instructor's own authored items, re-served from the
+     Assessments store — nothing here is generated or invented. */
+  const KNOWLEDGE_INTERVALS_DAYS = [2, 6, 15, 40];
+
+  function knowledgeQueueOf(prof){
+    if(!prof.knowledgeQueue) prof.knowledgeQueue = [];
+    return prof.knowledgeQueue;
+  }
+  function knowledgeDueItems(prof){
+    const nowMs = Date.now();
+    return knowledgeQueueOf(prof).filter(it => !it.cleared && new Date(it.dueAt).getTime() <= nowMs);
+  }
+  function scheduleKnowledgeReview(prof, assessmentId, qIndex, lessonId, programId){
+    if(!prof || !assessmentId) return;
+    const q = knowledgeQueueOf(prof);
+    const key = assessmentId + '#' + qIndex;
+    const dueAt = new Date(Date.now() + KNOWLEDGE_INTERVALS_DAYS[0] * 86400000).toISOString();
+    const existing = q.find(it => it.key === key);
+    if(existing){ existing.box = 0; existing.dueAt = dueAt; existing.cleared = false; return; }
+    q.push({ key: key, assessmentId: assessmentId, qIndex: qIndex, lessonId: lessonId || null,
+             programId: programId || null, box: 0, dueAt: dueAt, seen: 0, cleared: false });
+    if(q.length > 200) q.shift();
+  }
+  function recordKnowledgeOutcome(prof, key, wasCorrect){
+    const it = knowledgeQueueOf(prof).find(x => x.key === key);
+    if(!it) return;
+    it.seen = (it.seen || 0) + 1;
+    if(wasCorrect){
+      it.box = (it.box || 0) + 1;
+      if(it.box >= KNOWLEDGE_INTERVALS_DAYS.length) it.cleared = true;
+      else it.dueAt = new Date(Date.now() + KNOWLEDGE_INTERVALS_DAYS[it.box] * 86400000).toISOString();
+    } else {
+      it.box = 0;
+      it.dueAt = new Date(Date.now() + KNOWLEDGE_INTERVALS_DAYS[0] * 86400000).toISOString();
+    }
+  }
+  // Resolves a queued item back to the real, still-existing question. If the
+  // instructor deleted or archived it, the item is dropped rather than shown
+  // as a broken card.
+  function resolveKnowledgeItem(it){
+    const a = lpLoad(LP_KEYS.ASSESSMENTS).find(x => x.id === it.assessmentId);
+    if(!a || a.archived) return null;
+    const q = (a.questions || [])[it.qIndex];
+    if(!q) return null;
+    const lesson = lpLoad(LP_KEYS.LESSONS).find(l => l.id === (it.lessonId || a.lessonId));
+    return { item: it, question: q, assessment: a, lesson: lesson || null };
+  }
+  function pruneKnowledgeQueue(prof){
+    const q = knowledgeQueueOf(prof);
+    const kept = q.filter(it => it.cleared || resolveKnowledgeItem(it));
+    if(kept.length !== q.length) prof.knowledgeQueue = kept;
+  }
 
   /* ==================== MODULE: ERROR-PATTERN INTERVENTION ====================
      The app already classifies WHY an answer was wrong (place value, sign,
