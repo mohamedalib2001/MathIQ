@@ -1218,196 +1218,251 @@
   .guardian-box input.ltr-input{ direction:ltr; text-align:left; }
   .guardian-box .clear-guardian{ font-size:11px; color:var(--coral); text-decoration:underline; cursor:pointer; }
 
-  /* ---------- MEMBERSHIP CARD — STATE-DOCUMENT GRADE ----------
-     The reference is a head-of-state credential, not a bank card: a raised
-     seal, a central crest, engraved rosettes, a rank line, and a serial
-     block. Two rules constrain it:
+  /* ---------- NOVA — ASSISTANT PRESENCE ----------
+     A designed presence rather than an imitation of a face. Apple and Google
+     both settled on this for the same reason: a stylised form can be rendered
+     perfectly at any size, while a near-human face that is slightly wrong
+     reads as unsettling. The orb states — idle, listening, thinking, speaking
+     — are each visually distinct, so the learner always knows what it is
+     doing without reading a word. */
+  .nova-fab{
+    position:fixed; inset-inline-end:18px; bottom:calc(84px + env(safe-area-inset-bottom));
+    width:56px; height:56px; border-radius:50%; z-index:640; cursor:pointer;
+    border:1.5px solid rgba(99,102,241,0.5); background:var(--input-bg);
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 10px 28px rgba(0,0,0,0.42);
+  }
+  @media (min-width:1024px){ .nova-fab{ bottom:22px; } }
+  .nova-fab-core{
+    width:22px; height:22px; border-radius:50%;
+    background:linear-gradient(145deg,#6366F1,#06B6D4);
+    box-shadow:0 0 14px rgba(99,102,241,0.75);
+  }
+  .nova-fab-ring{
+    position:absolute; inset:5px; border-radius:50%;
+    border:1.5px solid rgba(6,182,212,0.45);
+  }
+  @media (prefers-reduced-motion: no-preference){
+    .nova-fab-ring{ animation:nova-pulse 3.4s ease-in-out infinite; }
+    .nova-fab-core{ animation:nova-breathe 3.4s ease-in-out infinite; }
+  }
+  @keyframes nova-pulse{ 0%,100%{ transform:scale(1); opacity:.75; } 50%{ transform:scale(1.16); opacity:.25; } }
+  @keyframes nova-breathe{ 0%,100%{ transform:scale(1); } 50%{ transform:scale(1.1); } }
 
-     1. Nothing gendered. This card is carried by girls, women, boys and men,
-        and a card that signals gender stops signalling standing. Distinction
-        comes from the tier the member EARNED, which drives the metal.
-     2. No real state iconography and no borrowed authority. The academy is
-        not a government; imitating a national emblem would be a false claim.
-        We borrow the visual GRAMMAR of official documents — seal, guilloche,
-        engraved rank, serial — and issue it in the academy's own name.
+  #novaPanel{
+    position:fixed; inset:0; z-index:900; display:flex; align-items:flex-end; justify-content:center;
+    background:rgba(0,0,0,0.55); padding:0;
+  }
+  @media (min-width:700px){ #novaPanel{ align-items:center; padding:20px; } }
+  .nova-sheet{
+    width:100%; max-width:520px; max-height:86vh; display:flex; flex-direction:column;
+    background:var(--bg); border:1.5px solid var(--chip-border);
+    border-radius:20px 20px 0 0; overflow:hidden;
+    box-shadow:0 -10px 44px rgba(0,0,0,0.5);
+  }
+  @media (min-width:700px){ .nova-sheet{ border-radius:20px; } }
+  .nova-head{
+    display:flex; align-items:center; gap:12px; padding:14px 16px;
+    border-bottom:1px solid var(--chip-border);
+    background:radial-gradient(120% 140% at 100% 0%, rgba(99,102,241,0.16), transparent 62%);
+  }
+  .nova-orb{ position:relative; width:46px; height:46px; flex:none; display:flex; align-items:center; justify-content:center; }
+  .nova-orb-glow{
+    position:absolute; inset:0; border-radius:50%;
+    background:linear-gradient(145deg, rgba(99,102,241,0.5), rgba(6,182,212,0.25));
+    filter:blur(6px); opacity:.85;
+  }
+  .nova-orb-core{
+    position:relative; width:26px; height:26px; border-radius:50%;
+    background:linear-gradient(145deg,#818CF8,#06B6D4);
+    box-shadow:0 0 16px rgba(99,102,241,0.9), 0 1px 0 rgba(255,255,255,0.5) inset;
+    transition:transform .25s ease;
+  }
+  /* Listening: the orb opens up and the ring widens — it is receiving. */
+  .nova-orb.listening .nova-orb-core{ transform:scale(1.25); background:linear-gradient(145deg,#34D399,#06B6D4); }
+  .nova-orb.listening .nova-orb-glow{ background:linear-gradient(145deg, rgba(52,211,153,0.6), rgba(6,182,212,0.3)); }
+  /* Thinking: it contracts and dims — energy is going inward. */
+  .nova-orb.thinking .nova-orb-core{ transform:scale(0.8); }
+  @media (prefers-reduced-motion: no-preference){
+    .nova-orb.thinking .nova-orb-core{ animation:nova-think 1.1s ease-in-out infinite; }
+  }
+  @keyframes nova-think{ 0%,100%{ transform:scale(0.8); opacity:.65; } 50%{ transform:scale(1.02); opacity:1; } }
+  /* Speaking: the core hides and real waveform bars take over. */
+  .nova-orb.speaking .nova-orb-core{ opacity:0; }
+  .nova-wave{ position:absolute; inset:0; display:none; align-items:center; justify-content:center; gap:2px; }
+  .nova-orb.speaking .nova-wave{ display:flex; }
+  .nova-wave i{
+    width:2.5px; height:8px; border-radius:2px; display:block;
+    background:linear-gradient(180deg,#818CF8,#06B6D4);
+  }
+  @media (prefers-reduced-motion: no-preference){
+    .nova-orb.speaking .nova-wave i{ animation:nova-bar .62s ease-in-out infinite; }
+    .nova-wave i:nth-child(1){ animation-delay:0s }   .nova-wave i:nth-child(2){ animation-delay:.09s }
+    .nova-wave i:nth-child(3){ animation-delay:.18s } .nova-wave i:nth-child(4){ animation-delay:.27s }
+    .nova-wave i:nth-child(5){ animation-delay:.36s } .nova-wave i:nth-child(6){ animation-delay:.45s }
+    .nova-wave i:nth-child(7){ animation-delay:.54s }
+  }
+  @keyframes nova-bar{ 0%,100%{ height:6px; opacity:.55 } 50%{ height:22px; opacity:1 } }
 
-     Everything here is html2canvas-safe: linear and repeating-linear
-     gradients only. conic/radial gradients and background-clip:text
-     rasterise as blanks, which is how the certificate broke before. */
-  .mc-stage{ perspective:1700px; display:flex; justify-content:center; margin:16px 0 20px; }
+  .nova-id{ flex:1; min-width:0; }
+  .nova-name{ font-family:'Cairo',sans-serif; font-weight:800; font-size:16px; color:var(--ink); }
+  .nova-state{ font-size:11px; color:var(--ink-dim); margin-top:2px; min-height:15px; }
+  .nova-close{
+    background:none; border:none; color:var(--ink-dim); font-size:18px; cursor:pointer;
+    width:34px; height:34px; border-radius:8px; flex:none;
+  }
+  .nova-log{ flex:1; overflow-y:auto; padding:14px 16px; display:flex; flex-direction:column; gap:10px; min-height:180px; }
+  .nova-msg{ max-width:86%; font-size:13.5px; line-height:1.75; padding:10px 13px; border-radius:14px; }
+  .nova-msg.from-nova{ align-self:flex-start; background:var(--input-bg); border:1px solid var(--chip-border); color:var(--ink); border-bottom-inline-start-radius:4px; }
+  .nova-msg.from-user{ align-self:flex-end; background:linear-gradient(145deg,#6366F1,#4F46E5); color:#fff; }
+  .nova-msg .nova-action{
+    display:block; margin-top:8px; font-size:12px; font-weight:700; color:var(--yellow);
+    background:var(--bg); border:1px solid var(--chip-border); border-radius:9px;
+    padding:7px 11px; cursor:pointer; text-align:start; width:100%;
+  }
+  .nova-chips{ display:flex; gap:6px; flex-wrap:wrap; padding:0 16px 10px; }
+  .nova-chip{
+    font-size:11.5px; padding:6px 11px; border-radius:20px; cursor:pointer;
+    background:var(--input-bg); border:1px solid var(--chip-border); color:var(--ink-dim);
+  }
+  .nova-chip:hover{ border-color:var(--yellow); color:var(--ink); }
+  .nova-input-row{ display:flex; gap:8px; padding:10px 14px; border-top:1px solid var(--chip-border); align-items:center; }
+  .nova-input-row input{ flex:1; margin:0; }
+  .nova-mic, .nova-send{
+    width:42px; height:42px; border-radius:50%; flex:none; cursor:pointer;
+    border:1.5px solid var(--input-border); background:var(--input-bg); color:var(--ink);
+    font-size:17px; display:flex; align-items:center; justify-content:center;
+  }
+  .nova-mic::before{ content:"🎤"; }
+  .nova-mic.recording{ border-color:#EF4444; background:rgba(239,68,68,0.14); }
+  @media (prefers-reduced-motion: no-preference){
+    .nova-mic.recording{ animation:nova-rec 1s ease-in-out infinite; }
+  }
+  @keyframes nova-rec{ 0%,100%{ box-shadow:0 0 0 0 rgba(239,68,68,0.5) } 50%{ box-shadow:0 0 0 8px rgba(239,68,68,0) } }
+  .nova-mic.unsupported{ opacity:0.4; cursor:not-allowed; }
+  .nova-foot{ padding:0 16px 12px; display:flex; flex-direction:column; gap:5px; }
+  .nova-voice-toggle{ display:flex; align-items:center; gap:6px; font-size:11.5px; color:var(--ink-dim); cursor:pointer; }
+  .nova-disclaimer{ font-size:10px; color:var(--ink-dim); opacity:0.75; line-height:1.6; }
+
+  /* ---------- MEMBERSHIP CARD ----------
+     This is the original, restrained version. A later revision added a large
+     wax seal, a four-way guilloche, an authority band and a serial strip in
+     pursuit of a "head of state" look — and every one of those additions took
+     space from the name, which is the only thing on a membership card that
+     genuinely matters. Restraint is what reads as expensive; volume reads as
+     busy. Kept deliberately as it was.
+
+     Every effect is html2canvas-safe: linear and repeating-linear gradients
+     only. conic/radial gradients and background-clip:text rasterise as blanks,
+     which is how the certificate broke before. */
+  .mc-stage{ perspective:1400px; display:flex; justify-content:center; margin:14px 0 18px; }
   .mc-card{
-    position:relative; width:352px; height:222px;
-    transform-style:preserve-3d; transition:transform .8s cubic-bezier(.2,.85,.2,1);
+    position:relative; width:340px; height:214px; /* ISO 7810 ID-1 ratio, 1.586 */
+    transform-style:preserve-3d; transition:transform .7s cubic-bezier(.2,.8,.2,1);
     cursor:pointer;
   }
   .mc-card.flipped{ transform:rotateY(180deg); }
   .mc-face{
-    position:absolute; inset:0; border-radius:14px; overflow:hidden;
+    position:absolute; inset:0; border-radius:16px; overflow:hidden;
     backface-visibility:hidden; -webkit-backface-visibility:hidden;
-    box-sizing:border-box; direction:rtl; unicode-bidi:plaintext;
-    box-shadow:0 26px 60px rgba(0,0,0,0.62), 0 1px 0 rgba(255,255,255,0.09) inset;
+    box-shadow:0 18px 40px rgba(0,0,0,0.42); box-sizing:border-box;
+    direction:rtl; unicode-bidi:plaintext;
   }
-  /* Deep navy-obsidian: the colour of a diplomatic passport, not a bank card. */
   .mc-front{
-    padding:0; border:1px solid var(--mc-metal-dim);
-    background:linear-gradient(163deg, #101d33 0%, #0a1424 42%, #050a14 100%);
-    display:flex; flex-direction:column;
+    padding:16px 18px;
+    background:linear-gradient(150deg, #123a2c 0%, #14402f 45%, #0b1f19 100%);
+    border:1px solid rgba(201,162,39,0.45);
+    display:flex; flex-direction:column; justify-content:space-between;
   }
   .mc-back{
-    transform:rotateY(180deg); border:1px solid var(--mc-metal-dim);
-    background:linear-gradient(163deg, #050a14 0%, #0a1424 58%, #101d33 100%);
-    padding:0 0 6px; display:flex; flex-direction:column;
+    transform:rotateY(180deg);
+    background:linear-gradient(150deg, #0b1f19, #14402f);
+    border:1px solid rgba(201,162,39,0.45);
+    padding:0 0 12px; display:flex; flex-direction:column;
   }
-  .mc-card[data-tier="GOLD"]{   --mc-metal:#f0d180; --mc-metal-2:#a3801c; --mc-metal-dim:rgba(240,209,128,0.55); --mc-ink:#1a1206; }
-  .mc-card[data-tier="SILVER"]{ --mc-metal:#e8eef3; --mc-metal-2:#8d9ba6; --mc-metal-dim:rgba(232,238,243,0.42); --mc-ink:#111a22; }
-  .mc-card[data-tier="MEMBER"]{ --mc-metal:#d8cba4; --mc-metal-2:#8a7c52; --mc-metal-dim:rgba(216,203,164,0.38); --mc-ink:#161207; }
+  /* Tier sets the metal — nothing on this card varies by gender. It is
+     carried by girls, women, boys and men, and a card that signals gender
+     stops signalling standing. */
+  .mc-card[data-tier="GOLD"]{   --mc-metal:#e7c468; --mc-metal-2:#a8861d; --mc-ink:#0f2b22; }
+  .mc-card[data-tier="SILVER"]{ --mc-metal:#dfe6ea; --mc-metal-2:#93a3ad; --mc-ink:#16241f; }
+  .mc-card[data-tier="MEMBER"]{ --mc-metal:#cbbf9a; --mc-metal-2:#8d8460; --mc-ink:#16241f; }
 
-  /* Engine-turned ground, four rulings — denser and finer than a bank card. */
+  /* Two rulings at 0.10 opacity — a texture you feel rather than see. The
+     four-way version at 0.16 turned into visual noise that drowned the name. */
   .mc-guilloche{
-    position:absolute; inset:0; pointer-events:none; opacity:0.14; z-index:1;
+    position:absolute; inset:0; opacity:0.10; pointer-events:none;
     background-image:
-      repeating-linear-gradient(107deg, var(--mc-metal) 0 0.5px, transparent 0.5px 5px),
-      repeating-linear-gradient(73deg,  var(--mc-metal) 0 0.5px, transparent 0.5px 7px),
-      repeating-linear-gradient(31deg,  var(--mc-metal) 0 0.4px, transparent 0.4px 11px),
-      repeating-linear-gradient(0deg,   var(--mc-metal) 0 0.4px, transparent 0.4px 13px);
-  }
-  /* Triple rule: outer bead, engraved channel, inner hairline. */
-  .mc-frame{
-    position:absolute; inset:5px; border-radius:10px; pointer-events:none; z-index:2;
-    border:1.5px solid var(--mc-metal-dim);
-    box-shadow:
-      0 0 0 1px rgba(0,0,0,0.55) inset,
-      0 0 0 2.5px rgba(255,255,255,0.05) inset,
-      0 0 0 4px rgba(0,0,0,0.35) inset;
+      repeating-linear-gradient(115deg, var(--mc-metal, #c9a227) 0 1px, transparent 1px 7px),
+      repeating-linear-gradient(65deg,  var(--mc-metal, #c9a227) 0 0.5px, transparent 0.5px 11px);
   }
   .mc-shimmer{
-    position:absolute; inset:0; pointer-events:none; z-index:6;
-    background:linear-gradient(107deg, transparent 33%, rgba(255,255,255,0.24) 46%, rgba(255,255,255,0.06) 52%, transparent 65%);
-    transform:translateX(-115%);
+    position:absolute; inset:0; pointer-events:none;
+    background:linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.16) 48%, transparent 62%);
+    transform:translateX(-100%);
   }
   @media (prefers-reduced-motion: no-preference){
-    .mc-shimmer{ animation:mc-sheen 7s ease-in-out infinite; }
+    .mc-shimmer{ animation:mc-sheen 5.5s ease-in-out infinite; }
   }
-  @keyframes mc-sheen{ 0%,76%{ transform:translateX(-115%);} 100%{ transform:translateX(115%);} }
+  @keyframes mc-sheen{ 0%,72%{ transform:translateX(-100%);} 100%{ transform:translateX(100%);} }
 
-  /* ---- Header band: the "issuing authority" line every credential carries ---- */
-  .mc-authority{
-    position:relative; z-index:4; text-align:center; padding:9px 16px 6px;
-    border-bottom:0.5px solid var(--mc-metal-dim);
-    background:linear-gradient(180deg, rgba(255,255,255,0.045), transparent);
-  }
-  .mc-auth-ar{ font-family:'Cairo',sans-serif; font-weight:800; font-size:11px; color:var(--mc-metal); letter-spacing:1px; }
-  .mc-auth-en{ font-size:6.2px; color:#8fa0b5; letter-spacing:4.6px; margin-top:3px; }
-  /* Affiliation, front face: ONE short line. The full corporate name runs to
-     60 characters — at the size that would fit here it becomes a grey smear,
-     and an official document that is crowded stops reading as official. The
-     complete identity goes on the reverse, where it can be read. */
-  .mc-auth-parent{ font-size:6px; color:var(--mc-metal); letter-spacing:1.6px; margin-top:3px; opacity:0.88; }
-
-  /* Reverse: the issuing body stated in full, set as a colophon. */
-  .mc-issuer{ position:relative; z-index:4; padding:6px 16px 0; text-align:center; }
-  .mc-issuer-rule{
-    height:0.5px; margin:0 auto 6px; width:64%;
-    background:linear-gradient(90deg, transparent, var(--mc-metal-dim), transparent);
-  }
-  .mc-issuer-name{ font-family:'Cairo',sans-serif; font-weight:700; font-size:8.5px; color:var(--mc-metal); letter-spacing:0.8px; }
-  .mc-issuer-scope{ font-size:6.4px; color:#8fa0b5; letter-spacing:0.9px; margin-top:3px; line-height:1.5; }
-
-  /* ---- Raised seal: concentric rings + rosette + embossed monogram ---- */
-  .mc-seal{
-    position:absolute; z-index:3; inset-inline-end:15px; top:52px;
-    width:74px; height:74px; border-radius:50%;
-    background:
-      repeating-linear-gradient(45deg, rgba(255,255,255,0.10) 0 1px, transparent 1px 4px),
-      linear-gradient(150deg, var(--mc-metal), var(--mc-metal-2));
-    box-shadow:
-      0 0 0 1px rgba(0,0,0,0.5),
-      0 0 0 3.5px rgba(0,0,0,0.22),
-      0 0 0 4.5px var(--mc-metal-dim),
-      0 3px 12px rgba(0,0,0,0.55),
-      0 1px 0 rgba(255,255,255,0.5) inset;
-    display:flex; align-items:center; justify-content:center; opacity:0.97;
-  }
-  .mc-seal-inner{
-    width:52px; height:52px; border-radius:50%;
-    border:0.5px solid rgba(0,0,0,0.35);
-    display:flex; flex-direction:column; align-items:center; justify-content:center;
-    color:var(--mc-ink); text-align:center;
-  }
-  .mc-seal-mono{ font-family:'Cairo',sans-serif; font-weight:800; font-size:21px; line-height:1; text-shadow:0 1px 0 rgba(255,255,255,0.4); }
-  .mc-seal-txt{ font-size:4.4px; letter-spacing:1.4px; margin-top:2px; opacity:0.82; }
-
-  .mc-main{ position:relative; z-index:4; flex:1; padding:10px 16px 0; display:flex; flex-direction:column; justify-content:center; }
-  .mc-holder-label{ font-size:6.5px; color:#8fa0b5; letter-spacing:2.4px; margin-bottom:3px; }
-  .mc-name{
-    font-family:'Cairo',sans-serif; font-weight:800; font-size:19px; color:#fdfbf4; line-height:1.2;
-    overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:245px;
-    text-shadow:0 1px 0 rgba(0,0,0,0.7), 0 0 14px rgba(240,209,128,0.14);
-  }
-  /* The engraved rank line — the single most "official" element on the card. */
-  .mc-rank{
-    display:inline-block; margin-top:5px; padding:2px 0;
-    font-family:'Cairo',sans-serif; font-weight:700; font-size:9px; letter-spacing:3px;
-    color:var(--mc-metal);
-    border-top:0.5px solid var(--mc-metal-dim); border-bottom:0.5px solid var(--mc-metal-dim);
-  }
-  .mc-handle{ font-size:9px; color:#8fa0b5; direction:ltr; unicode-bidi:plaintext; margin-top:5px; letter-spacing:0.6px; }
-
-  .mc-portrait{
-    position:absolute; z-index:4; inset-inline-start:16px; bottom:40px;
-    width:50px; height:50px; border-radius:4px; overflow:hidden;
-    border:1px solid var(--mc-metal); background:#050a14;
+  .mc-top{ display:flex; align-items:flex-start; justify-content:space-between; position:relative; z-index:2; }
+  .mc-brand{ display:flex; align-items:center; gap:8px; }
+  .mc-brand-mark{
+    width:30px; height:30px; border-radius:8px;
+    background:linear-gradient(145deg, var(--mc-metal, #e7c468), var(--mc-metal-2, #c9a227));
+    color:var(--mc-ink, #0f2b22); font-family:'Cairo',sans-serif; font-weight:800; font-size:17px;
     display:flex; align-items:center; justify-content:center;
-    font-family:'Cairo',sans-serif; font-weight:800; font-size:22px; color:var(--mc-metal);
-    box-shadow:0 0 0 1px rgba(0,0,0,0.6), 0 3px 10px rgba(0,0,0,0.5);
+    box-shadow:0 1px 0 rgba(255,255,255,0.4) inset;
   }
-  .mc-portrait img{ width:100% !important; height:100% !important; object-fit:cover; display:block; }
-
-  /* ---- Serial band across the foot, like a passport's machine-readable zone ---- */
-  .mc-serial{
-    position:relative; z-index:4; margin-top:auto;
-    border-top:0.5px solid var(--mc-metal-dim);
-    background:linear-gradient(180deg, transparent, rgba(0,0,0,0.4));
-    padding:6px 16px 7px; display:flex; align-items:center; justify-content:space-between; gap:10px;
+  .mc-brand-name{ font-family:'Cairo',sans-serif; font-weight:800; font-size:14px; color:#f1e9cf; letter-spacing:1.5px; line-height:1.1; }
+  .mc-brand-sub{ font-size:7px; color:var(--mc-metal, #c9a227); letter-spacing:3.5px; margin-top:2px; }
+  /* One quiet line of provenance, no more. The full corporate name runs to 60
+     characters; at a size that would fit here it becomes a grey smear. */
+  .mc-brand-parent{ font-size:6px; color:#9db3a6; letter-spacing:0.6px; margin-top:2px; }
+  .mc-tier{
+    font-family:'Cairo',sans-serif; font-size:8.5px; font-weight:800; letter-spacing:1.6px;
+    color:var(--mc-ink, #0f2b22);
+    background:linear-gradient(145deg, var(--mc-metal, #e7c468), var(--mc-metal-2, #c9a227));
+    padding:3px 9px; border-radius:20px;
   }
-  .mc-serial-block{ display:flex; gap:14px; }
-  .mc-serial-block span{ font-size:6.2px; color:#8fa0b5; letter-spacing:1.4px; display:block; }
-  .mc-serial-block b{ font-family:'Cairo',sans-serif; font-size:10px; color:#fdfbf4; }
-  .mc-id{ font-family:'Courier New',monospace; font-size:10px; color:var(--mc-metal); letter-spacing:2.2px; direction:ltr; }
-  .mc-micro{
-    position:absolute; bottom:1.5px; inset-inline:8px; z-index:5; pointer-events:none;
-    font-size:3.4px; letter-spacing:0.8px; color:var(--mc-metal); opacity:0.40;
-    white-space:nowrap; overflow:hidden; direction:ltr;
+  .mc-body{ display:flex; align-items:center; gap:12px; position:relative; z-index:2; }
+  .mc-photo{
+    width:52px; height:52px; border-radius:50%; overflow:hidden; flex:none;
+    border:2px solid var(--mc-metal, #c9a227); background:#0b1f19;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Cairo',sans-serif; font-weight:800; font-size:22px; color:var(--mc-metal, #e7c468);
   }
-
-  /* ---- Reverse ---- */
-  .mc-magstripe{
-    height:30px; margin-top:10px; position:relative; z-index:3;
-    background:linear-gradient(180deg, #08080a, #1e1e22 45%, #040406);
+  .mc-photo img{ width:100% !important; height:100% !important; object-fit:cover; display:block; }
+  .mc-ident{ min-width:0; }
+  .mc-label{ display:block; font-size:7.5px; color:#9db3a6; letter-spacing:0.8px; margin-bottom:2px; }
+  .mc-name{
+    font-family:'Cairo',sans-serif; font-weight:800; font-size:16px; color:#f6f1e2; line-height:1.25;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:210px;
   }
-  .mc-magstripe::after{
-    content:""; position:absolute; inset:0;
-    background:linear-gradient(100deg, transparent 40%, rgba(255,255,255,0.10) 50%, transparent 60%);
+  .mc-handle{ font-size:9.5px; color:var(--mc-metal, #c9a227); direction:ltr; unicode-bidi:plaintext; margin-top:2px; }
+  .mc-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:6px; position:relative; z-index:2; }
+  .mc-grid b{ display:block; font-family:'Cairo',sans-serif; font-size:11px; color:#f6f1e2; }
+  .mc-bottom{ display:flex; align-items:center; justify-content:space-between; position:relative; z-index:2; }
+  .mc-id{ font-family:'Courier New',monospace; font-size:10px; color:var(--mc-metal, #e7c468); letter-spacing:1.4px; direction:ltr; }
+  .mc-chip{
+    width:34px; height:25px; border-radius:5px; flex:none;
+    background:linear-gradient(145deg, var(--mc-metal, #e7c468), var(--mc-metal-2, #a8861d));
+    box-shadow:inset 0 0 0 1px rgba(0,0,0,0.25);
   }
-  .mc-back-body{ display:flex; gap:12px; padding:9px 16px 0; align-items:center; position:relative; z-index:4; }
-  .mc-qr-wrap{
-    width:66px; height:66px; background:#fff; padding:4px; border-radius:5px; flex:none;
-    box-shadow:0 0 0 1px var(--mc-metal-dim), 0 0 0 2.5px rgba(0,0,0,0.35), 0 3px 10px rgba(0,0,0,0.5);
-  }
+  .mc-magstripe{ height:38px; background:#07120e; margin-top:14px; }
+  .mc-back-body{ display:flex; gap:12px; padding:12px 16px 0; align-items:center; }
+  .mc-qr-wrap{ width:78px; height:78px; background:#fff; padding:5px; border-radius:7px; flex:none; }
   .mc-qr-wrap img, .mc-qr-wrap canvas{ width:100% !important; height:100% !important; display:block; }
-  .mc-back-title{ font-family:'Cairo',sans-serif; font-weight:700; font-size:11.5px; color:#fdfbf4; letter-spacing:0.5px; }
-  .mc-back-sub{ font-size:8px; color:#8fa0b5; line-height:1.65; margin-top:4px; }
-  .mc-back-id{ font-family:'Courier New',monospace; font-size:8.5px; color:var(--mc-metal); margin-top:6px; direction:ltr; letter-spacing:1.2px; }
-  .mc-sign{ padding:6px 16px 0; position:relative; z-index:4; }
+  .mc-back-title{ font-family:'Cairo',sans-serif; font-weight:700; font-size:11.5px; color:#f6f1e2; }
+  .mc-back-sub{ font-size:8.5px; color:#9db3a6; line-height:1.6; margin-top:3px; }
+  .mc-back-id{ font-family:'Courier New',monospace; font-size:9px; color:var(--mc-metal, #e7c468); margin-top:5px; direction:ltr; }
+  .mc-sign{ padding:8px 16px 0; }
   .mc-sign-strip{
-    background:repeating-linear-gradient(102deg, #f9f6ec 0 6px, #ece6d4 6px 12px);
-    border-radius:3px; padding:6px 11px; color:#101d33;
+    background:#f6f1e2; border-radius:4px; padding:5px 10px; color:#14402f;
     font-family:'Cairo',cursive,sans-serif; font-style:italic; font-size:13px; font-weight:700;
-    min-height:19px; display:flex; align-items:center;
-    box-shadow:0 1px 3px rgba(0,0,0,0.4) inset;
+    min-height:22px; display:flex; align-items:center;
   }
-  .mc-label{ display:block; font-size:6.5px; color:#8fa0b5; letter-spacing:1.6px; margin-top:3px; }
-  .mc-terms{ font-size:6.2px; color:#6b7f96; line-height:1.55; padding:5px 16px 0; position:relative; z-index:4; }
+  .mc-terms{ font-size:7px; color:#7f9488; line-height:1.6; padding:8px 16px 0; }
   .mc-actions{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px; }
   .mc-actions button{ flex:1; min-width:120px; margin:0; }
 
@@ -2471,6 +2526,48 @@
     <button class="secondary-btn" id="synapseBackBtn" data-i18n="backBtn">رجوع</button>
   </div>
 
+  <!-- NOVA — THE ACADEMY ASSISTANT
+       A designed presence, not a fake human. A video avatar would need a paid
+       generation service and would still only lip-sync a pre-written script;
+       this one actually understands, knows the learner's real record, and can
+       operate the app. Honest capability beats a convincing face. -->
+  <button class="nova-fab hidden" id="novaFab" aria-label="المساعد">
+    <span class="nova-fab-core"></span>
+    <span class="nova-fab-ring" aria-hidden="true"></span>
+  </button>
+
+  <div id="novaPanel" class="hidden" role="dialog" aria-modal="true" aria-labelledby="novaTitle">
+    <div class="nova-sheet">
+      <div class="nova-head">
+        <div class="nova-orb" id="novaOrb" aria-hidden="true">
+          <span class="nova-orb-glow"></span>
+          <span class="nova-orb-core"></span>
+          <span class="nova-wave" id="novaWave">
+            <i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+          </span>
+        </div>
+        <div class="nova-id">
+          <div class="nova-name" id="novaTitle">نوفا</div>
+          <div class="nova-state" id="novaState"></div>
+        </div>
+        <button class="nova-close" id="novaCloseBtn" aria-label="إغلاق">✕</button>
+      </div>
+
+      <div class="nova-log" id="novaLog"></div>
+      <div class="nova-chips" id="novaChips"></div>
+
+      <div class="nova-input-row">
+        <button class="nova-mic" id="novaMicBtn" aria-label="تحدّث"></button>
+        <input type="text" id="novaInput" data-i18n-placeholder="novaPlaceholder" placeholder="اكتبي سؤالك أو اضغطي الميكروفون…">
+        <button class="nova-send" id="novaSendBtn" aria-label="إرسال">↑</button>
+      </div>
+      <div class="nova-foot">
+        <label class="nova-voice-toggle"><input type="checkbox" id="novaVoiceChk" checked> <span data-i18n="novaVoiceLabel">الرد بالصوت</span></label>
+        <span class="nova-disclaimer" data-i18n="novaDisclaimer">نوفا مساعد آلي — قد يخطئ، وتقدّمك الحقيقي هو ما تظهره صفحاتك.</span>
+      </div>
+    </div>
+  </div>
+
   <!-- MEMBERSHIP CARD
        Front/back flip, printable and downloadable.
 
@@ -2487,47 +2584,43 @@
       <div class="mc-card" id="mcCard">
         <!-- FRONT -->
         <div class="mc-face mc-front">
-          <div class="mc-guilloche" aria-hidden="true"></div>
-          <div class="mc-frame" aria-hidden="true"></div>
-
-          <div class="mc-authority">
-            <div class="mc-auth-ar" data-i18n="mcAuthorityAr">أكاديمية نِكسورا للتعليم والتطوير</div>
-            <div class="mc-auth-en">N E X O R A &nbsp; A C A D E M Y</div>
-            <div class="mc-auth-parent" data-i18n="mcParentShort">إحدى منشآت إنفرا إنجن</div>
-          </div>
-
-          <div class="mc-seal" aria-hidden="true">
-            <div class="mc-seal-inner">
-              <div class="mc-seal-mono">N</div>
-              <div class="mc-seal-txt">SIGILLUM</div>
-            </div>
-          </div>
-
-          <div class="mc-main">
-            <div class="mc-holder-label" data-i18n="mcHolderLabel">حامل البطاقة</div>
-            <div class="mc-name" id="mcName"></div>
-            <div><span class="mc-rank" id="mcTier"></span></div>
-            <div class="mc-handle" id="mcHandle"></div>
-          </div>
-
-          <div class="mc-portrait" id="mcPhoto"></div>
-
-          <div class="mc-serial">
-            <div class="mc-serial-block">
-              <div><span data-i18n="mcSince">عضو منذ</span><b id="mcSince"></b></div>
-              <div><span data-i18n="mcLevel">المستوى</span><b id="mcLevel"></b></div>
-              <div><span data-i18n="mcStatus">الحالة</span><b id="mcStatus"></b></div>
-            </div>
-            <div class="mc-id" id="mcId"></div>
-          </div>
-          <div class="mc-micro" aria-hidden="true" id="mcMicro"></div>
           <div class="mc-shimmer" aria-hidden="true"></div>
+          <div class="mc-guilloche" aria-hidden="true"></div>
+          <div class="mc-top">
+            <div class="mc-brand">
+              <div class="mc-brand-mark">N</div>
+              <div>
+                <div class="mc-brand-name">NEXORA</div>
+                <div class="mc-brand-sub">A C A D E M Y</div>
+                <div class="mc-brand-parent" data-i18n="mcParentShort">من منظومة إنفرا إنجن</div>
+              </div>
+            </div>
+            <div class="mc-tier" id="mcTier">MEMBER</div>
+          </div>
+
+          <div class="mc-body">
+            <div class="mc-photo" id="mcPhoto"></div>
+            <div class="mc-ident">
+              <div class="mc-label" data-i18n="mcNameLabel">اسم العضو</div>
+              <div class="mc-name" id="mcName"></div>
+              <div class="mc-handle" id="mcHandle"></div>
+            </div>
+          </div>
+
+          <div class="mc-grid">
+            <div><span class="mc-label" data-i18n="mcSince">عضو منذ</span><b id="mcSince"></b></div>
+            <div><span class="mc-label" data-i18n="mcLevel">المستوى</span><b id="mcLevel"></b></div>
+            <div><span class="mc-label" data-i18n="mcStatus">الحالة</span><b id="mcStatus"></b></div>
+          </div>
+
+          <div class="mc-bottom">
+            <div class="mc-id" id="mcId"></div>
+            <div class="mc-chip" aria-hidden="true"></div>
+          </div>
         </div>
 
         <!-- BACK -->
         <div class="mc-face mc-back">
-          <div class="mc-guilloche" aria-hidden="true"></div>
-          <div class="mc-frame" aria-hidden="true"></div>
           <div class="mc-magstripe" aria-hidden="true"></div>
           <div class="mc-back-body">
             <div class="mc-qr-wrap" id="mcQr"></div>
@@ -2540,11 +2633,6 @@
           <div class="mc-sign">
             <div class="mc-sign-strip" id="mcSignature"></div>
             <div class="mc-label" data-i18n="mcSignLabel">توقيع العضو</div>
-          </div>
-          <div class="mc-issuer">
-            <div class="mc-issuer-rule" aria-hidden="true"></div>
-            <div class="mc-issuer-name" data-i18n="mcIssuerName">إنفرا إنجن لتقنية المعلومات</div>
-            <div class="mc-issuer-scope" data-i18n="mcIssuerScope">تقنية المعلومات · الأمن السيبراني · الذكاء الاصطناعي</div>
           </div>
           <div class="mc-terms" data-i18n="mcTerms">هذه البطاقة ملك أكاديمية نِكسورا وتُستخدم لإثبات العضوية فقط. غير قابلة للتحويل.</div>
         </div>
@@ -3583,11 +3671,21 @@
   const knowRevProgress = document.getElementById('knowRevProgress');
   const knowRevArea = document.getElementById('knowRevArea');
   const knowRevBackBtn = document.getElementById('knowRevBackBtn');
+  const novaFab = document.getElementById('novaFab');
+  const novaPanel = document.getElementById('novaPanel');
+  const novaOrb = document.getElementById('novaOrb');
+  const novaState = document.getElementById('novaState');
+  const novaLog = document.getElementById('novaLog');
+  const novaChips = document.getElementById('novaChips');
+  const novaInput = document.getElementById('novaInput');
+  const novaMicBtn = document.getElementById('novaMicBtn');
+  const novaSendBtn = document.getElementById('novaSendBtn');
+  const novaCloseBtn = document.getElementById('novaCloseBtn');
+  const novaVoiceChk = document.getElementById('novaVoiceChk');
   const memberCardScreen = document.getElementById('memberCardScreen');
   const mcStage = document.getElementById('mcStage');
   const mcCard = document.getElementById('mcCard');
   const mcTier = document.getElementById('mcTier');
-  const mcMicro = document.getElementById('mcMicro');
   const mcPhoto = document.getElementById('mcPhoto');
   const mcName = document.getElementById('mcName');
   const mcHandle = document.getElementById('mcHandle');
@@ -4695,18 +4793,35 @@
       profileMemberSince:'عضو منذ {d}', profileNoActivity:'لم يبدأ أي تمرين بعد.',
       synProgramsTitle:'أداؤك في كل برنامج', synProgramAttempts:'{n} تقييم',
       cogSourceLine:'مقاس من: {s}',
+      novaPlaceholder:'اكتبي سؤالك أو اضغطي الميكروفون…', novaVoiceLabel:'الرد بالصوت',
+      novaDisclaimer:'نوفا مساعد آلي — قد يخطئ، وتقدّمك الحقيقي هو ما تظهره صفحاتك.',
+      novaGreeting:'مرحبًا {name}! أنا نوفا، مساعدتك في الأكاديمية. اسأليني عن أي خدمة، أو عن تقدّمك، أو اطلبي مني فتح أي صفحة.',
+      novaStateIdle:'جاهزة للمساعدة', novaStateListening:'أستمع إليكِ…',
+      novaStateThinking:'أفكّر…', novaStateSpeaking:'أتحدّث…',
+      novaOpening:'تمام، سأفتح لكِ {s}.', novaOpenAction:'▸ افتحي {s}',
+      novaNoDataYet:'لم تبدئي التدريب بعد، فلا توجد أرقام أعرضها. ابدئي أول جولة وسأتابع تقدّمك.',
+      novaProgressLine:'أجبتِ على {n} سؤالًا بدقة {acc}%، وأتقنتِ {m} من {total} مستوى، ولديكِ {b} إنجازًا.',
+      novaWeakLine:'أضعف نقطة حاليًا: {op} بدقة {acc}%.',
+      novaDueLine:'وعندك {n} سؤال حان موعد مراجعته.',
+      novaFailed:'لم أستطع الوصول للإجابة الآن. جرّبي مرة أخرى بعد قليل.',
+      novaOfflineOnly:'أحتاج اتصالًا بالخادم للإجابة على هذا. لكن يمكنني فتح الصفحات لكِ بدون إنترنت.',
+      novaMicUnsupported:'متصفحك لا يدعم إدخال الصوت. استخدمي الكتابة، أو جرّبي Chrome.',
+      novaMicDenied:'المتصفح منع الميكروفون. اسمحي بالوصول من إعدادات الموقع ثم أعيدي المحاولة.',
+      novaNoSpeech:'لم أسمع شيئًا. اقتربي من الميكروفون وحاولي مرة أخرى.',
+      novaChipServices:'ما الخدمات المتاحة؟', novaChipProgress:'كيف تقدّمي؟',
+      novaChipReview:'ابدئي مراجعة اليوم', novaChipOpenSynapse:'افتحي سينابس',
       memberCardNavLabel:'بطاقة العضوية', memberCardTitle:'🪪 بطاقة العضوية',
       memberCardHint:'اضغط على البطاقة لقلبها ورؤية الوجه الخلفي.',
       mcNameLabel:'اسم العضو', mcSince:'عضو منذ', mcLevel:'المستوى', mcStatus:'الحالة',
       mcSinceUnknown:'—', mcStatusActive:'نشِط', mcStatusDormant:'غير نشِط',
-      mcTierMember:'عُضْوٌ مُعْتَمَد', mcTierSilver:'عُضْوٌ فِضِّي', mcTierGold:'عُضْوٌ ذَهَبِي',
-      mcParentShort:'إحدى منشآت إنفرا إنجن',
+      mcTierMember:'عضو', mcTierSilver:'فضي', mcTierGold:'ذهبي',
+      mcParentShort:'من منظومة إنفرا إنجن',
       mcIssuerName:'إنفرا إنجن لتقنية المعلومات',
       mcIssuerScope:'تقنية المعلومات · الأمن السيبراني · الذكاء الاصطناعي',
       mcAuthorityAr:'أكاديمية نِكسورا للتعليم والتطوير', mcHolderLabel:'حامل البطاقة',
       mcVerifyTitle:'التحقق من العضوية', mcVerifySub:'امسح الرمز للتحقق من صحة هذه البطاقة.',
       mcSignLabel:'توقيع العضو',
-      mcTerms:'صادرة عن أكاديمية نِكسورا وتظل ملكًا لها. تُثبت العضوية وحدها، غير قابلة للتحويل، وتُعاد عند الطلب.',
+      mcTerms:'صادرة عن أكاديمية نِكسورا — من منظومة إنفرا إنجن لتقنية المعلومات والأمن السيبراني والذكاء الاصطناعي. تُثبت العضوية وحدها وغير قابلة للتحويل.',
       mcFlipBtn:'🔄 اقلب البطاقة', mcDownloadBtn:'⬇️ تنزيل PNG', mcPrintBtn:'🖨️ طباعة',
       mcCaptureFailed:'تعذّر إنشاء صورة البطاقة. أعد المحاولة.',
       mcPopupBlocked:'المتصفح منع نافذة الطباعة. اسمح بالنوافذ المنبثقة ثم أعد المحاولة.',
@@ -5388,18 +5503,35 @@
       profileMemberSince:'Member since {d}', profileNoActivity:'No practice sessions yet.',
       synProgramsTitle:'Your performance per program', synProgramAttempts:'{n} assessment(s)',
       cogSourceLine:'Measured from: {s}',
+      novaPlaceholder:'Type your question, or tap the microphone…', novaVoiceLabel:'Reply with voice',
+      novaDisclaimer:'Nova is an automated assistant — it can be wrong. Your real progress is what your own pages show.',
+      novaGreeting:'Hello {name}! I am Nova, your assistant here. Ask me about any service, about your progress, or tell me to open a page.',
+      novaStateIdle:'Ready to help', novaStateListening:'Listening…',
+      novaStateThinking:'Thinking…', novaStateSpeaking:'Speaking…',
+      novaOpening:'Sure, opening {s} for you.', novaOpenAction:'▸ Open {s}',
+      novaNoDataYet:'You have not started practising yet, so there are no figures to show. Start a round and I will follow along.',
+      novaProgressLine:'You have answered {n} questions at {acc}% accuracy, mastered {m} of {total} levels, and earned {b} achievements.',
+      novaWeakLine:'Your weakest point right now: {op} at {acc}%.',
+      novaDueLine:'And {n} question(s) are due for review.',
+      novaFailed:'I could not reach an answer just now. Please try again shortly.',
+      novaOfflineOnly:'I need a server connection for that. I can still open pages for you offline.',
+      novaMicUnsupported:'Your browser does not support voice input. Please type instead, or try Chrome.',
+      novaMicDenied:'The browser blocked the microphone. Allow access in site settings and try again.',
+      novaNoSpeech:'I did not hear anything. Move closer to the microphone and try again.',
+      novaChipServices:'What services are available?', novaChipProgress:'How is my progress?',
+      novaChipReview:'Start today\'s review', novaChipOpenSynapse:'Open Synapse',
       memberCardNavLabel:'Membership card', memberCardTitle:'🪪 Membership card',
       memberCardHint:'Tap the card to flip it and see the back.',
       mcNameLabel:'Member name', mcSince:'Member since', mcLevel:'Level', mcStatus:'Status',
       mcSinceUnknown:'—', mcStatusActive:'Active', mcStatusDormant:'Dormant',
-      mcTierMember:'ACCREDITED MEMBER', mcTierSilver:'SILVER MEMBER', mcTierGold:'GOLD MEMBER',
-      mcParentShort:'An INFRA ENGINE establishment',
+      mcTierMember:'MEMBER', mcTierSilver:'SILVER', mcTierGold:'GOLD',
+      mcParentShort:'Part of INFRA ENGINE',
       mcIssuerName:'INFRA ENGINE Information Technology',
       mcIssuerScope:'Information Technology · Cybersecurity · Artificial Intelligence',
       mcAuthorityAr:'NEXORA Academy for Learning & Development', mcHolderLabel:'CARD HOLDER',
       mcVerifyTitle:'Membership verification', mcVerifySub:'Scan the code to verify this card.',
       mcSignLabel:'Member signature',
-      mcTerms:'Issued by NEXORA Academy and remains its property. Evidences membership only, is non-transferable, and is returnable on request.',
+      mcTerms:'Issued by NEXORA Academy — part of INFRA ENGINE for information technology, cybersecurity and artificial intelligence. Evidences membership only and is non-transferable.',
       mcFlipBtn:'🔄 Flip card', mcDownloadBtn:'⬇️ Download PNG', mcPrintBtn:'🖨️ Print',
       mcCaptureFailed:'Could not render the card image. Please try again.',
       mcPopupBlocked:'The browser blocked the print window. Allow pop-ups and try again.',
@@ -10852,6 +10984,7 @@
     currentShellRole = role;
     if(!role){
       appSidebar.classList.add('hidden');
+    if(typeof novaFab !== 'undefined' && novaFab) novaFab.classList.add('hidden');
       appTopbar.classList.add('hidden');
       appBottomNav.classList.add('hidden');
       sidebarNav.innerHTML = '';
@@ -10864,6 +10997,7 @@
     topbarRoleLabel.textContent = t(roleLabelKey);
     renderTopbarIdentityCard(role);
     appSidebar.classList.remove('hidden');
+    if(typeof novaFab !== 'undefined' && novaFab) novaFab.classList.remove('hidden');
     appTopbar.classList.remove('hidden');
     notifBellWrap.classList.toggle('hidden', role !== 'learner');
     if(role === 'learner') updateNotificationBadge();
@@ -11434,6 +11568,26 @@
   /* ---------- one child's full file ----------
      Contains exactly the detail the old inline list used to show, plus the
      summary figures — nothing invented, just given room to be readable. */
+  novaFab.addEventListener('click', novaOpen);
+  novaCloseBtn.addEventListener('click', novaClose);
+  novaPanel.addEventListener('click', function(ev){ if(ev.target === novaPanel) novaClose(); });
+  novaSendBtn.addEventListener('click', function(){
+    const v = novaInput.value.trim();
+    if(v) novaHandle(v);
+  });
+  novaInput.addEventListener('keydown', function(ev){
+    if(ev.key === 'Enter'){ const v = novaInput.value.trim(); if(v) novaHandle(v); }
+  });
+  novaMicBtn.addEventListener('click', function(){
+    if(novaMicBtn.classList.contains('unsupported')){ novaSay(t('novaMicUnsupported')); return; }
+    novaListening ? novaStopListening() : novaStartListening();
+  });
+  // novaInitSpeech() is NOT called here. It touches novaRecognition, which is
+  // declared with `let` further down the file: function declarations hoist,
+  // `let` bindings do not, so calling it from here threw
+  // "Cannot access 'novaRecognition' before initialization" and stopped the
+  // entire script at load. The call now sits after the declarations.
+
   function openMembershipCard(){
     if(!requireAuth('memberCard')) return;
     hideLearnerShellScreens();
@@ -12275,6 +12429,242 @@
     return { pending: null, items: out, evidence: e };
   }
 
+  /* ==================== MODULE: NOVA ASSISTANT ====================
+     Four capabilities, all real:
+       1. explains the academy's services
+       2. opens screens and runs commands
+       3. answers from the learner's ACTUAL recorded progress
+       4. helps with a problem — by method, never by handing over the answer
+
+     Speech uses the browser's built-in engines, which cost nothing and need
+     no key. Understanding goes through the Gemini proxy already in the
+     backend. Where a browser lacks speech support we say so plainly instead
+     of leaving a dead button. */
+  let novaListening = false, novaRecognition = null, novaBusy = false;
+  let novaHistory = [];   // last few turns, so follow-up questions make sense
+
+  const NOVA_STATE = { idle:'', listening:'novaStateListening', thinking:'novaStateThinking', speaking:'novaStateSpeaking' };
+  function novaSetState(state){
+    novaOrb.classList.remove('listening','thinking','speaking');
+    if(state !== 'idle') novaOrb.classList.add(state);
+    novaState.textContent = state === 'idle' ? t('novaStateIdle') : t(NOVA_STATE[state]);
+  }
+  function novaSay(text, actions){
+    const el = document.createElement('div');
+    el.className = 'nova-msg from-nova';
+    el.textContent = text;
+    (actions || []).forEach(function(a){
+      const btn = document.createElement('button');
+      btn.type = 'button'; btn.className = 'nova-action'; btn.textContent = a.label;
+      btn.addEventListener('click', function(){ novaClose(); a.run(); });
+      el.appendChild(btn);
+    });
+    novaLog.appendChild(el);
+    novaLog.scrollTop = novaLog.scrollHeight;
+    if(novaVoiceChk.checked) novaSpeak(text);
+    novaHistory.push({ role:'nova', text: text });
+    if(novaHistory.length > 8) novaHistory.shift();
+  }
+  function novaUserSaid(text){
+    const el = document.createElement('div');
+    el.className = 'nova-msg from-user';
+    el.textContent = text;
+    novaLog.appendChild(el);
+    novaLog.scrollTop = novaLog.scrollHeight;
+    novaHistory.push({ role:'user', text: text });
+    if(novaHistory.length > 8) novaHistory.shift();
+  }
+
+  /* ---------- SPEECH OUT ---------- */
+  function novaSpeak(text){
+    if(!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = currentLang === 'ar' ? 'ar-SA' : 'en-US';
+    u.rate = 0.98; u.pitch = 1.04;
+    // Prefer a voice that actually matches the language; a Latin voice
+    // reading Arabic is worse than no voice at all.
+    const voices = window.speechSynthesis.getVoices() || [];
+    const match = voices.find(v => v.lang && v.lang.toLowerCase().indexOf(u.lang.slice(0,2)) === 0);
+    if(match) u.voice = match;
+    u.onstart = ()=> novaSetState('speaking');
+    u.onend = ()=> novaSetState('idle');
+    u.onerror = ()=> novaSetState('idle');
+    window.speechSynthesis.speak(u);
+  }
+
+  /* ---------- SPEECH IN ---------- */
+  function novaInitSpeech(){
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if(!SR){ novaMicBtn.classList.add('unsupported'); novaMicBtn.title = t('novaMicUnsupported'); return; }
+    novaRecognition = new SR();
+    novaRecognition.lang = currentLang === 'ar' ? 'ar-SA' : 'en-US';
+    novaRecognition.interimResults = false;
+    novaRecognition.maxAlternatives = 1;
+    novaRecognition.onresult = function(ev){
+      const said = ev.results[0][0].transcript;
+      novaStopListening();
+      if(said && said.trim()) novaHandle(said.trim());
+    };
+    novaRecognition.onerror = function(ev){
+      novaStopListening();
+      // A denied microphone is a permission problem, not a failure of the
+      // assistant — saying which one saves the learner guessing.
+      if(ev.error === 'not-allowed' || ev.error === 'service-not-allowed') novaSay(t('novaMicDenied'));
+      else if(ev.error === 'no-speech') novaSay(t('novaNoSpeech'));
+    };
+    novaRecognition.onend = novaStopListening;
+  }
+  function novaStartListening(){
+    if(!novaRecognition || novaListening) return;
+    try{ novaRecognition.lang = currentLang === 'ar' ? 'ar-SA' : 'en-US'; novaRecognition.start(); }
+    catch(e){ return; }
+    novaListening = true;
+    novaMicBtn.classList.add('recording');
+    novaSetState('listening');
+  }
+  function novaStopListening(){
+    novaListening = false;
+    novaMicBtn.classList.remove('recording');
+    if(novaOrb.classList.contains('listening')) novaSetState('idle');
+    try{ if(novaRecognition) novaRecognition.stop(); }catch(e){}
+  }
+
+  /* ---------- CAPABILITY 2: RUN COMMANDS ----------
+     Matched locally before any network call, so navigation is instant and
+     works offline. Only screens the learner is entitled to are offered. */
+  const NOVA_ROUTES = [
+    { re:/سينابس|synapse|ملف.*معرفي|مؤشرات/i,        key:'synapseNavLabel',     run:()=> openSynapse() },
+    { re:/بطاقة|عضوية|card/i,                         key:'memberCardNavLabel',  run:()=> openMembershipCard() },
+    { re:/برامج|programs|رئيسية|home/i,               key:'shellNavPrograms',    run:()=> showProgramsHub() },
+    { re:/مهارات|skills/i,                            key:'shellNavSkills',      run:()=> renderMySkills() },
+    { re:/إنجاز|achievements|شهادات|احصائيات/i,       key:'shellNavAchievements',run:()=> renderMyStats() },
+    { re:/أصدقاء|friends/i,                           key:'shellNavFriends',     run:()=> renderFriends() },
+    { re:/مراجعة|review|تكرار/i,                      key:'reviewCtaTitle',      run:()=> startReviewSession() },
+    // Uses the SAME element the abacus button uses. An invented name here
+    // would throw only when a learner actually asked for the abacus by voice
+    // — the worst possible time to discover it.
+    { re:/أباكوس|abacus|سوروبان/i,                    key:'bucketAbacus',        run:()=> { hideLearnerShellScreens(); settingsEl.classList.add('hidden'); abacusTrainerEl.classList.remove('hidden'); switchAbacusMode('free'); } },
+    { re:/تدريب|تمرين|ابدأ|practice|start/i,          key:'startBtn',            run:()=> { hideLearnerShellScreens(); settingsEl.classList.remove('hidden'); } }
+  ];
+  function novaMatchRoute(text){
+    return NOVA_ROUTES.find(r => r.re.test(text)) || null;
+  }
+
+  /* ---------- CAPABILITY 3: ANSWER FROM THE REAL RECORD ----------
+     Built from stored data only. When a figure has not been measured we say
+     so — an assistant that invents a number about a child's progress is worse
+     than one that stays quiet. */
+  function novaProgressFacts(){
+    const p = PROFILES[currentProfile];
+    if(!p) return null;
+    const answered = p.totalAnswered || 0;
+    const acc = answered ? Math.round((p.totalCorrect / answered) * 100) : null;
+    const due = typeof reviewDueItems === 'function' ? reviewDueItems(p).length : 0;
+    const mastered = KNOWLEDGE_LEVELS.filter(l => isBucketMastered(p, l.bucket)).length;
+    const weak = typeof computeWeakestBucket === 'function' ? computeWeakestBucket(p) : null;
+    const lvl = typeof computeLevel === 'function' ? computeLevel(p.totalCorrect || 0) : null;
+    return {
+      name: profileDisplayName(currentProfile), answered: answered, accuracy: acc,
+      due: due, mastered: mastered, total: KNOWLEDGE_LEVELS.length,
+      badges: p.badges ? p.badges.size : 0, level: lvl ? lvl.level : null,
+      weakest: weak && weak.acc < 75 ? { op: t('bucket' + capitalize(weak.bucket)), acc: weak.acc } : null,
+      streak: p.best ? p.best.streak : 0
+    };
+  }
+  function novaLocalAnswer(text){
+    const f = novaProgressFacts();
+    if(!f) return null;
+    if(/تقدم|مستوا?ي|أدائي|كيف أبلي|progress|how am i/i.test(text)){
+      if(!f.answered) return t('novaNoDataYet');
+      let msg = fmt('novaProgressLine', { n: f.answered, acc: f.accuracy, m: f.mastered, total: f.total, b: f.badges });
+      if(f.weakest) msg += ' ' + fmt('novaWeakLine', { op: f.weakest.op, acc: f.weakest.acc });
+      if(f.due) msg += ' ' + fmt('novaDueLine', { n: f.due });
+      return msg;
+    }
+    if(/مراجعة|due|review/i.test(text) && f.due) return fmt('novaDueLine', { n: f.due });
+    return null;
+  }
+
+  /* ---------- THE BRAIN ---------- */
+  async function novaHandle(text){
+    if(novaBusy) return;
+    novaUserSaid(text);
+    novaInput.value = '';
+
+    // 1. A navigation request is handled locally: instant, and offline-safe.
+    const route = novaMatchRoute(text);
+    const wantsNav = /افتح|اذهب|روح|شغّل|ابدأ|open|go to|show me/i.test(text);
+    if(route && wantsNav){
+      novaSay(fmt('novaOpening', { s: t(route.key) }), [{ label: fmt('novaOpenAction', { s: t(route.key) }), run: route.run }]);
+      return;
+    }
+    // 2. A question about their own record is answered from stored data.
+    const local = novaLocalAnswer(text);
+    if(local){ novaSay(local); return; }
+
+    // 3. Anything else goes to the model, with the learner's real context.
+    if(!SHEET_API_URL){ novaSay(t('novaOfflineOnly')); return; }
+    novaBusy = true;
+    novaSetState('thinking');
+    const f = novaProgressFacts();
+    const context = f
+      ? `الطالب: ${f.name}. أجاب ${f.answered} سؤالًا بدقة ${f.accuracy === null ? 'غير مقاسة' : f.accuracy + '%'}. أتقن ${f.mastered} من ${f.total} مستوى. لديه ${f.due} سؤال مراجعة مستحق.`
+      : '';
+    const recent = novaHistory.slice(-4).map(h => (h.role === 'user' ? 'الطالب: ' : 'نوفا: ') + h.text).join('\n');
+    const prompt =
+      'أنت "نوفا"، مساعد أكاديمية نِكسورا التعليمية للحساب الذهني والأباكوس والبرامج التعليمية.\n' +
+      'قواعد صارمة:\n' +
+      '- أجب بالعربية بإيجاز شديد (سطران كحد أقصى).\n' +
+      '- إذا سُئلت عن مسألة حسابية: اشرح الطريقة خطوة بخطوة ولا تعطِ الإجابة النهائية مباشرة، لأن هدف الأكاديمية أن يصل الطالب بنفسه.\n' +
+      '- لا تخترع أرقامًا عن تقدّم الطالب. استخدم فقط ما ورد في السياق أدناه.\n' +
+      '- إن لم تعرف، قل ذلك بوضوح.\n' +
+      (context ? ('\nسياق حقيقي: ' + context + '\n') : '') +
+      (recent ? ('\nآخر الحوار:\n' + recent + '\n') : '') +
+      '\nسؤال الطالب: ' + text;
+
+    const answer = await askAi(prompt);
+    novaBusy = false;
+    novaSetState('idle');
+    // Offer navigation alongside the answer when a screen is clearly relevant.
+    const follow = route ? [{ label: fmt('novaOpenAction', { s: t(route.key) }), run: route.run }] : [];
+    novaSay(answer || t('novaFailed'), follow);
+  }
+
+  function novaSuggestChips(){
+    const f = novaProgressFacts();
+    const chips = [t('novaChipServices'), t('novaChipProgress')];
+    if(f && f.due) chips.push(t('novaChipReview'));
+    chips.push(t('novaChipOpenSynapse'));
+    novaChips.innerHTML = '';
+    chips.forEach(function(c){
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'nova-chip'; b.textContent = c;
+      b.addEventListener('click', ()=> novaHandle(c));
+      novaChips.appendChild(b);
+    });
+  }
+  function novaOpen(){
+    if(!requireAuth('nova')) return;
+    novaPanel.classList.remove('hidden');
+    novaSetState('idle');
+    if(!novaLog.children.length){
+      novaSay(fmt('novaGreeting', { name: profileDisplayName(currentProfile) || '' }));
+    }
+    novaSuggestChips();
+    novaInput.focus();
+  }
+  function novaClose(){
+    novaPanel.classList.add('hidden');
+    novaStopListening();
+    if('speechSynthesis' in window) window.speechSynthesis.cancel();
+    novaSetState('idle');
+  }
+  // Safe here: every binding this touches is already initialised above.
+  novaInitSpeech();
+
+  /* ==================== END MODULE: NOVA ASSISTANT ==================== */
+
   /* ==================== MODULE: MEMBERSHIP CARD ====================
      Every field is read from the learner's real record. Nothing is invented:
      no fabricated "valid through" date, no tier the account has not actually
@@ -12322,12 +12712,8 @@
     // The tier attribute is what switches the metal — gold, steel or
     // champagne. Nothing in this card varies by gender, by design.
     mcCard.setAttribute('data-tier', tier.label);
-    // The engraved rank line reads as a conferred standing, not a badge —
-    // but it still says only what the record supports.
     mcTier.textContent = t(tier.key);
-    // Microprinting carries the real member id, repeated — the way security
-    // documents do it. Not decorative filler text.
-    if(mcMicro) mcMicro.textContent = ('NEXORA ACADEMY · ' + id + ' · ').repeat(6);
+
     mcName.textContent = displayName;
     mcHandle.textContent = prof.username ? '@' + prof.username : '';
     mcId.textContent = id;
