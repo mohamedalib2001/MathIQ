@@ -1423,6 +1423,84 @@
   .gc-row input{ width:19px; height:19px; flex:none; margin:0; }
   .friend-actions{ display:flex; gap:6px; flex-wrap:wrap; }
 
+  /* ---------- MESSAGES INBOX ---------- */
+  .msg-row{ display:flex; align-items:center; gap:9px; padding:9px 10px; border-radius:11px;
+    cursor:pointer; min-height:52px; }
+  .msg-row:hover{ background:var(--bg); }
+  .msg-row.unread{ background:rgba(99,102,241,0.10); }
+  .msg-av{ width:38px; height:38px; border-radius:50%; overflow:hidden; flex:none; position:relative;
+    background:var(--bg); border:1.5px solid var(--chip-border); display:flex;
+    align-items:center; justify-content:center; font-family:'Cairo',sans-serif;
+    font-weight:800; font-size:15px; color:var(--yellow); }
+  .msg-av img{ width:100% !important; height:100% !important; object-fit:cover; display:block; }
+  /* Presence dot ON the avatar: status belongs with the face, not in a
+     separate column the eye has to pair up. */
+  .msg-av .pres{ position:absolute; bottom:-1px; inset-inline-end:-1px; width:11px; height:11px;
+    border-radius:50%; border:2px solid var(--input-bg); background:#64748b; }
+  .msg-av .pres.online{ background:#22c55e; }
+  .msg-av .pres.away{ background:#f59e0b; }
+  .msg-body{ flex:1; min-width:0; }
+  .msg-name{ font-size:12.5px; font-weight:700; color:var(--ink); overflow:hidden;
+    text-overflow:ellipsis; white-space:nowrap; }
+  .msg-preview{ font-size:11px; color:var(--ink-dim); margin-top:2px; overflow:hidden;
+    text-overflow:ellipsis; white-space:nowrap; }
+  .msg-meta{ display:flex; flex-direction:column; align-items:flex-end; gap:4px; flex:none; }
+  .msg-time{ font-size:9.5px; color:var(--ink-dim); }
+  .msg-count{ background:#EF4444; color:#fff; border-radius:11px; min-width:20px; height:19px;
+    display:flex; align-items:center; justify-content:center; font-size:10.5px; font-weight:800; padding:0 6px; }
+
+  /* ---------- CHAT AVATARS, TYPING, CALLS ---------- */
+  .chat-peer{ display:flex; align-items:center; gap:9px; min-width:0; }
+  .chat-peer-av{ width:34px; height:34px; border-radius:50%; overflow:hidden; flex:none;
+    background:var(--bg); border:1.5px solid var(--chip-border); display:flex;
+    align-items:center; justify-content:center; font-family:'Cairo',sans-serif;
+    font-weight:800; font-size:14px; color:var(--yellow); }
+  .chat-peer-av img{ width:100% !important; height:100% !important; object-fit:cover; display:block; }
+  .chat-status{ font-size:10px; color:var(--ink-dim); margin-top:1px; min-height:13px; }
+  .chat-head-actions{ display:flex; align-items:center; gap:4px; }
+  .chat-icon-btn{ background:none; border:none; font-size:18px; cursor:pointer;
+    width:40px; height:40px; border-radius:10px; color:var(--ink); }
+  .chat-icon-btn:active{ background:var(--input-bg); }
+
+  /* Row = avatar + bubble, so the speaker is identified by picture. */
+  .chat-row{ display:flex; align-items:flex-end; gap:7px; max-width:88%; }
+  .chat-row.mine{ align-self:flex-end; flex-direction:row-reverse; }
+  .chat-row.theirs{ align-self:flex-start; }
+  .chat-av{ width:26px; height:26px; border-radius:50%; overflow:hidden; flex:none;
+    background:var(--input-bg); border:1px solid var(--chip-border); display:flex;
+    align-items:center; justify-content:center; font-size:11px; font-weight:700; color:var(--ink-dim); }
+  .chat-av img{ width:100% !important; height:100% !important; object-fit:cover; display:block; }
+  .chat-msg{ max-width:100%; }
+
+  .typing-row{ display:flex; align-items:center; gap:7px; padding:0 16px 8px;
+    font-size:11px; color:var(--ink-dim); }
+  .typing-dots{ display:flex; gap:3px; }
+  .typing-dots i{ width:5px; height:5px; border-radius:50%; background:var(--ink-dim); display:block; }
+  @media (prefers-reduced-motion: no-preference){
+    .typing-dots i{ animation:typingBounce 1.1s ease-in-out infinite; }
+    .typing-dots i:nth-child(2){ animation-delay:.15s }
+    .typing-dots i:nth-child(3){ animation-delay:.3s }
+  }
+  @keyframes typingBounce{ 0%,100%{ transform:translateY(0); opacity:.4 } 50%{ transform:translateY(-4px); opacity:1 } }
+
+  #callPanel{ position:fixed; inset:0; z-index:990; background:#05070d; }
+  #callRemote{ width:100%; height:100%; object-fit:cover; background:#05070d; }
+  #callLocal{ position:absolute; top:calc(14px + env(safe-area-inset-top)); inset-inline-end:14px;
+    width:100px; height:134px; object-fit:cover; border-radius:12px;
+    border:1.5px solid rgba(255,255,255,0.25); background:#0b1424; z-index:2; }
+  .call-overlay{ position:absolute; top:calc(18px + env(safe-area-inset-top)); inset-inline-start:18px;
+    z-index:2; color:#fff; text-shadow:0 1px 4px rgba(0,0,0,0.8); }
+  .call-peer{ font-family:'Cairo',sans-serif; font-weight:800; font-size:17px; }
+  .call-state{ font-size:12px; opacity:.85; margin-top:3px; }
+  .call-controls{ position:absolute; bottom:calc(28px + env(safe-area-inset-bottom));
+    inset-inline:0; z-index:2; display:flex; justify-content:center; gap:16px; }
+  .call-btn{ width:58px; height:58px; border-radius:50%; border:none; cursor:pointer; font-size:22px;
+    background:rgba(255,255,255,0.16); color:#fff; backdrop-filter:blur(6px); }
+  .call-btn.end{ background:#dc2626; }
+  .call-btn.off{ background:rgba(255,255,255,0.4); opacity:.6; }
+  #callIncoming{ position:fixed; inset:0; z-index:992; display:flex; align-items:center;
+    justify-content:center; background:rgba(4,7,14,0.92); padding:18px; }
+
   /* ---------- EXAM TIMER + HISTORY ---------- */
   .exam-timer{
     position:sticky; top:0; z-index:20; text-align:center;
@@ -2674,6 +2752,17 @@
   <div class="app-main">
     <div class="app-topbar hidden" id="appTopbar">
       <button class="topbar-icon-btn" id="cmdkTopbarBtn" data-i18n-title="cmdkLauncherLabel" title="أوامر سريعة"><svg class="nx-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></button>
+      <!-- Messages, separate from notifications: a chat waiting for a reply is
+           a different kind of urgency from a system alert, and burying it in a
+           general notification list is how people miss conversations. -->
+      <div class="topbar-icon-wrap hidden" id="msgWrap">
+        <button class="topbar-icon-btn" id="msgBtn" data-i18n-title="msgTitle" title="المراسلات">💬</button>
+        <span class="nav-badge hidden" id="msgBadge"></span>
+        <div class="notif-panel hidden" id="msgPanel">
+          <div class="notif-head"><span data-i18n="msgTitle">المراسلات</span></div>
+          <div id="msgList"></div>
+        </div>
+      </div>
       <div class="topbar-icon-wrap hidden" id="notifBellWrap">
         <button class="topbar-icon-btn" id="notifBellBtn" aria-label="الإشعارات"><svg class="nx-icon" viewBox="0 0 24 24"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></button>
         <span class="notif-badge hidden" id="notifBellBadge">0</span>
@@ -3139,10 +3228,24 @@
   <div id="chatPanel" class="hidden" role="dialog" aria-modal="true">
     <div class="chat-sheet">
       <div class="chat-head">
-        <div class="chat-title" id="chatTitle"></div>
-        <button class="chat-close" id="chatCloseBtn" aria-label="إغلاق">✕</button>
+        <div class="chat-peer">
+          <div class="chat-peer-av" id="chatPeerAv"></div>
+          <div>
+            <div class="chat-title" id="chatTitle"></div>
+            <div class="chat-status" id="chatStatus"></div>
+          </div>
+        </div>
+        <div class="chat-head-actions">
+          <button class="chat-icon-btn" id="callAudioBtn" aria-label="مكالمة صوتية">📞</button>
+          <button class="chat-icon-btn" id="callVideoBtn" aria-label="مكالمة فيديو">🎥</button>
+          <button class="chat-close" id="chatCloseBtn" aria-label="إغلاق">✕</button>
+        </div>
       </div>
       <div class="chat-log" id="chatLog"></div>
+      <div class="typing-row hidden" id="typingRow">
+        <span class="typing-dots"><i></i><i></i><i></i></span>
+        <span id="typingText"></span>
+      </div>
       <div class="chat-input-row">
         <input type="text" id="chatInput" data-i18n-placeholder="chatPlaceholder" placeholder="اكتب رسالتك…" maxlength="500">
         <button class="chat-send" id="chatSendBtn" aria-label="إرسال">↑</button>
@@ -3160,6 +3263,33 @@
       <div id="gcList" style="max-height:46vh; overflow-y:auto; margin:10px 0;"></div>
       <button class="start-btn" id="gcSendBtn" disabled data-i18n="gcSend">أرسل الدعوات</button>
       <button class="secondary-btn" id="gcCloseBtn" data-i18n="closeBtn">إغلاق</button>
+    </div>
+  </div>
+
+  <!-- Call surface. Media flows peer-to-peer over WebRTC; only the handshake
+       passes through the sheet, so a call costs a few small writes rather
+       than a stream. -->
+  <div id="callPanel" class="hidden" role="dialog" aria-modal="true">
+    <video id="callRemote" autoplay playsinline></video>
+    <video id="callLocal" autoplay playsinline muted></video>
+    <div class="call-overlay">
+      <div class="call-peer" id="callPeerName"></div>
+      <div class="call-state" id="callState"></div>
+    </div>
+    <div class="call-controls">
+      <button class="call-btn mute" id="callMuteBtn" aria-label="كتم">🎙</button>
+      <button class="call-btn end" id="callEndBtn" aria-label="إنهاء">✕</button>
+      <button class="call-btn cam" id="callCamBtn" aria-label="الكاميرا">🎥</button>
+    </div>
+  </div>
+
+  <div id="callIncoming" class="hidden" role="dialog" aria-modal="true">
+    <div class="ci-card">
+      <div class="ci-avatar" id="callInAvatar"></div>
+      <div class="ci-title" id="callInTitle"></div>
+      <div class="ci-sub" id="callInSub"></div>
+      <button class="start-btn" id="callAnswerBtn" data-i18n="callAnswer">✅ رد</button>
+      <button class="secondary-btn" id="callRejectBtn" data-i18n="callReject">✕ رفض</button>
     </div>
   </div>
 
@@ -4410,6 +4540,31 @@
   const ciAcceptBtn = document.getElementById('ciAcceptBtn');
   const ciLaterBtn = document.getElementById('ciLaterBtn');
   const ciDeclineBtn = document.getElementById('ciDeclineBtn');
+  const msgWrap = document.getElementById('msgWrap');
+  const msgBtn = document.getElementById('msgBtn');
+  const msgBadge = document.getElementById('msgBadge');
+  const msgPanel = document.getElementById('msgPanel');
+  const msgList = document.getElementById('msgList');
+  const chatPeerAv = document.getElementById('chatPeerAv');
+  const chatStatus = document.getElementById('chatStatus');
+  const typingRow = document.getElementById('typingRow');
+  const typingText = document.getElementById('typingText');
+  const callAudioBtn = document.getElementById('callAudioBtn');
+  const callVideoBtn = document.getElementById('callVideoBtn');
+  const callPanel = document.getElementById('callPanel');
+  const callLocal = document.getElementById('callLocal');
+  const callRemote = document.getElementById('callRemote');
+  const callPeerName = document.getElementById('callPeerName');
+  const callState = document.getElementById('callState');
+  const callMuteBtn = document.getElementById('callMuteBtn');
+  const callCamBtn = document.getElementById('callCamBtn');
+  const callEndBtn = document.getElementById('callEndBtn');
+  const callIncoming = document.getElementById('callIncoming');
+  const callInAvatar = document.getElementById('callInAvatar');
+  const callInTitle = document.getElementById('callInTitle');
+  const callInSub = document.getElementById('callInSub');
+  const callAnswerBtn = document.getElementById('callAnswerBtn');
+  const callRejectBtn = document.getElementById('callRejectBtn');
   const chatPanel = document.getElementById('chatPanel');
   const chatTitle = document.getElementById('chatTitle');
   const chatLog = document.getElementById('chatLog');
@@ -5920,6 +6075,20 @@
       childOverallAccuracy:'الدقة الإجمالية', childOpenFile:'الملف الكامل',
       childLastActive:'آخر نشاط {t}', childNoActivityYet:'لم يبدأ التدريب بعد',
       profileNotAuthorized:'يمكنك عرض ملف الأصدقاء فقط.',
+      msgTitle:'المراسلات', msgNone:'لا توجد محادثات بعد.',
+      msgNewFrom:'💬 رسالة جديدة من {name}',
+      presenceOnline:'متصل الآن', presenceAway:'بعيد مؤقتًا', presenceUnknown:'غير معروف',
+      lastSeenNow:'آخر ظهور: الآن', lastSeenMins:'آخر ظهور: قبل {n} دقيقة',
+      lastSeenHours:'آخر ظهور: قبل {n} ساعة', lastSeenDays:'آخر ظهور: قبل {n} يوم',
+      lastSeenLongAgo:'آخر ظهور: منذ فترة طويلة',
+      typingOne:'{name} يكتب الآن…', typingMany:'{n} يكتبون الآن…',
+      callAnswer:'✅ رد', callReject:'✕ رفض',
+      callIncomingTitle:'{name} يتصل بك', callVideoKind:'مكالمة فيديو', callAudioKind:'مكالمة صوتية',
+      callConnecting:'جارٍ الاتصال…', callConnected:'متصل',
+      callPermDenied:'المتصفح منع الميكروفون أو الكاميرا. اسمح بالوصول من إعدادات الموقع ثم أعد المحاولة.',
+      callNoDevice:'تعذّر الوصول للميكروفون أو الكاميرا على هذا الجهاز.',
+      callFailed:'انقطع الاتصال.',
+      callCouldNotConnect:'تعذّر إنشاء الاتصال المباشر. بعض الشبكات المقيّدة تمنع المكالمات المباشرة — جرّب شبكة أخرى أو استخدم الدردشة النصية.',
       friendChatBtn:'💬 دردشة', gcOpenBtn:'👥 تحدٍّ جماعي (حتى 10 أصدقاء)',
       ciTitle:'{name} يتحدّاك!', ciSoloSub:'اقبل الآن وابدأ فورًا، أو أجّله لوقت مناسب.',
       ciGroupSub:'تحدٍّ جماعي مع {n} من الأصدقاء.',
@@ -6772,6 +6941,20 @@
       childOverallAccuracy:'Overall accuracy', childOpenFile:'Full profile',
       childLastActive:'Last active {t}', childNoActivityYet:'Has not started training yet',
       profileNotAuthorized:'You can only view a friend profile.',
+      msgTitle:'Messages', msgNone:'No conversations yet.',
+      msgNewFrom:'💬 New message from {name}',
+      presenceOnline:'Online now', presenceAway:'Away', presenceUnknown:'Unknown',
+      lastSeenNow:'Last seen: just now', lastSeenMins:'Last seen: {n} min ago',
+      lastSeenHours:'Last seen: {n} h ago', lastSeenDays:'Last seen: {n} d ago',
+      lastSeenLongAgo:'Last seen: a long time ago',
+      typingOne:'{name} is typing…', typingMany:'{n} people are typing…',
+      callAnswer:'✅ Answer', callReject:'✕ Decline',
+      callIncomingTitle:'{name} is calling', callVideoKind:'Video call', callAudioKind:'Voice call',
+      callConnecting:'Connecting…', callConnected:'Connected',
+      callPermDenied:'The browser blocked the microphone or camera. Allow access in site settings and try again.',
+      callNoDevice:'Could not access the microphone or camera on this device.',
+      callFailed:'The connection dropped.',
+      callCouldNotConnect:'A direct connection could not be established. Some restricted networks block peer-to-peer calls — try another network, or use text chat.',
       friendChatBtn:'💬 Chat', gcOpenBtn:'👥 Group challenge (up to 10 friends)',
       ciTitle:'{name} is challenging you!', ciSoloSub:'Accept now and start immediately, or defer it.',
       ciGroupSub:'A group challenge with {n} friends.',
@@ -7443,6 +7626,7 @@
     if(key !== 'guest' && typeof ensurePrintablePhoto === 'function') ensurePrintablePhoto(key);
     if(key !== 'guest' && typeof migrateGuardianLinksUp === 'function') migrateGuardianLinksUp();
     if(key !== 'guest' && typeof chalStartPolling === 'function') chalStartPolling();
+    if(key !== 'guest' && typeof startUnreadPolling === 'function') startUnreadPolling();
     // Backfill the join date for sessions that signed in before the server
     // started returning it — otherwise it would stay blank until next login.
     if(key !== 'guest' && SHEET_API_URL && !PROFILES[key].createdAt){
@@ -8881,6 +9065,7 @@
   });
   function logSessionLogout(){
     if(typeof chalStopPolling === 'function') chalStopPolling();
+    if(typeof stopUnreadPolling === 'function') stopUnreadPolling();
     // Revoke on the server BEFORE clearing locally, or the token would be
     // dropped from this device while remaining valid for anyone holding it.
     if(SESSION_TOKEN && SHEET_API_URL) postToSheet('logout', { sessionToken: SESSION_TOKEN });
@@ -13022,6 +13207,25 @@
   chatPanel.addEventListener('click', function(ev){ if(ev.target === chatPanel) closeChat(); });
   chatSendBtn.addEventListener('click', sendChatMessage);
   chatInput.addEventListener('keydown', function(ev){ if(ev.key === 'Enter') sendChatMessage(); });
+  chatInput.addEventListener('input', notifyTyping);
+  msgBtn.addEventListener('click', function(ev){
+    ev.stopPropagation();
+    const opening = msgPanel.classList.contains('hidden');
+    msgPanel.classList.toggle('hidden');
+    if(opening){ msgList.innerHTML = `<div class="dash-empty">${t('teachersLoading')}</div>`; renderMsgInbox(); }
+  });
+  document.addEventListener('click', function(ev){
+    if(!msgPanel.classList.contains('hidden') && !msgPanel.contains(ev.target) && ev.target !== msgBtn){
+      msgPanel.classList.add('hidden');
+    }
+  });
+  callAudioBtn.addEventListener('click', ()=> startCall(false));
+  callVideoBtn.addEventListener('click', ()=> startCall(true));
+  callAnswerBtn.addEventListener('click', answerCall);
+  callRejectBtn.addEventListener('click', rejectCall);
+  callEndBtn.addEventListener('click', endCall);
+  callMuteBtn.addEventListener('click', toggleMute);
+  callCamBtn.addEventListener('click', toggleCam);
   gcCloseBtn.addEventListener('click', ()=> groupChal.classList.add('hidden'));
   gcSendBtn.addEventListener('click', async ()=>{
     groupChal.classList.add('hidden');
@@ -15473,6 +15677,8 @@
   let chalPollId = null, chalPollRate = CHAL_POLL_IDLE;
   let chalPendingInvite = null, chalOutgoing = [];
   let chatRoom = null, chatWith = '', chatSince = 0, chatPollId = null;
+  let chatFetchInFlight = false;          // prevents overlapping fetches
+  let chatRendered = new Set();           // message ids already on screen
 
   function chalStopPolling(){
     if(chalPollId){ clearInterval(chalPollId); chalPollId = null; }
@@ -15491,8 +15697,8 @@
   // A hidden tab must not keep polling: it consumes quota for a screen nobody
   // is looking at.
   document.addEventListener('visibilitychange', function(){
-    if(document.hidden) chalStopPolling();
-    else if(hasAuthenticatedSession()) chalStartPolling();
+    if(document.hidden){ chalStopPolling(); stopUnreadPolling(); }
+    else if(hasAuthenticatedSession()){ chalStartPolling(); startUnreadPolling(); }
   });
 
   async function chalPoll(){
@@ -15590,6 +15796,8 @@
   function openChat(friendUsername){
     chatWith = friendUsername;
     chatRoom = null; chatSince = 0;
+    chatRendered = new Set();       // a fresh room starts with a clean slate
+    chatFetchInFlight = false;
     chatTitle.textContent = friendDisplayName(friendUsername);
     chatLog.innerHTML = '';
     chatPanel.classList.remove('hidden');
@@ -15598,33 +15806,119 @@
     const mine = String(currentServerUsername()).trim().toLowerCase();
     const theirs = String(friendUsername).trim().toLowerCase();
     chatRoom = 'room_' + [mine, theirs].sort().join('__');
+    // The peer's own picture in the header, so the conversation has a face.
+    chatPeerAv.innerHTML = '';
+    const pk = Object.keys(PROFILES).find(k => PROFILES[k].username &&
+      PROFILES[k].username.toLowerCase() === String(friendUsername).toLowerCase());
+    const pPhoto = pk && (PROFILES[pk].photoLocal || PROFILES[pk].photo);
+    if(pPhoto){
+      const im = document.createElement('img');
+      im.src = pPhoto;
+      im.onerror = function(){ chatPeerAv.innerHTML = ''; chatPeerAv.textContent = (chatTitle.textContent || '?').trim().charAt(0); };
+      chatPeerAv.appendChild(im);
+    } else {
+      chatPeerAv.textContent = (chatTitle.textContent || '?').trim().charAt(0);
+    }
+    typingRow.classList.add('hidden');
+    // Live status under their name: online, away, or when they were last here.
+    chatStatus.textContent = '';
+    if(SHEET_API_URL){
+      postToSheet('get_presence', { usernames: [friendUsername] }).then(function(pr){
+        if(!pr || !pr.ok) return;
+        const p = pr.presence[friendUsername] || {};
+        chatStatus.textContent = p.state === 'online' ? t('presenceOnline')
+                               : p.state === 'away'   ? t('presenceAway')
+                               : lastSeenText(p.lastSeen);
+      });
+    }
     chatPollNow();
+    pollRoomState();
+    // Opening the room clears its badge immediately, rather than waiting for
+    // the next poll to notice — a count that lingers after reading feels broken.
+    if(msgUnreadTotal){
+      const entry = msgRooms.find(function(r){ return r.roomId === chatRoom; });
+      if(entry){
+        msgUnreadTotal = Math.max(0, msgUnreadTotal - entry.count);
+        entry.count = 0;
+        msgBadge.textContent = String(msgUnreadTotal);
+        msgBadge.classList.toggle('hidden', msgUnreadTotal === 0);
+      }
+    }
     if(chatPollId) clearInterval(chatPollId);
-    chatPollId = setInterval(chatPollNow, CHAT_POLL);
+    chatPollId = setInterval(function(){ chatPollNow(); pollRoomState(); }, CHAT_POLL);
     chatInput.focus();
   }
   function closeChat(){
+    // Clear the typing flag on the way out, or the other side sees "typing…"
+    // indefinitely from someone who has left.
+    if(chatRoom) postToSheet('set_typing', { roomId: chatRoom, username: currentServerUsername(), typing: false });
+    clearTimeout(typingStopId);
+    typingSentAt = 0;
     chatPanel.classList.add('hidden');
+    typingRow.classList.add('hidden');
     if(chatPollId){ clearInterval(chatPollId); chatPollId = null; }
     chatRoom = null;
   }
   async function chatPollNow(){
     if(!chatRoom || !SHEET_API_URL) return;
-    const res = await postToSheet('fetch_chat', { roomId: chatRoom, since: chatSince });
+    // THE DUPLICATION BUG: chatSince was only advanced AFTER the response
+    // arrived, and this runs from two places — the 4s interval and every
+    // send. If one request was still in flight when another started, both
+    // asked for the same `since` and both appended the same messages. On a
+    // phone the network is slow enough that the overlap happened every time;
+    // on desktop the first request usually finished first, which is exactly
+    // why it looked like a mobile-only fault.
+    if(chatFetchInFlight) return;
+    chatFetchInFlight = true;
+    let res;
+    try{
+      res = await postToSheet('fetch_chat', { roomId: chatRoom, since: chatSince });
+    } finally {
+      chatFetchInFlight = false;
+    }
     if(!res || !res.ok || !res.messages.length) return;
-    // lastSeq, not a timestamp: two messages in the same millisecond would
-    // otherwise cost us one of them permanently.
     chatSince = res.lastSeq || chatSince;
     const me = String(currentServerUsername()).toLowerCase();
     res.messages.forEach(function(m){
-      const el = document.createElement('div');
+      // Second line of defence: even if a duplicate response slipped through,
+      // a message id is never rendered twice.
+      if(chatRendered.has(m.id)) return;
+      chatRendered.add(m.id);
       const mine = String(m.from).toLowerCase() === me;
-      el.className = 'chat-msg ' + (mine ? 'mine' : 'theirs');
-      el.innerHTML = (mine ? '' : `<span class="cm-who">${friendDisplayName(m.from)}</span>`) +
-        String(m.text).replace(/[<>]/g, '');   // plain text only
-      chatLog.appendChild(el);
+      chatLog.appendChild(buildChatBubble(m, mine));
     });
     chatLog.scrollTop = chatLog.scrollHeight;
+    // Persist the read marker so the badge stays correct across reloads.
+    msgSeen[chatRoom] = chatSince;
+    saveMsgSeen();
+  }
+
+  /* A bubble with the sender's avatar beside it, the way a real messenger
+     shows who is speaking. The name label is dropped when the picture is
+     there — repeating both is noise. */
+  function buildChatBubble(m, mine){
+    const row = document.createElement('div');
+    row.className = 'chat-row ' + (mine ? 'mine' : 'theirs');
+    const av = document.createElement('div');
+    av.className = 'chat-av';
+    const key = Object.keys(PROFILES).find(k => PROFILES[k].username &&
+      PROFILES[k].username.toLowerCase() === String(m.from).toLowerCase());
+    const photo = key && (PROFILES[key].photoLocal || PROFILES[key].photo);
+    if(photo){
+      const img = document.createElement('img');
+      img.src = photo;
+      // A dead photo link must not leave an empty circle.
+      img.onerror = function(){ av.innerHTML = ''; av.textContent = (friendDisplayName(m.from) || '?').trim().charAt(0); };
+      av.appendChild(img);
+    } else {
+      av.textContent = (friendDisplayName(m.from) || '?').trim().charAt(0);
+    }
+    const bub = document.createElement('div');
+    bub.className = 'chat-msg ' + (mine ? 'mine' : 'theirs');
+    bub.textContent = String(m.text);   // textContent, never innerHTML
+    row.appendChild(av);
+    row.appendChild(bub);
+    return row;
   }
   async function sendChatMessage(){
     const text = chatInput.value.trim();
@@ -15669,6 +15963,338 @@
     gcSendBtn.disabled = true;
     groupChal.classList.remove('hidden');
   }
+
+  /* ==================== MODULE: MESSAGES INBOX & PRESENCE ====================
+     One badge that answers "is anyone waiting for me?" without opening
+     anything, plus each friend's real status beside their face.
+
+     Read state lives on the CLIENT: it remembers the last sequence number it
+     has seen per room, and the server counts what is newer. A read receipt
+     written per message would turn simply reading a chat into dozens of
+     writes. */
+  let msgSeen = {};                 // { roomId: lastSeenSeq }
+  let msgRooms = [], msgUnreadTotal = 0, msgPollId = null;
+  try{ msgSeen = JSON.parse(localStorage.getItem('nexoraChatSeen') || '{}'); }catch(e){ msgSeen = {}; }
+  function saveMsgSeen(){ try{ localStorage.setItem('nexoraChatSeen', JSON.stringify(msgSeen)); }catch(e){} }
+
+  // Relative, not absolute: "5 minutes ago" is what a person wants to know,
+  // not a timestamp they have to subtract from now.
+  function lastSeenText(iso){
+    if(!iso) return t('presenceUnknown');
+    const then = new Date(iso).getTime();
+    if(isNaN(then)) return t('presenceUnknown');
+    const mins = Math.floor((Date.now() - then) / 60000);
+    if(mins < 1)    return t('lastSeenNow');
+    if(mins < 60)   return fmt('lastSeenMins',  { n: mins });
+    if(mins < 1440) return fmt('lastSeenHours', { n: Math.floor(mins / 60) });
+    if(mins < 43200)return fmt('lastSeenDays',  { n: Math.floor(mins / 1440) });
+    return t('lastSeenLongAgo');
+  }
+  function presenceClass(state){
+    return state === 'online' ? 'online' : (state === 'away' ? 'away' : '');
+  }
+  // The other member of a two-person room — the room id encodes both.
+  function roomPeer(roomId){
+    const me = String(currentServerUsername()).trim().toLowerCase();
+    const members = String(roomId).replace(/^room_/, '').split('__');
+    return members.find(function(m){ return m !== me; }) || members[0] || '';
+  }
+
+  async function pollUnread(){
+    if(!SHEET_API_URL || !hasAuthenticatedSession()) return;
+    const res = await postToSheet('unread_counts', {
+      username: currentServerUsername(), seen: msgSeen
+    });
+    if(!res || !res.ok) return;
+    msgRooms = res.rooms || [];
+    const prevTotal = msgUnreadTotal;
+    msgUnreadTotal = res.total || 0;
+
+    msgWrap.classList.remove('hidden');
+    msgBadge.textContent = msgUnreadTotal > 99 ? '99+' : String(msgUnreadTotal);
+    msgBadge.classList.toggle('hidden', msgUnreadTotal === 0);
+
+    // Announce only a genuine INCREASE, and only when the inbox is closed —
+    // a toast for a message the learner is already reading is noise.
+    if(msgUnreadTotal > prevTotal && msgPanel.classList.contains('hidden') && chatPanel.classList.contains('hidden')){
+      const newest = msgRooms[0];
+      if(newest) showToast(fmt('msgNewFrom', { name: friendDisplayName(newest.lastFrom) }), nxIcon('messageCircle'), 'social');
+    }
+    if(!msgPanel.classList.contains('hidden')) renderMsgInbox();
+  }
+
+  async function renderMsgInbox(){
+    if(!msgRooms.length){
+      msgList.innerHTML = `<div class="dash-empty">${t('msgNone')}</div>`;
+      return;
+    }
+    // Presence for exactly the people shown — nothing more.
+    const peers = msgRooms.map(function(r){ return roomPeer(r.roomId); }).filter(Boolean);
+    let presence = {};
+    if(peers.length && SHEET_API_URL){
+      const pres = await postToSheet('get_presence', { usernames: peers });
+      if(pres && pres.ok) presence = pres.presence || {};
+    }
+    msgList.innerHTML = msgRooms.map(function(r){
+      const peer = roomPeer(r.roomId);
+      const p = presence[peer] || {};
+      const key = Object.keys(PROFILES).find(k => PROFILES[k].username &&
+        PROFILES[k].username.toLowerCase() === String(peer).toLowerCase());
+      const photo = key && (PROFILES[key].photoLocal || PROFILES[key].photo);
+      const name = friendDisplayName(peer);
+      const status = p.state === 'online' ? t('presenceOnline')
+                   : p.state === 'away'   ? t('presenceAway')
+                   : lastSeenText(p.lastSeen);
+      return `<div class="msg-row${r.count ? ' unread' : ''}" data-room="${r.roomId}" data-peer="${peer}">
+        <div class="msg-av">${photo ? `<img src="${photo}" alt="">` : (name || '?').trim().charAt(0)}
+          <span class="pres ${presenceClass(p.state)}"></span></div>
+        <div class="msg-body">
+          <div class="msg-name">${name}</div>
+          <div class="msg-preview">${r.lastText ? String(r.lastText).replace(/[<>]/g, '') : status}</div>
+        </div>
+        <div class="msg-meta">
+          <span class="msg-time">${status}</span>
+          ${r.count ? `<span class="msg-count">${r.count}</span>` : ''}
+        </div>
+      </div>`;
+    }).join('');
+    msgList.querySelectorAll('[data-room]').forEach(function(row){
+      row.addEventListener('click', function(){
+        msgPanel.classList.add('hidden');
+        openChat(row.dataset.peer);
+      });
+    });
+  }
+
+  function startUnreadPolling(){
+    if(msgPollId) clearInterval(msgPollId);
+    pollUnread();
+    // 20s: a badge is ambient information. Polling it every few seconds would
+    // cost more than the chat itself and change nothing a learner would notice.
+    msgPollId = setInterval(pollUnread, 20000);
+  }
+  function stopUnreadPolling(){
+    if(msgPollId){ clearInterval(msgPollId); msgPollId = null; }
+    msgWrap.classList.add('hidden');
+  }
+
+  /* ---------- TYPING INDICATOR ---------- */
+  let typingSentAt = 0, typingStopId = null;
+  function notifyTyping(){
+    if(!chatRoom || !SHEET_API_URL) return;
+    // Rate-limited to one write every 3s. Sending on every keystroke would
+    // generate a request per character and exhaust the quota in a sentence.
+    const now = Date.now();
+    if(now - typingSentAt > 3000){
+      typingSentAt = now;
+      postToSheet('set_typing', { roomId: chatRoom, username: currentServerUsername(), typing: true });
+    }
+    clearTimeout(typingStopId);
+    typingStopId = setTimeout(function(){
+      typingSentAt = 0;
+      if(chatRoom) postToSheet('set_typing', { roomId: chatRoom, username: currentServerUsername(), typing: false });
+    }, 3500);
+  }
+  function renderTyping(names){
+    if(!names || !names.length){ typingRow.classList.add('hidden'); return; }
+    typingText.textContent = names.length === 1
+      ? fmt('typingOne', { name: friendDisplayName(names[0]) })
+      : fmt('typingMany', { n: names.length });
+    typingRow.classList.remove('hidden');
+    chatLog.scrollTop = chatLog.scrollHeight;
+  }
+
+  /* ---------- ROOM STATE: typing + call signals in ONE request ---------- */
+  let roomStateInFlight = false;
+  async function pollRoomState(){
+    if(!chatRoom || !SHEET_API_URL || roomStateInFlight) return;
+    roomStateInFlight = true;
+    let res;
+    try{
+      res = await postToSheet('room_state', { roomId: chatRoom, username: currentServerUsername() });
+    } finally { roomStateInFlight = false; }
+    if(!res || !res.ok) return;
+    renderTyping(res.typing);
+    (res.signals || []).forEach(handleIncomingSignal);
+  }
+
+  /* ==================== MODULE: VOICE & VIDEO CALLS ====================
+     WebRTC peer-to-peer: the audio and video never touch our server, only the
+     handshake does. That keeps a call off Google's quota entirely and keeps
+     children's media out of any third-party service.
+
+     Honest limitation: this uses public STUN servers with no TURN relay.
+     Roughly one connection in ten — those behind a symmetric NAT or a strict
+     corporate firewall — will fail to connect. The UI says so plainly rather
+     than spinning forever, because a call that silently never connects is
+     worse than one that admits it cannot. */
+  const ICE_SERVERS = [
+    { urls: 'stun:stun.l.google.com:19302' },
+    { urls: 'stun:stun1.l.google.com:19302' }
+  ];
+  // Named apart from the race screen's peerConnection/localStream on purpose:
+  // sharing those would let one call silently stop the other's camera.
+  let chatPc = null, chatStream = null, callPeer = '', callIsVideo = false;
+  let callSignalPollId = null, callConnectTimer = null, callIncomingOffer = null;
+
+  function callSetState(key){ callState.textContent = t(key); }
+
+  async function startCall(video){
+    if(!chatWith){ return; }
+    callIsVideo = !!video;
+    callPeer = chatWith;
+    callPeerName.textContent = friendDisplayName(callPeer);
+    callPanel.classList.remove('hidden');
+    callSetState('callConnecting');
+    try{
+      chatStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: callIsVideo });
+    }catch(err){
+      // A denied microphone is a permission problem, not a network one —
+      // saying which saves the learner guessing.
+      endCall();
+      showToast(t(err && err.name === 'NotAllowedError' ? 'callPermDenied' : 'callNoDevice'),
+                nxIcon('alertTriangle'), 'system');
+      return;
+    }
+    callLocal.srcObject = chatStream;
+    callLocal.classList.toggle('hidden', !callIsVideo);
+    await buildPeer();
+    const offer = await chatPc.createOffer();
+    await chatPc.setLocalDescription(offer);
+    await sendSignal({ type: 'offer', sdp: offer.sdp, video: callIsVideo });
+    startCallSignalPolling();
+    armConnectTimeout();
+  }
+
+  async function buildPeer(){
+    chatPc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
+    chatStream.getTracks().forEach(function(tr){ chatPc.addTrack(tr, localStream); });
+    chatPc.ontrack = function(ev){
+      callRemote.srcObject = ev.streams[0];
+      callSetState('callConnected');
+      clearTimeout(callConnectTimer);
+    };
+    chatPc.onicecandidate = function(ev){
+      if(ev.candidate) sendSignal({ type: 'candidate', candidate: ev.candidate });
+    };
+    chatPc.onconnectionstatechange = function(){
+      if(pc && (chatPc.connectionState === 'failed' || chatPc.connectionState === 'disconnected')){
+        showToast(t('callFailed'), nxIcon('alertTriangle'), 'system');
+        endCall();
+      }
+    };
+  }
+  // Without this a failed connection would show "connecting…" forever.
+  function armConnectTimeout(){
+    clearTimeout(callConnectTimer);
+    callConnectTimer = setTimeout(function(){
+      if(pc && chatPc.connectionState !== 'connected'){
+        showToast(t('callCouldNotConnect'), nxIcon('alertTriangle'), 'system');
+        endCall();
+      }
+    }, 45000);
+  }
+  function sendSignal(signal){
+    return postToSheet('call_signal', {
+      roomId: chatRoom, fromUser: currentServerUsername(), toUser: callPeer || chatWith, signal: signal
+    });
+  }
+  function startCallSignalPolling(){
+    if(callSignalPollId) clearInterval(callSignalPollId);
+    // 1.5s during setup only: the handshake is a short burst, and a slow poll
+    // here would make every call take half a minute to connect.
+    callSignalPollId = setInterval(pollRoomState, 1500);
+  }
+
+  async function handleIncomingSignal(sig){
+    const data = sig.data;
+    if(!data || !data.type) return;
+    if(data.type === 'offer'){
+      if(chatPc) return;                       // already in a call
+      callIncomingOffer = { from: sig.from, sdp: data.sdp, video: !!data.video };
+      callInAvatar.textContent = (friendDisplayName(sig.from) || '?').trim().charAt(0);
+      callInTitle.textContent = fmt('callIncomingTitle', { name: friendDisplayName(sig.from) });
+      callInSub.textContent = t(data.video ? 'callVideoKind' : 'callAudioKind');
+      callIncoming.classList.remove('hidden');
+      return;
+    }
+    if(!chatPc) return;
+    if(data.type === 'answer'){
+      await chatPc.setRemoteDescription({ type: 'answer', sdp: data.sdp });
+    } else if(data.type === 'candidate' && data.candidate){
+      // A candidate arriving before the remote description is normal; ignoring
+      // the error is correct rather than aborting the call.
+      try{ await chatPc.addIceCandidate(data.candidate); }catch(e){}
+    } else if(data.type === 'bye'){
+      endCall();
+    }
+  }
+
+  async function answerCall(){
+    if(!callIncomingOffer) return;
+    callIncoming.classList.add('hidden');
+    callPeer = callIncomingOffer.from;
+    callIsVideo = callIncomingOffer.video;
+    callPeerName.textContent = friendDisplayName(callPeer);
+    callPanel.classList.remove('hidden');
+    callSetState('callConnecting');
+    try{
+      chatStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: callIsVideo });
+    }catch(err){
+      endCall();
+      showToast(t(err && err.name === 'NotAllowedError' ? 'callPermDenied' : 'callNoDevice'),
+                nxIcon('alertTriangle'), 'system');
+      return;
+    }
+    callLocal.srcObject = chatStream;
+    callLocal.classList.toggle('hidden', !callIsVideo);
+    await buildPeer();
+    await chatPc.setRemoteDescription({ type: 'offer', sdp: callIncomingOffer.sdp });
+    const answer = await chatPc.createAnswer();
+    await chatPc.setLocalDescription(answer);
+    await sendSignal({ type: 'answer', sdp: answer.sdp });
+    callIncomingOffer = null;
+    startCallSignalPolling();
+    armConnectTimeout();
+  }
+  function rejectCall(){
+    if(callIncomingOffer){
+      callPeer = callIncomingOffer.from;
+      sendSignal({ type: 'bye' });
+      callIncomingOffer = null;
+    }
+    callIncoming.classList.add('hidden');
+  }
+  function endCall(){
+    // Every resource released on every path: a camera left on after a call is
+    // the kind of bug users never forgive.
+    clearTimeout(callConnectTimer);
+    if(callSignalPollId){ clearInterval(callSignalPollId); callSignalPollId = null; }
+    if(chatPc){ try{ sendSignal({ type: 'bye' }); }catch(e){} try{ chatPc.close(); }catch(e){} chatPc = null; }
+    if(chatStream){ chatStream.getTracks().forEach(function(tr){ tr.stop(); }); chatStream = null; }
+    callLocal.srcObject = null; callRemote.srcObject = null;
+    callPanel.classList.add('hidden');
+    callIncoming.classList.add('hidden');
+    if(chatRoom) postToSheet('clear_call_signal', {
+      roomId: chatRoom, fromUser: currentServerUsername(), toUser: callPeer
+    });
+    callPeer = '';
+  }
+  function toggleMute(){
+    if(!chatStream) return;
+    const track = chatStream.getAudioTracks()[0];
+    if(!track) return;
+    track.enabled = !track.enabled;
+    callMuteBtn.classList.toggle('off', !track.enabled);
+  }
+  function toggleCam(){
+    if(!chatStream) return;
+    const track = chatStream.getVideoTracks()[0];
+    if(!track) return;
+    track.enabled = !track.enabled;
+    callCamBtn.classList.toggle('off', !track.enabled);
+  }
+  /* ==================== END MODULE: VOICE & VIDEO CALLS ==================== */
   /* ==================== END MODULE: LIVE CHALLENGES & CHAT ==================== */
 
   /* ==================== MODULE: EXAM IMPORT (ADMIN) ====================
