@@ -4767,6 +4767,28 @@
     });
     postToSheet('set_guardian_links', { childUsername: prof.username, links: links });
   }
+  /* Uploads every guardian link this device already holds. Links created
+     before the server-side store existed live only in local storage, so
+     without this migration a parent would have to re-save each child's
+     profile by hand just to make them visible on another browser. Runs once
+     per session, silently. */
+  let guardianLinksMigrated = false;
+  async function migrateGuardianLinksUp(){
+    if(guardianLinksMigrated || !SHEET_API_URL) return;
+    guardianLinksMigrated = true;
+    const jobs = [];
+    profileOrder.forEach(function(key){
+      const p = PROFILES[key];
+      if(!p || !p.username || !p.guardians) return;
+      const links = [];
+      ['mother','father'].forEach(function(role){
+        const gRec = p.guardians[role];
+        if(gRec && gRec.username) links.push({ guardianUsername: gRec.username, role: role });
+      });
+      if(links.length) jobs.push(postToSheet('set_guardian_links', { childUsername: p.username, links: links }));
+    });
+    if(jobs.length) await Promise.all(jobs);
+  }
   function findGuardianLinks(username){
     const uname = String(username).toLowerCase();
     const links = [];
@@ -5269,6 +5291,8 @@
       friendAcceptBtn:'قبول', friendDeclineBtn:'رفض', friendRemoveBtn:'إزالة',
       friendRemoveConfirm:'هل تريدين إزالة هذا الصديق؟',
       friendsNavLabel:'أصدقائي', myChildrenNavLabel:'أبنائي',
+      guardianNoChildrenFound:'لم نجد أبناءً مرتبطين بهذا الحساب على الخادم. افتحي «حسابي» في حساب كل طفل، وأضيفي اسم المستخدم وكلمة المرور الخاصة بكِ في خانة الأم أو الأب، ثم احفظي مرة واحدة.',
+      guardianOfflineNoLinks:'لا يوجد اتصال بالخادم، ولا توجد روابط محفوظة على هذا الجهاز. اتصلي بالإنترنت ثم أعيدي المحاولة.',
       guardianNoLinksTitle:'<b>لا يوجد أبناء مرتبطون بهذا الحساب بعد.</b>',
       guardianNoLinksHow:'لربط ابنك أو ابنتك: سجّلي الدخول بحسابها ← «حسابي» ← حسابات أولياء الأمور ← اكتبي اسم المستخدم وكلمة المرور الخاصة بكِ في خانة الأم أو الأب ← احفظي. بعدها سيظهر اسمها هنا مباشرة.',
       guardianUnlockTitle:'👪 متابعة أبنائي', guardianUnlockBtn:'عرض أبنائي',
@@ -6047,6 +6071,8 @@
       friendAcceptBtn:'Accept', friendDeclineBtn:'Decline', friendRemoveBtn:'Remove',
       friendRemoveConfirm:'Remove this friend?',
       friendsNavLabel:'Friends', myChildrenNavLabel:'My children',
+      guardianNoChildrenFound:'No children are linked to this account on the server. Open "My account" in each child\'s profile, enter YOUR username and password under mother or father, and save once.',
+      guardianOfflineNoLinks:'No server connection, and no links saved on this device. Reconnect and try again.',
       guardianNoLinksTitle:'<b>No children are linked to this account yet.</b>',
       guardianNoLinksHow:'To link a child: sign in to their account, open "My account" → guardian accounts, enter YOUR username and password under mother or father, and save. Their name will then appear here.',
       guardianUnlockTitle:'👪 My children', guardianUnlockBtn:'View my children',
@@ -6881,6 +6907,7 @@
     // time the learner opens a card or a certificate it is already there,
     // and they are never asked to supply a photo the app already has.
     if(key !== 'guest' && typeof ensurePrintablePhoto === 'function') ensurePrintablePhoto(key);
+    if(key !== 'guest' && typeof migrateGuardianLinksUp === 'function') migrateGuardianLinksUp();
     // Backfill the join date for sessions that signed in before the server
     // started returning it — otherwise it would stay blank until next login.
     if(key !== 'guest' && SHEET_API_URL && !PROFILES[key].createdAt){
@@ -11649,11 +11676,33 @@
   guardianUnlockBtn.addEventListener('click', async ()=>{
     const pass = guardianUnlockPin.value;
     if(!pass){ guardianUnlockError.textContent = t('enterPinFirst'); return; }
+    guardianUnlockError.textContent = '';
+    setBtnSaving(guardianUnlockBtn, true);
     const uname = (PROFILES[currentProfile] && PROFILES[currentProfile].username) || currentProfile;
     const hash = await computePasswordHash(uname, pass);
-    const links = myGuardianLinks().filter(l => l.pin === hash); // only children this password unlocks
-    if(!links.length){ guardianUnlockError.textContent = t('loginErrorMsg'); return; }
-    guardianUnlockedChildren = [...new Set(links.map(l => l.studentKey))];
+
+    // Local links first — instant, and works offline.
+    let links = myGuardianLinks().filter(l => l.pin === hash);
+
+    // Nothing locally? That is the normal state on a NEW browser, not a wrong
+    // password. Ask the server, which is the only place that knows every
+    // account. Reporting "wrong password" here was actively misleading: the
+    // password was right and the device simply had no record of the children.
+    let serverKeys = null;
+    if(!links.length){
+      serverKeys = await fetchMyChildrenFromServer();
+    }
+    setBtnSaving(guardianUnlockBtn, false);
+
+    if(links.length){
+      guardianUnlockedChildren = [...new Set(links.map(l => l.studentKey))];
+    } else if(serverKeys && serverKeys.length){
+      guardianUnlockedChildren = serverKeys;
+    } else {
+      // Distinguish the two real cases instead of blaming the password.
+      guardianUnlockError.textContent = SHEET_API_URL ? t('guardianNoChildrenFound') : t('guardianOfflineNoLinks');
+      return;
+    }
     guardianUnlockModal.classList.add('hidden');
     showParentView(guardianUnlockedChildren);
   });
