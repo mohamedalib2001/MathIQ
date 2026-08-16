@@ -1218,6 +1218,43 @@
   .guardian-box input.ltr-input{ direction:ltr; text-align:left; }
   .guardian-box .clear-guardian{ font-size:11px; color:var(--coral); text-decoration:underline; cursor:pointer; }
 
+  /* ---------- SMART LOADER ---------- */
+  #smartLoader{
+    position:fixed; inset:0; z-index:960; display:flex; align-items:center; justify-content:center;
+    background:rgba(8,10,16,0.82); padding:22px;
+  }
+  .sl-card{
+    width:100%; max-width:340px; text-align:center;
+    background:var(--input-bg); border:1.5px solid var(--chip-border); border-radius:18px;
+    padding:26px 22px 20px; box-shadow:0 20px 50px rgba(0,0,0,0.5);
+  }
+  .sl-orb{ display:flex; align-items:center; justify-content:center; gap:6px; height:34px; margin-bottom:14px; }
+  .sl-orb span{
+    width:9px; height:9px; border-radius:50%; display:block;
+    background:linear-gradient(145deg,#818CF8,#06B6D4);
+  }
+  @media (prefers-reduced-motion: no-preference){
+    .sl-orb span{ animation:sl-bounce 1.05s ease-in-out infinite; }
+    .sl-orb span:nth-child(2){ animation-delay:.14s }
+    .sl-orb span:nth-child(3){ animation-delay:.28s }
+  }
+  @keyframes sl-bounce{ 0%,100%{ transform:translateY(0); opacity:.5 } 50%{ transform:translateY(-9px); opacity:1 } }
+  .sl-title{ font-family:'Cairo',sans-serif; font-weight:800; font-size:15px; color:var(--ink); }
+  .sl-step{ font-size:12px; color:var(--ink-dim); margin-top:6px; min-height:18px; line-height:1.6; }
+  .sl-bar{ height:5px; border-radius:4px; background:var(--bg); overflow:hidden; margin-top:14px; }
+  .sl-fill{
+    height:100%; width:0%; border-radius:4px;
+    background:linear-gradient(90deg,#6366F1,#06B6D4);
+    transition:width .35s cubic-bezier(.3,.9,.3,1);
+  }
+  .sl-meta{ display:flex; justify-content:space-between; margin-top:8px; font-size:11px; color:var(--ink-dim); }
+  .sl-pct{ font-family:'Cairo',sans-serif; font-weight:800; color:var(--yellow); }
+  .sl-slow{
+    font-size:11px; color:#F59E0B; line-height:1.6; margin-top:10px;
+    background:rgba(245,158,11,0.1); border:1px solid rgba(245,158,11,0.3);
+    border-radius:9px; padding:7px 10px;
+  }
+
   /* ---------- NOVA — ASSISTANT PRESENCE ----------
      A designed presence rather than an imitation of a face. Apple and Google
      both settled on this for the same reason: a stylised form can be rendered
@@ -2526,6 +2563,25 @@
     <button class="secondary-btn" id="synapseBackBtn" data-i18n="backBtn">رجوع</button>
   </div>
 
+  <!-- SMART LOADER
+       A blank screen during a wait tells the learner nothing, and a spinner
+       tells them only "something". This names the actual step in progress and
+       counts real percentage, so a slow moment reads as work being done
+       rather than as the app being broken. -->
+  <div id="smartLoader" class="hidden" role="status" aria-live="polite">
+    <div class="sl-card">
+      <div class="sl-orb" aria-hidden="true"><span></span><span></span><span></span></div>
+      <div class="sl-title" id="slTitle"></div>
+      <div class="sl-step" id="slStep"></div>
+      <div class="sl-bar"><div class="sl-fill" id="slFill"></div></div>
+      <div class="sl-meta">
+        <span class="sl-pct" id="slPct">0%</span>
+        <span class="sl-elapsed" id="slElapsed"></span>
+      </div>
+      <div class="sl-slow hidden" id="slSlow"></div>
+    </div>
+  </div>
+
   <!-- NOVA — THE ACADEMY ASSISTANT
        A designed presence, not a fake human. A video avatar would need a paid
        generation service and would still only lip-sync a pre-written script;
@@ -3676,6 +3732,13 @@
   const knowRevProgress = document.getElementById('knowRevProgress');
   const knowRevArea = document.getElementById('knowRevArea');
   const knowRevBackBtn = document.getElementById('knowRevBackBtn');
+  const smartLoader = document.getElementById('smartLoader');
+  const slTitle = document.getElementById('slTitle');
+  const slStep = document.getElementById('slStep');
+  const slFill = document.getElementById('slFill');
+  const slPct = document.getElementById('slPct');
+  const slElapsed = document.getElementById('slElapsed');
+  const slSlow = document.getElementById('slSlow');
   const novaFab = document.getElementById('novaFab');
   const novaPanel = document.getElementById('novaPanel');
   const novaOrb = document.getElementById('novaOrb');
@@ -4808,6 +4871,16 @@
       novaProgressLine:'أجبتِ على {n} سؤالًا بدقة {acc}%، وأتقنتِ {m} من {total} مستوى، ولديكِ {b} إنجازًا.',
       novaWeakLine:'أضعف نقطة حاليًا: {op} بدقة {acc}%.',
       novaDueLine:'وعندك {n} سؤال حان موعد مراجعته.',
+      slElapsed:'{s} ث', slDone:'تم ✓',
+      slSlowNote:'الخادم يستغرق وقتًا أطول من المعتاد — ما زلنا ننتظر، لم يتوقف شيء.',
+      slStepProfile:'نقرأ ملفك التعليمي…', slStepIndicators:'نحسب المؤشرات المعرفية…',
+      slStepPrograms:'نراجع أداءك في كل برنامج…', slStepInsights:'نستخرج الملاحظات…',
+      slStepMemberData:'نجهّز بيانات العضوية…', slStepTier:'نحدّد فئتك…', slStepQr:'ننشئ رمز التحقق…',
+      slStepDue:'نبحث عن الأسئلة المستحقة…', slStepResolve:'نسترجع الأسئلة من برامجك…',
+      slStepBuild:'نبني جلسة المراجعة…',
+      novaNoKey:'خدمة الذكاء الاصطناعي غير مُفعَّلة على الخادم بعد. أستطيع مساعدتك في فتح الصفحات وعرض تقدّمك، أما الأسئلة المفتوحة فتحتاج تفعيل المفتاح من لوحة الإدارة.',
+      novaRateLimited:'وصلتِ للحد الأقصى من الأسئلة هذه الساعة. جرّبي بعد قليل.',
+      novaNoNetwork:'لا يوجد اتصال بالخادم الآن. يمكنني فتح الصفحات وعرض تقدّمك بدون إنترنت.',
       novaFailed:'لم أستطع الوصول للإجابة الآن. جرّبي مرة أخرى بعد قليل.',
       novaOfflineOnly:'أحتاج اتصالًا بالخادم للإجابة على هذا. لكن يمكنني فتح الصفحات لكِ بدون إنترنت.',
       sessionExpired:'انتهت جلستك لأسباب أمنية. سجّلي الدخول مرة أخرى للمتابعة.',
@@ -5520,6 +5593,16 @@
       novaProgressLine:'You have answered {n} questions at {acc}% accuracy, mastered {m} of {total} levels, and earned {b} achievements.',
       novaWeakLine:'Your weakest point right now: {op} at {acc}%.',
       novaDueLine:'And {n} question(s) are due for review.',
+      slElapsed:'{s}s', slDone:'Done ✓',
+      slSlowNote:'The server is taking longer than usual — we are still waiting, nothing has stalled.',
+      slStepProfile:'Reading your learning record…', slStepIndicators:'Computing cognitive indicators…',
+      slStepPrograms:'Reviewing performance per program…', slStepInsights:'Extracting observations…',
+      slStepMemberData:'Preparing membership details…', slStepTier:'Determining your tier…', slStepQr:'Generating the verification code…',
+      slStepDue:'Finding questions that are due…', slStepResolve:'Retrieving them from your programs…',
+      slStepBuild:'Building the review session…',
+      novaNoKey:'The AI service is not enabled on the server yet. I can still open pages and show your progress; open questions need the key configured in the admin panel.',
+      novaRateLimited:'You have reached this hour\'s question limit. Please try again shortly.',
+      novaNoNetwork:'No server connection right now. I can still open pages and show your progress offline.',
       novaFailed:'I could not reach an answer just now. Please try again shortly.',
       novaOfflineOnly:'I need a server connection for that. I can still open pages for you offline.',
       sessionExpired:'Your session has ended for security. Please sign in again to continue.',
@@ -11639,7 +11722,13 @@
     hideLearnerShellScreens();
     memberCardScreen.classList.remove('hidden');
     mcCard.classList.remove('flipped');
-    renderMembershipCard();
+    withLoader(t('memberCardTitle'), [
+      t('slStepMemberData'), t('slStepTier'), t('slStepQr')
+    ], async function(ctl){
+      ctl.advance(); ctl.advance();
+      renderMembershipCard();
+      ctl.advance();
+    });
     renderShellNav('learner');
   }
   mcCard.addEventListener('click', ()=> mcCard.classList.toggle('flipped'));
@@ -11688,7 +11777,15 @@
     if(!currentProfile || !PROFILES[currentProfile]) return;
     hideLearnerShellScreens();
     synapseScreen.classList.remove('hidden');
-    renderSynapseProfile();
+    // Named steps, because this screen genuinely does several things and a
+    // silent pause here read as a hang.
+    withLoader(t('synapseNavLabel'), [
+      t('slStepProfile'), t('slStepIndicators'), t('slStepPrograms'), t('slStepInsights')
+    ], async function(ctl){
+      ctl.advance();
+      renderSynapseProfile();
+      ctl.advance(); ctl.advance(); ctl.advance();
+    });
     renderShellNav('learner');
   }
   synapseBackBtn.addEventListener('click', ()=>{
@@ -12475,6 +12572,75 @@
     return { pending: null, items: out, evidence: e };
   }
 
+  /* ==================== MODULE: SMART LOADER ====================
+     One loader for every service. Two rules keep it honest:
+
+     1. It names the step ACTUALLY running. A generic "loading…" teaches the
+        learner nothing and makes a 6-second wait feel like a fault.
+     2. The percentage tracks completed steps, and never reaches 100% until
+        the work is genuinely done. A bar that fills to 99% and sits there is
+        the single most common lie in software loaders.
+
+     If a step takes far longer than expected we say so, rather than letting
+     the learner wonder whether the app has frozen. */
+  let slTimer = null, slStart = 0, slSteps = [], slIndex = 0, slDone = false;
+
+  function slRender(){
+    const total = slSteps.length || 1;
+    // Progress is completed-steps based. The current step contributes only a
+    // small creep so the bar moves during a long step without ever claiming
+    // that step finished.
+    const elapsed = (Date.now() - slStart) / 1000;
+    const base = (slIndex / total) * 100;
+    const creep = Math.min(0.85, elapsed / 14) * (100 / total);
+    const pct = Math.min(99, Math.round(base + creep));
+    slFill.style.width = pct + '%';
+    slPct.textContent = pct + '%';
+    slElapsed.textContent = elapsed < 1 ? '' : fmt('slElapsed', { s: elapsed.toFixed(1) });
+    slStep.textContent = slSteps[Math.min(slIndex, slSteps.length - 1)] || '';
+    // Honest about an unusual delay instead of pretending all is well.
+    slSlow.classList.toggle('hidden', elapsed < 9);
+    if(elapsed >= 9) slSlow.textContent = t('slSlowNote');
+  }
+  function slBegin(title, steps){
+    slSteps = steps || [];
+    slIndex = 0; slDone = false; slStart = Date.now();
+    slTitle.textContent = title;
+    slSlow.classList.add('hidden');
+    slFill.style.width = '0%';
+    smartLoader.classList.remove('hidden');
+    slRender();
+    clearInterval(slTimer);
+    slTimer = setInterval(slRender, 200);
+  }
+  function slAdvance(){
+    if(slDone) return;
+    slIndex = Math.min(slIndex + 1, slSteps.length);
+    slRender();
+  }
+  function slEnd(){
+    slDone = true;
+    clearInterval(slTimer);
+    slTimer = null;
+    // Show a real 100% briefly, so completion is felt rather than guessed.
+    slIndex = slSteps.length;
+    slFill.style.width = '100%';
+    slPct.textContent = '100%';
+    slStep.textContent = t('slDone');
+    setTimeout(function(){ smartLoader.classList.add('hidden'); }, 320);
+  }
+  /* Wraps any async task. The loader is guaranteed to close — a thrown error
+     used to be the classic way to leave a spinner on screen forever. */
+  async function withLoader(title, steps, task){
+    slBegin(title, steps);
+    try{
+      return await task({ advance: slAdvance });
+    } finally {
+      slEnd();
+    }
+  }
+  /* ==================== END MODULE: SMART LOADER ==================== */
+
   /* ==================== MODULE: NOVA ASSISTANT ====================
      Four capabilities, all real:
        1. explains the academy's services
@@ -12724,7 +12890,18 @@
     }
     // Offer navigation alongside the answer when a screen is clearly relevant.
     const follow = route ? [{ label: fmt('novaOpenAction', { s: t(route.key) }), run: route.run }] : [];
-    novaSay(answer || t('novaFailed'), follow);
+    // Name the real cause. "Try again later" is the wrong advice when the
+    // API key was never configured — that will never fix itself.
+    if(!answer || answer.failed){
+      const why = answer && answer.reason;
+      let msg = t('novaFailed');
+      if(why === 'no_api_key_configured') msg = t('novaNoKey');
+      else if(why === 'rate_limited') msg = t('novaRateLimited');
+      else if(why === 'no_backend' || why === 'network') msg = t('novaNoNetwork');
+      novaSay(msg, follow);
+      return;
+    }
+    novaSay(answer, follow);
   }
 
   function novaSuggestChips(){
@@ -13130,13 +13307,19 @@
     if(!requireAuth('knowledgeReview')) return;
     const prof = PROFILES[currentProfile];
     if(!prof) return;
+    slBegin(t('knowRevTitle'), [t('slStepDue'), t('slStepResolve'), t('slStepBuild')]);
+    slAdvance();
     pruneKnowledgeQueue(prof);
     const due = knowledgeDueItems(prof)
       .map(resolveKnowledgeItem).filter(Boolean)
       .sort((a,b)=> new Date(a.item.dueAt) - new Date(b.item.dueAt))
       .slice(0, 15);
-    if(!due.length){ showToast(t('knowRevNoneDue'), nxIcon('check'), 'learning'); return; }
+    slAdvance();
+    // Closed on BOTH paths. A loader left open on the empty-queue branch
+    // would freeze the screen behind a panel that never dismisses.
+    if(!due.length){ slEnd(); showToast(t('knowRevNoneDue'), nxIcon('check'), 'learning'); return; }
     knowRevQueue = due; knowRevIndex = 0; knowRevCorrect = 0;
+    slEnd();
     hideLearnerShellScreens();
     knowledgeReviewScreen.classList.remove('hidden');
     renderKnowledgeQuestion();
@@ -15631,9 +15814,17 @@
   }
 
   /* ================= AI (Gemini via Apps Script proxy) ================= */
+  // Returns the text, or an OBJECT describing why it failed. The previous
+  // version collapsed every failure into null, so the assistant could only
+  // ever say "I could not reach an answer" — useless to the learner and
+  // useless for diagnosing an unconfigured API key.
   function callAi(prompt){
-    if(!SHEET_API_URL) return Promise.resolve(null);
-    return postToSheet('ai', { prompt, username: currentProfile || 'guest' }).then(res => (res && res.ok && res.text) ? res.text : null);
+    if(!SHEET_API_URL) return Promise.resolve({ failed:true, reason:'no_backend' });
+    return postToSheet('ai', { prompt, username: currentProfile || 'guest' }).then(function(res){
+      if(res && res.ok && res.text) return res.text;
+      if(!res) return { failed:true, reason:'network' };
+      return { failed:true, reason: res.error || 'unknown', message: res.message || '' };
+    });
   }
 
   /* ---------- on-demand AI explanation for a missed problem ---------- */
