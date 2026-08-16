@@ -3308,7 +3308,12 @@
     <div id="cbPlayers"></div>
     <button class="start-btn" id="cbPlayBtn" data-i18n="cbPlay">▶ ابدأ جولتك</button>
     <div class="conn-note" id="cbHint"></div>
-    <button class="secondary-btn" id="cbBackBtn" data-i18n="closeBtn">إغلاق</button>
+    <!-- Three separate actions, deliberately. "Close" only hides the board; it
+         must not be mistaken for leaving, and leaving must not be mistaken for
+         ending the match for everyone else. -->
+    <button class="secondary-btn" id="cbBackBtn" data-i18n="cbCloseBoard">إغلاق اللوحة</button>
+    <button class="secondary-btn hidden" id="cbLeaveBtn" data-i18n="cbLeave">🚪 انسحب من التحدي</button>
+    <button class="secondary-btn hidden" id="cbEndBtn" data-i18n="cbEnd">🛑 أنهِ التحدي للجميع</button>
   </div>
 
   <!-- SYSTEM DIAGNOSTICS (owner only)
@@ -4666,6 +4671,8 @@
   const cbSubtitle = document.getElementById('cbSubtitle');
   const cbPlayers = document.getElementById('cbPlayers');
   const cbPlayBtn = document.getElementById('cbPlayBtn');
+  const cbLeaveBtn = document.getElementById('cbLeaveBtn');
+  const cbEndBtn = document.getElementById('cbEndBtn');
   const cbHint = document.getElementById('cbHint');
   const cbBackBtn = document.getElementById('cbBackBtn');
   const diagScreen = document.getElementById('diagScreen');
@@ -6097,6 +6104,11 @@
       diagPeerLabel:'اسم مستخدم صديق (لفحص التوصيل)',
       diagRunning:'جارٍ الفحص…', diagCrashed:'توقّف الفحص نفسه بخطأ:',
       diagOwnerOnly:'هذه الأداة متاحة لحساب المالك فقط.',
+      diagGrpCert:'الشهادة والبطاقة', diagLibrary:'مكتبة الرسم html2canvas',
+      diagTemplate:'قالب الشهادة', diagTemplateSize:'أبعاد القالب', diagQrLib:'مكتبة QR',
+      diagLastStep:'آخر خطوة نُفِّذت', diagCertError:'خطأ الشهادة',
+      diagCertData:'بيانات الشهادة', diagCertRender:'رسم الشهادة',
+      diagVerdictCert:'❌ فشل رسم الشهادة. راجع سطر «خطأ الشهادة» أعلاه — يذكر الخطوة التي توقّفت.',
       diagGrpBuild:'النسخة', diagGrpConn:'الاتصال', diagGrpServer:'الخادم',
       diagGrpLoops:'العمليات الخلفية', diagGrpMedia:'الوسائط', diagGrpDelivery:'التوصيل الفعلي',
       diagBuildId:'رقم النسخة', diagHoistFix:'إصلاح ترتيب التحميل',
@@ -6173,6 +6185,7 @@
       mcSignLabel:'توقيع العضو',
       mcTerms:'صادرة عن أكاديمية نِكسورا — من منظومة إنفرا إنجن لتقنية المعلومات والأمن السيبراني والذكاء الاصطناعي. تُثبت العضوية وحدها وغير قابلة للتحويل.',
       mcFlipBtn:'🔄 اقلب البطاقة', mcDownloadBtn:'⬇️ تنزيل PNG', mcPrintBtn:'🖨️ طباعة',
+      dpNoLibrary:'لم تُحمَّل مكتبة الرسم (html2canvas). تحقّق من الاتصال أو من مانع الإعلانات، ثم أعد تحميل الصفحة.',
       mcCaptureFailed:'تعذّر إنشاء صورة البطاقة. أعد المحاولة.',
       mcPopupBlocked:'المتصفح منع نافذة الطباعة. اسمح بالنوافذ المنبثقة ثم أعد المحاولة.',
       synapseNavLabel:'سينابس', synapseSubtitle:'مختبر الذكاء والذاكرة',
@@ -6274,6 +6287,12 @@
       friendChatBtn:'💬 دردشة', gcOpenBtn:'👥 تحدٍّ جماعي (حتى 10 أصدقاء)',
       cbTitle:'🏁 التحدي القائم', cbBannerTitle:'تحدٍّ جارٍ الآن — اضغط للدخول',
       cbProgress:'أنهى {done} من {total}', cbYou:'أنت', cbWaiting:'لم يبدأ بعد',
+      cbCloseBoard:'إغلاق اللوحة (يبقى التحدي قائمًا)',
+      cbLeave:'🚪 انسحب من التحدي', cbEnd:'🛑 أنهِ التحدي للجميع',
+      cbLeaveConfirm:'ستنسحب من هذا التحدي ويستمر الباقون. هل أنت متأكد؟',
+      cbEndConfirm:'سيُنهى التحدي لجميع المشاركين. النتائج المسجَّلة تبقى محفوظة. هل أنت متأكد؟',
+      cbLeft:'✓ انسحبت من التحدي.', cbEnded:'✓ أُنهي التحدي للجميع.',
+      cbActionFailed:'تعذّر تنفيذ العملية. تحقّق من الاتصال.',
       cbPlay:'▶ ابدأ جولتك', cbYourTurn:'ابدأ جولتك، وستُقارن نتيجتك بنتائج البقية.',
       cbWaitingOthers:'أنهيت جولتك ✓ — في انتظار البقية.',
       cbAllDone:'اكتمل التحدي! هذه هي النتائج النهائية.',
@@ -7002,6 +7021,11 @@
       diagPeerLabel:'A friend username (to test delivery)',
       diagRunning:'Running…', diagCrashed:'The check itself failed:',
       diagOwnerOnly:'This tool is available to the owner account only.',
+      diagGrpCert:'Certificate & card', diagLibrary:'html2canvas library',
+      diagTemplate:'Certificate template', diagTemplateSize:'Template size', diagQrLib:'QR library',
+      diagLastStep:'Last step reached', diagCertError:'Certificate error',
+      diagCertData:'Certificate data', diagCertRender:'Certificate render',
+      diagVerdictCert:'❌ Certificate rendering failed. See the "Certificate error" line above — it names the step that stopped.',
       diagGrpBuild:'Build', diagGrpConn:'Connection', diagGrpServer:'Backend',
       diagGrpLoops:'Background loops', diagGrpMedia:'Media', diagGrpDelivery:'Actual delivery',
       diagBuildId:'Build id', diagHoistFix:'Load-order fix',
@@ -7078,6 +7102,7 @@
       mcSignLabel:'Member signature',
       mcTerms:'Issued by NEXORA Academy — part of INFRA ENGINE for information technology, cybersecurity and artificial intelligence. Evidences membership only and is non-transferable.',
       mcFlipBtn:'🔄 Flip card', mcDownloadBtn:'⬇️ Download PNG', mcPrintBtn:'🖨️ Print',
+      dpNoLibrary:'The rendering library (html2canvas) did not load. Check your connection or ad blocker, then reload the page.',
       mcCaptureFailed:'Could not render the card image. Please try again.',
       mcPopupBlocked:'The browser blocked the print window. Allow pop-ups and try again.',
       synapseNavLabel:'Synapse', synapseSubtitle:'Your intelligence & memory lab',
@@ -7179,6 +7204,12 @@
       friendChatBtn:'💬 Chat', gcOpenBtn:'👥 Group challenge (up to 10 friends)',
       cbTitle:'🏁 Active challenge', cbBannerTitle:'A challenge is running — tap to enter',
       cbProgress:'{done} of {total} finished', cbYou:'you', cbWaiting:'not started',
+      cbCloseBoard:'Close board (the challenge stays live)',
+      cbLeave:'🚪 Leave this challenge', cbEnd:'🛑 End it for everyone',
+      cbLeaveConfirm:'You will leave this challenge and the others carry on. Are you sure?',
+      cbEndConfirm:'This ends the challenge for every participant. Recorded scores are kept. Are you sure?',
+      cbLeft:'✓ You left the challenge.', cbEnded:'✓ Challenge ended for everyone.',
+      cbActionFailed:'The action could not be completed. Check your connection.',
       cbPlay:'▶ Play your round', cbYourTurn:'Play your round and your score will be compared with the others.',
       cbWaitingOthers:'Your round is done ✓ — waiting for the others.',
       cbAllDone:'Challenge complete! These are the final results.',
@@ -13504,6 +13535,26 @@
   });
   examsSubmitBtn.addEventListener('click', ()=> submitExam(false));
   cbPlayBtn.addEventListener('click', playChallengeRound);
+  async function chalExit(action, btn, okKey){
+    if(!activeChallenge) return;
+    // Confirmed: both actions affect people who are waiting, and neither
+    // should happen by mis-tap.
+    if(!confirm(t(action === 'end_challenge' ? 'cbEndConfirm' : 'cbLeaveConfirm'))) return;
+    setBtnSaving(btn, true);
+    const res = await postToSheet(action, {
+      challengeId: activeChallenge.challengeId, username: currentServerUsername()
+    });
+    setBtnSaving(btn, false);
+    if(!res || !res.ok){ showToast(t('cbActionFailed'), nxIcon('alertTriangle'), 'system'); return; }
+    activeChallenge = null;
+    liveChallenges = [];
+    chalBoard.classList.add('hidden');
+    chalBanner.classList.add('hidden');
+    showToast(t(okKey), nxIcon('check'), 'social');
+    showProgramsHub();
+  }
+  cbLeaveBtn.addEventListener('click', ()=> chalExit('leave_challenge', cbLeaveBtn, 'cbLeft'));
+  cbEndBtn.addEventListener('click', ()=> chalExit('end_challenge', cbEndBtn, 'cbEnded'));
   cbBackBtn.addEventListener('click', ()=>{
     chalBoard.classList.add('hidden');
     showProgramsHub();
@@ -15187,10 +15238,21 @@
   // Renders and captures once. Both the viewer and the download use the same
   // image, so what the learner sees is byte-for-byte what they get.
   let dvCurrent = null;
+  var diplomaStep = '';
   async function buildDiplomaImage(){
-    if(typeof html2canvas !== 'function'){ showToast(t('mcCaptureFailed'), nxIcon('alertTriangle'), 'system'); return null; }
+    diplomaStep = 'start';
+    // html2canvas is loaded from a CDN. If that request failed — offline, a
+    // blocked CDN, an ad blocker — nothing downstream can work, and saying so
+    // is far more useful than "capture failed".
+    if(typeof html2canvas !== 'function'){
+      if(typeof callDiag !== 'undefined') callDiag.lastError = 'diploma: html2canvas library not loaded';
+      showToast(t('dpNoLibrary'), nxIcon('alertTriangle'), 'system');
+      return null;
+    }
     return withLoader(t('dpTitle'), [t('slStepMemberData'), t('slStepQr'), t('dpStepRender')], async function(ctl){
+      diplomaStep = 'facts';
       await ctl.advance();
+      diplomaStep = 'render';
       const f = renderDiploma();
       if(!f) return null;
       // Convert BEFORE capturing. ensurePrintablePhoto may already have done
@@ -15199,6 +15261,7 @@
       // the loader frozen mid-bar with no way out — which is exactly what the
       // certificate did. A certificate with a monogram beats one that never
       // appears, so the photo work gets a deadline and the render continues.
+      diplomaStep = 'photo';
       await Promise.race([
         (async function(){
           await ensurePrintablePhoto(f.key);
@@ -15210,6 +15273,7 @@
       // The QR is drawn synchronously by the library but still needs a paint.
       await new Promise(function(r){ setTimeout(r, 500); });
       // html2canvas itself can hang on a font or image that never resolves.
+      diplomaStep = 'capture';
       const canvas = await Promise.race([
         html2canvas(diplomaTemplate, { scale:2, backgroundColor:'#060b16', useCORS:true }),
         new Promise(function(r){ setTimeout(function(){ r(null); }, 20000); })
@@ -15219,7 +15283,10 @@
         return null;
       }
       await ctl.advance();
-      return { dataUrl: canvas.toDataURL('image/png'), facts: f };
+      diplomaStep = 'encode';
+      const url = canvas.toDataURL('image/png');
+      diplomaStep = 'done';
+      return { dataUrl: url, facts: f };
     });
   }
   async function openDiplomaViewer(){
@@ -15227,6 +15294,13 @@
     try{
       built = await buildDiplomaImage();
     }catch(err){
+      // Record WHERE it failed, not merely that it did. Six rounds on the
+      // call bug were lost to exactly this kind of unlabelled failure.
+      if(typeof callDiag !== 'undefined'){
+        callDiag.lastError = 'diploma[' + (diplomaStep || 'unknown') + ']: ' + (err && err.message || err);
+        callDiag.diplomaStack = err && err.stack ? String(err.stack).slice(0, 400) : '';
+      }
+      console.error('[diploma] failed at step:', diplomaStep, err);
       // Nothing caught this before, so any throw inside the render simply
       // ended the attempt in silence: the loader closed and no certificate
       // appeared, with no explanation anywhere. A visible failure is the
@@ -16133,7 +16207,44 @@
       }catch(e){ diagAdd(t('diagGrpMedia'), t('diagMicPerm'), t('diagUnknown'), 'info'); }
     }
 
-    /* ---- 6. End-to-end delivery, if a peer was named ---- */
+    /* ---- 6. Certificate rendering ---- */
+    diagAdd(t('diagGrpCert'), t('diagLibrary'),
+      (typeof html2canvas === 'function') ? t('diagPresent') : t('diagMissing'),
+      (typeof html2canvas === 'function') ? 'ok' : 'bad');
+    const tpl = document.getElementById('diplomaTemplate');
+    diagAdd(t('diagGrpCert'), t('diagTemplate'), tpl ? t('diagPresent') : t('diagMissing'), tpl ? 'ok' : 'bad');
+    if(tpl){
+      // A zero-size template rasterises to nothing. Measuring it is the only
+      // way to tell that apart from a library failure.
+      const r = tpl.getBoundingClientRect();
+      diagAdd(t('diagGrpCert'), t('diagTemplateSize'),
+        Math.round(r.width) + '×' + Math.round(r.height),
+        (r.width > 100 && r.height > 100) ? 'ok' : 'bad');
+    }
+    diagAdd(t('diagGrpCert'), t('diagQrLib'),
+      (typeof QRCode === 'function') ? t('diagPresent') : t('diagMissing'),
+      (typeof QRCode === 'function') ? 'ok' : 'warn');
+    if(typeof diplomaStep !== 'undefined' && diplomaStep){
+      diagAdd(t('diagGrpCert'), t('diagLastStep'), diplomaStep, 'info');
+    }
+    if(typeof callDiag !== 'undefined' && callDiag.lastError && String(callDiag.lastError).indexOf('diploma') === 0){
+      diagAdd(t('diagGrpCert'), t('diagCertError'), callDiag.lastError, 'bad');
+      fatal = fatal || t('diagVerdictCert');
+    }
+    // Actually try it, rather than reporting on a past attempt.
+    try{
+      const f = (typeof diplomaFacts === 'function') ? diplomaFacts() : null;
+      diagAdd(t('diagGrpCert'), t('diagCertData'), f ? t('diagPresent') : t('diagMissing'), f ? 'ok' : 'bad');
+      if(f && typeof renderDiploma === 'function'){
+        const rendered = renderDiploma();
+        diagAdd(t('diagGrpCert'), t('diagCertRender'), rendered ? t('diagYes') : t('diagNo'), rendered ? 'ok' : 'bad');
+      }
+    }catch(err){
+      diagAdd(t('diagGrpCert'), t('diagCertRender'), String(err && err.message || err), 'bad');
+      fatal = fatal || t('diagVerdictCert');
+    }
+
+    /* ---- 7. End-to-end delivery, if a peer was named ---- */
     if(peer && SHEET_API_URL){
       const room = (typeof callRoomFor === 'function') ? callRoomFor(peer) : '';
       diagAdd(t('diagGrpDelivery'), t('diagRoom'), room || '?', 'info');
@@ -16471,6 +16582,11 @@
 
     const iPlayed = !!results[currentServerUsername()];
     cbPlayBtn.classList.toggle('hidden', iPlayed);
+    // The creator ends it for everyone; a participant only withdraws. Showing
+    // both to one person would let a guest cancel someone else's match.
+    const iAmOwner = String(c.fromUser).trim().toLowerCase() === me;
+    cbEndBtn.classList.toggle('hidden', !iAmOwner);
+    cbLeaveBtn.classList.toggle('hidden', iAmOwner);
     cbHint.textContent = iPlayed
       ? (allDone ? t('cbAllDone') : t('cbWaitingOthers'))
       : t('cbYourTurn');
