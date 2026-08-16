@@ -1218,6 +1218,25 @@
   .guardian-box input.ltr-input{ direction:ltr; text-align:left; }
   .guardian-box .clear-guardian{ font-size:11px; color:var(--coral); text-decoration:underline; cursor:pointer; }
 
+  /* ---------- DIPLOMA VIEWER ---------- */
+  #diplomaViewer{
+    position:fixed; inset:0; z-index:970; display:flex; align-items:center; justify-content:center;
+    background:rgba(4,7,14,0.9); padding:16px;
+  }
+  .dv-sheet{
+    width:100%; max-width:1150px; max-height:92vh; display:flex; flex-direction:column;
+    background:var(--bg); border:1.5px solid var(--chip-border); border-radius:16px; overflow:hidden;
+  }
+  .dv-head{ display:flex; align-items:center; justify-content:space-between; padding:12px 16px; border-bottom:1px solid var(--chip-border); }
+  .dv-title{ font-family:'Cairo',sans-serif; font-weight:800; font-size:15px; color:var(--ink); }
+  .dv-close{ background:none; border:none; color:var(--ink-dim); font-size:18px; cursor:pointer; width:34px; height:34px; border-radius:8px; }
+  /* Scrollable on a phone: the certificate is far wider than the screen, and
+     scaling it to fit would make every figure unreadable. */
+  .dv-body{ flex:1; overflow:auto; padding:12px; -webkit-overflow-scrolling:touch; }
+  .dv-body img{ display:block; width:100%; min-width:760px; height:auto; border-radius:10px; }
+  .dv-actions{ display:flex; gap:8px; padding:12px 16px; border-top:1px solid var(--chip-border); }
+  .dv-actions button{ flex:1; margin:0; }
+
   /* ---------- MEMBERSHIP DIPLOMA ----------
      Off-screen with PHYSICAL offsets. inset-inline-start resolves against the
      element's own direction and this element is rtl, so it would resolve to
@@ -2722,7 +2741,7 @@
         <div class="dp-role" data-i18n="dpRole">عضو مسجَّل في الأكاديمية</div>
         <div class="dp-tier-pill" id="dpTier"></div>
 
-        <div class="dp-body" data-i18n="dpBody">وقد أتم بنجاح مراحل التعلّم والتدريب في برامج الأكاديمية، حيث أثبت تفوّقًا في المهارات والمعرفة والتطوير المستمر.</div>
+        <div class="dp-body" id="dpBodyEl"></div>
 
         <div class="dp-holder">
           <div class="dp-photo" id="dpPhoto"></div>
@@ -2781,6 +2800,24 @@
           <span data-i18n="dpQuote">كل خطوة تتعلّمها اليوم تصنع إنجاز الغد.</span>
         </div>
       </aside>
+    </div>
+  </div>
+
+  <!-- Diploma preview: the certificate is rendered off-screen for capture,
+       so viewing it in-app means showing the captured image. That guarantees
+       what the learner sees is EXACTLY what downloads — a live preview could
+       differ from the file and quietly mislead. -->
+  <div id="diplomaViewer" class="hidden" role="dialog" aria-modal="true">
+    <div class="dv-sheet">
+      <div class="dv-head">
+        <div class="dv-title" data-i18n="dpTitle">شهادة عضوية</div>
+        <button class="dv-close" id="dvCloseBtn" aria-label="إغلاق">✕</button>
+      </div>
+      <div class="dv-body"><img id="dvImage" alt=""></div>
+      <div class="dv-actions">
+        <button class="start-btn" id="dvDownloadBtn" data-i18n="dvDownloadBtn">⬇️ تنزيل الشهادة</button>
+        <button class="secondary-btn" id="dvPrintBtn" data-i18n="dvPrintBtn">🖨️ طباعة</button>
+      </div>
     </div>
   </div>
 
@@ -3972,6 +4009,11 @@
   const novaSendBtn = document.getElementById('novaSendBtn');
   const novaCloseBtn = document.getElementById('novaCloseBtn');
   const novaVoiceChk = document.getElementById('novaVoiceChk');
+  const diplomaViewer = document.getElementById('diplomaViewer');
+  const dvImage = document.getElementById('dvImage');
+  const dvCloseBtn = document.getElementById('dvCloseBtn');
+  const dvDownloadBtn = document.getElementById('dvDownloadBtn');
+  const dvPrintBtn = document.getElementById('dvPrintBtn');
   const diplomaTemplate = document.getElementById('diplomaTemplate');
   const dpSerial = document.getElementById('dpSerial');
   const dpName = document.getElementById('dpName');
@@ -3983,6 +4025,7 @@
   const dpMastered = document.getElementById('dpMastered');
   const dpMasterFill = document.getElementById('dpMasterFill');
   const dpMasterNote = document.getElementById('dpMasterNote');
+  const dpBodyEl = document.getElementById('dpBodyEl');
   const dpBadges = document.getElementById('dpBadges');
   const dpCerts = document.getElementById('dpCerts');
   const dpHours = document.getElementById('dpHours');
@@ -5157,6 +5200,16 @@
       dpSignName:'أكاديمية نِكسورا', dpSignRole:'الإدارة الأكاديمية', dpSealText:'OFFICIAL',
       dpVerifyTitle:'تحقّق من الشهادة',
       dpIssuer:'أكاديمية نِكسورا — من منظومة إنفرا إنجن لتقنية المعلومات والأمن السيبراني والذكاء الاصطناعي',
+      dpJourneyNew:'وهو في بداية مسيرته التعليمية في الأكاديمية، وقد فُتحت له جميع البرامج ليبدأ رحلة التعلّم والتطوير.',
+      dpJourneyOpening:'وقد أجاب خلال مسيرته على {n} سؤالًا في برامج الأكاديمية.',
+      dpJourneyMastered:'وأتقن {m} من {total} مستوى في خريطة المعرفة.',
+      dpJourneyBuilding:'وهو يبني أساسه في المستويات الأولى بخطى منتظمة.',
+      dpJourneyAccuracy:'محقّقًا دقة بلغت {a}% في إجاباته.',
+      dpJourneyStreak:'وبلغت أطول سلسلة إجابات صحيحة متتالية لديه {s} إجابة.',
+      dpJourneyDays:'مواظبًا على التدريب {d} أيام متتالية.',
+      dpJourneyBadges:'وحصد {b} شارة إنجاز.',
+      dpJourneyClose:'ونتمنى له مواصلة التقدّم والنجاح.',
+      dpJourneyCloseHigh:'وقد أثبت تفوّقًا واضحًا في المهارات والمعرفة والتطوير المستمر.',
       dpPanelTitle:'أداؤك في الأكاديمية', dpMastered:'المستويات المُتقنة',
       dpMasterNote:'بناءً على {n} سؤال أجبتَه فعلًا', dpNoActivity:'ابدأ التدريب لتظهر مؤشراتك هنا',
       dpBadges:'الشارات المحقّقة', dpCerts:'الشهادات', dpProgress:'التقدّم في البرامج',
@@ -5165,7 +5218,8 @@
       dpAccuracy:'الدقة', dpStreak:'أطول متتالية',
       dpHoursVal:'{n} ساعة', dpMinutesVal:'{n} دقيقة',
       dpQuote:'كل خطوة تتعلّمها اليوم تصنع إنجاز الغد.',
-      dpDownloadBtn:'🏅 شهادة العضوية الكاملة', dpStepRender:'نرسم الشهادة…',
+      dvDownloadBtn:'⬇️ تنزيل الشهادة', dvPrintBtn:'🖨️ طباعة',
+      dpDownloadBtn:'🏅 اعرضي شهادة العضوية', dpStepRender:'نرسم الشهادة…',
       memberCardNavLabel:'بطاقة العضوية', memberCardTitle:'🪪 بطاقة العضوية',
       memberCardHint:'اضغط على البطاقة لقلبها ورؤية الوجه الخلفي.',
       mcNameLabel:'اسم العضو', mcSince:'عضو منذ', mcLevel:'المستوى', mcStatus:'الحالة',
@@ -5903,6 +5957,16 @@
       dpSignName:'NEXORA Academy', dpSignRole:'Academic Administration', dpSealText:'OFFICIAL',
       dpVerifyTitle:'Verify this certificate',
       dpIssuer:'NEXORA Academy — part of INFRA ENGINE for information technology, cybersecurity and artificial intelligence',
+      dpJourneyNew:'is at the start of their journey with the academy, with every program now open to begin learning and developing.',
+      dpJourneyOpening:'has answered {n} questions across the academy\'s programs.',
+      dpJourneyMastered:'and has mastered {m} of {total} levels on the knowledge map.',
+      dpJourneyBuilding:'and is steadily building the foundations in the early levels.',
+      dpJourneyAccuracy:'achieving {a}% accuracy in their answers.',
+      dpJourneyStreak:'with a longest correct streak of {s} answers.',
+      dpJourneyDays:'practising {d} days in a row.',
+      dpJourneyBadges:'and earning {b} achievement badges.',
+      dpJourneyClose:'We wish them continued progress and success.',
+      dpJourneyCloseHigh:'demonstrating clear distinction in skill, knowledge and continuous development.',
       dpPanelTitle:'Your performance', dpMastered:'Levels mastered',
       dpMasterNote:'Based on {n} questions actually answered', dpNoActivity:'Start practising and your indicators appear here',
       dpBadges:'Badges earned', dpCerts:'Certificates', dpProgress:'Program progress',
@@ -5911,7 +5975,8 @@
       dpAccuracy:'Accuracy', dpStreak:'Best streak',
       dpHoursVal:'{n} h', dpMinutesVal:'{n} min',
       dpQuote:'Every step you learn today builds tomorrow\'s achievement.',
-      dpDownloadBtn:'🏅 Full membership certificate', dpStepRender:'Rendering the certificate…',
+      dvDownloadBtn:'⬇️ Download certificate', dvPrintBtn:'🖨️ Print',
+      dpDownloadBtn:'🏅 View membership certificate', dpStepRender:'Rendering the certificate…',
       memberCardNavLabel:'Membership card', memberCardTitle:'🪪 Membership card',
       memberCardHint:'Tap the card to flip it and see the back.',
       mcNameLabel:'Member name', mcSince:'Member since', mcLevel:'Level', mcStatus:'Status',
@@ -12058,7 +12123,11 @@
   }
   mcCard.addEventListener('click', ()=> mcCard.classList.toggle('flipped'));
   mcFlipBtn.addEventListener('click', ()=> mcCard.classList.toggle('flipped'));
-  mcDiplomaBtn.addEventListener('click', downloadDiploma);
+  mcDiplomaBtn.addEventListener('click', openDiplomaViewer);
+  dvCloseBtn.addEventListener('click', ()=> diplomaViewer.classList.add('hidden'));
+  diplomaViewer.addEventListener('click', function(ev){ if(ev.target === diplomaViewer) diplomaViewer.classList.add('hidden'); });
+  dvDownloadBtn.addEventListener('click', downloadCurrentDiploma);
+  dvPrintBtn.addEventListener('click', printCurrentDiploma);
   mcBackBtn.addEventListener('click', ()=>{
     memberCardScreen.classList.add('hidden');
     showProgramsHub();
@@ -13392,6 +13461,29 @@
       ? fmt('dpMasterNote', { n: f.answered })
       : t('dpNoActivity');
 
+    /* The body text now DESCRIBES this learner rather than reciting the same
+       paragraph for everyone. Each sentence is assembled from a figure that
+       was actually measured — a certificate that praises achievements the
+       learner never made is worth nothing to the parent reading it. */
+    const lines = [];
+    if(!f.answered){
+      lines.push(t('dpJourneyNew'));
+    } else {
+      lines.push(fmt('dpJourneyOpening', { n: f.answered }));
+      if(f.masteredCount > 0){
+        lines.push(fmt('dpJourneyMastered', { m: f.masteredCount, total: f.totalLevels }));
+      } else {
+        lines.push(t('dpJourneyBuilding'));
+      }
+      if(f.accuracy !== null && f.accuracy >= 85) lines.push(fmt('dpJourneyAccuracy', { a: f.accuracy }));
+      if(f.bestStreak >= 10) lines.push(fmt('dpJourneyStreak', { s: f.bestStreak }));
+      if(f.dayStreak >= 3) lines.push(fmt('dpJourneyDays', { d: f.dayStreak }));
+      if(f.badges > 0) lines.push(fmt('dpJourneyBadges', { b: f.badges }));
+      // Only claim distinction when the evidence supports it.
+      lines.push(f.masteredCount >= 6 ? t('dpJourneyCloseHigh') : t('dpJourneyClose'));
+    }
+    dpBodyEl.textContent = lines.join(' ');
+
     dpBadges.textContent = f.totalBadges ? (f.badges + ' / ' + f.totalBadges) : dFact(f.badges);
     dpCerts.textContent = dFact(f.certificates);
     // Minutes below one hour: "0" would read as "did nothing".
@@ -13420,38 +13512,101 @@
         width: 54, height: 54, correctLevel: QRCode.CorrectLevel.M
       });
     }
-    // Same avatar helper the whole app uses, so the diploma can never
-    // disagree with the top bar about whether a photo exists.
     dpPhoto.innerHTML = '';
-    backfillAndRenderAvatar(f.key, dpPhoto, 112);
-    const monogram = function(){
-      if(dpPhoto.querySelector('img')) return;
-      dpPhoto.innerHTML = '';
-      dpPhoto.textContent = (f.name || '?').trim().charAt(0); // never an emoji
-    };
-    monogram();
-    setTimeout(monogram, 1500);
+    dpPhoto.textContent = (f.name || '?').trim().charAt(0); // monogram until a usable photo exists
     return f;
   }
 
-  async function downloadDiploma(){
-    if(typeof html2canvas !== 'function'){ showToast(t('mcCaptureFailed'), nxIcon('alertTriangle'), 'system'); return; }
+  /* Prepares the photo for CAPTURE, which is a different problem from
+     displaying it. html2canvas cannot rasterise a Drive URL — that is why the
+     circle came out empty even though the photo shows fine on screen. So the
+     photo is converted to a data: URL FIRST, and only then drawn. Returns
+     true when a real photo is in place. */
+  async function prepareDiplomaPhoto(f){
+    const prof = PROFILES[f.key];
+    if(!prof) return false;
+    let src = prof.photo || '';
+    // Ask the server if this device has no photo cached at all.
+    if(!src && SHEET_API_URL && (prof.username || f.key)){
+      const res = await postToSheet('get_user_photo', { username: prof.username || f.key });
+      if(res && res.ok && res.photoURL){
+        src = driveImageUrl(res.photoURL);
+        prof.photo = src;
+        saveProfilesToStorage();
+      }
+    }
+    if(!src) return false;
+    if(String(src).indexOf('data:') !== 0 && typeof resolvePhotoForCanvas === 'function'){
+      const safe = await resolvePhotoForCanvas(src, (prof.username || f.key));
+      if(!safe || String(safe).indexOf('data:') !== 0) return false; // unusable: keep the monogram
+      prof.photo = safe;
+      saveProfilesToStorage();
+      src = safe;
+    }
+    dpPhoto.innerHTML = '';
+    const img = document.createElement('img');
+    img.src = src;
+    dpPhoto.appendChild(img);
+    // Wait for the decode, or html2canvas captures an image that has not
+    // finished loading — an empty circle by another route.
+    await new Promise(function(resolve){
+      if(img.complete && img.naturalWidth) return resolve();
+      img.onload = resolve;
+      img.onerror = function(){
+        dpPhoto.innerHTML = '';
+        dpPhoto.textContent = (f.name || '?').trim().charAt(0);
+        resolve();
+      };
+      setTimeout(resolve, 4000);
+    });
+    return !!dpPhoto.querySelector('img');
+  }
+
+  // Renders and captures once. Both the viewer and the download use the same
+  // image, so what the learner sees is byte-for-byte what they get.
+  let dvCurrent = null;
+  async function buildDiplomaImage(){
+    if(typeof html2canvas !== 'function'){ showToast(t('mcCaptureFailed'), nxIcon('alertTriangle'), 'system'); return null; }
     return withLoader(t('dpTitle'), [t('slStepMemberData'), t('slStepQr'), t('dpStepRender')], async function(ctl){
       await ctl.advance();
       const f = renderDiploma();
-      if(!f) return;
+      if(!f) return null;
+      // Convert the photo BEFORE capturing, not after.
+      await prepareDiplomaPhoto(f);
       await ctl.advance();
-      // Give the QR and the photo a moment to actually exist in the DOM —
-      // html2canvas captures what is there at that instant, not what is
-      // about to arrive.
-      await new Promise(function(r){ setTimeout(r, 900); });
+      // The QR is drawn synchronously by the library but still needs a paint.
+      await new Promise(function(r){ setTimeout(r, 500); });
       const canvas = await html2canvas(diplomaTemplate, { scale:2, backgroundColor:'#060b16', useCORS:true });
       await ctl.advance();
-      const link = document.createElement('a');
-      link.download = 'nexora-membership-' + f.memberId + '.png';
-      link.href = canvas.toDataURL('image/png');
-      link.click();
+      return { dataUrl: canvas.toDataURL('image/png'), facts: f };
     });
+  }
+  async function openDiplomaViewer(){
+    const built = await buildDiplomaImage();
+    if(!built) return;
+    dvCurrent = built;
+    dvImage.src = built.dataUrl;
+    diplomaViewer.classList.remove('hidden');
+  }
+  function downloadCurrentDiploma(){
+    if(!dvCurrent) return;
+    const link = document.createElement('a');
+    link.download = 'nexora-membership-' + dvCurrent.facts.memberId + '.png';
+    link.href = dvCurrent.dataUrl;
+    link.click();
+  }
+  function printCurrentDiploma(){
+    if(!dvCurrent) return;
+    const w = window.open('', '_blank');
+    if(!w){ showToast(t('mcPopupBlocked'), nxIcon('alertTriangle'), 'system'); return; }
+    // Landscape A4: the certificate is 2:1, so portrait would shrink it to
+    // half the page and every figure on the panel would be unreadable.
+    w.document.write('<!doctype html><html><head><title>NEXORA</title><style>' +
+      '@page{size:A4 landscape;margin:8mm}body{margin:0}' +
+      'img{width:100%;height:auto;display:block}</style></head><body>' +
+      '<img src="' + dvCurrent.dataUrl + '"></body></html>');
+    w.document.close();
+    w.onload = function(){ setTimeout(function(){ w.print(); }, 300); };
   }
   /* ==================== END MODULE: MEMBERSHIP DIPLOMA ==================== */
 
