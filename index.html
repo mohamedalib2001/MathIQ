@@ -4547,6 +4547,7 @@
       reviewQueue: [],
       // NEXORA SYNAPSE — every field below is filled from the learner's own
       // recorded behaviour. Nothing here is estimated or invented.
+      createdAt: null,             // real account creation date, from the server
       reviewStats: { c:0, t:0 },   // recall: how review items actually went
       recentByBucket: {},          // rolling window of recent attempts per operation
       knowledgeQueue: [],          // spaced retrieval for the nine programs, not just math
@@ -4594,6 +4595,7 @@
       dailyGoal: p.dailyGoal || { target:10, date:null, answered:0 },
       errorTypeCounts: p.errorTypeCounts || {},
       reviewQueue: p.reviewQueue || [],
+      createdAt: p.createdAt || null,
       reviewStats: p.reviewStats || { c:0, t:0 },
       recentByBucket: p.recentByBucket || {},
       knowledgeQueue: p.knowledgeQueue || [],
@@ -4691,6 +4693,7 @@
       p.username = c.username;
       if(c.name) p.name = c.name;
       if(c.birthDate) p.birthDate = c.birthDate;
+      if(c.createdAt) p.createdAt = c.createdAt;
       if(c.photoURL) p.photo = driveImageUrl(c.photoURL);
       keys.push(key);
     });
@@ -6788,6 +6791,17 @@
     // time the learner opens a card or a certificate it is already there,
     // and they are never asked to supply a photo the app already has.
     if(key !== 'guest' && typeof ensurePrintablePhoto === 'function') ensurePrintablePhoto(key);
+    // Backfill the join date for sessions that signed in before the server
+    // started returning it — otherwise it would stay blank until next login.
+    if(key !== 'guest' && SHEET_API_URL && !PROFILES[key].createdAt){
+      const who = PROFILES[key].username || key;
+      postToSheet('get_account_info', { username: who }).then(function(res){
+        if(res && res.ok && res.found && res.createdAt){
+          PROFILES[key].createdAt = res.createdAt;
+          saveProfilesToStorage();
+        }
+      });
+    }
     // ONE read of the whole learning state, here — not per screen, not per question.
     if(key !== 'guest' && SHEET_API_URL){
       const p2 = PROFILES[key];
@@ -8039,6 +8053,7 @@
         if(res.user.photoURL) PROFILES[key].photo = driveImageUrl(res.user.photoURL); // real cross-device photo sync
         if(res.user.email) PROFILES[key].email = res.user.email;
         if(res.user.phone) PROFILES[key].phone = res.user.phone; // cross-device sync, same as photo/email
+        if(res.user.createdAt) PROFILES[key].createdAt = res.user.createdAt;
         profileOrder.push(key);
         startTrialForStudent(key);
         saveProfilesToStorage();
@@ -13886,6 +13901,14 @@
   // The first day this learner has any recorded activity. If nothing was ever
   // recorded we say so rather than printing today's date as a join date.
   function memberSinceDate(prof){
+    // The account's own creation date is the real answer. Inferring it from
+    // the first practice session meant a member who had not trained yet had
+    // "no join date", which is plainly wrong — they joined the day the
+    // account was made, and the sheet has recorded that all along.
+    if(prof && prof.createdAt){
+      const d = new Date(prof.createdAt);
+      if(!isNaN(d.getTime())) return d;
+    }
     const log = (prof && prof.sessionLog) || [];
     if(log.length) return new Date(log[0].date);
     const certs = (prof && prof.certificatesIssued) || [];
@@ -14471,6 +14494,7 @@
       photoLocal: prof.photoLocal || null,
       guardians: prof.guardians || { mother:null, father:null },
       reviewQueue: prof.reviewQueue || [],
+      createdAt: prof.createdAt || null,
       reviewStats: prof.reviewStats || { c:0, t:0 },
       knowledgeQueue: prof.knowledgeQueue || [],
       abacusLog: prof.abacusLog || [],
