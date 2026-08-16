@@ -2815,6 +2815,11 @@
       </div>
       <div class="dv-body"><img id="dvImage" alt=""></div>
       <div class="dv-actions">
+        <!-- Shown only when the photo could not be resolved any other way.
+             Reading a file the learner chooses needs no CORS permission at
+             all, so this path cannot be blocked. -->
+        <button class="secondary-btn hidden" id="dpPhotoFixBtn" data-i18n="dpPhotoFixBtn">🖼️ اختر صورتك</button>
+        <input type="file" id="dpPhotoFile" accept="image/*" style="display:none;">
         <button class="start-btn" id="dvDownloadBtn" data-i18n="dvDownloadBtn">⬇️ تنزيل الشهادة</button>
         <button class="secondary-btn" id="dvPrintBtn" data-i18n="dvPrintBtn">🖨️ طباعة</button>
       </div>
@@ -4012,6 +4017,8 @@
   const diplomaViewer = document.getElementById('diplomaViewer');
   const dvImage = document.getElementById('dvImage');
   const dvCloseBtn = document.getElementById('dvCloseBtn');
+  const dpPhotoFixBtn = document.getElementById('dpPhotoFixBtn');
+  const dpPhotoFile = document.getElementById('dpPhotoFile');
   const dvDownloadBtn = document.getElementById('dvDownloadBtn');
   const dvPrintBtn = document.getElementById('dvPrintBtn');
   const diplomaTemplate = document.getElementById('diplomaTemplate');
@@ -4573,7 +4580,7 @@
   function serializeProfile(p){
     return {
       nameKey: p.nameKey, customName: p.customName, avatar: p.avatar, color: p.color,
-      photo: p.photo, birthDate: p.birthDate, pin: p.pin, theme: p.theme, username: p.username,
+      photo: p.photo, photoLocal: p.photoLocal || null, birthDate: p.birthDate, pin: p.pin, theme: p.theme, username: p.username,
       // These were previously omitted, so every one of them was silently lost
       // on page reload even though it had just been saved successfully.
       gender: p.gender || null, email: p.email || null, emailVerified: !!p.emailVerified,
@@ -5218,7 +5225,9 @@
       dpAccuracy:'الدقة', dpStreak:'أطول متتالية',
       dpHoursVal:'{n} ساعة', dpMinutesVal:'{n} دقيقة',
       dpQuote:'كل خطوة تتعلّمها اليوم تصنع إنجاز الغد.',
-      dpPhotoNeedsBackend:'تعذّر تحويل صورتك للشهادة. السبب الأرجح أن ملف الخادم (.gs) لم يُنشر بنسخة جديدة بعد — وسيط جلب الصور موجود فيه. الشهادة ستصدر بالحرف الأول حتى ذلك الحين.',
+      dpPhotoPickPrompt:'المتصفح يسمح بعرض صورتك لكنه يمنع قراءتها لوضعها في ملف — قيد أمني في المتصفح نفسه. اضغط «اختر صورتك» لاختيارها من جهازك مرة واحدة، وستُستخدم في كل شهادة بعدها.',
+      dpPhotoFixBtn:'🖼️ اختر صورتك', dpPhotoFixed:'✓ تم حفظ الصورة — ستظهر في الشهادة الآن وفي كل مرة قادمة.',
+      dpPhotoNeedsBackendOld:'تعذّر تحويل صورتك للشهادة. السبب الأرجح أن ملف الخادم (.gs) لم يُنشر بنسخة جديدة بعد — وسيط جلب الصور موجود فيه. الشهادة ستصدر بالحرف الأول حتى ذلك الحين.',
       dvDownloadBtn:'⬇️ تنزيل الشهادة', dvPrintBtn:'🖨️ طباعة',
       dpDownloadBtn:'🏅 اعرضي شهادة العضوية', dpStepRender:'نرسم الشهادة…',
       memberCardNavLabel:'بطاقة العضوية', memberCardTitle:'🪪 بطاقة العضوية',
@@ -5976,7 +5985,9 @@
       dpAccuracy:'Accuracy', dpStreak:'Best streak',
       dpHoursVal:'{n} h', dpMinutesVal:'{n} min',
       dpQuote:'Every step you learn today builds tomorrow\'s achievement.',
-      dpPhotoNeedsBackend:'Your photo could not be converted for the certificate. The most likely cause is that the .gs backend has not been redeployed — the photo relay lives there. The certificate will use your initial until then.',
+      dpPhotoPickPrompt:'Your browser will display your photo but not let a script read it into a file — a security limit in the browser itself. Tap "Choose your photo" to pick it from this device once; it will be used on every certificate from then on.',
+      dpPhotoFixBtn:'🖼️ Choose your photo', dpPhotoFixed:'✓ Photo saved — it will appear on the certificate now and every time after.',
+      dpPhotoNeedsBackendOld:'Your photo could not be converted for the certificate. The most likely cause is that the .gs backend has not been redeployed — the photo relay lives there. The certificate will use your initial until then.',
       dvDownloadBtn:'⬇️ Download certificate', dvPrintBtn:'🖨️ Print',
       dpDownloadBtn:'🏅 View membership certificate', dpStepRender:'Rendering the certificate…',
       memberCardNavLabel:'Membership card', memberCardTitle:'🪪 Membership card',
@@ -7228,7 +7239,17 @@
       if(clearPinFlag){ p.pin = ''; }
       else if(enteredPassword){ p.pin = await computePasswordHash(p.username || key, enteredPassword); }
       // else: field left blank and not cleared → password stays unchanged
-      if(photoToSave !== undefined) p.photo = photoToSave;
+      if(photoToSave !== undefined){
+        p.photo = photoToSave;
+        // Keep a SEPARATE printable copy. p.photo gets overwritten with a
+        // Drive URL on the next sync, and html2canvas cannot read pixels from
+        // a Drive URL — the browser blocks cross-origin reads even though it
+        // happily DISPLAYS the same image. Displaying and reading are
+        // different permissions; that is why the photo appears everywhere on
+        // screen yet the certificate came out blank.
+        if(photoToSave && String(photoToSave).indexOf('data:') === 0) p.photoLocal = photoToSave;
+        if(photoToSave === null) p.photoLocal = null;
+      }
       if(p.isCustom){
         p.customName = editNameInput.value.trim() || p.customName;
       }
@@ -7243,7 +7264,10 @@
       PROFILES[key].email = editEmailInput.value.trim() || null;
       PROFILES[key].phone = editPhoneInput.value.trim() || null;
       PROFILES[key].emailVerified = pendingEmailVerified;
-      if(photoToSave) PROFILES[key].photo = photoToSave;
+      if(photoToSave){
+        PROFILES[key].photo = photoToSave;
+        if(String(photoToSave).indexOf('data:') === 0) PROFILES[key].photoLocal = photoToSave;
+      }
       profileOrder.push(key);
       startTrialForStudent(key); // registering a new (non-family) account starts this account's own 30-day trial
     }
@@ -12128,6 +12152,24 @@
   mcDiplomaBtn.addEventListener('click', openDiplomaViewer);
   dvCloseBtn.addEventListener('click', ()=> diplomaViewer.classList.add('hidden'));
   diplomaViewer.addEventListener('click', function(ev){ if(ev.target === diplomaViewer) diplomaViewer.classList.add('hidden'); });
+  dpPhotoFixBtn.addEventListener('click', ()=> dpPhotoFile.click());
+  dpPhotoFile.addEventListener('change', async function(){
+    const file = this.files && this.files[0];
+    if(!file) return;
+    // Read directly from the chosen file: no origin, no CORS, nothing to
+    // block. Reused resizer keeps it small enough for local storage.
+    const dataUrl = await resizeImageToDataUrl(file, 300);
+    const prof = PROFILES[currentProfile];
+    if(prof){
+      prof.photoLocal = dataUrl;
+      if(!prof.photo) prof.photo = dataUrl;
+      saveProfilesToStorage();
+    }
+    this.value = '';
+    dpPhotoFixBtn.classList.add('hidden');
+    showToast(t('dpPhotoFixed'), nxIcon('check'), 'system');
+    openDiplomaViewer();   // re-render with the photo in place
+  });
   dvDownloadBtn.addEventListener('click', downloadCurrentDiploma);
   dvPrintBtn.addEventListener('click', printCurrentDiploma);
   mcBackBtn.addEventListener('click', ()=>{
@@ -13535,8 +13577,14 @@
     // here — no photo stored, the browser blocked the fetch, the server relay
     // is not deployed — and they are indistinguishable from an empty circle.
     const trace = [];
-    let src = prof.photo || '';
-    trace.push('local:' + (src ? (src.slice(0, 12) + '…') : 'EMPTY'));
+    // A stored data: copy is the ONLY source html2canvas can always read.
+    // Try it first, before any network path that CORS may block.
+    let src = prof.photoLocal || '';
+    trace.push('printable_copy:' + (src ? 'FOUND' : 'none'));
+    if(!src){
+      src = prof.photo || '';
+      trace.push('display_url:' + (src ? (src.slice(0, 14) + '…') : 'EMPTY'));
+    }
     // Ask the server if this device has no photo cached at all.
     if(!src && SHEET_API_URL && (prof.username || f.key)){
       const res = await postToSheet('get_user_photo', { username: prof.username || f.key });
@@ -13552,14 +13600,17 @@
       const safe = await resolvePhotoForCanvas(src, (prof.username || f.key));
       trace.push('convert:' + (safe && String(safe).indexOf('data:') === 0 ? 'OK' : 'FAILED'));
       if(!safe || String(safe).indexOf('data:') !== 0){
-        // The relay is the only path that can convert a Drive link. If it
-        // failed, the backend almost certainly has not been redeployed with
-        // get_photo_base64 — say so instead of silently showing a letter.
+        // Both network paths are blocked: the browser will not let a script
+        // READ a Drive image (it will only display it), and the relay is
+        // unavailable. Offer the one route that always works — the learner
+        // picking the file from their own device, which we can read directly.
         diplomaPhotoTrace = trace.concat('RESULT:conversion_failed');
-        showToast(t('dpPhotoNeedsBackend'), nxIcon('alertTriangle'), 'system');
+        dpPhotoFixBtn.classList.remove('hidden');
+        showToast(t('dpPhotoPickPrompt'), nxIcon('alertTriangle'), 'system');
         return false;
       }
       prof.photo = safe;
+      prof.photoLocal = safe;   // never convert this photo again
       saveProfilesToStorage();
       src = safe;
     }
@@ -13744,7 +13795,11 @@
 
     // Separately, convert a remote photo to a data: URL so the PNG export and
     // print work too — html2canvas cannot rasterise a Drive link.
-    if(prof.photo && String(prof.photo).indexOf('data:') !== 0 && typeof resolvePhotoForCanvas === 'function'){
+    // Prefer the printable copy for the same reason the diploma does.
+    if(prof.photoLocal && String(prof.photoLocal).indexOf('data:') === 0){
+      const liveImg = mcPhoto.querySelector('img');
+      if(liveImg) liveImg.src = prof.photoLocal;
+    } else if(prof.photo && String(prof.photo).indexOf('data:') !== 0 && typeof resolvePhotoForCanvas === 'function'){
       resolvePhotoForCanvas(prof.photo, (prof.username || key)).then(function(safe){
         if(safe && String(safe).indexOf('data:') === 0){
           prof.photo = safe;
@@ -16167,7 +16222,12 @@
     // It was previously injected at 150px into a 118px circle, so the image
     // overflowed its own frame and only a fragment survived the clip.
     const CERT_PHOTO_PX = 104;
-    const safePhoto = await resolvePhotoForCanvas(prof.photo, (prof.username || currentProfile));
+    // A stored data: copy is readable by html2canvas without any network
+    // permission, so it always wins over a Drive URL the browser will not
+    // let a script read.
+    const safePhoto = (prof.photoLocal && String(prof.photoLocal).indexOf('data:') === 0)
+      ? prof.photoLocal
+      : await resolvePhotoForCanvas(prof.photo, (prof.username || currentProfile));
     // A photo that could not be made drawable is replaced by the learner's
     // initial. An empty gold circle on a certificate they keep looks broken;
     // a clean initial looks deliberate.
