@@ -6784,6 +6784,10 @@
     renderShellNav('learner');
     if(typeof refreshPendingFriendCount === 'function') refreshPendingFriendCount();
     if(typeof startPresence === 'function') startPresence();
+    // Fetch the printable photo copy in the background at sign-in. By the
+    // time the learner opens a card or a certificate it is already there,
+    // and they are never asked to supply a photo the app already has.
+    if(key !== 'guest' && typeof ensurePrintablePhoto === 'function') ensurePrintablePhoto(key);
     // ONE read of the whole learning state, here — not per screen, not per question.
     if(key !== 'guest' && SHEET_API_URL){
       const p2 = PROFILES[key];
@@ -13663,6 +13667,18 @@
       }
       if(!src) return false;
       if(String(src).indexOf('data:') === 0){ prof.photoLocal = src; saveProfilesToStorage(); return true; }
+      // The server keeps a printable copy from the moment the photo was
+      // uploaded, on ANY device. This is the path that removes the problem
+      // rather than working around it.
+      if(SHEET_API_URL){
+        const stored = await postToSheet('get_printable_photo', { username: prof.username || key });
+        if(stored && stored.ok && stored.found && stored.dataUrl){
+          prof.photoLocal = stored.dataUrl;
+          saveProfilesToStorage();
+          learnerStateDirty = true;
+          return true;
+        }
+      }
       const safe = await resolvePhotoForCanvas(src, (prof.username || key));
       if(safe && String(safe).indexOf('data:') === 0){
         prof.photoLocal = safe;
@@ -13740,9 +13756,12 @@
         // READ a Drive image (it will only display it), and the relay is
         // unavailable. Offer the one route that always works — the learner
         // picking the file from their own device, which we can read directly.
+        // The button stays hidden unless EVERY automatic path has failed —
+        // asking a learner to supply a photo the app already displays is an
+        // admission of defeat, not a feature. With the server-side printable
+        // copy in place this should now be unreachable in practice.
         diplomaPhotoTrace = trace.concat('RESULT:conversion_failed');
         dpPhotoFixBtn.classList.remove('hidden');
-        showToast(t('dpPhotoPickPrompt'), nxIcon('alertTriangle'), 'system');
         return false;
       }
       prof.photo = safe;
@@ -14420,6 +14439,9 @@
       // the "My children" item disappeared from the sidebar even though the
       // accounts still existed. They are portable account data, not device
       // preferences, so they belong in the synced state.
+      // Travels with the learner: a printable photo on one device is a
+      // printable photo everywhere.
+      photoLocal: prof.photoLocal || null,
       guardians: prof.guardians || { mother:null, father:null },
       reviewQueue: prof.reviewQueue || [],
       reviewStats: prof.reviewStats || { c:0, t:0 },
@@ -14456,6 +14478,7 @@
     // An empty object from the server means "nothing recorded", not "remove
     // the parents" — and losing these silently locks a parent out of their
     // own children's results.
+    if(state.photoLocal && String(state.photoLocal).indexOf('data:') === 0) prof.photoLocal = state.photoLocal;
     if(state.guardians && (state.guardians.mother || state.guardians.father)){
       prof.guardians = state.guardians;
     }
