@@ -1368,6 +1368,41 @@
     border-radius:13px; padding:15px; text-align:center; font-size:13px; color:#e9edf5; line-height:1.9;
   }
 
+  /* ---------- CONTENT READINESS (ADMIN) ---------- */
+  .cr-ribbon{
+    display:block; margin-top:8px; padding:6px 8px; border-radius:9px;
+    background:var(--bg); border:1px solid var(--chip-border); cursor:pointer;
+  }
+  .cr-pct{ font-family:'Cairo',sans-serif; font-weight:800; font-size:12px; }
+  .cr-bar{ display:block; height:4px; border-radius:3px; background:var(--input-bg); overflow:hidden; margin:4px 0 3px; }
+  .cr-fill{ display:block; height:100%; border-radius:3px; }
+  .cr-left{ font-size:8.5px; color:var(--ink-dim); }
+  .cr-complete .cr-pct{ color:#4ade80 } .cr-complete .cr-fill{ background:linear-gradient(90deg,#16a34a,#4ade80) }
+  .cr-good     .cr-pct{ color:#38bdf8 } .cr-good     .cr-fill{ background:linear-gradient(90deg,#0284c7,#38bdf8) }
+  .cr-partial  .cr-pct{ color:#F59E0B } .cr-partial  .cr-fill{ background:linear-gradient(90deg,#b45309,#F59E0B) }
+  .cr-seed     .cr-pct{ color:#f87171 } .cr-seed     .cr-fill{ background:linear-gradient(90deg,#b91c1c,#f87171) }
+
+  #crPanel{ position:fixed; inset:0; z-index:965; display:flex; align-items:center; justify-content:center; background:rgba(4,7,14,0.86); padding:16px; }
+  .cr-sheet{ width:100%; max-width:520px; max-height:88vh; display:flex; flex-direction:column;
+    background:var(--bg); border:1.5px solid var(--chip-border); border-radius:16px; padding:16px; }
+  .cr-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+  .cr-title{ font-family:'Cairo',sans-serif; font-weight:800; font-size:15px; color:var(--ink); }
+  .cr-close{ background:none; border:none; color:var(--ink-dim); font-size:18px; cursor:pointer; width:34px; height:34px; }
+  .cr-body{ flex:1; overflow-y:auto; }
+  .cr-score{ text-align:center; margin-bottom:12px; }
+  .cr-score b{ font-family:'Cairo',sans-serif; font-size:38px; }
+  .cr-score span{ display:block; font-size:11px; color:var(--ink-dim); margin-top:2px; }
+  .cr-row{ display:flex; align-items:center; gap:8px; padding:7px 0; border-bottom:1px solid var(--chip-border); font-size:12px; }
+  .cr-row-name{ flex:1; color:var(--ink); }
+  .cr-row-bar{ width:80px; height:5px; border-radius:3px; background:var(--input-bg); overflow:hidden; flex:none; }
+  .cr-row-fill{ height:100%; background:linear-gradient(90deg,#6366F1,#06B6D4); }
+  .cr-row-val{ width:52px; text-align:center; color:var(--ink-dim); font-size:11px; direction:ltr; flex:none; }
+  .cr-gap{ display:flex; gap:8px; font-size:12px; line-height:1.7; background:var(--input-bg);
+    border:1px solid var(--chip-border); border-radius:10px; padding:9px 11px; margin-top:7px; }
+  .cr-gap b{ color:var(--yellow); flex:none; }
+  .cr-note{ font-size:10.5px; color:var(--ink-dim); line-height:1.7; margin-top:12px; }
+  .cr-sub{ font-family:'Cairo',sans-serif; font-weight:700; font-size:12.5px; margin:14px 0 6px; color:var(--ink); }
+
   /* ---------- SMART LOADER ---------- */
   #smartLoader{
     position:fixed; inset:0; z-index:960; display:flex; align-items:center; justify-content:center;
@@ -2826,6 +2861,20 @@
     </div>
   </div>
 
+  <!-- Content readiness detail. Admin only: it shows how the score was
+       computed and what would raise it, so the number can be argued with
+       rather than trusted blindly. -->
+  <div id="crPanel" class="hidden" role="dialog" aria-modal="true">
+    <div class="cr-sheet">
+      <div class="cr-head">
+        <div class="cr-title" id="crTitle"></div>
+        <button class="cr-close" id="crCloseBtn" aria-label="إغلاق">✕</button>
+      </div>
+      <div class="cr-body" id="crBody"></div>
+      <button class="secondary-btn" id="crOpenBuilderBtn" data-i18n="crOpenBuilder">🛠 افتح منشئ البرامج</button>
+    </div>
+  </div>
+
   <!-- SMART LOADER
        A blank screen during a wait tells the learner nothing, and a spinner
        tells them only "something". This names the actual step in progress and
@@ -3996,6 +4045,13 @@
   const knowRevProgress = document.getElementById('knowRevProgress');
   const knowRevArea = document.getElementById('knowRevArea');
   const knowRevBackBtn = document.getElementById('knowRevBackBtn');
+  const crPanel = document.getElementById('crPanel');
+  const crTitle = document.getElementById('crTitle');
+  const crBody = document.getElementById('crBody');
+  const crCloseBtn = document.getElementById('crCloseBtn');
+  const crOpenBuilderBtn = document.getElementById('crOpenBuilderBtn');
+  crCloseBtn.addEventListener('click', ()=> crPanel.classList.add('hidden'));
+  crPanel.addEventListener('click', function(ev){ if(ev.target === crPanel) crPanel.classList.add('hidden'); });
   const smartLoader = document.getElementById('smartLoader');
   const slTitle = document.getElementById('slTitle');
   const slStep = document.getElementById('slStep');
@@ -4936,6 +4992,23 @@
       pgLogicQ:'{people} — كل واحدة تحب مادة مختلفة من: {things}.<br>{clues}<br>فما المادة التي تحبها <b>{who}</b>؟',
       pgLogicClueNot:'{p} لا تحب {x}.',
       pgLogicRule:'بالاستبعاد: نشطب ما لا يمكن، فيتبقى احتمال واحد فقط لكل واحدة',
+      crRemaining:'متبقٍ {n}%',
+      crTierComplete:'مكتمل', crTierGood:'جيد', crTierPartial:'جزئي', crTierSeed:'بذرة أولية',
+      crCountsTitle:'المحتوى الحالي', crCounts:'الأعداد',
+      crCountsLine:'{c} دورات · {m} وحدات · {l} دروس · {q} اختبارات · {n} سؤالًا',
+      crBreakdownTitle:'كيف حُسبت النسبة',
+      crAxisStructure:'البنية (دورات ووحدات ودروس)', crAxisDepth:'العمق (عدد الدروس)',
+      crAxisSubstance:'المضمون (دروس ذات محتوى حقيقي)', crAxisAssessment:'التقييم (درس له اختبار)',
+      crAxisCoverage:'التغطية (أسئلة كافية لكل اختبار)', crAxisSkills:'ربط المهارات',
+      crNextTitle:'أعلى تطوير مردودًا الآن',
+      crGapLessons:'أضف {n} درسًا للوصول للعمق المطلوب.',
+      crGapThin:'{n} درسًا محتواه أقل من {c} حرف — وسّعها لتصبح دروسًا حقيقية.',
+      crGapNoQuiz:'{n} درسًا بلا اختبار — بدونه لا يُقاس التعلّم ولا تعمل المراجعة المتباعدة.',
+      crGapShortQuiz:'{n} اختبارًا أقل من {q} أسئلة — قِصَر الاختبار يجعل النتيجة غير دالّة.',
+      crGapSkills:'{n} اختبارًا غير مرتبط بمهارة — الربط هو ما يجعل مؤشرات سينابس ذات معنى.',
+      crCompleteNext:'المحتوى مكتمل. الخطوة التالية: توليد تمارين لا نهائية لهذا البرنامج، أو إضافة مسار متقدّم فوقه.',
+      crMethod:'المعايير: العمق يُقاس مقابل {l} درسًا، والمضمون يعني درسًا لا يقل عن {c} حرف، والتغطية تعني {q} أسئلة لكل اختبار. الأوزان معلنة في الجدول أعلاه ويمكن مراجعتها.',
+      crOpenBuilder:'🛠 افتح منشئ البرامج',
       programScopeFoundation:'نسخة تأسيسية · {n} دروس', programScopeFull:'{n} درسًا',
       programAccuracyStat:'الدقة {acc}%', programNotStartedStat:'لم تبدئي بعد', backToProgramsLink:'🏠 كل البرامج',
       shellRoleLearner:'متعلّمة', shellRoleAdmin:'المالك', shellRoleTeacher:'معلّمة',
@@ -5697,6 +5770,23 @@
       pgLogicQ:'{people} — each likes a different subject from: {things}.<br>{clues}<br>Which subject does <b>{who}</b> like?',
       pgLogicClueNot:'{p} does not like {x}.',
       pgLogicRule:'By elimination: rule out what is impossible and exactly one option remains for each',
+      crRemaining:'{n}% remaining',
+      crTierComplete:'Complete', crTierGood:'Good', crTierPartial:'Partial', crTierSeed:'Seed',
+      crCountsTitle:'Current content', crCounts:'Counts',
+      crCountsLine:'{c} courses · {m} modules · {l} lessons · {q} quizzes · {n} questions',
+      crBreakdownTitle:'How this score was computed',
+      crAxisStructure:'Structure (courses, modules, lessons)', crAxisDepth:'Depth (lesson count)',
+      crAxisSubstance:'Substance (lessons with real content)', crAxisAssessment:'Assessment (lessons with a quiz)',
+      crAxisCoverage:'Coverage (enough questions per quiz)', crAxisSkills:'Skill mapping',
+      crNextTitle:'Highest-value work right now',
+      crGapLessons:'Add {n} lessons to reach the target depth.',
+      crGapThin:'{n} lessons hold less than {c} characters — expand them into real lessons.',
+      crGapNoQuiz:'{n} lessons have no quiz — without one nothing is measured and spaced review cannot run.',
+      crGapShortQuiz:'{n} quizzes have fewer than {q} questions — too short for the result to mean anything.',
+      crGapSkills:'{n} quizzes are not mapped to a skill — mapping is what makes the Synapse indicators meaningful.',
+      crCompleteNext:'Content is complete. Next: add unlimited generated practice for this program, or build an advanced track on top of it.',
+      crMethod:'Criteria: depth is measured against {l} lessons, substance means a lesson of at least {c} characters, coverage means {q} questions per quiz. The weights are listed above and open to review.',
+      crOpenBuilder:'🛠 Open the program builder',
       programScopeFoundation:'Foundation edition · {n} lessons', programScopeFull:'{n} lessons',
       programAccuracyStat:'{acc}% accuracy', programNotStartedStat:'Not started yet', backToProgramsLink:'🏠 All Programs',
       shellRoleLearner:'Learner', shellRoleAdmin:'Owner', shellRoleTeacher:'Instructor',
@@ -6911,8 +7001,26 @@
         ? `<span class="program-scope${lessonCount < 25 ? ' foundation' : ''}">${
             lessonCount < 25 ? fmt('programScopeFoundation', { n: lessonCount }) : fmt('programScopeFull', { n: lessonCount })}</span>`
         : '';
-      card.innerHTML = `<span class="program-icon">${pickProgramIcon_(pr.title)}</span><span class="program-name">${pr.title}</span><span class="program-stat">${stat}</span>${scope}`;
+      // Build-status ribbon, ADMIN ONLY. A parent seeing "18% complete" would
+      // reasonably conclude the product is unfinished; an author needs exactly
+      // that number to know where to work next.
+      let adminRibbon = '';
+      if(isAdminViewing()){
+        const cr = contentReadiness(pr.id);
+        const tier = readinessTier(cr.percent);
+        adminRibbon = `<span class="cr-ribbon cr-${tier}" data-cr="${pr.id}">
+            <span class="cr-pct">${cr.percent}%</span>
+            <span class="cr-bar"><span class="cr-fill" style="width:${cr.percent}%"></span></span>
+            <span class="cr-left">${fmt('crRemaining', { n: cr.remaining })}</span>
+          </span>`;
+      }
+      card.innerHTML = `<span class="program-icon">${pickProgramIcon_(pr.title)}</span><span class="program-name">${pr.title}</span><span class="program-stat">${stat}</span>${scope}${adminRibbon}`;
       card.addEventListener('click', ()=> openProgramPlayer(pr));
+      const ribbonEl = card.querySelector('.cr-ribbon');
+      if(ribbonEl) ribbonEl.addEventListener('click', function(ev){
+        ev.stopPropagation();   // do not also open the program itself
+        openReadinessPanel(pr.id);
+      });
       programAbacusCard.insertAdjacentElement('afterend', card);
     });
   }
@@ -14634,6 +14742,150 @@
     if(!prof || currentProfile === 'guest') return;
     saveLearnerState(prof, currentServerUsername());
   }
+
+  /* ==================== MODULE: CONTENT READINESS (ADMIN ONLY) ====================
+     Measures how COMPLETE each program's content is — not how much a learner
+     finished. Admin-only, because it is a build-status view of the curriculum
+     itself, and a parent seeing "STEM 18% complete" would reasonably conclude
+     they are paying for an unfinished product.
+
+     "Complete" needs a defensible definition or the percentage is decoration.
+     Each program is scored against what a usable curriculum actually needs:
+
+       structure  — courses, modules, and lessons exist at all
+       depth      — enough lessons to be a program, not a taster
+       substance  — lessons carry real content, not a title and a stub
+       assessment — lessons are actually testable
+       coverage   — assessments carry enough questions to measure anything
+       skills     — questions are mapped to skills, so progress means something
+
+     Every weight and threshold is stated in the code and shown in the UI, so
+     the number can be argued with rather than trusted blindly. */
+  const CR_TARGET_LESSONS = 24;        // a program below this is a foundation edition
+  const CR_MIN_CONTENT_CHARS = 400;    // roughly a screen of real teaching text
+  const CR_TARGET_QUESTIONS_PER_QUIZ = 5;
+
+  const CR_WEIGHTS = [
+    { id:'structure',  weight:10 },
+    { id:'depth',      weight:30 },
+    { id:'substance',  weight:25 },
+    { id:'assessment', weight:15 },
+    { id:'coverage',   weight:12 },
+    { id:'skills',     weight:8  }
+  ];
+
+  // True only for a genuinely authenticated admin session. The ribbon exposes
+  // internal build status, so it must never appear for a learner or a parent.
+  function isAdminViewing(){
+    return !!(typeof ADMIN !== 'undefined' && ADMIN && ADMIN.username &&
+              currentProfile && String(currentProfile).toLowerCase() === String(ADMIN.username).toLowerCase());
+  }
+  function contentReadiness(programId){
+    const courses  = lpLoad(LP_KEYS.COURSES).filter(c => c.programId === programId && !c.archived);
+    const courseIds = courses.map(c => c.id);
+    const modules  = lpLoad(LP_KEYS.MODULES).filter(m => courseIds.indexOf(m.courseId) > -1 && !m.archived);
+    const moduleIds = modules.map(m => m.id);
+    const lessons  = lpLoad(LP_KEYS.LESSONS).filter(l => moduleIds.indexOf(l.moduleId) > -1 && !l.archived);
+    const lessonIds = lessons.map(l => l.id);
+    const quizzes  = lpLoad(LP_KEYS.ASSESSMENTS).filter(a => lessonIds.indexOf(a.lessonId) > -1 && !a.archived);
+
+    const substantial = lessons.filter(l => String(l.content || '').trim().length >= CR_MIN_CONTENT_CHARS);
+    const lessonsWithQuiz = lessons.filter(l => quizzes.some(q => q.lessonId === l.id));
+    const fullQuizzes = quizzes.filter(q => (q.questions || []).length >= CR_TARGET_QUESTIONS_PER_QUIZ);
+    const totalQuestions = quizzes.reduce((a, q) => a + ((q.questions || []).length), 0);
+    const mappedQuizzes = quizzes.filter(q => Array.isArray(q.skillIds) && q.skillIds.length > 0);
+
+    const pct = (a, b)=> b > 0 ? Math.min(1, a / b) : 0;
+    const scores = {
+      structure:  (courses.length > 0 ? 0.34 : 0) + (modules.length > 0 ? 0.33 : 0) + (lessons.length > 0 ? 0.33 : 0),
+      depth:      pct(lessons.length, CR_TARGET_LESSONS),
+      substance:  pct(substantial.length, lessons.length || CR_TARGET_LESSONS),
+      assessment: pct(lessonsWithQuiz.length, lessons.length || 1),
+      coverage:   pct(fullQuizzes.length, quizzes.length || 1),
+      skills:     pct(mappedQuizzes.length, quizzes.length || 1)
+    };
+
+    let total = 0;
+    const breakdown = CR_WEIGHTS.map(function(w){
+      const earned = Math.round(scores[w.id] * w.weight);
+      total += earned;
+      return { id: w.id, earned: earned, weight: w.weight, ratio: scores[w.id] };
+    });
+
+    // The concrete next actions, ordered by how much each would add. Vague
+    // advice ("add more content") is not actionable; a count is.
+    const gaps = [];
+    if(lessons.length < CR_TARGET_LESSONS)
+      gaps.push({ key:'crGapLessons', vars:{ n: CR_TARGET_LESSONS - lessons.length }, gain: CR_WEIGHTS[1].weight - breakdown[1].earned });
+    if(substantial.length < lessons.length)
+      gaps.push({ key:'crGapThin', vars:{ n: lessons.length - substantial.length, c: CR_MIN_CONTENT_CHARS }, gain: CR_WEIGHTS[2].weight - breakdown[2].earned });
+    if(lessonsWithQuiz.length < lessons.length)
+      gaps.push({ key:'crGapNoQuiz', vars:{ n: lessons.length - lessonsWithQuiz.length }, gain: CR_WEIGHTS[3].weight - breakdown[3].earned });
+    if(fullQuizzes.length < quizzes.length)
+      gaps.push({ key:'crGapShortQuiz', vars:{ n: quizzes.length - fullQuizzes.length, q: CR_TARGET_QUESTIONS_PER_QUIZ }, gain: CR_WEIGHTS[4].weight - breakdown[4].earned });
+    if(mappedQuizzes.length < quizzes.length)
+      gaps.push({ key:'crGapSkills', vars:{ n: quizzes.length - mappedQuizzes.length }, gain: CR_WEIGHTS[5].weight - breakdown[5].earned });
+    gaps.sort((a,b)=> b.gain - a.gain);
+
+    return {
+      percent: Math.min(100, total),
+      remaining: Math.max(0, 100 - Math.min(100, total)),
+      counts: { courses: courses.length, modules: modules.length, lessons: lessons.length,
+                substantial: substantial.length, quizzes: quizzes.length, questions: totalQuestions },
+      breakdown: breakdown,
+      gaps: gaps,
+      // A generated program is never "content-starved" the way an authored one
+      // is — its exercises are unlimited by construction.
+      generated: typeof pgSkillsForProgram === 'function' ? !!pgSkillsForProgram('') : false
+    };
+  }
+  function readinessTier(pct){
+    if(pct >= 90) return 'complete';
+    if(pct >= 60) return 'good';
+    if(pct >= 30) return 'partial';
+    return 'seed';
+  }
+
+  function openReadinessPanel(programId){
+    if(!isAdminViewing()) return;   // never reachable from a learner session
+    const pr = lpLoad(LP_KEYS.PROGRAMS).find(x => x.id === programId);
+    if(!pr) return;
+    const cr = contentReadiness(programId);
+    const tier = readinessTier(cr.percent);
+    crTitle.textContent = pr.title;
+
+    const rows = cr.breakdown.map(function(b){
+      return `<div class="cr-row">
+        <span class="cr-row-name">${t('crAxis' + capitalize(b.id))}</span>
+        <span class="cr-row-bar"><span class="cr-row-fill" style="width:${Math.round(b.ratio*100)}%"></span></span>
+        <span class="cr-row-val">${b.earned}/${b.weight}</span>
+      </div>`;
+    }).join('');
+
+    // A finished program still has a next step — it just is not "write more
+    // lessons". Saying "nothing to do" would be the least useful answer.
+    const gapsHtml = cr.gaps.length
+      ? cr.gaps.slice(0, 5).map(function(g){
+          return `<div class="cr-gap"><b>+${g.gain}</b><span>${fmt(g.key, g.vars)}</span></div>`;
+        }).join('')
+      : `<div class="cr-gap"><b>✓</b><span>${t('crCompleteNext')}</span></div>`;
+
+    crBody.innerHTML =
+      `<div class="cr-score cr-${tier}"><b>${cr.percent}%</b><span>${t('crTier' + capitalize(tier))} · ${fmt('crRemaining', { n: cr.remaining })}</span></div>` +
+      `<div class="cr-sub">${t('crCountsTitle')}</div>` +
+      `<div class="cr-row"><span class="cr-row-name">${t('crCounts')}</span><span class="cr-row-val" style="width:auto;">${
+         fmt('crCountsLine', { c: cr.counts.courses, m: cr.counts.modules, l: cr.counts.lessons, q: cr.counts.quizzes, n: cr.counts.questions })}</span></div>` +
+      `<div class="cr-sub">${t('crBreakdownTitle')}</div>${rows}` +
+      `<div class="cr-sub">${t('crNextTitle')}</div>${gapsHtml}` +
+      `<div class="cr-note">${fmt('crMethod', { l: CR_TARGET_LESSONS, c: CR_MIN_CONTENT_CHARS, q: CR_TARGET_QUESTIONS_PER_QUIZ })}</div>`;
+
+    crOpenBuilderBtn.onclick = function(){
+      crPanel.classList.add('hidden');
+      if(typeof openProgramBuilder === 'function') openProgramBuilder();
+    };
+    crPanel.classList.remove('hidden');
+  }
+  /* ==================== END MODULE: CONTENT READINESS ==================== */
 
   /* ==================== MODULE: PROGRAM EXERCISE GENERATORS ====================
      The nine programs held 72 hand-written lessons between them — about
