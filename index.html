@@ -16163,6 +16163,53 @@
   // Readable from the console as callDiag — every failure in this chain is
   // otherwise invisible, and guessing cost several rounds already.
   var callDiag = { watchStarted:false, polls:0, lastPollAt:0, signalsSeen:0, lastError:'' };
+  /* A single command that exercises the ENTIRE call path and reports where it
+     stops. Five rounds of guessing have cost more time than this should have;
+     the answer has to come from the running system, not from me reading code.
+
+     Run in the browser console:  await callSelfTest('friendUsername')  */
+  window.callSelfTest = async function(peer){
+    const out = [];
+    const say = function(k, v){ out.push(k + ': ' + v); console.log(k + ':', v); };
+
+    say('1. backend URL', SHEET_API_URL ? 'set' : 'MISSING — nothing can work');
+    if(!SHEET_API_URL) return out;
+    say('2. signed in as', currentServerUsername() || 'NONE');
+    say('3. session token', SESSION_TOKEN ? 'held' : 'none (fine for these actions)');
+    say('4. call watcher', callDiag.watchStarted ? 'started' : 'NOT STARTED — this alone breaks calls');
+    say('5. polls so far', callDiag.polls + (callDiag.lastError ? ' | last error: ' + callDiag.lastError : ''));
+
+    // Does the deployed backend even KNOW these actions? An old deployment
+    // answers unknown_action, which looks identical to "nothing happened".
+    const probe = await postToSheet('room_state', { username: currentServerUsername(), sinceSignalSeq: 0 });
+    if(!probe){ say('6. room_state', 'NO RESPONSE — network or URL problem'); return out; }
+    if(!probe.ok){ say('6. room_state', 'REFUSED: ' + (probe.error || '?') +
+      (String(probe.error).indexOf('unknown') > -1 ? '  <-- the .gs was NOT redeployed' : '')); return out; }
+    say('6. room_state', 'OK, signals waiting: ' + (probe.signals || []).length);
+    say('7. queue support', typeof probe.lastSignalSeq === 'number'
+      ? 'yes — new backend'
+      : 'NO — the deployed .gs is the OLD version, redeploy it');
+
+    if(!peer){ say('8. peer', 'pass a friend username to test delivery'); return out; }
+
+    const room = callRoomFor(peer);
+    say('8. room', room);
+    const sent = await postToSheet('call_signal', {
+      roomId: room, fromUser: currentServerUsername(), toUser: peer,
+      signal: { type: 'diagnostic', at: Date.now() }
+    });
+    say('9. send signal', sent && sent.ok ? ('OK, seq ' + (sent.seq || '?')) : ('FAILED: ' + ((sent && sent.error) || 'no response')));
+
+    // Read it back AS THE PEER WOULD, which proves the delivery path end to end.
+    const asPeer = await postToSheet('room_state', { username: peer, sinceSignalSeq: 0 });
+    const got = (asPeer && asPeer.signals || []).filter(function(x){ return x.data && x.data.type === 'diagnostic'; });
+    say('10. peer would receive', got.length ? 'YES — the path works, the fault is in the browser/WebRTC layer'
+                                            : 'NO — the signal is not reaching the recipient');
+    await postToSheet('clear_call_signal', { roomId: room, fromUser: currentServerUsername(), toUser: peer });
+    say('11. cleanup', 'done');
+    return out;
+  };
+
   function startCallWatch(){
     if(callWatchId) clearInterval(callWatchId);
     callDiag.watchStarted = true;
