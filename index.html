@@ -7881,6 +7881,10 @@
     renderShellNav('learner');
     if(typeof refreshPendingFriendCount === 'function') refreshPendingFriendCount();
     if(typeof startPresence === 'function') startPresence();
+    // startPresence() runs on every completed entry into a learner session —
+    // fresh login, restored session, or profile switch. Anchoring the realtime
+    // services here as well means no entry path can miss them.
+    if(typeof startRealtimeServices === 'function') startRealtimeServices();
     // Fetch the printable photo copy in the background at sign-in. By the
     // time the learner opens a card or a certificate it is already there,
     // and they are never asked to supply a photo the app already has.
@@ -16349,14 +16353,42 @@
      diagnostics showed.
      
      Safe to call repeatedly: each starter clears its own interval first. */
+  let realtimeReadyId = null;
   function startRealtimeServices(){
-    if(!SHEET_API_URL || !hasAuthenticatedSession()) return;
+    if(!SHEET_API_URL) return;
     if(document.hidden) return;                 // nothing runs for a hidden tab
+
+    // Do NOT give up when the session is not ready yet.
+    //
+    // This was a single fire-and-forget call 400ms after logSessionLogin.
+    // If loggedInKey or the profile map was not populated at that instant —
+    // which is exactly what happens on a restored session, and on a child
+    // profile whose key differs from its username — the call returned
+    // silently and nothing ever started again. The diagnostics showed the
+    // result precisely: a brand-new session with zero polls.
+    //
+    // Now it retries until the session genuinely exists, then stops retrying.
+    if(!hasAuthenticatedSession()){
+      if(realtimeReadyId) return;               // a retry loop is already running
+      let tries = 0;
+      realtimeReadyId = setInterval(function(){
+        tries++;
+        if(hasAuthenticatedSession()){
+          clearInterval(realtimeReadyId); realtimeReadyId = null;
+          startRealtimeServices();
+        } else if(tries > 40){                  // ~20s: no session is coming
+          clearInterval(realtimeReadyId); realtimeReadyId = null;
+        }
+      }, 500);
+      return;
+    }
+    if(realtimeReadyId){ clearInterval(realtimeReadyId); realtimeReadyId = null; }
     chalStartPolling();
     if(typeof startUnreadPolling === 'function') startUnreadPolling();
     if(typeof startCallWatch === 'function') startCallWatch();
   }
   function stopRealtimeServices(){
+    if(realtimeReadyId){ clearInterval(realtimeReadyId); realtimeReadyId = null; }
     chalStopPolling();
     if(typeof stopUnreadPolling === 'function') stopUnreadPolling();
   }
