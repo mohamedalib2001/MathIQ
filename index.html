@@ -210,9 +210,21 @@
     padding:0 3px;
   }
   .notif-panel{
-    position:absolute; top:44px; inset-inline-end:0; width:300px; max-height:380px; overflow-y:auto;
+    position:absolute; top:44px; inset-inline-end:0; width:300px;
+    max-width:calc(100vw - 24px);   /* never wider than the device */
+    max-height:380px; overflow-y:auto;
     background:var(--input-bg); border:1.5px solid var(--chip-border); border-radius:14px;
     box-shadow:0 20px 50px rgba(0,0,0,0.4); z-index:600; padding:8px;
+  }
+  /* A 300px panel anchored to a header button overflowed a narrow screen and
+     its right edge fell outside the viewport. Below 700px it becomes a bottom
+     sheet: full width, thumb-reachable, clear of the notch. */
+  @media (max-width:700px){
+    .notif-panel{
+      position:fixed; top:auto; bottom:0; inset-inline:0; width:auto; max-width:none;
+      max-height:70vh; border-radius:18px 18px 0 0;
+      padding-bottom:calc(12px + env(safe-area-inset-bottom));
+    }
   }
   .notif-panel-header{ font-family:'Cairo',sans-serif; font-weight:700; font-size:13px; padding:8px 10px; }
   .notif-panel-item{
@@ -1368,6 +1380,115 @@
     border-radius:13px; padding:15px; text-align:center; font-size:13px; color:#e9edf5; line-height:1.9;
   }
 
+  /* ---------- CHALLENGES & CHAT ---------- */
+  #chalInvite, #groupChal{ position:fixed; inset:0; z-index:975; display:flex;
+    align-items:center; justify-content:center; background:rgba(4,7,14,0.88); padding:18px; }
+  .ci-card{ width:100%; max-width:340px; text-align:center; background:var(--input-bg);
+    border:1.5px solid var(--chip-border); border-radius:18px; padding:22px 18px; }
+  .ci-avatar{ width:66px; height:66px; border-radius:50%; margin:0 auto 12px; overflow:hidden;
+    border:2px solid var(--yellow); background:var(--bg); display:flex; align-items:center;
+    justify-content:center; font-family:'Cairo',sans-serif; font-weight:800; font-size:26px; color:var(--yellow); }
+  .ci-avatar img{ width:100% !important; height:100% !important; object-fit:cover; display:block; }
+  .ci-title{ font-family:'Cairo',sans-serif; font-weight:800; font-size:17px; color:var(--ink); }
+  .ci-sub{ font-size:12.5px; color:var(--ink-dim); margin:6px 0 16px; line-height:1.7; }
+  .ci-card button{ margin-bottom:8px; }
+
+  #chatPanel{ position:fixed; inset:0; z-index:970; display:flex; align-items:flex-end;
+    justify-content:center; background:rgba(4,7,14,0.7); }
+  @media (min-width:700px){ #chatPanel{ align-items:center; padding:20px; } }
+  .chat-sheet{ width:100%; max-width:480px; height:min(78vh, 620px); display:flex; flex-direction:column;
+    background:var(--bg); border:1.5px solid var(--chip-border); border-radius:18px 18px 0 0; overflow:hidden; }
+  @media (min-width:700px){ .chat-sheet{ border-radius:18px; } }
+  .chat-head{ display:flex; align-items:center; justify-content:space-between;
+    padding:12px 15px; border-bottom:1px solid var(--chip-border); }
+  .chat-title{ font-family:'Cairo',sans-serif; font-weight:800; font-size:14.5px; color:var(--ink); }
+  .chat-close{ background:none; border:none; color:var(--ink-dim); font-size:18px;
+    cursor:pointer; width:36px; height:36px; border-radius:8px; }
+  .chat-log{ flex:1; overflow-y:auto; padding:12px 14px; display:flex; flex-direction:column; gap:7px; }
+  .chat-msg{ max-width:82%; font-size:13px; line-height:1.7; padding:9px 12px; border-radius:14px; }
+  .chat-msg.mine{ align-self:flex-end; background:linear-gradient(145deg,#6366F1,#4F46E5); color:#fff; }
+  .chat-msg.theirs{ align-self:flex-start; background:var(--input-bg);
+    border:1px solid var(--chip-border); color:var(--ink); }
+  .chat-msg .cm-who{ display:block; font-size:9.5px; opacity:.75; margin-bottom:2px; }
+  .chat-input-row{ display:flex; gap:8px; padding:10px 12px; border-top:1px solid var(--chip-border);
+    padding-bottom:calc(10px + env(safe-area-inset-bottom)); }
+  .chat-input-row input{ flex:1; margin:0; }
+  .chat-send{ width:44px; height:44px; border-radius:50%; flex:none; cursor:pointer; font-size:17px;
+    border:1.5px solid var(--input-border); background:var(--input-bg); color:var(--ink); }
+  .chat-note{ font-size:10px; color:var(--ink-dim); text-align:center; padding:0 12px 8px; opacity:.75; }
+  .gc-row{ display:flex; align-items:center; gap:9px; padding:9px 11px; margin-bottom:6px;
+    background:var(--input-bg); border:1px solid var(--chip-border); border-radius:11px;
+    cursor:pointer; min-height:46px; }
+  .gc-row.sel{ border-color:var(--yellow); }
+  .gc-row input{ width:19px; height:19px; flex:none; margin:0; }
+  .friend-actions{ display:flex; gap:6px; flex-wrap:wrap; }
+
+  /* ---------- EXAM TIMER + HISTORY ---------- */
+  .exam-timer{
+    position:sticky; top:0; z-index:20; text-align:center;
+    font-family:'Cairo',sans-serif; font-weight:800; font-size:20px; letter-spacing:1px;
+    background:var(--input-bg); border:1.5px solid var(--chip-border); border-radius:12px;
+    padding:9px; margin-bottom:10px; color:var(--ink); direction:ltr;
+  }
+  /* Colour carries the warning before the numbers are even read. */
+  .exam-timer.warn{ color:#F59E0B; border-color:rgba(245,158,11,0.5); }
+  .exam-timer.danger{ color:#f87171; border-color:rgba(239,68,68,0.55); }
+  @media (prefers-reduced-motion: no-preference){
+    .exam-timer.danger{ animation:examPulse 1s ease-in-out infinite; }
+  }
+  @keyframes examPulse{ 0%,100%{ opacity:1 } 50%{ opacity:.55 } }
+  .exam-hist{ display:flex; align-items:center; gap:8px; font-size:12px;
+    background:var(--input-bg); border:1px solid var(--chip-border);
+    border-radius:10px; padding:8px 11px; margin-bottom:6px; }
+  .exam-hist b{ font-family:'Cairo',sans-serif; }
+  .exam-hist .eh-pct{ margin-inline-start:auto; }
+  .ex-row-actions{ display:flex; gap:6px; margin-top:6px; }
+  .ex-row-actions button{ flex:1; margin:0; font-size:11px; padding:7px; min-height:38px; }
+
+  /* ---------- EXAM IMPORT (ADMIN) ---------- */
+  .ex-meta-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px; }
+  @media (min-width:700px){ .ex-meta-grid{ grid-template-columns:repeat(3,1fr); } }
+  /* 44px is the accessibility minimum for a touch target; several controls
+     added recently sat below it and were awkward to hit on a phone. */
+  @media (max-width:700px){
+    .nova-chip, .syn-chip{ min-height:38px; padding:9px 13px; }
+    .ex-actions button, .mc-actions button{ min-height:46px; }
+    .cr-ribbon{ padding:9px 10px; }
+    .mc-actions{ gap:7px; }
+    .mc-actions button{ min-width:calc(50% - 4px); }
+  }
+  .ex-actions{ display:flex; gap:8px; margin:10px 0; }
+  .ex-actions button{ flex:1; margin:0; }
+  /* Exam screens on a phone: the paste area needs room to work in, the
+     option labels need a real tap target, and a long paper must not be
+     trapped behind the fixed bottom bar. */
+  @media (max-width:700px){
+    .ex-meta-grid{ grid-template-columns:1fr; gap:8px; }
+    #exPaste{ rows:14; min-height:220px; font-size:13px; }
+    #examImportScreen, #examsScreen{ padding-bottom:calc(90px + env(safe-area-inset-bottom)); }
+    /* A radio the size of a pea is unusable with a thumb. */
+    #examsQArea label, .lp-question-block label{
+      display:flex; align-items:center; gap:9px; min-height:42px; line-height:1.6;
+    }
+    #examsQArea input[type="radio"], .lp-question-block input[type="radio"]{
+      width:20px; height:20px; flex:none;
+    }
+    .ex-summary{ flex-wrap:wrap; }
+    .ex-summary div{ min-width:calc(33% - 6px); }
+  }
+  .ex-q{ background:var(--input-bg); border:1px solid var(--chip-border); border-radius:10px;
+         padding:10px 12px; margin-bottom:7px; font-size:12.5px; line-height:1.7; }
+  .ex-q b{ color:var(--ink); }
+  .ex-q .ex-opt{ display:block; font-size:11.5px; color:var(--ink-dim); margin-top:3px; }
+  .ex-q .ex-opt.right{ color:var(--mint); font-weight:700; }
+  .ex-err{ background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.35);
+           border-radius:10px; padding:9px 12px; margin-bottom:7px; font-size:12px; color:#fca5a5; line-height:1.7; }
+  .ex-summary{ display:flex; gap:8px; margin-bottom:9px; }
+  .ex-summary div{ flex:1; text-align:center; background:var(--input-bg); border:1px solid var(--chip-border);
+                   border-radius:10px; padding:9px 6px; }
+  .ex-summary b{ display:block; font-family:'Cairo',sans-serif; font-size:19px; }
+  .ex-summary span{ display:block; font-size:10px; color:var(--ink-dim); margin-top:3px; }
+
   /* ---------- CONTENT READINESS (ADMIN) ---------- */
   .cr-ribbon{
     display:block; margin-top:8px; padding:6px 8px; border-radius:9px;
@@ -1579,7 +1700,11 @@
      which is how the certificate broke before. */
   .mc-stage{ perspective:1400px; display:flex; justify-content:center; margin:14px 0 18px; }
   .mc-card{
-    position:relative; width:340px; height:214px; /* ISO 7810 ID-1 ratio, 1.586 */
+    /* Scales down on a narrow phone instead of overflowing. The ISO ID-1
+       ratio is preserved by aspect-ratio, so the card never distorts and the
+       captured PNG keeps true card proportions. */
+    position:relative; width:min(340px, calc(100vw - 44px)); aspect-ratio:340/214;
+    height:auto;
     transform-style:preserve-3d; transition:transform .7s cubic-bezier(.2,.8,.2,1);
     cursor:pointer;
   }
@@ -1691,6 +1816,9 @@
   /* CAPTURE MODE — neutralises what html2canvas cannot rasterise, then
      restores it. Without this the download came out mirrored with both faces
      stacked, exactly as the Almanie card did. */
+  /* Capture at the TRUE card size regardless of screen width, so a phone
+     does not export a smaller certificate than a desktop. */
+  .mc-stage.mc-capture .mc-card{ width:340px !important; height:214px !important; }
   .mc-stage.mc-capture{ perspective:none !important; }
   .mc-stage.mc-capture .mc-card{ transform:none !important; transform-style:flat !important; transition:none !important; }
   .mc-stage.mc-capture .mc-face{ backface-visibility:visible !important; -webkit-backface-visibility:visible !important; box-shadow:none !important; }
@@ -2611,6 +2739,7 @@
       <div class="admin-tool-tile" id="addTeacherLink"><span class="tile-icon">➕</span><span data-i18n="addTeacherLink">إضافة حساب معلم</span></div>
       <div class="admin-tool-tile" id="teachersListLink"><span class="tile-icon">👥</span><span data-i18n="teachersListLink">المعلّمون</span></div>
       <div class="admin-tool-tile" id="guardianAuditLink"><span class="tile-icon">🔍</span><span data-i18n="guardianAuditLink">فحص حسابات أولياء الأمور</span></div>
+      <div class="admin-tool-tile" id="examImportLink"><span class="tile-icon">📥</span><span data-i18n="exImportLink">إدخال اختبار دراسي</span></div>
       <div class="admin-tool-tile" id="mailDiagLink"><span class="tile-icon">✉️</span><span data-i18n="mailDiagLink">تشخيص إرسال البريد</span></div>
       <div class="admin-tool-tile" id="connectionLink"><span class="tile-icon">🔗</span><span data-i18n="connectionLink">ربط جوجل شيت</span></div>
       <div class="admin-tool-tile" id="subscriptionLink"><span class="tile-icon">💳</span><span data-i18n="subscriptionLink">الاشتراك والتفعيل</span></div>
@@ -2878,6 +3007,159 @@
       </div>
       <div class="cr-body" id="crBody"></div>
       <button class="secondary-btn" id="crOpenBuilderBtn" data-i18n="crOpenBuilder">🛠 افتح منشئ البرامج</button>
+    </div>
+  </div>
+
+  <!-- EXAM IMPORT (ADMIN) — paste a whole paper at once.
+       Entering fifty questions through a form is what kills a question bank
+       before it starts, so the primary path is bulk paste with a live
+       preview and validation BEFORE anything is written. -->
+  <div id="examImportScreen" class="panel hidden">
+    <div class="group-label" style="text-align:center;" data-i18n="exImportTitle">📥 إدخال اختبار</div>
+
+    <div class="ex-meta-grid">
+      <div>
+        <div class="group-label" data-i18n="eduSystemLabel">نوع التعليم</div>
+        <select class="select-like" id="exSystem" style="width:100%;">
+          <option value="eg_gov">تعليم مصري حكومي</option>
+          <option value="eg_azhar">تعليم أزهري</option>
+          <option value="eg_lang">مدارس لغات</option>
+          <option value="eg_intl">تعليم دولي</option>
+        </select>
+      </div>
+      <div>
+        <div class="group-label" data-i18n="gradeStageLabel">الصف الدراسي</div>
+        <select class="select-like" id="exGrade" style="width:100%;">
+          <optgroup label="الابتدائي">
+            <option value="p1">الأول الابتدائي</option><option value="p2">الثاني الابتدائي</option>
+            <option value="p3">الثالث الابتدائي</option><option value="p4">الرابع الابتدائي</option>
+            <option value="p5">الخامس الابتدائي</option><option value="p6">السادس الابتدائي</option>
+          </optgroup>
+          <optgroup label="الإعدادي">
+            <option value="m1">الأول الإعدادي</option><option value="m2">الثاني الإعدادي</option>
+            <option value="m3">الثالث الإعدادي</option>
+          </optgroup>
+          <optgroup label="الثانوي">
+            <option value="s1">الأول الثانوي</option><option value="s2">الثاني الثانوي</option>
+            <option value="s3">الثالث الثانوي</option>
+          </optgroup>
+        </select>
+      </div>
+      <div>
+        <div class="group-label" data-i18n="termLabel">الفصل الدراسي</div>
+        <select class="select-like" id="exTerm" style="width:100%;">
+          <option value="t1">الفصل الدراسي الأول</option>
+          <option value="t2">الفصل الدراسي الثاني</option>
+        </select>
+      </div>
+      <div>
+        <div class="group-label" data-i18n="exSubject">المادة</div>
+        <input type="text" id="exSubject" placeholder="رياضيات">
+      </div>
+      <div>
+        <div class="group-label" data-i18n="exYear">العام</div>
+        <input type="number" id="exYear" placeholder="2024" class="ltr-input">
+      </div>
+      <div>
+        <div class="group-label" data-i18n="exDuration">المدة (دقيقة)</div>
+        <input type="number" id="exDuration" placeholder="60" class="ltr-input">
+      </div>
+    </div>
+
+    <div class="group-label" data-i18n="exExamTitle">عنوان الورقة</div>
+    <input type="text" id="exTitle" placeholder="امتحان نصف العام 2024">
+
+    <div class="group-label" data-i18n="exSource">المصدر (إلزامي)</div>
+    <input type="text" id="exSource" data-i18n-placeholder="exSourcePh" placeholder="من أين جاءت هذه الورقة؟">
+    <div class="conn-note" data-i18n="exSourceNote">المصدر إلزامي: بنك أسئلة بلا مصدر لا يمكن مراجعة حقوقه لاحقًا.</div>
+
+    <div class="group-label" data-i18n="exLicence">حالة الحقوق</div>
+    <select class="select-like" id="exLicence" style="width:100%;">
+      <option value="own">من إعدادي / إعداد الأكاديمية</option>
+      <option value="licensed">مرخّص من صاحبه بإذن</option>
+      <option value="public">منشور رسميًا للاستخدام العام</option>
+      <option value="unspecified">غير محدد</option>
+    </select>
+
+    <div class="group-label" data-i18n="exPasteLabel">الصق الأسئلة</div>
+    <div class="conn-note" id="exFormatHint"></div>
+    <textarea id="exPaste" rows="9" spellcheck="false"
+      style="width:100%; padding:10px; border-radius:9px; border:1.5px solid var(--input-border); background:var(--input-bg); color:var(--ink); font-family:monospace; font-size:12px; direction:rtl;"></textarea>
+
+    <div class="ex-actions">
+      <button class="secondary-btn" id="exSampleBtn" data-i18n="exSampleBtn">📋 الصق مثالًا</button>
+      <button class="secondary-btn" id="exPreviewBtn" data-i18n="exPreviewBtn">👁 تحقّق ومعاينة</button>
+    </div>
+    <div id="exPreview"></div>
+
+    <label class="nova-voice-toggle" style="margin:10px 0;">
+      <input type="checkbox" id="exPublish"> <span data-i18n="exPublishLabel">انشر مباشرة للطلاب (وإلا تُحفظ كمسوّدة)</span>
+    </label>
+    <button class="start-btn" id="exSaveBtn" disabled data-i18n="exSaveBtn">حفظ الاختبار</button>
+    <div class="cr-sub" data-i18n="exExistingTitle">الاختبارات المُدخلة</div>
+    <div id="exExisting"></div>
+    <button class="secondary-btn" id="exImportBackBtn" data-i18n="closeBtn">إغلاق</button>
+  </div>
+
+  <!-- EXAMS PROGRAM -->
+  <div id="examsScreen" class="panel hidden">
+    <div class="group-label" style="text-align:center;" data-i18n="examsTitle">📝 الاختبارات الدراسية</div>
+    <div id="examsGate" class="hidden">
+      <div class="syn-locked" id="examsGateMsg"></div>
+      <button class="start-btn" id="examsGoProfileBtn" data-i18n="examsGoProfile">⚙️ حدّث بياناتي الدراسية</button>
+    </div>
+    <div id="examsBrowse" class="hidden">
+      <div class="conn-note" id="examsContext"></div>
+      <div id="examsHistory"></div>
+      <div class="chips-row" id="examsSubjects"></div>
+      <div id="examsList"></div>
+    </div>
+    <div id="examsRunner" class="hidden">
+      <div class="exam-timer hidden" id="examTimer"><span id="examTimerText"></span></div>
+      <div class="conn-note" id="examsProgress"></div>
+      <div id="examsQArea"></div>
+      <button class="start-btn" id="examsSubmitBtn" data-i18n="examsSubmitBtn">تسليم الإجابات</button>
+    </div>
+    <button class="secondary-btn" id="examsBackBtn" data-i18n="closeBtn">إغلاق</button>
+  </div>
+
+  <!-- Incoming challenge invitation. Shown the moment polling finds one. -->
+  <div id="chalInvite" class="hidden" role="dialog" aria-modal="true">
+    <div class="ci-card">
+      <div class="ci-avatar" id="ciAvatar"></div>
+      <div class="ci-title" id="ciTitle"></div>
+      <div class="ci-sub" id="ciSub"></div>
+      <button class="start-btn" id="ciAcceptBtn" data-i18n="ciAccept">⚡ ابدأ التحدي الآن</button>
+      <button class="secondary-btn" id="ciLaterBtn" data-i18n="ciLater">🕒 أقبل، لكن لاحقًا</button>
+      <button class="secondary-btn" id="ciDeclineBtn" data-i18n="ciDecline">✕ رفض</button>
+    </div>
+  </div>
+
+  <!-- Friend chat. Polls only while open. -->
+  <div id="chatPanel" class="hidden" role="dialog" aria-modal="true">
+    <div class="chat-sheet">
+      <div class="chat-head">
+        <div class="chat-title" id="chatTitle"></div>
+        <button class="chat-close" id="chatCloseBtn" aria-label="إغلاق">✕</button>
+      </div>
+      <div class="chat-log" id="chatLog"></div>
+      <div class="chat-input-row">
+        <input type="text" id="chatInput" data-i18n-placeholder="chatPlaceholder" placeholder="اكتب رسالتك…" maxlength="500">
+        <button class="chat-send" id="chatSendBtn" aria-label="إرسال">↑</button>
+      </div>
+      <div class="chat-note" data-i18n="chatNote">الرسائل تُحدَّث كل بضع ثوانٍ.</div>
+    </div>
+  </div>
+
+  <!-- Group challenge builder, capped at 10. -->
+  <div id="groupChal" class="hidden" role="dialog" aria-modal="true">
+    <div class="ci-card" style="max-width:420px;">
+      <div class="ci-title" data-i18n="gcTitle">👥 تحدٍّ جماعي</div>
+      <div class="ci-sub" id="gcCount"></div>
+      <div class="conn-note" id="gcHint" style="margin:0 0 6px;"></div>
+      <div id="gcList" style="max-height:46vh; overflow-y:auto; margin:10px 0;"></div>
+      <button class="start-btn" id="gcSendBtn" disabled data-i18n="gcSend">أرسل الدعوات</button>
+      <button class="secondary-btn" id="gcCloseBtn" data-i18n="closeBtn">إغلاق</button>
     </div>
   </div>
 
@@ -3495,6 +3777,47 @@
         <div class="group-label" data-i18n="phoneLabel">رقم الجوال (اختياري)</div>
         <input type="tel" id="editPhone" class="ltr-input" data-i18n-placeholder="phonePlaceholder" placeholder="+9665XXXXXXXX" autocomplete="tel">
         <div class="conn-note" data-i18n="phoneHint">للتواصل بشأن الاشتراك أو استعادة الحساب — لا يظهر لأي متعلّم آخر.</div>
+
+      <!-- Academic profile. Required only by the exams program: without it we
+           cannot know which papers apply, and showing another grade's exam is
+           worse than showing none at all. -->
+      <div>
+        <div class="group-label" data-i18n="eduSystemLabel">نوع التعليم</div>
+        <select class="select-like" id="editEduSystem" style="width:100%;">
+          <option value="" data-i18n="eduSystemNone">— غير محدد —</option>
+          <option value="eg_gov">تعليم مصري حكومي</option>
+          <option value="eg_azhar">تعليم أزهري</option>
+          <option value="eg_lang">مدارس لغات (حكومي تجريبي)</option>
+          <option value="eg_intl">تعليم دولي (IG / American / IB)</option>
+        </select>
+      </div>
+      <div>
+        <div class="group-label" data-i18n="gradeStageLabel">الصف الدراسي</div>
+        <select class="select-like" id="editGradeStage" style="width:100%;">
+          <option value="">— غير محدد —</option>
+          <optgroup label="الابتدائي">
+            <option value="p1">الأول الابتدائي</option><option value="p2">الثاني الابتدائي</option>
+            <option value="p3">الثالث الابتدائي</option><option value="p4">الرابع الابتدائي</option>
+            <option value="p5">الخامس الابتدائي</option><option value="p6">السادس الابتدائي</option>
+          </optgroup>
+          <optgroup label="الإعدادي">
+            <option value="m1">الأول الإعدادي</option><option value="m2">الثاني الإعدادي</option>
+            <option value="m3">الثالث الإعدادي</option>
+          </optgroup>
+          <optgroup label="الثانوي">
+            <option value="s1">الأول الثانوي</option><option value="s2">الثاني الثانوي</option>
+            <option value="s3">الثالث الثانوي</option>
+          </optgroup>
+        </select>
+      </div>
+      <div>
+        <div class="group-label" data-i18n="termLabel">الفصل الدراسي</div>
+        <select class="select-like" id="editTerm" style="width:100%;">
+          <option value="">— غير محدد —</option>
+          <option value="t1">الفصل الدراسي الأول</option>
+          <option value="t2">الفصل الدراسي الثاني</option>
+        </select>
+      </div>
       </div>
       <div>
         <div class="group-label" data-i18n="birthDateLabel">تاريخ الميلاد</div>
@@ -3998,15 +4321,17 @@
   const profileCardsWrap = document.getElementById('profileCardsWrap');
   const adminStatsBar = document.getElementById('adminStatsBar');
   const challengeBtn = document.getElementById('challengeBtn');
-  // These two controls were removed from the login screen. The guest and
-  // challenge FLOWS still exist and are still reachable elsewhere, so the
-  // references are kept and every use below is null-guarded — deleting the
-  // logic would have broken the guest gate and the challenge screen.
-  const guestBtn = document.getElementById('guestBtn');
-  const guestNote = document.getElementById('guestNote');
+  // These controls were removed from the login screen. The guest gate and the
+  // challenge screen still exist and are reached by other paths, so the code
+  // below stays — but the lookups are stated as null rather than querying for
+  // elements that are known not to exist, which only invited someone to
+  // "fix" the missing ids by adding the buttons back.
+  const guestBtn = null;
+  const guestNote = null;
   const dashboardLink = document.getElementById('dashboardLink');
   const programBuilderLink = document.getElementById('programBuilderLink');
   const teachersListLink = document.getElementById('teachersListLink');
+  const examImportLink = document.getElementById('examImportLink');
   const mailDiagLink = document.getElementById('mailDiagLink');
   const mailDiagScreen = document.getElementById('mailDiagScreen');
   const mailDiagUser = document.getElementById('mailDiagUser');
@@ -4059,6 +4384,60 @@
   const crOpenBuilderBtn = document.getElementById('crOpenBuilderBtn');
   crCloseBtn.addEventListener('click', ()=> crPanel.classList.add('hidden'));
   crPanel.addEventListener('click', function(ev){ if(ev.target === crPanel) crPanel.classList.add('hidden'); });
+  const examImportScreen = document.getElementById('examImportScreen');
+  const exSystem = document.getElementById('exSystem');
+  const exGrade = document.getElementById('exGrade');
+  const exTerm = document.getElementById('exTerm');
+  const exSubject = document.getElementById('exSubject');
+  const exYear = document.getElementById('exYear');
+  const exDuration = document.getElementById('exDuration');
+  const exTitle = document.getElementById('exTitle');
+  const exSource = document.getElementById('exSource');
+  const exLicence = document.getElementById('exLicence');
+  const exPaste = document.getElementById('exPaste');
+  const exFormatHint = document.getElementById('exFormatHint');
+  const exPreview = document.getElementById('exPreview');
+  const exPreviewBtn = document.getElementById('exPreviewBtn');
+  const exSampleBtn = document.getElementById('exSampleBtn');
+  const exPublish = document.getElementById('exPublish');
+  const exSaveBtn = document.getElementById('exSaveBtn');
+  const exExisting = document.getElementById('exExisting');
+  const exImportBackBtn = document.getElementById('exImportBackBtn');
+  const chalInvite = document.getElementById('chalInvite');
+  const ciAvatar = document.getElementById('ciAvatar');
+  const ciTitle = document.getElementById('ciTitle');
+  const ciSub = document.getElementById('ciSub');
+  const ciAcceptBtn = document.getElementById('ciAcceptBtn');
+  const ciLaterBtn = document.getElementById('ciLaterBtn');
+  const ciDeclineBtn = document.getElementById('ciDeclineBtn');
+  const chatPanel = document.getElementById('chatPanel');
+  const chatTitle = document.getElementById('chatTitle');
+  const chatLog = document.getElementById('chatLog');
+  const chatInput = document.getElementById('chatInput');
+  const chatSendBtn = document.getElementById('chatSendBtn');
+  const chatCloseBtn = document.getElementById('chatCloseBtn');
+  const groupChal = document.getElementById('groupChal');
+  const gcList = document.getElementById('gcList');
+  const gcCount = document.getElementById('gcCount');
+  const gcHint = document.getElementById('gcHint');
+  const gcSendBtn = document.getElementById('gcSendBtn');
+  const gcCloseBtn = document.getElementById('gcCloseBtn');
+  const examTimer = document.getElementById('examTimer');
+  const examTimerText = document.getElementById('examTimerText');
+  const examsHistory = document.getElementById('examsHistory');
+  const examsScreen = document.getElementById('examsScreen');
+  const examsGate = document.getElementById('examsGate');
+  const examsGateMsg = document.getElementById('examsGateMsg');
+  const examsGoProfileBtn = document.getElementById('examsGoProfileBtn');
+  const examsBrowse = document.getElementById('examsBrowse');
+  const examsContext = document.getElementById('examsContext');
+  const examsSubjects = document.getElementById('examsSubjects');
+  const examsList = document.getElementById('examsList');
+  const examsRunner = document.getElementById('examsRunner');
+  const examsProgress = document.getElementById('examsProgress');
+  const examsQArea = document.getElementById('examsQArea');
+  const examsSubmitBtn = document.getElementById('examsSubmitBtn');
+  const examsBackBtn = document.getElementById('examsBackBtn');
   const smartLoader = document.getElementById('smartLoader');
   const slTitle = document.getElementById('slTitle');
   const slStep = document.getElementById('slStep');
@@ -4272,7 +4651,6 @@
   const ulError = document.getElementById('ulError');
   const ulLoginBtn = document.getElementById('ulLoginBtn');
   const goToRegisterLink = document.getElementById('goToRegisterLink');
-  const challengeBtnLogin = document.getElementById('challengeBtnLogin');
   const adminLink = document.getElementById('adminLink');
   const backToLoginLink = document.getElementById('backToLoginLink');
 
@@ -4397,6 +4775,9 @@
   const editUsernameInput = document.getElementById('editUsername');
   const editEmailInput = document.getElementById('editEmail');
   const editPhoneInput = document.getElementById('editPhone');
+  const editEduSystem = document.getElementById('editEduSystem');
+  const editGradeStage = document.getElementById('editGradeStage');
+  const editTerm = document.getElementById('editTerm');
   const motherPinWarn = document.getElementById('motherPinWarn');
   const fatherPinWarn = document.getElementById('fatherPinWarn');
   const emailVerifyRow = document.getElementById('emailVerifyRow');
@@ -4611,6 +4992,7 @@
       // NEXORA SYNAPSE — every field below is filled from the learner's own
       // recorded behaviour. Nothing here is estimated or invented.
       createdAt: null,             // real account creation date, from the server
+      eduSystem: null, gradeStage: null, term: null,  // academic profile, used by the exams program
       reviewStats: { c:0, t:0 },   // recall: how review items actually went
       recentByBucket: {},          // rolling window of recent attempts per operation
       knowledgeQueue: [],          // spaced retrieval for the nine programs, not just math
@@ -4659,6 +5041,7 @@
       errorTypeCounts: p.errorTypeCounts || {},
       reviewQueue: p.reviewQueue || [],
       createdAt: p.createdAt || null,
+      eduSystem: p.eduSystem || null, gradeStage: p.gradeStage || null, term: p.term || null,
       reviewStats: p.reviewStats || { c:0, t:0 },
       recentByBucket: p.recentByBucket || {},
       knowledgeQueue: p.knowledgeQueue || [],
@@ -5390,6 +5773,58 @@
       dpPhotoNeedsBackendOld:'تعذّر تحويل صورتك للشهادة. السبب الأرجح أن ملف الخادم (.gs) لم يُنشر بنسخة جديدة بعد — وسيط جلب الصور موجود فيه. الشهادة ستصدر بالحرف الأول حتى ذلك الحين.',
       dvDownloadBtn:'⬇️ تنزيل الشهادة', dvPrintBtn:'🖨️ طباعة',
       dpDownloadBtn:'🏅 اعرضي شهادة العضوية', dpStepRender:'نرسم الشهادة…',
+      examTimeUp:'⏰ انتهى الوقت — سُلِّمت إجاباتك تلقائيًا.',
+      examConfirmSubmit:'لديك {n} سؤالًا بلا إجابة. هل تريد التسليم الآن؟',
+      examHistoryTitle:'محاولاتك السابقة',
+      exExistingTitle:'الاختبارات المُدخلة', exNoneYet:'لم تُدخل أي اختبارات بعد.',
+      exListFailed:'تعذّر جلب قائمة الاختبارات.',
+      exStatus_published:'✓ منشور للطلاب', exStatus_draft:'مسوّدة — غير ظاهر للطلاب',
+      exStatus_archived:'مؤرشف — غير ظاهر للطلاب',
+      exArchiveBtn:'🗄 أرشفة', exRestoreBtn:'↩ استعادة',
+      exArchiveConfirm:'سيُخفى هذا الاختبار عن الطلاب. محاولاتهم السابقة تبقى محفوظة. هل تريد المتابعة؟',
+      exArchived:'✓ تمت أرشفة الاختبار.', exRestored:'✓ أُعيد نشر الاختبار.',
+      exArchiveFailed:'تعذّر تنفيذ العملية.',
+      exImportLink:'إدخال اختبار دراسي', exImportTitle:'📥 إدخال اختبار',
+      exSubject:'المادة', exYear:'العام', exDuration:'المدة (دقيقة)', exExamTitle:'عنوان الورقة',
+      exSource:'المصدر (إلزامي)', exSourcePh:'من أين جاءت هذه الورقة؟',
+      exSourceNote:'المصدر إلزامي: بنك أسئلة بلا مصدر لا يمكن مراجعة حقوقه لاحقًا.',
+      exLicence:'حالة الحقوق', exPasteLabel:'الصق الأسئلة',
+      exFormatHint:'صيغتان مقبولتان — السطر الواحد: «السؤال | خيار | خيار | رقم الإجابة» · أو المفصّلة: «س:» ثم الخيارات ونجمة * على الصحيحة. اضغط «الصق مثالًا» لترى الشكل.',
+      exSampleBtn:'📋 الصق مثالًا', exPreviewBtn:'👁 تحقّق ومعاينة',
+      exPublishLabel:'انشر مباشرة للطلاب (وإلا تُحفظ كمسوّدة)', exSaveBtn:'حفظ الاختبار',
+      exValidQuestions:'سؤال صالح', exProblems:'مشكلة', exTotalMarks:'مجموع الدرجات',
+      exLine:'سطر {n}',
+      exErrNoText:'السؤال بلا نص.',
+      exErrTooFewOptions:'عدد الخيارات {n} — لا بد من خيارين على الأقل.',
+      exErrNoAnswer:'لم تُحدَّد الإجابة الصحيحة (ضع * قبل الخيار الصحيح).',
+      exErrBadAnswerNo:'رقم الإجابة «{n}» خارج النطاق — الخيارات المتاحة من 1 إلى {max}.',
+      exErrUnrecognised:'سطر غير مفهوم — راجع الصيغة أو ابدأه بـ # ليُتجاهل.',
+      exNeedSubject:'أدخل اسم المادة أولًا.', exNeedSource:'المصدر إلزامي قبل الحفظ.',
+      exSaved:'✓ حُفظ {n} سؤالًا ({s}).', exPublished:'منشور', exDraft:'مسوّدة',
+      examsNavLabel:'الاختبارات', examsTitle:'📝 الاختبارات الدراسية',
+      eduSystemLabel:'نوع التعليم', eduSystemNone:'— غير محدد —',
+      gradeStageLabel:'الصف الدراسي', termLabel:'الفصل الدراسي',
+      eduSys_eg_gov:'تعليم مصري حكومي', eduSys_eg_azhar:'تعليم أزهري',
+      eduSys_eg_lang:'مدارس لغات', eduSys_eg_intl:'تعليم دولي',
+      grade_p1:'الأول الابتدائي', grade_p2:'الثاني الابتدائي', grade_p3:'الثالث الابتدائي',
+      grade_p4:'الرابع الابتدائي', grade_p5:'الخامس الابتدائي', grade_p6:'السادس الابتدائي',
+      grade_m1:'الأول الإعدادي', grade_m2:'الثاني الإعدادي', grade_m3:'الثالث الإعدادي',
+      grade_s1:'الأول الثانوي', grade_s2:'الثاني الثانوي', grade_s3:'الثالث الثانوي',
+      term_t1:'الفصل الدراسي الأول', term_t2:'الفصل الدراسي الثاني',
+      examsGateMsg:'<b>فضلًا حدّث بياناتك الدراسية أولًا.</b><br><br>لعرض الاختبارات المناسبة لك نحتاج: <b>{list}</b>.<br><br>افتح «حسابي» وأدخلها، ثم عد إلى هنا — لأن اختبارًا من صف آخر لا ينفعك بل يشتّتك.',
+      examsGoProfile:'⚙️ حدّث بياناتي الدراسية',
+      examsContext:'{sys} · {grade} · {term}',
+      examsEmpty:'<b>لا توجد اختبارات مضافة لهذا الصف بعد.</b><br><br>يتم إدخال الاختبارات من لوحة الإدارة بعد التحقق من مصدرها. لن نعرض أسئلة مولَّدة تُشبه امتحانات الوزارة، لأن المذاكرة عليها قد تضرّك في امتحانك الحقيقي.',
+      examsDuration:'{n} دقيقة', examsSource:'المصدر: {s}',
+      examsStepMatch:'نطابق بياناتك الدراسية…', examsStepFetch:'نجلب الاختبارات المتاحة…',
+      examsStepPaper:'نفتح ورقة الأسئلة…', examsStepReady:'نجهّز الاختبار…',
+      examsQuestionCount:'{n} سؤالًا', examsMarks:'{n} درجة',
+      examsSubmitBtn:'تسليم الإجابات', examsLoadFailed:'تعذّر فتح الاختبار.',
+      examsSubmitFailed:'تعذّر تسليم الإجابات. تحقّق من الاتصال وأعد المحاولة.',
+      examsResult:'حصلت على {s} من {t} ({p}%)',
+      examsReviewTitle:'راجع هذه الأسئلة ({n})',
+      examsScheduled:'أضفنا هذه الأسئلة لمراجعتك المتباعدة — ستعود إليك في مواعيدها.',
+      examsAllCorrect:'✓ إجاباتك كلها صحيحة. سنعيد اختبارك لاحقًا للتأكد من الثبات.',
       memberCardNavLabel:'بطاقة العضوية', memberCardTitle:'🪪 بطاقة العضوية',
       memberCardHint:'اضغط على البطاقة لقلبها ورؤية الوجه الخلفي.',
       mcNameLabel:'اسم العضو', mcSince:'عضو منذ', mcLevel:'المستوى', mcStatus:'الحالة',
@@ -5485,6 +5920,20 @@
       childOverallAccuracy:'الدقة الإجمالية', childOpenFile:'الملف الكامل',
       childLastActive:'آخر نشاط {t}', childNoActivityYet:'لم يبدأ التدريب بعد',
       profileNotAuthorized:'يمكنك عرض ملف الأصدقاء فقط.',
+      friendChatBtn:'💬 دردشة', gcOpenBtn:'👥 تحدٍّ جماعي (حتى 10 أصدقاء)',
+      ciTitle:'{name} يتحدّاك!', ciSoloSub:'اقبل الآن وابدأ فورًا، أو أجّله لوقت مناسب.',
+      ciGroupSub:'تحدٍّ جماعي مع {n} من الأصدقاء.',
+      ciAccept:'⚡ ابدأ التحدي الآن', ciLater:'🕒 أقبل، لكن لاحقًا', ciDecline:'✕ رفض',
+      chalSentOne:'✓ أُرسلت دعوة التحدي إلى {name}.', chalSentGroup:'✓ أُرسلت الدعوة إلى {n} أصدقاء.',
+      chalSendFailed:'تعذّر إرسال الدعوة.', chalRespondFailed:'تعذّر تسجيل ردّك.',
+      chalAccepted:'🎉 {name} قبل التحدي!', chalLater:'🕒 {name} سيتحدّاك لاحقًا.',
+      chalSavedForLater:'حُفظت الدعوة — يمكنك بدء التحدي متى شئت.',
+      chalStarting:'ابدأ جولتك — سنقارن نتيجتك بنتيجة {name}.',
+      chatPlaceholder:'اكتب رسالتك…', chatNote:'الرسائل تُحدَّث كل بضع ثوانٍ.',
+      chatSendFailed:'تعذّر إرسال الرسالة.',
+      gcLargeNote:'تحدٍّ بـ{n} مشاركًا: التحديثات ستكون كل بضع ثوانٍ بدل لحظيًا — هذا مقصود ليبقى سريعًا للجميع.',
+      gcTitle:'👥 تحدٍّ جماعي', gcSend:'أرسل الدعوات',
+      gcCount:'اخترت {n} من {max}', gcMaxReached:'الحد الأقصى {n} أصدقاء في التحدي الواحد.',
       friendChallengeBtn:'🏁 تحدّيها', friendsShareAppBtn:'🔗 دعوة صديق للانضمام للأكاديمية',
       friendsShareText:'{name} تدعوكِ للانضمام إلى أكاديمية نِكسورا — منصة تعلّم ذكية!',
       friendsShareCopied:'✓ تم نسخ رابط الدعوة',
@@ -6176,6 +6625,58 @@
       dpPhotoNeedsBackendOld:'Your photo could not be converted for the certificate. The most likely cause is that the .gs backend has not been redeployed — the photo relay lives there. The certificate will use your initial until then.',
       dvDownloadBtn:'⬇️ Download certificate', dvPrintBtn:'🖨️ Print',
       dpDownloadBtn:'🏅 View membership certificate', dpStepRender:'Rendering the certificate…',
+      examTimeUp:'⏰ Time is up — your answers were submitted automatically.',
+      examConfirmSubmit:'You have {n} unanswered questions. Submit now?',
+      examHistoryTitle:'Your previous attempts',
+      exExistingTitle:'Papers in the bank', exNoneYet:'No exams have been entered yet.',
+      exListFailed:'Could not load the exam list.',
+      exStatus_published:'✓ published to students', exStatus_draft:'draft — not visible to students',
+      exStatus_archived:'archived — not visible to students',
+      exArchiveBtn:'🗄 Archive', exRestoreBtn:'↩ Restore',
+      exArchiveConfirm:'This paper will be hidden from students. Their past attempts remain saved. Continue?',
+      exArchived:'✓ Exam archived.', exRestored:'✓ Exam republished.',
+      exArchiveFailed:'The action could not be completed.',
+      exImportLink:'Import an exam', exImportTitle:'📥 Import an exam',
+      exSubject:'Subject', exYear:'Year', exDuration:'Duration (min)', exExamTitle:'Paper title',
+      exSource:'Source (required)', exSourcePh:'Where did this paper come from?',
+      exSourceNote:'A source is required: a question bank without provenance cannot be reviewed for rights later.',
+      exLicence:'Rights status', exPasteLabel:'Paste the questions',
+      exFormatHint:'Two accepted forms — one line: "question | option | option | answer number", or expanded: "Q:" then options with * on the correct one. Tap "Paste an example" to see the shape.',
+      exSampleBtn:'📋 Paste an example', exPreviewBtn:'👁 Validate and preview',
+      exPublishLabel:'Publish to students now (otherwise saved as a draft)', exSaveBtn:'Save exam',
+      exValidQuestions:'valid questions', exProblems:'problems', exTotalMarks:'total marks',
+      exLine:'Line {n}',
+      exErrNoText:'The question has no text.',
+      exErrTooFewOptions:'{n} option(s) — at least two are required.',
+      exErrNoAnswer:'No correct answer marked (put * before the correct option).',
+      exErrBadAnswerNo:'Answer number "{n}" is out of range — options run from 1 to {max}.',
+      exErrUnrecognised:'Unrecognised line — check the format, or start it with # to ignore it.',
+      exNeedSubject:'Enter the subject first.', exNeedSource:'A source is required before saving.',
+      exSaved:'✓ Saved {n} questions ({s}).', exPublished:'published', exDraft:'draft',
+      examsNavLabel:'Exams', examsTitle:'📝 School exams',
+      eduSystemLabel:'Education system', eduSystemNone:'— Not set —',
+      gradeStageLabel:'Grade', termLabel:'Term',
+      eduSys_eg_gov:'Egyptian national', eduSys_eg_azhar:'Al-Azhar',
+      eduSys_eg_lang:'Language schools', eduSys_eg_intl:'International',
+      grade_p1:'Primary 1', grade_p2:'Primary 2', grade_p3:'Primary 3',
+      grade_p4:'Primary 4', grade_p5:'Primary 5', grade_p6:'Primary 6',
+      grade_m1:'Prep 1', grade_m2:'Prep 2', grade_m3:'Prep 3',
+      grade_s1:'Secondary 1', grade_s2:'Secondary 2', grade_s3:'Secondary 3',
+      term_t1:'First term', term_t2:'Second term',
+      examsGateMsg:'<b>Please complete your academic details first.</b><br><br>To show the right papers we need: <b>{list}</b>.<br><br>Open "My account", enter them, and come back — an exam from another grade does not help you, it misleads you.',
+      examsGoProfile:'⚙️ Update my academic details',
+      examsContext:'{sys} · {grade} · {term}',
+      examsEmpty:'<b>No exams have been added for this grade yet.</b><br><br>Papers are entered from the admin panel once their source is verified. We will not show generated questions that merely resemble ministry papers, because revising them could hurt you in the real exam.',
+      examsDuration:'{n} min', examsSource:'Source: {s}',
+      examsStepMatch:'Matching your academic details…', examsStepFetch:'Fetching available papers…',
+      examsStepPaper:'Opening the paper…', examsStepReady:'Preparing the exam…',
+      examsQuestionCount:'{n} questions', examsMarks:'{n} marks',
+      examsSubmitBtn:'Submit answers', examsLoadFailed:'Could not open the exam.',
+      examsSubmitFailed:'Could not submit. Check your connection and try again.',
+      examsResult:'You scored {s} of {t} ({p}%)',
+      examsReviewTitle:'Review these questions ({n})',
+      examsScheduled:'These questions were added to your spaced review — they will come back on schedule.',
+      examsAllCorrect:'✓ All correct. We will test you again later to confirm it holds.',
       memberCardNavLabel:'Membership card', memberCardTitle:'🪪 Membership card',
       memberCardHint:'Tap the card to flip it and see the back.',
       mcNameLabel:'Member name', mcSince:'Member since', mcLevel:'Level', mcStatus:'Status',
@@ -6271,6 +6772,20 @@
       childOverallAccuracy:'Overall accuracy', childOpenFile:'Full profile',
       childLastActive:'Last active {t}', childNoActivityYet:'Has not started training yet',
       profileNotAuthorized:'You can only view a friend profile.',
+      friendChatBtn:'💬 Chat', gcOpenBtn:'👥 Group challenge (up to 10 friends)',
+      ciTitle:'{name} is challenging you!', ciSoloSub:'Accept now and start immediately, or defer it.',
+      ciGroupSub:'A group challenge with {n} friends.',
+      ciAccept:'⚡ Start now', ciLater:'🕒 Accept, but later', ciDecline:'✕ Decline',
+      chalSentOne:'✓ Challenge sent to {name}.', chalSentGroup:'✓ Sent to {n} friends.',
+      chalSendFailed:'Could not send the invitation.', chalRespondFailed:'Could not record your reply.',
+      chalAccepted:'🎉 {name} accepted!', chalLater:'🕒 {name} will take it later.',
+      chalSavedForLater:'Saved — you can start it whenever you like.',
+      chalStarting:'Start your round — we will compare your score with {name}.',
+      chatPlaceholder:'Type a message…', chatNote:'Messages refresh every few seconds.',
+      chatSendFailed:'Could not send the message.',
+      gcLargeNote:'A {n}-player match updates every few seconds rather than instantly — deliberately, so it stays fast for everyone.',
+      gcTitle:'👥 Group challenge', gcSend:'Send invitations',
+      gcCount:'{n} of {max} selected', gcMaxReached:'A challenge may include at most {n} friends.',
       friendChallengeBtn:'🏁 Challenge', friendsShareAppBtn:'🔗 Invite a friend to the academy',
       friendsShareText:'{name} is inviting you to join NEXORA Academy — a smart learning platform!',
       friendsShareCopied:'✓ Invite link copied',
@@ -6927,6 +7442,7 @@
     // and they are never asked to supply a photo the app already has.
     if(key !== 'guest' && typeof ensurePrintablePhoto === 'function') ensurePrintablePhoto(key);
     if(key !== 'guest' && typeof migrateGuardianLinksUp === 'function') migrateGuardianLinksUp();
+    if(key !== 'guest' && typeof chalStartPolling === 'function') chalStartPolling();
     // Backfill the join date for sessions that signed in before the server
     // started returning it — otherwise it would stay blank until next login.
     if(key !== 'guest' && SHEET_API_URL && !PROFILES[key].createdAt){
@@ -6972,6 +7488,7 @@
     abacusTrainerEl.classList.add('hidden');
     childDetailScreen.classList.add('hidden');
     synapseScreen.classList.add('hidden');
+    examsScreen.classList.add('hidden');
     memberCardScreen.classList.add('hidden');
     knowledgeReviewScreen.classList.add('hidden');
     parentDashboardScreenEl.classList.add('hidden');
@@ -7171,9 +7688,11 @@
     // they stay visible on top of the login screen after logout.
     friendsScreen.classList.add('hidden');
     friendProfileScreen.classList.add('hidden');
+    examImportScreen.classList.add('hidden');
     mailDiagScreen.classList.add('hidden');
     guardianAuditScreen.classList.add('hidden');
     synapseScreen.classList.add('hidden');
+    examsScreen.classList.add('hidden');
     memberCardScreen.classList.add('hidden');
     knowledgeReviewScreen.classList.add('hidden');
     parentDashboardScreenEl.classList.add('hidden');
@@ -7263,6 +7782,9 @@
       editUsernameInput.value = p.username || '';
       editEmailInput.value = p.email || '';
       editPhoneInput.value = p.phone || '';
+      editEduSystem.value = p.eduSystem || '';
+      editGradeStage.value = p.gradeStage || '';
+      editTerm.value = p.term || '';
       editBirthDateInput.value = p.birthDate || '';
       setGenderToggle(p.gender === 'male' ? 'male' : 'female');
       pinLabelEl.textContent = t('pinLabel');
@@ -7287,6 +7809,7 @@
       editUsernameInput.value = '';
       editEmailInput.value = '';
       editPhoneInput.value = '';
+      editEduSystem.value = ''; editGradeStage.value = ''; editTerm.value = '';
       editBirthDateInput.value = '';
       setGenderToggle('female'); // default — matches the app's historical baseline
       pinLabelEl.textContent = t('pinLabelRequired');
@@ -7456,6 +7979,9 @@
       if(newEmail !== p.email) p.emailVerified = false; // email changed since it was last confirmed — must be re-verified
       p.email = newEmail;
       p.phone = editPhoneInput.value.trim() || null; // optional: blank simply stores nothing
+      p.eduSystem = editEduSystem.value || null;
+      p.gradeStage = editGradeStage.value || null;
+      p.term = editTerm.value || null;
       if(clearPinFlag){ p.pin = ''; }
       else if(enteredPassword){ p.pin = await computePasswordHash(p.username || key, enteredPassword); }
       // else: field left blank and not cleared → password stays unchanged
@@ -8003,7 +8529,8 @@
   adminPinInput.addEventListener('keydown', e=>{ if(e.key === 'Enter') adminLoginBtn.click(); });
 
   backToLoginLink.addEventListener('click', goToLoginGate);
-  if(challengeBtnLogin) challengeBtnLogin.addEventListener('click', ()=> challengeBtn.click());
+  // challengeBtnLogin was removed from the login screen; the challenge is
+  // reached from the admin panel instead.
 
   function findProfileByUsername(username){
     const uname = username.toLowerCase();
@@ -8353,6 +8880,7 @@
     hideLoginTransition();
   });
   function logSessionLogout(){
+    if(typeof chalStopPolling === 'function') chalStopPolling();
     // Revoke on the server BEFORE clearing locally, or the token would be
     // dropped from this device while remaining valid for anyone holding it.
     if(SESSION_TOKEN && SHEET_API_URL) postToSheet('logout', { sessionToken: SESSION_TOKEN });
@@ -11755,6 +12283,7 @@
         { icon:nxIcon('home'), label:t('shellNavPrograms'), run: ()=> showProgramsHub() },
         { icon:nxIcon('target'), label:t('synapseNavLabel'), run: ()=> openSynapse() },
         { icon:nxIcon('award'), label:t('memberCardNavLabel'), run: ()=> openMembershipCard() },
+        { icon:nxIcon('clipboard'), label:t('examsNavLabel'), run: ()=> openExams() },
         { icon:nxIcon('book'), label:t('shellNavJourney'), run: ()=>{ if(isServiceOn('knowledgeMap')) knowledgeMapOpenBtn.click(); } },
         { icon:nxIcon('puzzle'), label:t('shellNavSkills'), run: ()=>{ hideLearnerShellScreens(); mySkillsScreen.classList.remove('hidden'); renderMySkills(); renderShellNav('learner'); } },
         { icon:nxIcon('award'), label:t('shellNavAchievements'), run: ()=> myStatsLink.click() },
@@ -11944,6 +12473,13 @@
     profilesEl.classList.add('hidden');
     guardianAuditScreen.classList.remove('hidden');
     await renderGuardianAudit();
+  });
+  examImportLink.addEventListener('click', ()=>{
+    hideAllScreens();
+    examImportScreen.classList.remove('hidden');
+    exFormatHint.textContent = t('exFormatHint');
+    exRenderPreview();
+    exRenderExisting();
   });
   mailDiagLink.addEventListener('click', ()=>{
     hideAllScreens();
@@ -12471,6 +13007,61 @@
   // `let` bindings do not, so calling it from here threw
   // "Cannot access 'novaRecognition' before initialization" and stopped the
   // entire script at load. The call now sits after the declarations.
+
+  examsBackBtn.addEventListener('click', ()=>{
+    examStopTimer();   // a background interval would keep firing otherwise
+    examsScreen.classList.add('hidden');
+    examsSubmitBtn.classList.remove('hidden');
+    showProgramsHub();
+  });
+  examsSubmitBtn.addEventListener('click', ()=> submitExam(false));
+  ciAcceptBtn.addEventListener('click', ()=> respondToInvite('accept'));
+  ciLaterBtn.addEventListener('click', ()=> respondToInvite('later'));
+  ciDeclineBtn.addEventListener('click', ()=> respondToInvite('decline'));
+  chatCloseBtn.addEventListener('click', closeChat);
+  chatPanel.addEventListener('click', function(ev){ if(ev.target === chatPanel) closeChat(); });
+  chatSendBtn.addEventListener('click', sendChatMessage);
+  chatInput.addEventListener('keydown', function(ev){ if(ev.key === 'Enter') sendChatMessage(); });
+  gcCloseBtn.addEventListener('click', ()=> groupChal.classList.add('hidden'));
+  gcSendBtn.addEventListener('click', async ()=>{
+    groupChal.classList.add('hidden');
+    await sendChallengeTo(gcSelected, 'group');
+  });
+  exPreviewBtn.addEventListener('click', exRenderPreview);
+  // Live validation while typing: an error found on line 3 is cheap to fix,
+  // the same error found after pasting fifty questions is not.
+  exPaste.addEventListener('input', function(){
+    clearTimeout(exPaste._t);
+    exPaste._t = setTimeout(exRenderPreview, 400);
+  });
+  exSaveBtn.addEventListener('click', exSaveExam);
+  exImportBackBtn.addEventListener('click', ()=>{
+    examImportScreen.classList.add('hidden');
+    profilesEl.classList.remove('hidden');
+  });
+  exSampleBtn.addEventListener('click', function(){
+    // A worked example beats a format spec: the teacher sees the shape and
+    // edits it, instead of reading rules and guessing.
+    exPaste.value = [
+      '# صيغة السطر الواحد: السؤال | خيار | خيار | خيار | خيار | رقم الإجابة',
+      'ما ناتج ٧ × ٨ ؟ | ٤٨ | ٥٦ | ٦٤ | ٧٢ | 2',
+      'أي الأعداد التالية أولي؟ | ٩ | ١٥ | ١٧ | ٢١ | 3 | د:2',
+      '',
+      '# أو الصيغة المفصّلة، والنجمة على الإجابة الصحيحة:',
+      'س: ما عاصمة جمهورية مصر العربية؟',
+      'A) الإسكندرية',
+      '*B) القاهرة',
+      'C) أسوان',
+      'D) طنطا',
+      'درجات: 2',
+      'شرح: القاهرة هي العاصمة منذ عام ٩٦٩م.'
+    ].join('\n');
+    exRenderPreview();
+  });
+  examsGoProfileBtn.addEventListener('click', ()=>{
+    examsScreen.classList.add('hidden');
+    if(typeof openEditor === 'function') openEditor(currentProfile, 'settings');
+  });
 
   function openMembershipCard(){
     if(!requireAuth('memberCard')) return;
@@ -14723,6 +15314,7 @@
       guardians: prof.guardians || { mother:null, father:null },
       reviewQueue: prof.reviewQueue || [],
       createdAt: prof.createdAt || null,
+      eduSystem: prof.eduSystem || null, gradeStage: prof.gradeStage || null, term: prof.term || null,
       reviewStats: prof.reviewStats || { c:0, t:0 },
       knowledgeQueue: prof.knowledgeQueue || [],
       abacusLog: prof.abacusLog || [],
@@ -14758,6 +15350,9 @@
     // the parents" — and losing these silently locks a parent out of their
     // own children's results.
     if(state.photoLocal && String(state.photoLocal).indexOf('data:') === 0) prof.photoLocal = state.photoLocal;
+    if(state.eduSystem) prof.eduSystem = state.eduSystem;
+    if(state.gradeStage) prof.gradeStage = state.gradeStage;
+    if(state.term) prof.term = state.term;
     if(state.guardians && (state.guardians.mother || state.guardians.father)){
       prof.guardians = state.guardians;
     }
@@ -14862,6 +15457,651 @@
     if(!prof || currentProfile === 'guest') return;
     saveLearnerState(prof, currentServerUsername());
   }
+
+  /* ==================== MODULE: LIVE CHALLENGES & CHAT ====================
+     Apps Script offers no push channel, so "live" is adaptive polling: fast
+     only while something is genuinely pending, slow otherwise. A constant
+     fast poll would burn the daily quota and take the backend down for
+     everyone — the 45s heartbeat exists for the same reason.
+
+     Poll intervals:
+       12s  idle          — just watching for an invitation
+        3s  invite open   — waiting on the other side to answer
+        4s  chat open     — a conversation in progress
+     Polling stops entirely when the tab is hidden. */
+  const CHAL_POLL_IDLE = 12000, CHAL_POLL_ACTIVE = 3000, CHAT_POLL = 4000;
+  let chalPollId = null, chalPollRate = CHAL_POLL_IDLE;
+  let chalPendingInvite = null, chalOutgoing = [];
+  let chatRoom = null, chatWith = '', chatSince = 0, chatPollId = null;
+
+  function chalStopPolling(){
+    if(chalPollId){ clearInterval(chalPollId); chalPollId = null; }
+  }
+  function chalSetRate(ms){
+    if(chalPollRate === ms && chalPollId) return;
+    chalPollRate = ms;
+    chalStopPolling();
+    chalPollId = setInterval(chalPoll, ms);
+  }
+  function chalStartPolling(){
+    if(!SHEET_API_URL || !hasAuthenticatedSession()) return;
+    chalPoll();
+    chalSetRate(CHAL_POLL_IDLE);
+  }
+  // A hidden tab must not keep polling: it consumes quota for a screen nobody
+  // is looking at.
+  document.addEventListener('visibilitychange', function(){
+    if(document.hidden) chalStopPolling();
+    else if(hasAuthenticatedSession()) chalStartPolling();
+  });
+
+  async function chalPoll(){
+    if(!SHEET_API_URL || !hasAuthenticatedSession()) return;
+    const res = await postToSheet('poll_challenges', { username: currentServerUsername() });
+    if(!res || !res.ok) return;
+    chalOutgoing = res.outgoing || [];
+
+    // Show the newest invitation that is still waiting for an answer.
+    const waiting = (res.incoming || []).filter(c => c.status === 'pending');
+    if(waiting.length && (!chalPendingInvite || chalPendingInvite.challengeId !== waiting[0].challengeId)){
+      chalPendingInvite = waiting[0];
+      showChallengeInvite(waiting[0]);
+      chalSetRate(CHAL_POLL_ACTIVE);
+    }
+    // An invitation the sender withdrew must disappear from the recipient's
+    // screen too, or they would accept something that no longer exists.
+    if(chalPendingInvite && !waiting.some(c => c.challengeId === chalPendingInvite.challengeId)){
+      chalInvite.classList.add('hidden');
+      chalPendingInvite = null;
+      chalSetRate(CHAL_POLL_IDLE);
+    }
+    // Tell the sender the moment their invitation is answered.
+    chalOutgoing.forEach(function(c){
+      if(c.status === 'accepted' && !c._told){
+        c._told = true;
+        showToast(fmt('chalAccepted', { name: friendDisplayName(c.toUsers[0]) }), nxIcon('check'), 'social');
+      } else if(c.status === 'later' && !c._told){
+        c._told = true;
+        showToast(fmt('chalLater', { name: friendDisplayName(c.toUsers[0]) }), nxIcon('clock'), 'social');
+      }
+    });
+    // The SERVER decides the rate, because only it knows how large the match
+    // is. A 50-person group polling at a duel's speed would generate fifty
+    // times the traffic and queue behind itself.
+    const busy = waiting.length || chalOutgoing.some(c => c.status === 'pending');
+    const serverRate = Number(res.suggestedPollMs) || CHAL_POLL_ACTIVE;
+    chalSetRate(busy ? Math.max(serverRate, CHAL_POLL_ACTIVE) : CHAL_POLL_IDLE);
+  }
+  function friendDisplayName(username){
+    const key = Object.keys(PROFILES).find(k => PROFILES[k].username &&
+      PROFILES[k].username.toLowerCase() === String(username).toLowerCase());
+    return key ? profileDisplayName(key) : username;
+  }
+
+  function showChallengeInvite(c){
+    ciAvatar.innerHTML = '';
+    ciAvatar.textContent = (friendDisplayName(c.fromUser) || '?').trim().charAt(0);
+    ciTitle.textContent = fmt('ciTitle', { name: friendDisplayName(c.fromUser) });
+    ciSub.textContent = c.toUsers.length > 1
+      ? fmt('ciGroupSub', { n: c.toUsers.length })
+      : t('ciSoloSub');
+    chalInvite.classList.remove('hidden');
+    if(typeof playSound === 'function') playSound('notify');
+  }
+  async function respondToInvite(action){
+    if(!chalPendingInvite) return;
+    const c = chalPendingInvite;
+    chalInvite.classList.add('hidden');
+    const res = await postToSheet('respond_challenge', {
+      challengeId: c.challengeId, username: currentServerUsername(), action: action
+    });
+    chalPendingInvite = null;
+    if(!res || !res.ok){ showToast(t('chalRespondFailed'), nxIcon('alertTriangle'), 'system'); return; }
+    if(action === 'accept'){ startChallengeMatch(c); }
+    else if(action === 'later'){ showToast(t('chalSavedForLater'), nxIcon('clock'), 'social'); }
+    chalSetRate(CHAL_POLL_IDLE);
+  }
+  // Both sides run a normal practice round; the score is reported back and
+  // the challenge closes once everyone has finished. This deliberately does
+  // NOT try to synchronise question-by-question: without a push channel that
+  // would mean polling every second, and a dropped connection would strand
+  // both players mid-match.
+  function startChallengeMatch(c){
+    activeChallengeId = c.challengeId;
+    hideLearnerShellScreens();
+    settingsEl.classList.remove('hidden');
+    showToast(fmt('chalStarting', { name: friendDisplayName(c.fromUser) }), nxIcon('target'), 'social');
+  }
+  let activeChallengeId = null;
+
+  async function sendChallengeTo(usernames, mode){
+    if(!usernames.length) return;
+    const res = await postToSheet('create_challenge', {
+      fromUser: currentServerUsername(), toUsers: usernames, mode: mode || 'live'
+    });
+    if(!res || !res.ok){ showToast(describeSyncFailure(res, 'chalSendFailed'), nxIcon('alertTriangle'), 'system'); return; }
+    showToast(usernames.length > 1
+      ? fmt('chalSentGroup', { n: usernames.length })
+      : fmt('chalSentOne', { name: friendDisplayName(usernames[0]) }), nxIcon('check'), 'social');
+    chalSetRate(CHAL_POLL_ACTIVE);   // watch closely for the reply
+  }
+
+  /* ---------- CHAT ---------- */
+  function openChat(friendUsername){
+    chatWith = friendUsername;
+    chatRoom = null; chatSince = 0;
+    chatTitle.textContent = friendDisplayName(friendUsername);
+    chatLog.innerHTML = '';
+    chatPanel.classList.remove('hidden');
+    // The room id is derived the same way on both sides, so no handshake is
+    // needed before the first message.
+    const mine = String(currentServerUsername()).trim().toLowerCase();
+    const theirs = String(friendUsername).trim().toLowerCase();
+    chatRoom = 'room_' + [mine, theirs].sort().join('__');
+    chatPollNow();
+    if(chatPollId) clearInterval(chatPollId);
+    chatPollId = setInterval(chatPollNow, CHAT_POLL);
+    chatInput.focus();
+  }
+  function closeChat(){
+    chatPanel.classList.add('hidden');
+    if(chatPollId){ clearInterval(chatPollId); chatPollId = null; }
+    chatRoom = null;
+  }
+  async function chatPollNow(){
+    if(!chatRoom || !SHEET_API_URL) return;
+    const res = await postToSheet('fetch_chat', { roomId: chatRoom, since: chatSince });
+    if(!res || !res.ok || !res.messages.length) return;
+    // lastSeq, not a timestamp: two messages in the same millisecond would
+    // otherwise cost us one of them permanently.
+    chatSince = res.lastSeq || chatSince;
+    const me = String(currentServerUsername()).toLowerCase();
+    res.messages.forEach(function(m){
+      const el = document.createElement('div');
+      const mine = String(m.from).toLowerCase() === me;
+      el.className = 'chat-msg ' + (mine ? 'mine' : 'theirs');
+      el.innerHTML = (mine ? '' : `<span class="cm-who">${friendDisplayName(m.from)}</span>`) +
+        String(m.text).replace(/[<>]/g, '');   // plain text only
+      chatLog.appendChild(el);
+    });
+    chatLog.scrollTop = chatLog.scrollHeight;
+  }
+  async function sendChatMessage(){
+    const text = chatInput.value.trim();
+    if(!text || !chatRoom) return;
+    chatInput.value = '';
+    const res = await postToSheet('send_chat', {
+      roomId: chatRoom, fromUser: currentServerUsername(), text: text
+    });
+    if(!res || !res.ok){ showToast(t('chatSendFailed'), nxIcon('alertTriangle'), 'system'); return; }
+    chatPollNow();
+  }
+
+  /* ---------- GROUP CHALLENGE ---------- */
+  const GC_MAX = 50;   // mirrors MAX_GROUP_MEMBERS on the server
+  let gcSelected = [];
+  function openGroupChallenge(friends){
+    gcSelected = [];
+    gcList.innerHTML = friends.map(function(f){
+      return `<label class="gc-row"><input type="checkbox" value="${f.username}">
+        <span>${friendDisplayName(f.username)}</span></label>`;
+    }).join('');
+    gcList.querySelectorAll('input').forEach(function(cb){
+      cb.addEventListener('change', function(){
+        if(cb.checked && gcSelected.length >= GC_MAX){
+          // Enforced here as well as on the server: a UI that lets you tick one
+          // too many and then fails is worse than one that does not.
+          cb.checked = false;
+          showToast(fmt('gcMaxReached', { n: GC_MAX }), nxIcon('alertTriangle'), 'system');
+          return;
+        }
+        gcSelected = [...gcList.querySelectorAll('input:checked')].map(x => x.value);
+        cb.closest('.gc-row').classList.toggle('sel', cb.checked);
+        gcCount.textContent = fmt('gcCount', { n: gcSelected.length, max: GC_MAX });
+        // A big match is slower to update, and saying so beforehand is fairer
+        // than letting it feel broken.
+        gcHint.textContent = gcSelected.length > 15 ? fmt('gcLargeNote', { n: gcSelected.length }) : '';
+        gcSendBtn.disabled = gcSelected.length < 1;
+      });
+    });
+    gcCount.textContent = fmt('gcCount', { n: 0, max: GC_MAX });
+    gcHint.textContent = '';
+    gcSendBtn.disabled = true;
+    groupChal.classList.remove('hidden');
+  }
+  /* ==================== END MODULE: LIVE CHALLENGES & CHAT ==================== */
+
+  /* ==================== MODULE: EXAM IMPORT (ADMIN) ====================
+     Bulk entry is the difference between a question bank that gets built and
+     one that never does. A teacher will not fill fifty web forms, so the
+     primary path is: paste the paper, see it parsed, fix what is flagged,
+     save.
+
+     The format is deliberately the one a teacher already writes by hand —
+     question, options, a marked answer — rather than a CSV schema they would
+     have to learn. Nothing is written until every question passes validation,
+     because a half-imported paper is worse than none: a student would sit an
+     exam with missing questions and a wrong total.
+
+     Two formats are accepted:
+       PIPE  : text | opt1 | opt2 | opt3 | opt4 | correctNumber | marks
+       LINES : Q: text        (then)  A) ...  B) ...  with * on the answer
+  */
+  function exParsePaste(raw){
+    const lines = String(raw || '').split('\n').map(l => l.trim());
+    const questions = [], errors = [];
+    let block = null;
+
+    const flushBlock = function(){
+      if(!block) return;
+      if(!block.text){ errors.push({ line: block.line, msg: t('exErrNoText') }); block = null; return; }
+      if(block.options.length < 2){
+        errors.push({ line: block.line, msg: fmt('exErrTooFewOptions', { n: block.options.length }) });
+        block = null; return;
+      }
+      if(block.correctIndex === null || block.correctIndex === undefined){
+        errors.push({ line: block.line, msg: t('exErrNoAnswer') });
+        block = null; return;
+      }
+      questions.push({ type:'mcq', text: block.text, options: block.options,
+                       correctIndex: block.correctIndex, marks: block.marks || 1,
+                       explanation: block.explanation || '', topic: block.topic || '' });
+      block = null;
+    };
+
+    lines.forEach(function(line, i){
+      const no = i + 1;
+      if(!line || line.indexOf('#') === 0) return;          // blank or comment
+
+      // PIPE form: everything on one line.
+      if(line.indexOf('|') > -1 && !/^[A-Za-zأ-ي][\)\.]/.test(line)){
+        flushBlock();
+        const parts = line.split('|').map(x => x.trim());
+        const text = parts.shift();
+        // Marks are OPTIONAL and only recognised with an explicit "د" prefix
+        // (د:2). Guessing from field count made the meaning of the last
+        // column depend on how many options there were — so a four-option
+        // question silently read its answer as a mark, and the answer became
+        // whatever number sat before it. An ambiguous format on a question
+        // bank means wrong answers marked correct across a whole paper.
+        let marks = 1;
+        if(parts.length && /^(?:د|marks)\s*[:：]\s*\d+$/i.test(parts[parts.length - 1])){
+          marks = Number(parts.pop().split(/[:：]/)[1]);
+        }
+        const correctRaw = parts.pop();
+        const options = parts.filter(x => x !== '');
+        const correctNum = Number(correctRaw);
+        if(!text){ errors.push({ line: no, msg: t('exErrNoText') }); return; }
+        if(options.length < 2){ errors.push({ line: no, msg: fmt('exErrTooFewOptions', { n: options.length }) }); return; }
+        // Off-by-one here would silently mark the wrong option correct for an
+        // entire paper, so the range is checked explicitly.
+        if(!(correctNum >= 1 && correctNum <= options.length)){
+          errors.push({ line: no, msg: fmt('exErrBadAnswerNo', { n: correctRaw, max: options.length }) });
+          return;
+        }
+        questions.push({ type:'mcq', text: text, options: options,
+                         correctIndex: correctNum - 1, marks: marks });
+        return;
+      }
+
+      // LINES form.
+      const qm = /^(?:Q|س|سؤال)\s*[:：]\s*(.+)$/i.exec(line);
+      if(qm){ flushBlock(); block = { text: qm[1].trim(), options: [], correctIndex: null, line: no, marks: 1 }; return; }
+      const om = /^\*?\s*([A-Za-zأ-ي1-9])\s*[\)\.]\s*(.+)$/.exec(line);
+      if(om && block){
+        const isAnswer = line.indexOf('*') === 0;
+        block.options.push(om[2].trim());
+        if(isAnswer) block.correctIndex = block.options.length - 1;
+        return;
+      }
+      const mm = /^(?:درجات|marks)\s*[:：]\s*(\d+)$/i.exec(line);
+      if(mm && block){ block.marks = Number(mm[1]); return; }
+      const em = /^(?:شرح|explanation)\s*[:：]\s*(.+)$/i.exec(line);
+      if(em && block){ block.explanation = em[1].trim(); return; }
+
+      errors.push({ line: no, msg: t('exErrUnrecognised') });
+    });
+    flushBlock();
+    return { questions: questions, errors: errors };
+  }
+
+  function exRenderPreview(){
+    const parsed = exParsePaste(exPaste.value);
+    const totalMarks = parsed.questions.reduce((a, q) => a + (q.marks || 1), 0);
+    exPreview.innerHTML =
+      `<div class="ex-summary">
+         <div><b style="color:var(--mint);">${parsed.questions.length}</b><span>${t('exValidQuestions')}</span></div>
+         <div><b style="color:${parsed.errors.length ? '#f87171' : 'var(--ink-dim)'};">${parsed.errors.length}</b><span>${t('exProblems')}</span></div>
+         <div><b style="color:var(--yellow);">${totalMarks}</b><span>${t('exTotalMarks')}</span></div>
+       </div>` +
+      parsed.errors.map(function(e){ return `<div class="ex-err">${fmt('exLine', { n: e.line })}: ${e.msg}</div>`; }).join('') +
+      parsed.questions.map(function(q, i){
+        return `<div class="ex-q"><b>${i + 1}. ${q.text}</b> <span style="font-size:10.5px; color:var(--ink-dim);">(${fmt('examsMarks', { n: q.marks })})</span>` +
+          q.options.map(function(o, oi){
+            return `<span class="ex-opt${oi === q.correctIndex ? ' right' : ''}">${oi === q.correctIndex ? '✓ ' : '• '}${o}</span>`;
+          }).join('') + `</div>`;
+      }).join('');
+
+    // Refuse to enable saving while ANY question is malformed. A partially
+    // imported paper gives a student a wrong total and missing questions.
+    exSaveBtn.disabled = !(parsed.questions.length > 0 && parsed.errors.length === 0);
+    return parsed;
+  }
+
+  /* Every paper in the bank, with the one control an author actually needs:
+     retire a bad one. Papers are ARCHIVED, never deleted — a learner's past
+     attempt must still resolve to the paper they sat. */
+  async function exRenderExisting(){
+    exExisting.innerHTML = '';
+    if(!SHEET_API_URL || !ADMIN) return;
+    const res = await postToSheet('list_all_exams', {
+      requesterUsername: ADMIN.username, requesterPin: ADMIN.pin
+    });
+    if(!res || !res.ok){ exExisting.innerHTML = `<div class="dash-empty">${t('exListFailed')}</div>`; return; }
+    if(!res.exams.length){ exExisting.innerHTML = `<div class="dash-empty">${t('exNoneYet')}</div>`; return; }
+    exExisting.innerHTML = res.exams.map(function(e){
+      const tone = e.status === 'published' ? 'var(--mint)' : (e.status === 'archived' ? '#f87171' : '#F59E0B');
+      return `<div class="ex-q">
+        <b>${e.title || e.subject}</b>
+        <span class="ex-opt">${e.subject} · ${t('grade_' + e.grade)} · ${t('term_' + e.term)} · ${
+          fmt('examsQuestionCount', { n: e.questionCount })}</span>
+        <span class="ex-opt" style="color:${tone};">${t('exStatus_' + e.status)}</span>
+        <span class="ex-opt" style="opacity:.7;">${fmt('examsSource', { s: e.source || '—' })}</span>
+        <div class="ex-row-actions">
+          <button class="secondary-btn" data-arch="${e.examId}" data-restore="${e.status === 'archived' ? '1' : ''}">${
+            t(e.status === 'archived' ? 'exRestoreBtn' : 'exArchiveBtn')}</button>
+        </div>
+      </div>`;
+    }).join('');
+    exExisting.querySelectorAll('[data-arch]').forEach(function(btn){
+      btn.addEventListener('click', async function(){
+        const restoring = btn.dataset.restore === '1';
+        if(!restoring && !confirm(t('exArchiveConfirm'))) return;
+        setBtnSaving(btn, true);
+        const r = await postToSheet('archive_exam', {
+          requesterUsername: ADMIN.username, requesterPin: ADMIN.pin,
+          examId: btn.dataset.arch, restore: restoring
+        });
+        setBtnSaving(btn, false);
+        if(!r || !r.ok){ showToast(t('exArchiveFailed'), nxIcon('alertTriangle'), 'system'); return; }
+        showToast(t(restoring ? 'exRestored' : 'exArchived'), nxIcon('check'), 'system');
+        exRenderExisting();
+      });
+    });
+  }
+  async function exSaveExam(){
+    const parsed = exRenderPreview();
+    if(!parsed.questions.length || parsed.errors.length) return;
+    if(!exSubject.value.trim()){ showToast(t('exNeedSubject'), nxIcon('alertTriangle'), 'system'); return; }
+    if(!exSource.value.trim()){ showToast(t('exNeedSource'), nxIcon('alertTriangle'), 'system'); return; }
+
+    setBtnSaving(exSaveBtn, true);
+    const res = await postToSheet('import_exam', {
+      requesterUsername: ADMIN && ADMIN.username, requesterPin: ADMIN && ADMIN.pin,
+      exam: {
+        system: exSystem.value, grade: exGrade.value, term: exTerm.value,
+        subject: exSubject.value.trim(), year: exYear.value || '',
+        title: exTitle.value.trim() || (exSubject.value.trim() + ' ' + (exYear.value || '')),
+        durationMin: exDuration.value || 0,
+        source: exSource.value.trim(), licence: exLicence.value,
+        status: exPublish.checked ? 'published' : 'draft'
+      },
+      questions: parsed.questions
+    });
+    setBtnSaving(exSaveBtn, false);
+    if(!res || !res.ok){ showToast(describeSyncFailure(res, 'lpSyncCreateFailed'), nxIcon('alertTriangle'), 'system'); return; }
+    showToast(fmt('exSaved', { n: res.count, s: t(res.status === 'published' ? 'exPublished' : 'exDraft') }), nxIcon('check'), 'system');
+    exPaste.value = ''; exPreview.innerHTML = ''; exSaveBtn.disabled = true;
+    exRenderExisting();
+  }
+  /* ==================== END MODULE: EXAM IMPORT ==================== */
+
+  /* ==================== MODULE: EXAMS PROGRAM ====================
+     Past papers filtered to the learner's own education system, grade and
+     term. The academic profile is REQUIRED before anything is shown: an exam
+     from the wrong grade is not merely unhelpful, it teaches the wrong
+     material, so an incomplete profile gets a clear instruction rather than
+     a guessed list. */
+  let examCurrent = null, examAnswers = {}, examStartedAt = 0;
+  let examTimerId = null, examDeadline = 0, examAutoSubmitted = false;
+
+  /* A timed paper needs a visible countdown, and it must SUBMIT when the time
+     runs out rather than sitting there — a student who loses track and finds
+     their answers discarded has been failed by the app, not by the clock. */
+  function examStopTimer(){
+    if(examTimerId){ clearInterval(examTimerId); examTimerId = null; }
+    examTimer.classList.add('hidden');
+    examTimer.classList.remove('warn', 'danger');
+  }
+  function examStartTimer(minutes){
+    examStopTimer();
+    if(!minutes || minutes <= 0) return;   // untimed papers show no clock at all
+    examDeadline = Date.now() + minutes * 60000;
+    examAutoSubmitted = false;
+    examTimer.classList.remove('hidden');
+    const tick = function(){
+      const left = Math.max(0, examDeadline - Date.now());
+      const mins = Math.floor(left / 60000);
+      const secs = Math.floor((left % 60000) / 1000);
+      examTimerText.textContent = String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
+      examTimer.classList.toggle('warn', left <= 300000 && left > 60000);
+      examTimer.classList.toggle('danger', left <= 60000);
+      if(left <= 0 && !examAutoSubmitted){
+        examAutoSubmitted = true;
+        examStopTimer();
+        showToast(t('examTimeUp'), nxIcon('clock'), 'system');
+        submitExam(true);   // hand in whatever is answered, never discard it
+      }
+    };
+    tick();
+    examTimerId = setInterval(tick, 1000);
+  }
+
+  function examProfileComplete(prof){
+    return !!(prof && prof.eduSystem && prof.gradeStage && prof.term);
+  }
+  function examMissingFields(prof){
+    const missing = [];
+    if(!prof || !prof.eduSystem)  missing.push(t('eduSystemLabel'));
+    if(!prof || !prof.gradeStage) missing.push(t('gradeStageLabel'));
+    if(!prof || !prof.term)       missing.push(t('termLabel'));
+    return missing;
+  }
+
+  async function openExams(){
+    if(!requireAuth('exams')) return;
+    const prof = PROFILES[currentProfile];
+    hideLearnerShellScreens();
+    examsScreen.classList.remove('hidden');
+    examsRunner.classList.add('hidden');
+
+    // The gate the request asked for, worded as an instruction rather than a
+    // refusal — it names exactly which fields are missing.
+    if(!examProfileComplete(prof)){
+      examsBrowse.classList.add('hidden');
+      examsGate.classList.remove('hidden');
+      examsGateMsg.innerHTML = fmt('examsGateMsg', { list: examMissingFields(prof).join(' · ') });
+      return;
+    }
+    examsGate.classList.add('hidden');
+    examsBrowse.classList.remove('hidden');
+    examsContext.textContent = fmt('examsContext', {
+      sys: t('eduSys_' + prof.eduSystem), grade: t('grade_' + prof.gradeStage), term: t('term_' + prof.term)
+    });
+    renderExamHistory();
+    await loadExamList(prof, null);
+  }
+
+  /* The learner's own past attempts. Repeating a paper without seeing the
+     previous score teaches nothing about whether anything improved. */
+  async function renderExamHistory(){
+    examsHistory.innerHTML = '';
+    if(!SHEET_API_URL) return;
+    const res = await postToSheet('my_exam_attempts', { username: currentServerUsername() });
+    if(!res || !res.ok || !res.attempts.length) return;
+    examsHistory.innerHTML =
+      `<div class="cr-sub">${t('examHistoryTitle')}</div>` +
+      res.attempts.slice(0, 6).map(function(a){
+        const when = a.at ? new Date(a.at).toLocaleDateString(currentLang === 'ar' ? 'ar-EG' : 'en-US') : '';
+        const tone = a.percent >= 50 ? 'var(--mint)' : '#f87171';
+        return `<div class="exam-hist">
+          <b>${a.title || a.subject}</b>
+          <span style="font-size:10.5px; color:var(--ink-dim);">${when}</span>
+          <b class="eh-pct" style="color:${tone};">${a.percent}%</b>
+        </div>`;
+      }).join('');
+  }
+  async function loadExamList(prof, subject){
+    examsList.innerHTML = '';
+    const res = await withLoader(t('examsTitle'), [t('examsStepMatch'), t('examsStepFetch')],
+      async function(ctl){
+        await ctl.advance();
+        const r = await postToSheet('list_exams', {
+          system: prof.eduSystem, grade: prof.gradeStage, term: prof.term, subject: subject || ''
+        });
+        await ctl.advance();
+        return r;
+      });
+    if(!res || !res.ok){
+      examsList.innerHTML = `<div class="dash-empty">${describeSyncFailure(res, 'lpSyncProgressFailed')}</div>`;
+      return;
+    }
+    // An empty bank is stated plainly. Filling it with generated questions
+    // would let a learner revise material that will not be in their exam.
+    if(!res.exams.length){
+      examsList.innerHTML = `<div class="syn-locked">${t('examsEmpty')}</div>`;
+      examsSubjects.innerHTML = '';
+      return;
+    }
+    const subjects = [...new Set(res.exams.map(e => e.subject))];
+    examsSubjects.innerHTML = subjects.map(function(sub){
+      return `<button type="button" class="chip${subject === sub ? ' active' : ''}" data-sub="${sub}">${sub}</button>`;
+    }).join('');
+    examsSubjects.querySelectorAll('.chip').forEach(function(btn){
+      btn.addEventListener('click', ()=> loadExamList(prof, btn.dataset.sub === subject ? null : btn.dataset.sub));
+    });
+    examsList.innerHTML = res.exams.map(function(e){
+      return `<button type="button" class="syn-action" data-exam="${e.examId}">
+        <span class="syn-action-ic">📄</span>
+        <span class="syn-action-txt">
+          <span class="syn-action-title">${e.title || e.subject}</span>
+          <span class="syn-action-sub">${e.subject} · ${e.year || ''}${
+            e.durationMin ? ' · ' + fmt('examsDuration', { n: e.durationMin }) : ''}<br>
+            <span style="opacity:.7;">${fmt('examsSource', { s: e.source || '—' })}</span></span>
+        </span></button>`;
+    }).join('');
+    examsList.querySelectorAll('[data-exam]').forEach(function(btn){
+      btn.addEventListener('click', ()=> startExam(btn.dataset.exam));
+    });
+  }
+
+  async function startExam(examId){
+    const res = await withLoader(t('examsTitle'), [t('examsStepPaper'), t('examsStepReady')],
+      async function(ctl){
+        await ctl.advance();
+        const r = await postToSheet('get_exam', { examId: examId });
+        await ctl.advance();
+        return r;
+      });
+    if(!res || !res.ok || !res.exam){ showToast(t('examsLoadFailed'), nxIcon('alertTriangle'), 'system'); return; }
+    examCurrent = res.exam; examAnswers = {}; examStartedAt = Date.now();
+    examsBrowse.classList.add('hidden');
+    examsRunner.classList.remove('hidden');
+    examsSubmitBtn.classList.remove('hidden');
+    renderExamPaper();
+    examStartTimer(examCurrent.durationMin);
+  }
+
+  function renderExamPaper(){
+    const qs = examCurrent.questions || [];
+    examsProgress.textContent = examCurrent.title + ' · ' + fmt('examsQuestionCount', { n: qs.length });
+    examsQArea.innerHTML = qs.map(function(q, i){
+      const body = q.type === 'mcq'
+        ? (q.options || []).map(function(o, oi){
+            return `<div style="margin-top:6px;"><label><input type="radio" name="exq_${q.questionId}" value="${oi}"> ${o}</label></div>`;
+          }).join('')
+        : `<input type="text" data-short="${q.questionId}" style="margin-top:8px; width:100%; padding:9px; border-radius:8px; border:1.5px solid var(--input-border); background:var(--input-bg); color:var(--ink);">`;
+      return `<div class="lp-question-block">
+        <b>${i + 1}. ${q.text}</b>
+        <span style="float:inline-end; font-size:10.5px; color:var(--ink-dim);">${fmt('examsMarks', { n: q.marks })}</span>
+        ${body}</div>`;
+    }).join('');
+  }
+
+  async function submitExam(auto){
+    if(!examCurrent) return;
+    // A manual submit with unanswered questions is almost always a misclick;
+    // an automatic one at time-up is not, so it never asks.
+    if(!auto){
+      const answered = (examCurrent.questions || []).filter(function(q){
+        if(q.type === 'mcq') return !!document.querySelector(`input[name="exq_${q.questionId}"]:checked`);
+        const el = examsQArea.querySelector(`[data-short="${q.questionId}"]`);
+        return el && el.value.trim();
+      }).length;
+      const missing = (examCurrent.questions || []).length - answered;
+      if(missing > 0 && !confirm(fmt('examConfirmSubmit', { n: missing }))) return;
+    }
+    examStopTimer();
+    const answers = {};
+    (examCurrent.questions || []).forEach(function(q){
+      if(q.type === 'mcq'){
+        const sel = document.querySelector(`input[name="exq_${q.questionId}"]:checked`);
+        if(sel) answers[q.questionId] = Number(sel.value);
+      } else {
+        const el = examsQArea.querySelector(`[data-short="${q.questionId}"]`);
+        if(el && el.value.trim()) answers[q.questionId] = el.value.trim();
+      }
+    });
+    setBtnSaving(examsSubmitBtn, true);
+    // Graded on the SERVER: the answer key is never sent to the browser, so
+    // it cannot be read out of the page before submitting.
+    const res = await postToSheet('submit_exam', {
+      username: currentServerUsername(), examId: examCurrent.examId,
+      answers: answers, durationMs: Date.now() - examStartedAt
+    });
+    setBtnSaving(examsSubmitBtn, false);
+    if(!res || !res.ok){ showToast(t('examsSubmitFailed'), nxIcon('alertTriangle'), 'system'); return; }
+    renderExamResult(res);
+  }
+
+  function renderExamResult(res){
+    const byId = {};
+    (res.detail || []).forEach(function(d){ byId[d.questionId] = d; });
+    const prof = PROFILES[currentProfile];
+    const wrong = (examCurrent.questions || []).filter(function(q){ return byId[q.questionId] && !byId[q.questionId].ok; });
+
+    // Missed questions enter the SAME spaced-review schedule as everything
+    // else, so an exam is a starting point rather than a one-off score.
+    if(prof){
+      wrong.forEach(function(q){
+        scheduleForReview(prof, 'exam:' + examCurrent.examId + ':' + q.questionId,
+          byId[q.questionId].correctIndex !== null ? String(byId[q.questionId].correctIndex) : byId[q.questionId].correctText,
+          'text', 'compound', null);
+      });
+      learnerStateDirty = true;
+      saveProfilesToStorage();
+    }
+
+    examsQArea.innerHTML =
+      `<div class="cert-verify-result ${res.percent >= 50 ? 'valid' : 'invalid'}">
+         <div class="cvr-row"><b>${fmt('examsResult', { s: res.score, t: res.total, p: res.percent })}</b></div>
+       </div>` +
+      (wrong.length ? `<div class="mystats-section"><h4>${fmt('examsReviewTitle', { n: wrong.length })}</h4>` +
+        wrong.map(function(q){
+          const d = byId[q.questionId];
+          const ans = d.correctIndex !== null && q.options ? q.options[d.correctIndex] : d.correctText;
+          return `<div class="lp-question-block"><b>${q.text}</b>
+            <div class="strategy-step" style="margin-top:6px;">
+              <span class="strategy-num">${nxIcon('check')}</span>
+              <span>${t('remedCorrectAnswer')}: <b>${ans || '—'}</b>${d.explanation ? '<br>' + d.explanation : ''}</span>
+            </div></div>`;
+        }).join('') + `<div class="conn-note">${t('examsScheduled')}</div></div>`
+        : `<div class="conn-note">${t('examsAllCorrect')}</div>`);
+    examsProgress.textContent = '';
+    examsSubmitBtn.classList.add('hidden');
+    renderExamHistory();
+  }
+  /* ==================== END MODULE: EXAMS PROGRAM ==================== */
 
   /* ==================== MODULE: CONTENT READINESS (ADMIN ONLY) ====================
      Measures how COMPLETE each program's content is — not how much a learner
@@ -16604,7 +17844,6 @@
   const certProgramEl = document.getElementById('certProgramEl');
   const certPhotoEl = document.getElementById('certPhotoEl');
   const certNameEl = document.getElementById('certNameEl');
-  const certAgeEl = document.getElementById('certAgeEl'); // removed from the footline; kept null-safe below
   const certScoreEl = document.getElementById('certScoreEl');
   const certScoreLabelEl = document.getElementById('certScoreLabelEl');
   const certAccEl = document.getElementById('certAccEl');
@@ -16762,7 +18001,6 @@
     certProgramEl.textContent = programName;
     certNameEl.textContent = profileDisplayName(currentProfile);
     const ageStr = formatAge(prof.birthDate);
-    if(certAgeEl) certAgeEl.textContent = ageStr ? `${t('certAgeLabel')}: ${ageStr}` : '';
     certAgeInlineEl.textContent = ageStr ? `${t('certAgeLabel')}: ${ageStr}` : '';
     certScoreEl.textContent = sumScore.textContent;
     certScoreLabelEl.textContent = t('statScore');
@@ -17788,16 +19026,42 @@
           return `<div class="lp-row" data-openprofile="${f.username}" style="cursor:pointer;">
             ${c.avatar}
             <div style="flex:1;"><div style="font-weight:700; display:flex; align-items:center; gap:6px;">${c.dot}${c.display}</div><div style="font-size:11px; color:var(--ink-dim);">@${f.username} · <span data-presence-label></span></div></div>
-            <button class="secondary-btn" data-challenge="${f.username}" style="width:auto; padding:6px 12px; margin:0;">${t('friendChallengeBtn')}</button>
-            <button class="secondary-btn" data-remove="${f.username}" style="width:auto; padding:6px 12px; margin:0;">${t('friendRemoveBtn')}</button>
+            <div class="friend-actions">
+              <button class="secondary-btn" data-challenge="${f.username}" style="width:auto; padding:6px 12px; margin:0;">${t('friendChallengeBtn')}</button>
+              <button class="secondary-btn" data-chat="${f.username}" style="width:auto; padding:6px 12px; margin:0;">${t('friendChatBtn')}</button>
+              <button class="secondary-btn" data-remove="${f.username}" style="width:auto; padding:6px 12px; margin:0;">${t('friendRemoveBtn')}</button>
+            </div>
           </div>`; }).join('')
       : `<div class="dash-empty">${t('friendsNone')}</div>`;
+    // Group challenges only make sense with more than one friend.
+    if(res.friends.length > 1){
+      friendsListArea.innerHTML =
+        `<button class="secondary-btn" id="gcOpenBtn" style="margin-bottom:10px;">${t('gcOpenBtn')}</button>` +
+        friendsListArea.innerHTML;
+    }
     if(res.outgoing.length){
       friendsListArea.innerHTML += `<div class="group-label">${t('friendsOutgoingLabel')}</div>` + res.outgoing.map(f=>{
         const c = friendCard(f);
         return `<div class="lp-row" style="cursor:default; opacity:0.7;">${c.avatar}<div style="flex:1;"><div style="font-weight:700;">${c.display}</div><div style="font-size:11px; color:var(--ink-dim);">@${f.username}</div></div><span>⏳</span></div>`; }).join('');
     }
     // Watch exactly the usernames now rendered — nothing more.
+    // A real challenge invitation now, not a jump to the old race lobby: the
+    // recipient gets a notification and can accept, defer, or decline.
+    friendsListArea.querySelectorAll('[data-challenge]').forEach(function(btn){
+      btn.addEventListener('click', function(ev){
+        ev.stopPropagation();
+        sendChallengeTo([btn.dataset.challenge], 'live');
+      });
+    });
+    friendsListArea.querySelectorAll('[data-chat]').forEach(function(btn){
+      btn.addEventListener('click', function(ev){
+        ev.stopPropagation();
+        openChat(btn.dataset.chat);
+      });
+    });
+    const gcBtn = document.getElementById('gcOpenBtn');
+    if(gcBtn) gcBtn.addEventListener('click', ()=> openGroupChallenge(res.friends));
+
     if(typeof watchPresenceFor === 'function'){
       watchPresenceFor([].concat(res.friends, res.incoming, res.outgoing).map(x=>x.username));
     }
