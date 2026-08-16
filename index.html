@@ -16118,7 +16118,9 @@
   }
 
   /* ---------- ROOM STATE: typing + call signals in ONE request ---------- */
-  let roomStateInFlight = false;
+  // var for the same hoisting reason: pollRoomState() runs from startCallWatch(),
+  // which the login handler calls long before this line is reached.
+  var roomStateInFlight = false;
   async function pollRoomState(){
     // Runs with or WITHOUT an open room. Requiring a room here is why calls
     // never arrived: the person being called is normally on the home screen,
@@ -16131,17 +16133,30 @@
         roomId: chatRoom || '', username: currentServerUsername()
       });
     } finally { roomStateInFlight = false; }
-    if(!res || !res.ok) return;
+    callDiag.polls++;
+    callDiag.lastPollAt = Date.now();
+    if(!res){ callDiag.lastError = 'no response'; return; }
+    if(!res.ok){ callDiag.lastError = res.error || 'not ok'; return; }
+    callDiag.lastError = '';
+    callDiag.signalsSeen += (res.signals || []).length;
     if(chatRoom) renderTyping(res.typing);
     (res.signals || []).forEach(handleIncomingSignal);
   }
 
-  /* Watches for incoming calls all the time, not only inside a chat. Slow by
-     default so it costs almost nothing; the fast 1.5s poll only runs while a
-     call is actually being set up. */
-  let callWatchId = null;
+  /* Declared with `var`, not `let`, and deliberately.
+     startCallWatch() is CALLED from the login handler far earlier in the file
+     than this line. A function declaration hoists, so `typeof startCallWatch
+     === 'function'` was true and the call went ahead — but the `let` binding
+     it touches was still in the temporal dead zone, so it threw a silent
+     ReferenceError inside a .then() and the watcher never started. That is
+     precisely why no call ever arrived. `var` hoists with the function. */
+  var callWatchId = null;
+  // Readable from the console as callDiag — every failure in this chain is
+  // otherwise invisible, and guessing cost several rounds already.
+  var callDiag = { watchStarted:false, polls:0, lastPollAt:0, signalsSeen:0, lastError:'' };
   function startCallWatch(){
     if(callWatchId) clearInterval(callWatchId);
+    callDiag.watchStarted = true;
     pollRoomState();
     callWatchId = setInterval(function(){
       if(!callSignalPollId) pollRoomState();   // never double-poll during setup
@@ -16167,8 +16182,8 @@
   ];
   // Named apart from the race screen's peerConnection/localStream on purpose:
   // sharing those would let one call silently stop the other's camera.
-  let chatPc = null, chatStream = null, callPeer = '', callIsVideo = false;
-  let callSignalPollId = null, callConnectTimer = null, callIncomingOffer = null;
+  var chatPc = null, chatStream = null, callPeer = '', callIsVideo = false;
+  var callSignalPollId = null, callConnectTimer = null, callIncomingOffer = null;
 
   function callSetState(key){ callState.textContent = t(key); }
 
@@ -16239,8 +16254,13 @@
   }
   function sendSignal(signal){
     const peer = callPeer || chatWith;
+    const room = callRoomFor(peer);
+    callDiag.lastSent = { type: signal && signal.type, to: peer, room: room, at: Date.now() };
     return postToSheet('call_signal', {
-      roomId: callRoomFor(peer), fromUser: currentServerUsername(), toUser: peer, signal: signal
+      roomId: room, fromUser: currentServerUsername(), toUser: peer, signal: signal
+    }).then(function(r){
+      if(!r || !r.ok) callDiag.lastError = 'send_signal failed: ' + ((r && r.error) || 'no response');
+      return r;
     });
   }
   function startCallSignalPolling(){
