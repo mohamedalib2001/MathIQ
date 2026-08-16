@@ -16130,7 +16130,8 @@
     let res;
     try{
       res = await postToSheet('room_state', {
-        roomId: chatRoom || '', username: currentServerUsername()
+        roomId: chatRoom || '', username: currentServerUsername(),
+        sinceSignalSeq: callSignalSeq
       });
     } finally { roomStateInFlight = false; }
     callDiag.polls++;
@@ -16139,8 +16140,16 @@
     if(!res.ok){ callDiag.lastError = res.error || 'not ok'; return; }
     callDiag.lastError = '';
     callDiag.signalsSeen += (res.signals || []).length;
+    // Acknowledge BEFORE processing: a signal handled twice would re-ring a
+    // call that was already answered.
+    if(typeof res.lastSignalSeq === 'number') callSignalSeq = Math.max(callSignalSeq, res.lastSignalSeq);
     if(chatRoom) renderTyping(res.typing);
-    (res.signals || []).forEach(handleIncomingSignal);
+    // Sequential, not forEach: setRemoteDescription must finish before the
+    // candidates that follow it are added, or they are rejected.
+    (async function(){
+      const list = res.signals || [];
+      for(let i = 0; i < list.length; i++){ await handleIncomingSignal(list[i]); }
+    })();
   }
 
   /* Declared with `var`, not `let`, and deliberately.
@@ -16184,6 +16193,13 @@
   // sharing those would let one call silently stop the other's camera.
   var chatPc = null, chatStream = null, callPeer = '', callIsVideo = false;
   var callSignalPollId = null, callConnectTimer = null, callIncomingOffer = null;
+  // How far through the signal queue this client has read. Reset per call so
+  // a new conversation is never filtered out by an old acknowledgement.
+  var callSignalSeq = 0;
+  // Candidates that arrive before the remote description is set must be held,
+  // not dropped: addIceCandidate throws until the description exists, and a
+  // discarded candidate can be the one the connection needed.
+  var pendingCandidates = [];
 
   function callSetState(key){ callState.textContent = t(key); }
 
@@ -16287,15 +16303,23 @@
     if(!chatPc) return;
     if(data.type === 'answer'){
       await chatPc.setRemoteDescription({ type: 'answer', sdp: data.sdp });
+      await flushPendingCandidates();
     } else if(data.type === 'candidate' && data.candidate){
-      // A candidate arriving before the remote description is normal; ignoring
-      // the error is correct rather than aborting the call.
-      try{ await chatPc.addIceCandidate(data.candidate); }catch(e){}
+      // Queue it if the description is not in place yet, rather than throwing
+      // it away — the discarded one may be the only route that would work.
+      if(!chatPc.remoteDescription){ pendingCandidates.push(data.candidate); return; }
+      try{ await chatPc.addIceCandidate(data.candidate); }catch(e){ callDiag.lastError = 'ice: ' + e.message; }
     } else if(data.type === 'bye'){
       endCall();
     }
   }
 
+  async function flushPendingCandidates(){
+    while(pendingCandidates.length){
+      const c = pendingCandidates.shift();
+      try{ await chatPc.addIceCandidate(c); }catch(e){ callDiag.lastError = 'ice flush: ' + e.message; }
+    }
+  }
   async function answerCall(){
     if(!callIncomingOffer) return;
     callIncoming.classList.add('hidden');
@@ -16319,6 +16343,7 @@
     callLocal.classList.toggle('hidden', !callIsVideo);
     await buildPeer();
     await chatPc.setRemoteDescription({ type: 'offer', sdp: callIncomingOffer.sdp });
+    await flushPendingCandidates();
     const answer = await chatPc.createAnswer();
     await chatPc.setLocalDescription(answer);
     await sendSignal({ type: 'answer', sdp: answer.sdp });
@@ -16342,6 +16367,7 @@
     if(callSignalPollId){ clearInterval(callSignalPollId); callSignalPollId = null; }
     if(chatPc){ try{ sendSignal({ type: 'bye' }); }catch(e){} try{ chatPc.close(); }catch(e){} chatPc = null; }
     if(chatStream){ chatStream.getTracks().forEach(function(tr){ tr.stop(); }); chatStream = null; }
+    pendingCandidates = [];
     callLocal.srcObject = null; callRemote.srcObject = null;
     callPanel.classList.add('hidden');
     callIncoming.classList.add('hidden');
