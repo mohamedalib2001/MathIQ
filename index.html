@@ -4883,6 +4883,7 @@
       novaNoNetwork:'لا يوجد اتصال بالخادم الآن. يمكنني فتح الصفحات وعرض تقدّمك بدون إنترنت.',
       novaFailed:'لم أستطع الوصول للإجابة الآن. جرّبي مرة أخرى بعد قليل.',
       novaOfflineOnly:'أحتاج اتصالًا بالخادم للإجابة على هذا. لكن يمكنني فتح الصفحات لكِ بدون إنترنت.',
+      sessionNeedsSignIn:'لحفظ تقدّمك على الخادم، سجّلي الخروج ثم الدخول مرة واحدة. بياناتك محفوظة على هذا الجهاز ولن تضيع.',
       sessionExpired:'انتهت جلستك لأسباب أمنية. سجّلي الدخول مرة أخرى للمتابعة.',
       novaNoArabicVoice:'لا يوجد صوت عربي مثبَّت على جهازك، فسأكتفي بالكتابة — لأن قراءة العربية بصوت إنجليزي ستكون مشوّهة. يمكنك تثبيت صوت عربي من إعدادات النظام.',
       novaMicUnsupported:'متصفحك لا يدعم إدخال الصوت. استخدمي الكتابة، أو جرّبي Chrome.',
@@ -5605,6 +5606,7 @@
       novaNoNetwork:'No server connection right now. I can still open pages and show your progress offline.',
       novaFailed:'I could not reach an answer just now. Please try again shortly.',
       novaOfflineOnly:'I need a server connection for that. I can still open pages for you offline.',
+      sessionNeedsSignIn:'To save your progress to the server, sign out and back in once. Your data is safe on this device and will not be lost.',
       sessionExpired:'Your session has ended for security. Please sign in again to continue.',
       novaNoArabicVoice:'No Arabic voice is installed on this device, so I will stay in text — an English voice reading Arabic comes out garbled. You can add an Arabic voice in your system settings.',
       novaMicUnsupported:'Your browser does not support voice input. Please type instead, or try Chrome.',
@@ -6952,6 +6954,8 @@
   // it. Attaching it centrally means no call site can forget.
   let SESSION_TOKEN = null;
   try{ SESSION_TOKEN = localStorage.getItem('nexoraSessionToken') || null; }catch(e){}
+  // Guards against several in-flight requests each firing their own logout.
+  let sessionEndingNow = false;
   function setSessionToken(tok){
     SESSION_TOKEN = tok || null;
     try{
@@ -6977,13 +6981,26 @@
       })
       .then(r=>r.json())
       .then(res=>{
-        // An expired or revoked session must end the local session too,
-        // otherwise the app keeps trying with a token the server rejects and
-        // the learner sees silent failures with no explanation.
-        if(res && res.error === 'auth_required'){
+        // Only a token that was REJECTED ends the session. Having no token
+        // at all is not an expiry — it is simply a device that has not signed
+        // in under the new scheme yet, and forcing it out created a loop the
+        // learner could not escape: sign in, get kicked, sign in again.
+        // No token yet on this device: tell the learner what to do instead
+        // of failing in silence. Their data is safe locally and will sync the
+        // moment they sign in again.
+        if(res && res.error === 'session_missing' && !sessionEndingNow){
+          sessionEndingNow = true;
+          if(typeof showToast === 'function') showToast(t('sessionNeedsSignIn'), nxIcon('lock'), 'system');
+          setTimeout(function(){ sessionEndingNow = false; }, 6000);
+        }
+        if(res && res.error === 'session_expired' && SESSION_TOKEN && !sessionEndingNow){
+          sessionEndingNow = true;   // one notice, however many requests fail at once
           setSessionToken(null);
           if(typeof showToast === 'function') showToast(t('sessionExpired'), nxIcon('lock'), 'system');
-          if(typeof goToLoginGate === 'function') setTimeout(goToLoginGate, 900);
+          if(typeof goToLoginGate === 'function') setTimeout(function(){
+            sessionEndingNow = false;
+            goToLoginGate();
+          }, 900);
         }
         return res;
       })
