@@ -1432,6 +1432,53 @@
   .gc-row input{ width:19px; height:19px; flex:none; margin:0; }
   .friend-actions{ display:flex; gap:6px; flex-wrap:wrap; }
 
+  /* ---------- ACTIVE CHALLENGE BOARD ---------- */
+  .cb-player{ display:flex; align-items:center; gap:10px; padding:10px 12px; margin-bottom:7px;
+    background:var(--input-bg); border:1px solid var(--chip-border); border-radius:12px; }
+  .cb-player.done{ border-color:rgba(34,197,94,0.45); }
+  .cb-player.me{ border-color:var(--yellow); }
+  .cb-av{ width:36px; height:36px; border-radius:50%; overflow:hidden; flex:none;
+    background:var(--bg); border:1.5px solid var(--chip-border); display:flex;
+    align-items:center; justify-content:center; font-family:'Cairo',sans-serif;
+    font-weight:800; font-size:14px; color:var(--yellow); }
+  .cb-av img{ width:100% !important; height:100% !important; object-fit:cover; display:block; }
+  .cb-name{ flex:1; min-width:0; font-size:13px; font-weight:700; color:var(--ink);
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .cb-state{ font-size:11px; color:var(--ink-dim); flex:none; }
+  .cb-score{ font-family:'Cairo',sans-serif; font-weight:800; font-size:16px; color:var(--mint); flex:none; }
+  .cb-rank{ width:24px; text-align:center; font-family:'Cairo',sans-serif; font-weight:800;
+    font-size:13px; color:var(--yellow); flex:none; }
+  /* The live-challenge banner on the programs hub: without an entry point the
+     match is invisible the moment the toast fades. */
+  .cb-banner{ display:flex; align-items:center; gap:10px; padding:11px 14px; margin-bottom:12px;
+    background:linear-gradient(145deg, rgba(99,102,241,0.18), rgba(6,182,212,0.10));
+    border:1.5px solid rgba(99,102,241,0.5); border-radius:14px; cursor:pointer; }
+  .cb-banner b{ font-family:'Cairo',sans-serif; font-size:13.5px; color:var(--ink); }
+  .cb-banner span{ font-size:11px; color:var(--ink-dim); display:block; margin-top:2px; }
+  @media (prefers-reduced-motion: no-preference){
+    .cb-banner{ animation:cbPulse 2.6s ease-in-out infinite; }
+  }
+  @keyframes cbPulse{ 0%,100%{ border-color:rgba(99,102,241,0.5) } 50%{ border-color:rgba(6,182,212,0.75) } }
+
+  /* ---------- LIVE CHALLENGE BANNER ---------- */
+  #chalBanner{
+    position:fixed; z-index:600; inset-inline:12px;
+    bottom:calc(88px + env(safe-area-inset-bottom));
+    display:flex; align-items:center; gap:9px;
+    background:linear-gradient(145deg,#6366F1,#4F46E5); color:#fff;
+    border-radius:13px; padding:10px 13px; font-size:12.5px; font-weight:700;
+    box-shadow:0 10px 26px rgba(0,0,0,0.4);
+  }
+  @media (min-width:1024px){ #chalBanner{ bottom:18px; max-width:420px; inset-inline-start:auto; } }
+  #chalBanner .cb-dot{ width:9px; height:9px; border-radius:50%; background:#4ade80; flex:none; }
+  @media (prefers-reduced-motion: no-preference){
+    #chalBanner .cb-dot{ animation:cbPulse 1.4s ease-in-out infinite; }
+  }
+  @keyframes cbPulse{ 0%,100%{ opacity:1 } 50%{ opacity:.35 } }
+  #chalBanner span:nth-child(2){ flex:1; min-width:0; }
+  .cb-open{ background:rgba(255,255,255,0.22); border:none; color:#fff; cursor:pointer;
+    border-radius:9px; padding:8px 12px; font-size:11.5px; font-weight:800; flex:none; min-height:38px; }
+
   /* ---------- MESSAGES INBOX ---------- */
   .msg-row{ display:flex; align-items:center; gap:9px; padding:9px 10px; border-radius:11px;
     cursor:pointer; min-height:52px; }
@@ -3221,6 +3268,30 @@
     <button class="secondary-btn" id="examsBackBtn" data-i18n="closeBtn">إغلاق</button>
   </div>
 
+  <!-- ACTIVE CHALLENGE BOARD
+       The invitation was only ever half the feature: accepting it previously
+       dropped the learner on the settings screen with a toast and nothing
+       else, and the sender was not moved at all. Nobody could find the match
+       because there was no match to find. This is where every participant
+       lands, sees who is in, plays their round, and watches the results
+       arrive. -->
+  <div id="chalBoard" class="panel hidden">
+    <div class="group-label" style="text-align:center;" data-i18n="cbTitle">🏁 التحدي القائم</div>
+    <div class="conn-note" id="cbSubtitle"></div>
+    <div id="cbPlayers"></div>
+    <button class="start-btn" id="cbPlayBtn" data-i18n="cbPlay">▶ ابدأ جولتك</button>
+    <div class="conn-note" id="cbHint"></div>
+    <button class="secondary-btn" id="cbBackBtn" data-i18n="closeBtn">إغلاق</button>
+  </div>
+
+  <!-- Always-visible entry to a running match. A toast lasts three seconds;
+       a challenge lasts until it is played. -->
+  <div id="chalBanner" class="hidden">
+    <span class="cb-dot"></span>
+    <span id="chalBannerText"></span>
+    <button class="cb-open" id="chalBannerBtn" data-i18n="chalOpenBoard">افتح التحدي</button>
+  </div>
+
   <!-- Incoming challenge invitation. Shown the moment polling finds one. -->
   <div id="chalInvite" class="hidden" role="dialog" aria-modal="true">
     <div class="ci-card">
@@ -4153,6 +4224,9 @@
        extensibility mechanism the architecture change was about. -->
   <div id="programsHub" class="panel hidden">
     <div class="hub-greeting" id="programsHubGreeting"></div>
+    <!-- Live challenge entry point. Populated by the polling loop; empty and
+         invisible when no match is running. -->
+    <div id="chalBannerHost"></div>
     <button type="button" class="syn-action" id="synapseGateBtn" style="margin-bottom:14px;">
       <span class="syn-action-ic">◠</span>
       <span class="syn-action-txt">
@@ -4542,6 +4616,15 @@
   const exSaveBtn = document.getElementById('exSaveBtn');
   const exExisting = document.getElementById('exExisting');
   const exImportBackBtn = document.getElementById('exImportBackBtn');
+  const chalBoard = document.getElementById('chalBoard');
+  const cbSubtitle = document.getElementById('cbSubtitle');
+  const cbPlayers = document.getElementById('cbPlayers');
+  const cbPlayBtn = document.getElementById('cbPlayBtn');
+  const cbHint = document.getElementById('cbHint');
+  const cbBackBtn = document.getElementById('cbBackBtn');
+  const chalBanner = document.getElementById('chalBanner');
+  const chalBannerText = document.getElementById('chalBannerText');
+  const chalBannerBtn = document.getElementById('chalBannerBtn');
   const chalInvite = document.getElementById('chalInvite');
   const ciAvatar = document.getElementById('ciAvatar');
   const ciTitle = document.getElementById('ciTitle');
@@ -6099,12 +6182,21 @@
       callFailed:'انقطع الاتصال.',
       callCouldNotConnect:'تعذّر إنشاء الاتصال المباشر. بعض الشبكات المقيّدة تمنع المكالمات المباشرة — جرّب شبكة أخرى أو استخدم الدردشة النصية.',
       friendChatBtn:'💬 دردشة', gcOpenBtn:'👥 تحدٍّ جماعي (حتى 10 أصدقاء)',
+      cbTitle:'🏁 التحدي القائم', cbBannerTitle:'تحدٍّ جارٍ الآن — اضغط للدخول',
+      cbProgress:'أنهى {done} من {total}', cbYou:'أنت', cbWaiting:'لم يبدأ بعد',
+      cbPlay:'▶ ابدأ جولتك', cbYourTurn:'ابدأ جولتك، وستُقارن نتيجتك بنتائج البقية.',
+      cbWaitingOthers:'أنهيت جولتك ✓ — في انتظار البقية.',
+      cbAllDone:'اكتمل التحدي! هذه هي النتائج النهائية.',
+      cbRoundStarting:'ابدأ الجولة — نتيجتك ستُسجَّل تلقائيًا عند انتهائها.',
+      cbCompleted:'🏆 اكتمل التحدي — شاهد الترتيب النهائي.',
       ciTitle:'{name} يتحدّاك!', ciSoloSub:'اقبل الآن وابدأ فورًا، أو أجّله لوقت مناسب.',
       ciGroupSub:'تحدٍّ جماعي مع {n} من الأصدقاء.',
       ciAccept:'⚡ ابدأ التحدي الآن', ciLater:'🕒 أقبل، لكن لاحقًا', ciDecline:'✕ رفض',
       chalSentOne:'✓ أُرسلت دعوة التحدي إلى {name}.', chalSentGroup:'✓ أُرسلت الدعوة إلى {n} أصدقاء.',
       chalSendFailed:'تعذّر إرسال الدعوة.', chalRespondFailed:'تعذّر تسجيل ردّك.',
       chalAccepted:'🎉 {name} قبل التحدي!', chalLater:'🕒 {name} سيتحدّاك لاحقًا.',
+      chalLiveOne:'⚡ تحدٍّ قائم مع {name}', chalLiveGroup:'⚡ تحدٍّ جماعي قائم مع {n} أصدقاء',
+      chalOpenBoard:'افتح التحدي',
       chalSavedForLater:'حُفظت الدعوة — يمكنك بدء التحدي متى شئت.',
       chalStarting:'ابدأ جولتك — سنقارن نتيجتك بنتيجة {name}.',
       chatPlaceholder:'اكتب رسالتك…', chatNote:'الرسائل تُحدَّث كل بضع ثوانٍ.',
@@ -6965,12 +7057,21 @@
       callFailed:'The connection dropped.',
       callCouldNotConnect:'A direct connection could not be established. Some restricted networks block peer-to-peer calls — try another network, or use text chat.',
       friendChatBtn:'💬 Chat', gcOpenBtn:'👥 Group challenge (up to 10 friends)',
+      cbTitle:'🏁 Active challenge', cbBannerTitle:'A challenge is running — tap to enter',
+      cbProgress:'{done} of {total} finished', cbYou:'you', cbWaiting:'not started',
+      cbPlay:'▶ Play your round', cbYourTurn:'Play your round and your score will be compared with the others.',
+      cbWaitingOthers:'Your round is done ✓ — waiting for the others.',
+      cbAllDone:'Challenge complete! These are the final results.',
+      cbRoundStarting:'Start the round — your score is recorded automatically when it ends.',
+      cbCompleted:'🏆 Challenge complete — see the final ranking.',
       ciTitle:'{name} is challenging you!', ciSoloSub:'Accept now and start immediately, or defer it.',
       ciGroupSub:'A group challenge with {n} friends.',
       ciAccept:'⚡ Start now', ciLater:'🕒 Accept, but later', ciDecline:'✕ Decline',
       chalSentOne:'✓ Challenge sent to {name}.', chalSentGroup:'✓ Sent to {n} friends.',
       chalSendFailed:'Could not send the invitation.', chalRespondFailed:'Could not record your reply.',
       chalAccepted:'🎉 {name} accepted!', chalLater:'🕒 {name} will take it later.',
+      chalLiveOne:'⚡ Live challenge with {name}', chalLiveGroup:'⚡ Live group challenge with {n} friends',
+      chalOpenBoard:'Open challenge',
       chalSavedForLater:'Saved — you can start it whenever you like.',
       chalStarting:'Start your round — we will compare your score with {name}.',
       chatPlaceholder:'Type a message…', chatNote:'Messages refresh every few seconds.',
@@ -7682,6 +7783,7 @@
     abacusTrainerEl.classList.add('hidden');
     childDetailScreen.classList.add('hidden');
     synapseScreen.classList.add('hidden');
+    chalBoard.classList.add('hidden');
     examsScreen.classList.add('hidden');
     memberCardScreen.classList.add('hidden');
     knowledgeReviewScreen.classList.add('hidden');
@@ -12239,7 +12341,7 @@
      bottom nav (mobile), populated per role. Every item is a thin wrapper
      around an already-existing, already-tested action — zero new
      business logic, just a second way to reach the same real screens. ---------- */
-  let currentShellRole = null;
+  var currentShellRole = null;
   // Drives the sidebar badge. Refreshed on login and after any friends
   // action; never blocks navigation if the fetch fails.
   let pendingFriendRequestCount = 0;
@@ -12258,9 +12360,16 @@
      daily quota on web-app calls, and a chatty heartbeat would exhaust it and
      take the whole backend down. 45s/25s keeps status fresh within about a
      minute while staying well inside the budget. */
-  const HEARTBEAT_MS = 90000;
-  const PRESENCE_POLL_MS = 60000;
-  let heartbeatTimer = null, presenceTimer = null;
+  /* Declared with var throughout this block, deliberately.
+     These bindings are touched by functions the login handler calls hundreds
+     of thousands of characters earlier in the file. Function declarations
+     hoist; let and const do not — so the guarded call succeeded, the body
+     threw a silent ReferenceError inside a promise, and the feature simply
+     never started. That defect disabled both live calls and challenges with
+     nothing visible in the console. hoist.js now checks for it. */
+  var HEARTBEAT_MS = 90000;
+  var PRESENCE_POLL_MS = 60000;
+  var heartbeatTimer = null, presenceTimer = null;
   // Apps Script executes a single user's requests SERIALLY. Background
   // presence traffic therefore queues ahead of whatever the person is
   // actively doing, and a foreground action can time out waiting its turn.
@@ -13211,6 +13320,16 @@
     showProgramsHub();
   });
   examsSubmitBtn.addEventListener('click', ()=> submitExam(false));
+  cbPlayBtn.addEventListener('click', playChallengeRound);
+  cbBackBtn.addEventListener('click', ()=>{
+    chalBoard.classList.add('hidden');
+    showProgramsHub();
+  });
+  chalBannerBtn.addEventListener('click', function(){
+    if(!liveChallenges.length) return;
+    activeChallenge = liveChallenges[0];
+    openChallengeBoard();
+  });
   ciAcceptBtn.addEventListener('click', ()=> respondToInvite('accept'));
   ciLaterBtn.addEventListener('click', ()=> respondToInvite('later'));
   ciDeclineBtn.addEventListener('click', ()=> respondToInvite('decline'));
@@ -15684,12 +15803,23 @@
         3s  invite open   — waiting on the other side to answer
         4s  chat open     — a conversation in progress
      Polling stops entirely when the tab is hidden. */
-  const CHAL_POLL_IDLE = 12000, CHAL_POLL_ACTIVE = 3000, CHAT_POLL = 4000;
-  let chalPollId = null, chalPollRate = CHAL_POLL_IDLE;
-  let chalPendingInvite = null, chalOutgoing = [];
-  let chatRoom = null, chatWith = '', chatSince = 0, chatPollId = null;
-  let chatFetchInFlight = false;          // prevents overlapping fetches
-  let chatRendered = new Set();           // message ids already on screen
+  // var, not const/let — and for the same reason the call watcher needed it.
+  // chalStartPolling() is invoked from the login handler roughly 450,000
+  // characters EARLIER in this file. A function declaration hoists, so the
+  // `typeof ... === 'function'` guard passed and the call ran; but these
+  // bindings were still in their temporal dead zone, so it threw a silent
+  // ReferenceError inside a .then() and challenge polling never started.
+  // That is why invitations were accepted and no match ever opened — the
+  // same defect that stopped calls arriving.
+  var CHAL_POLL_IDLE = 12000, CHAL_POLL_ACTIVE = 3000, CHAT_POLL = 4000;
+  var chalPollId = null, chalPollRate = CHAL_POLL_IDLE;
+  var chalPendingInvite = null, chalOutgoing = [];
+  // Survives across polls; the polled objects do not.
+  var chalAnnounced = new Set();
+  var liveChallenges = [];
+  var chatRoom = null, chatWith = '', chatSince = 0, chatPollId = null;
+  var chatFetchInFlight = false;          // prevents overlapping fetches
+  var chatRendered = new Set();           // message ids already on screen
 
   function chalStopPolling(){
     if(chalPollId){ clearInterval(chalPollId); chalPollId = null; }
@@ -15735,21 +15865,81 @@
       chalSetRate(CHAL_POLL_IDLE);
     }
     // Tell the sender the moment their invitation is answered.
+    // `_told` used to be set on the polled object, which the server rebuilds
+    // on every poll — so the flag vanished each time and the same acceptance
+    // was announced over and over, while nothing ever opened. The record of
+    // what has been announced has to outlive the response.
     chalOutgoing.forEach(function(c){
-      if(c.status === 'accepted' && !c._told){
-        c._told = true;
+      if(chalAnnounced.has(c.challengeId)) return;
+      if(c.status === 'accepted'){
+        chalAnnounced.add(c.challengeId);
+        activeChallenge = c;
+        // Take them INTO the match, not merely tell them about it. A toast
+        // that leads nowhere is why three people accepted and none of them
+        // could find the challenge.
         showToast(fmt('chalAccepted', { name: friendDisplayName(c.toUsers[0]) }), nxIcon('check'), 'social');
-      } else if(c.status === 'later' && !c._told){
-        c._told = true;
+        openChallengeBoard();
+      } else if(c.status === 'later'){
+        chalAnnounced.add(c.challengeId);
         showToast(fmt('chalLater', { name: friendDisplayName(c.toUsers[0]) }), nxIcon('clock'), 'social');
       }
     });
+
     // The SERVER decides the rate, because only it knows how large the match
     // is. A 50-person group polling at a duel's speed would generate fifty
     // times the traffic and queue behind itself.
+    // Keep the open board live, and remember any accepted match so the
+    // learner can always get back to it.
+    const live = (res.incoming || []).concat(chalOutgoing)
+      .filter(c => c.status === 'accepted' || c.status === 'later');
+    if(live.length){
+      const mine = activeChallenge && live.find(c => c.challengeId === activeChallenge.challengeId);
+      activeChallenge = mine || live[0];
+      if(!chalBoard.classList.contains('hidden')) renderChallengeBoard();
+    } else if(activeChallenge && !live.some(c => c.challengeId === activeChallenge.challengeId)){
+      // Completed or cancelled: stop advertising a match that is over.
+      if(chalBoard.classList.contains('hidden')) activeChallenge = null;
+    }
+    // A LIVE match must be reachable at any moment. Everything before this
+    // relied on catching a toast at the right second.
+    renderChallengeBanner(live);
+
     const busy = waiting.length || chalOutgoing.some(c => c.status === 'pending');
     const serverRate = Number(res.suggestedPollMs) || CHAL_POLL_ACTIVE;
     chalSetRate(busy ? Math.max(serverRate, CHAL_POLL_ACTIVE) : CHAL_POLL_IDLE);
+  }
+  /* The entry point that was missing entirely. Without a visible banner the
+     match vanished the moment the toast faded, and none of the three players
+     had any way to reach it. */
+  function renderChallengeBanner(){
+    const host = document.getElementById('chalBannerHost');
+    if(!host) return;
+    if(!activeChallenge){ host.innerHTML = ''; return; }
+    const c = activeChallenge;
+    const everyone = [c.fromUser].concat(c.toUsers || []);
+    const played = everyone.filter(function(u){ return (c.results || {})[u]; }).length;
+    host.innerHTML = `<div class="cb-banner" id="cbBannerBtn">
+      <span style="font-size:20px;">🏁</span>
+      <div style="flex:1;">
+        <b>${t('cbBannerTitle')}</b>
+        <span>${fmt('cbProgress', { done: played, total: everyone.length })}</span>
+      </div>
+      <span style="font-size:16px;">›</span>
+    </div>`;
+    const btn = document.getElementById('cbBannerBtn');
+    if(btn) btn.addEventListener('click', openChallengeBoard);
+  }
+  /* A persistent bar that says a match is running and opens it. Without it
+     the only way in was a toast that vanished in three seconds. */
+  function renderChallengeBanner(list){
+    liveChallenges = list || [];
+    if(!liveChallenges.length){ chalBanner.classList.add('hidden'); return; }
+    const c = liveChallenges[0];
+    const others = c.toUsers.length > 1 ? c.toUsers.length : 1;
+    chalBannerText.textContent = others > 1
+      ? fmt('chalLiveGroup', { n: others })
+      : fmt('chalLiveOne', { name: friendDisplayName(c.fromUser === currentServerUsername() ? c.toUsers[0] : c.fromUser) });
+    chalBanner.classList.remove('hidden');
   }
   function friendDisplayName(username){
     const key = Object.keys(PROFILES).find(k => PROFILES[k].username &&
@@ -15785,13 +15975,99 @@
   // NOT try to synchronise question-by-question: without a push channel that
   // would mean polling every second, and a dropped connection would strand
   // both players mid-match.
+  // `var`, not `let`: openChallengeBoard() is reachable from the polling loop
+  // which starts at login, long before this line executes. A let binding here
+  // would throw a silent ReferenceError — the pattern that has already
+  // disabled two features in this file.
+  var activeChallenge = null;
+
   function startChallengeMatch(c){
-    activeChallengeId = c.challengeId;
+    // Previously this dropped the learner on the settings screen with a toast
+    // and stopped. Nobody could find the match because there was no match
+    // screen — only an invitation.
+    activeChallenge = c;
+    openChallengeBoard();
+  }
+
+  function openChallengeBoard(){
+    if(!activeChallenge) return;
+    hideLearnerShellScreens();
+    chalBoard.classList.remove('hidden');
+    renderChallengeBoard();
+    chalSetRate(CHAL_POLL_ACTIVE);   // watch for the others' scores
+  }
+
+  function renderChallengeBoard(){
+    const c = activeChallenge;
+    if(!c) return;
+    const me = String(currentServerUsername()).toLowerCase();
+    const everyone = [c.fromUser].concat(c.toUsers || []);
+    const results = c.results || {};
+    const played = everyone.filter(function(u){ return !!results[u]; }).length;
+
+    cbSubtitle.textContent = fmt('cbProgress', { done: played, total: everyone.length });
+
+    // Ranked once everyone has played; before that, order stays stable so the
+    // list does not jump around while people are still finishing.
+    const allDone = played === everyone.length;
+    const rows = everyone.map(function(u){
+      const r = results[u];
+      return { user: u, score: r ? r.score : null, correct: r ? r.correct : 0, total: r ? r.total : 0 };
+    });
+    if(allDone) rows.sort(function(a, b){ return (b.score || 0) - (a.score || 0); });
+
+    cbPlayers.innerHTML = rows.map(function(p, i){
+      const key = Object.keys(PROFILES).find(k => PROFILES[k].username &&
+        PROFILES[k].username.toLowerCase() === String(p.user).toLowerCase());
+      const photo = key && (PROFILES[key].photoLocal || PROFILES[key].photo);
+      const name = friendDisplayName(p.user);
+      const isMe = String(p.user).toLowerCase() === me;
+      const done = p.score !== null;
+      return `<div class="cb-player${done ? ' done' : ''}${isMe ? ' me' : ''}">
+        ${allDone ? `<span class="cb-rank">${i === 0 ? '🥇' : (i === 1 ? '🥈' : (i === 2 ? '🥉' : i + 1))}</span>` : ''}
+        <div class="cb-av">${photo ? `<img src="${photo}" alt="">` : (name || '?').trim().charAt(0)}</div>
+        <span class="cb-name">${name}${isMe ? ' · ' + t('cbYou') : ''}</span>
+        ${done ? `<span class="cb-score">${p.score}</span>`
+               : `<span class="cb-state">${t('cbWaiting')}</span>`}
+      </div>`;
+    }).join('');
+
+    const iPlayed = !!results[currentServerUsername()];
+    cbPlayBtn.classList.toggle('hidden', iPlayed);
+    cbHint.textContent = iPlayed
+      ? (allDone ? t('cbAllDone') : t('cbWaitingOthers'))
+      : t('cbYourTurn');
+  }
+
+  // Runs a normal round, then reports the score. Deliberately not synchronised
+  // question-by-question: without a push channel that would need a poll every
+  // second, and one dropped connection would strand everyone mid-match.
+  function playChallengeRound(){
+    if(!activeChallenge) return;
+    chalBoard.classList.add('hidden');
+    challengeRunId = activeChallenge.challengeId;
     hideLearnerShellScreens();
     settingsEl.classList.remove('hidden');
-    showToast(fmt('chalStarting', { name: friendDisplayName(c.fromUser) }), nxIcon('target'), 'social');
+    showToast(t('cbRoundStarting'), nxIcon('target'), 'social');
   }
-  let activeChallengeId = null;
+  var challengeRunId = null;
+
+  // Called when a practice round finishes while a challenge is running.
+  async function reportChallengeScore(score, correct, total){
+    if(!challengeRunId) return;
+    const id = challengeRunId;
+    challengeRunId = null;
+    const res = await postToSheet('report_challenge_result', {
+      challengeId: id, username: currentServerUsername(),
+      score: score, correct: correct, total: total
+    });
+    if(!res || !res.ok) return;
+    if(activeChallenge && activeChallenge.challengeId === id){
+      activeChallenge.results = res.results || {};
+      openChallengeBoard();
+      if(res.completed) showToast(t('cbCompleted'), nxIcon('trophy'), 'social');
+    }
+  }
 
   async function sendChallengeTo(usernames, mode){
     if(!usernames.length) return;
@@ -15985,8 +16261,8 @@
      has seen per room, and the server counts what is newer. A read receipt
      written per message would turn simply reading a chat into dozens of
      writes. */
-  let msgSeen = {};                 // { roomId: lastSeenSeq }
-  let msgRooms = [], msgUnreadTotal = 0, msgPollId = null;
+  var msgSeen = {};                 // { roomId: lastSeenSeq }
+  var msgRooms = [], msgUnreadTotal = 0, msgPollId = null;
   try{ msgSeen = JSON.parse(localStorage.getItem('nexoraChatSeen') || '{}'); }catch(e){ msgSeen = {}; }
   function saveMsgSeen(){ try{ localStorage.setItem('nexoraChatSeen', JSON.stringify(msgSeen)); }catch(e){} }
 
@@ -16168,6 +16444,23 @@
      the answer has to come from the running system, not from me reading code.
 
      Run in the browser console:  await callSelfTest('friendUsername')  */
+  /* Prints the running build's fingerprint. Six rounds have now ended with
+     "still broken", and I have never been able to confirm which build was
+     actually loaded. This makes that answerable in one line. */
+  window.buildInfo = function(){
+    const info = {
+      build: 'nexora-2026-08-16-callfix-7',
+      hasSignalQueue: true,
+      hasHoistFix: (typeof CHAL_POLL_IDLE !== 'undefined'),
+      callWatchStarted: (typeof callDiag !== 'undefined') && callDiag.watchStarted,
+      chalPollingActive: (typeof chalPollId !== 'undefined') && chalPollId !== null,
+      unreadPollingActive: (typeof msgPollId !== 'undefined') && msgPollId !== null,
+      signedInAs: (typeof currentServerUsername === 'function') ? currentServerUsername() : '?',
+      backend: SHEET_API_URL ? SHEET_API_URL.slice(-28) : 'MISSING'
+    };
+    console.table(info);
+    return info;
+  };
   window.callSelfTest = async function(peer){
     const out = [];
     const say = function(k, v){ out.push(k + ': ' + v); console.log(k + ':', v); };
@@ -16208,6 +16501,36 @@
     await postToSheet('clear_call_signal', { roomId: room, fromUser: currentServerUsername(), toUser: peer });
     say('11. cleanup', 'done');
     return out;
+  };
+
+  /* Exercises the whole challenge path and says where it stops.
+     Run:  await chalSelfTest('friendUsername')  */
+  window.chalSelfTest = async function(peer){
+    const say = (k,v)=>console.log(k+':', v);
+    say('1. backend', SHEET_API_URL ? 'set' : 'MISSING');
+    if(!SHEET_API_URL) return;
+    say('2. me', currentServerUsername());
+    say('3. challenge polling', (typeof chalPollId !== 'undefined' && chalPollId !== null)
+        ? 'RUNNING' : 'NOT RUNNING  <-- invitations can never be seen');
+    const poll = await postToSheet('poll_challenges', { username: currentServerUsername() });
+    if(!poll){ say('4. poll_challenges', 'NO RESPONSE'); return; }
+    if(!poll.ok){ say('4. poll_challenges', 'REFUSED: ' + (poll.error||'?') +
+      (String(poll.error).indexOf('unknown') > -1 ? '  <-- the .gs was NOT redeployed' : '')); return; }
+    say('4. poll_challenges', 'OK');
+    say('5. incoming', (poll.incoming||[]).map(c=>c.challengeId+':'+c.status).join(', ') || 'none');
+    say('6. outgoing', (poll.outgoing||[]).map(c=>c.challengeId+':'+c.status).join(', ') || 'none');
+    const live = (poll.incoming||[]).concat(poll.outgoing||[])
+      .filter(c=>c.status==='accepted'||c.status==='later');
+    say('7. live matches', live.length);
+    say('8. banner visible', chalBanner && !chalBanner.classList.contains('hidden'));
+    if(!peer) return say('9. peer', 'pass a friend username to test sending');
+    const sent = await postToSheet('create_challenge', {
+      fromUser: currentServerUsername(), toUsers: [peer], mode: 'live'
+    });
+    say('9. send', sent && sent.ok ? ('OK ' + sent.challengeId) : ('FAILED: ' + ((sent&&sent.error)||'no response')));
+    const asPeer = await postToSheet('poll_challenges', { username: peer });
+    const seen = (asPeer && asPeer.incoming || []).some(c=>c.challengeId === (sent&&sent.challengeId));
+    say('10. peer would see it', seen ? 'YES — path works, fault is client-side' : 'NO — not reaching the recipient');
   };
 
   function startCallWatch(){
@@ -18967,6 +19290,15 @@
     if(prof.sessionLog.length > 90) prof.sessionLog.shift(); // keep roughly 2-3 months of daily use
     prof.challengeCount = (prof.challengeCount || 0) + 1;
     updateDayStreak(prof);
+    // If this round was played FOR a challenge, report the score so the other
+    // players see it. Without this the board would wait forever for a result
+    // the learner had already earned.
+    if(typeof challengeRunId !== 'undefined' && challengeRunId){
+      // Derived from acc and count, the two values genuinely in scope here.
+      // Naming a variable that does not exist would have thrown and lost the
+      // score entirely — the sort of mistake that only surfaces mid-match.
+      reportChallengeScore(score, Math.round((acc / 100) * count), count);
+    }
     commitTwinRecording(prof, score, acc);
     maybeSnapshotCognitiveProfile(prof);
     learnerStateDirty = true;
@@ -19474,7 +19806,7 @@
   }
 
   /* ================= Live two-player race ================= */
-  let raceMode = false;
+  var raceMode = false;
   let raceCode = null;
   let raceProblems = [];
   let racePollInterval = null;
@@ -19994,9 +20326,9 @@
      never through the Sheet or any Anthropic server. No TURN server is
      configured (none was set up), so the call may fail to connect on some
      restrictive networks; the race itself still works fine without it. */
-  let peerConnection = null;
-  let localStream = null;
-  let signalPollInterval = null;
+  var peerConnection = null;
+  var localStream = null;
+  var signalPollInterval = null;
   let signalSinceSeq = 0;
   const RTC_CONFIG = { iceServers: [
     { urls: 'stun:stun.l.google.com:19302' },
