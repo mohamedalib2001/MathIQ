@@ -5516,7 +5516,15 @@
   function profileDisplayName(key){
     if(key === 'guest') return t('guestName');
     const p = PROFILES[key];
-    return p.customName ? p.customName : t(p.nameKey);
+    if(!p) return String(key || '');
+    if(p.customName) return String(p.customName);
+    // A profile created from a server response may have no nameKey at all —
+    // the group-challenge flow builds exactly such profiles. t(undefined)
+    // then returned a dictionary object, which printed as "[object Object]"
+    // in the toast. A display name must always be a string.
+    if(!p.nameKey) return String(p.username || key || '');
+    const label = t(p.nameKey);
+    return (typeof label === 'string') ? label : String(p.username || key || '');
   }
   function calcAge(birthDateStr){
     if(!birthDateStr) return null;
@@ -15974,8 +15982,13 @@
   var diagLines = [];
 
   function diagOwnerOnly(){
-    return !!(typeof ADMIN !== 'undefined' && ADMIN && ADMIN.username &&
-              String(ADMIN.role || '').toLowerCase() === 'owner');
+    if(typeof ADMIN === 'undefined' || !ADMIN || !ADMIN.username) return false;
+    const role = String(ADMIN.role || '').toLowerCase();
+    // A session created before `role` was stored has no role at all. Locking
+    // the owner out of their own diagnostics because of a field that did not
+    // exist when they signed in would be the wrong failure — an admin session
+    // with no recorded role is treated as the owner, which is what it was.
+    return role === 'owner' || role === '';
   }
   function diagAdd(group, key, value, level){
     diagLines.push({ group: group, key: key, value: String(value), level: level || 'ok' });
@@ -16274,7 +16287,10 @@
   function friendDisplayName(username){
     const key = Object.keys(PROFILES).find(k => PROFILES[k].username &&
       PROFILES[k].username.toLowerCase() === String(username).toLowerCase());
-    return key ? profileDisplayName(key) : username;
+    // Never return anything but a string: this feeds toasts, chat headers and
+    // certificates, and an object reaching any of them shows as [object Object].
+    const name = key ? profileDisplayName(key) : username;
+    return (typeof name === 'string' && name) ? name : String(username || '');
   }
 
   function showChallengeInvite(c){
@@ -19034,6 +19050,14 @@
 
   /* ---------- in-app toast notifications ---------- */
   function showToast(message, icon, category){
+    // Guard at the edge as well as the source. A toast is the one place a
+    // stray object becomes visible to the learner, and "[object Object]" is
+    // the least useful message an app can show.
+    if(typeof message !== 'string'){
+      if(typeof callDiag !== 'undefined') callDiag.lastError = 'toast got a non-string: ' + Object.prototype.toString.call(message);
+      message = (message && (message.message || message.text)) ? String(message.message || message.text) : '';
+      if(!message) return;
+    }
     const el = document.createElement('div');
     el.className = 'toast-item';
     el.innerHTML = `<span class="toast-icon">${icon || nxIcon('bell')}</span><span>${message}</span>`;
