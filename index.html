@@ -2657,7 +2657,13 @@
 
   <div id="guardianAuditScreen" class="panel hidden">
     <div class="group-label" style="text-align:center;" data-i18n="guardianAuditTitle">🔍 فحص حسابات أولياء الأمور</div>
+    <div class="conn-note" data-i18n="gaSourceNote">تُقرأ هذه القائمة من الخادم، فتشمل كل الروابط في النظام من أي جهاز.</div>
     <div id="guardianAuditArea"></div>
+    <!-- Links created before the server store existed live only in the browser
+         that made them. This uploads whatever THIS browser holds — an admin
+         session usually holds none, so the button states that plainly rather
+         than appearing to have done something. -->
+    <button class="secondary-btn" id="gaMigrateBtn" data-i18n="gaMigrateBtn">⬆️ ارفع روابط هذا الجهاز للخادم</button>
     <button class="secondary-btn" id="guardianAuditBackBtn" data-i18n="closeBtn">إغلاق</button>
   </div>
 
@@ -4010,6 +4016,7 @@
   const guardianAuditLink = document.getElementById('guardianAuditLink');
   const guardianAuditScreen = document.getElementById('guardianAuditScreen');
   const guardianAuditArea = document.getElementById('guardianAuditArea');
+  const gaMigrateBtn = document.getElementById('gaMigrateBtn');
   const guardianAuditBackBtn = document.getElementById('guardianAuditBackBtn');
   const teachersListScreen = document.getElementById('teachersListScreen');
   const teachersListArea = document.getElementById('teachersListArea');
@@ -5271,6 +5278,12 @@
       mailDiagRecent:'آخر محاولات الإرسال', mailDiagNoLog:'لا توجد محاولات مسجّلة بعد',
       mailDiagFixHint:'الحل: افتحي محرر Apps Script، شغّلي الدالة grantMailPermission مرة واحدة، ووافقي على الصلاحيات. بدونها لن يصل أي كود إلى البريد.',
       guardianAuditLink:'فحص حسابات أولياء الأمور', guardianAuditTitle:'🔍 فحص حسابات أولياء الأمور',
+      gaSourceNote:'تُقرأ هذه القائمة من الخادم، فتشمل كل الروابط في النظام من أي جهاز.',
+      gaMigrateBtn:'⬆️ ارفع روابط هذا الجهاز للخادم',
+      gaNothingLocal:'لا توجد روابط أولياء أمور محفوظة على هذا المتصفح. افتحي التطبيق من الجهاز الذي أنشأتِ الروابط عليه وسجّلي الدخول بحساب طالب — تُرفع تلقائيًا.',
+      gaMigrated:'✓ رُفع {n} رابطًا من هذا الجهاز إلى الخادم.',
+      gaChildMissing:'حساب الطالب غير موجود — رابط معلّق',
+      gaClashLearner:'اسم ولي الأمر مستخدم أيضًا كحساب طالب — الدخول به يفتح حساب الطالب لا لوحة الأبناء',
       guardianAuditNone:'لا توجد حسابات أولياء أمور مسجَّلة بعد.',
       guardianAuditUsername:'اسم المستخدم', guardianAuditPinId:'بصمة كلمة المرور',
       guardianAuditNoPin:'بدون كلمة مرور صالحة — لن يستطيع تسجيل الدخول. اكتبي كلمة مرور واحفظي.',
@@ -6051,6 +6064,12 @@
       mailDiagRecent:'Recent send attempts', mailDiagNoLog:'No attempts recorded yet',
       mailDiagFixHint:'Fix: open the Apps Script editor, run grantMailPermission once, and approve the permissions. Without it no code can ever be delivered.',
       guardianAuditLink:'Guardian accounts audit', guardianAuditTitle:'🔍 Guardian accounts audit',
+      gaSourceNote:'This list is read from the server, so it covers every link in the system from any device.',
+      gaMigrateBtn:'⬆️ Upload this device\'s links to the server',
+      gaNothingLocal:'No guardian links are stored in this browser. Open the app on the device where you created them and sign in as a learner — they upload automatically.',
+      gaMigrated:'✓ Uploaded {n} link(s) from this device to the server.',
+      gaChildMissing:'Learner account not found — dangling link',
+      gaClashLearner:'This guardian username is also a learner account — signing in with it opens the learner, not the parent view',
       guardianAuditNone:'No guardian accounts saved yet.',
       guardianAuditUsername:'Username', guardianAuditPinId:'Password fingerprint',
       guardianAuditNoPin:'No usable password — cannot sign in. Type a password and save.',
@@ -11974,6 +11993,24 @@
         recent || `<div class="dash-empty">${t('mailDiagNoLog')}</div>`}</div></div>`;
   });
 
+  gaMigrateBtn.addEventListener('click', async ()=>{
+    // Count what is actually here BEFORE claiming to have uploaded anything.
+    let found = 0;
+    profileOrder.forEach(function(k){
+      const p = PROFILES[k];
+      if(!p || !p.username || !p.guardians) return;
+      ['mother','father'].forEach(function(r){
+        if(p.guardians[r] && p.guardians[r].username) found++;
+      });
+    });
+    if(!found){ showToast(t('gaNothingLocal'), nxIcon('alertTriangle'), 'system'); return; }
+    setBtnSaving(gaMigrateBtn, true);
+    guardianLinksMigrated = false;      // allow a deliberate re-run
+    await migrateGuardianLinksUp();
+    setBtnSaving(gaMigrateBtn, false);
+    showToast(fmt('gaMigrated', { n: found }), nxIcon('check'), 'system');
+    await renderGuardianAudit();
+  });
   guardianAuditBackBtn.addEventListener('click', ()=>{
     guardianAuditScreen.classList.add('hidden');
     profilesEl.classList.remove('hidden');
@@ -11982,6 +12019,40 @@
   // saved, whether its password is usable, and which learner account (if any)
   // it will surface "My children" for.
   async function renderGuardianAudit(){
+    // Ask the SERVER first. This audit exists to inspect every guardian link
+    // in the system, and an admin session holds no children locally — reading
+    // PROFILES here meant the tool always reported "none" no matter how many
+    // links existed. Local data stays as an offline fallback only.
+    if(SHEET_API_URL && typeof ADMIN !== 'undefined' && ADMIN && ADMIN.username){
+      guardianAuditArea.innerHTML = `<div class="dash-empty">${t('teachersLoading')}</div>`;
+      const res = await postToSheet('list_all_guardian_links', {
+        requesterUsername: ADMIN.username, requesterPin: ADMIN.pin
+      });
+      if(res && res.ok && Array.isArray(res.links)){
+        if(!res.links.length){
+          guardianAuditArea.innerHTML = `<div class="dash-empty">${t('guardianAuditNone')}</div>`;
+          return;
+        }
+        guardianAuditArea.innerHTML = res.links.map(function(l){
+          const warn = [];
+          // A link pointing at a deleted account can never resolve.
+          if(!l.childExists) warn.push(t('gaChildMissing'));
+          // A username that is both parent and learner always logs in as the
+          // learner, so the parent view is unreachable for it.
+          if(l.guardianIsAlsoLearner) warn.push(t('gaClashLearner'));
+          return `<div class="dash-row" style="flex-direction:column; align-items:stretch; gap:4px;">
+            <div style="display:flex; justify-content:space-between; gap:8px;">
+              <span>${l.childName || l.childUsername}</span>
+              <b style="direction:ltr;">@${l.guardianUsername}</b>
+            </div>
+            <div style="font-size:10.5px; color:var(--ink-dim);">${
+              t(l.role === 'mother' ? 'motherAccount' : 'fatherAccount')}</div>
+            ${warn.length ? `<div style="font-size:10.5px; color:#F59E0B;">⚠ ${warn.join(' · ')}</div>` : ''}
+          </div>`;
+        }).join('');
+        return;
+      }
+    }
     const rows = [];
     const learnerUsernames = {};
     Object.keys(PROFILES).forEach(k=>{
