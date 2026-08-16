@@ -1460,6 +1460,26 @@
   }
   @keyframes cbPulse{ 0%,100%{ border-color:rgba(99,102,241,0.5) } 50%{ border-color:rgba(6,182,212,0.75) } }
 
+  /* ---------- DIAGNOSTICS ---------- */
+  .diag-actions{ display:flex; gap:8px; margin:10px 0; }
+  .diag-actions button{ flex:1; margin:0; }
+  .diag-group{ font-family:'Cairo',sans-serif; font-weight:800; font-size:12.5px;
+    color:var(--ink); margin:14px 0 6px; }
+  .diag-row{ display:flex; align-items:flex-start; gap:8px; padding:8px 10px; margin-bottom:5px;
+    border-radius:9px; background:var(--input-bg); border:1px solid var(--chip-border);
+    font-size:12px; line-height:1.65; }
+  .diag-ic{ flex:none; font-size:13px; width:18px; text-align:center; }
+  .diag-k{ flex:none; min-width:120px; color:var(--ink-dim); }
+  .diag-v{ flex:1; min-width:0; color:var(--ink); word-break:break-word; }
+  .diag-row.ok{ border-color:rgba(34,197,94,0.35); }
+  .diag-row.warn{ border-color:rgba(245,158,11,0.45); }
+  .diag-row.bad{ border-color:rgba(239,68,68,0.5); background:rgba(239,68,68,0.07); }
+  .diag-verdict{ border-radius:12px; padding:12px 14px; margin:12px 0; font-size:13px;
+    line-height:1.8; font-weight:700; }
+  .diag-verdict.bad{ background:rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.45); color:#fca5a5; }
+  .diag-verdict.ok{ background:rgba(34,197,94,0.12); border:1px solid rgba(34,197,94,0.4); color:#86efac; }
+  @media (max-width:700px){ .diag-k{ min-width:92px; font-size:11px; } .diag-row{ font-size:11.5px; } }
+
   /* ---------- LIVE CHALLENGE BANNER ---------- */
   #chalBanner{
     position:fixed; z-index:600; inset-inline:12px;
@@ -2884,6 +2904,7 @@
       <div class="admin-tool-tile" id="addTeacherLink"><span class="tile-icon">➕</span><span data-i18n="addTeacherLink">إضافة حساب معلم</span></div>
       <div class="admin-tool-tile" id="teachersListLink"><span class="tile-icon">👥</span><span data-i18n="teachersListLink">المعلّمون</span></div>
       <div class="admin-tool-tile" id="guardianAuditLink"><span class="tile-icon">🔍</span><span data-i18n="guardianAuditLink">فحص حسابات أولياء الأمور</span></div>
+      <div class="admin-tool-tile" id="diagLink"><span class="tile-icon">🩺</span><span data-i18n="diagTitle">تشخيص النظام</span></div>
       <div class="admin-tool-tile" id="examImportLink"><span class="tile-icon">📥</span><span data-i18n="exImportLink">إدخال اختبار دراسي</span></div>
       <div class="admin-tool-tile" id="mailDiagLink"><span class="tile-icon">✉️</span><span data-i18n="mailDiagLink">تشخيص إرسال البريد</span></div>
       <div class="admin-tool-tile" id="connectionLink"><span class="tile-icon">🔗</span><span data-i18n="connectionLink">ربط جوجل شيت</span></div>
@@ -3282,6 +3303,24 @@
     <button class="start-btn" id="cbPlayBtn" data-i18n="cbPlay">▶ ابدأ جولتك</button>
     <div class="conn-note" id="cbHint"></div>
     <button class="secondary-btn" id="cbBackBtn" data-i18n="closeBtn">إغلاق</button>
+  </div>
+
+  <!-- SYSTEM DIAGNOSTICS (owner only)
+       Six rounds of guessing ended with "still broken" because I could never
+       see which build was running or where a request actually stopped. This
+       answers that from inside the app, so a fault is read rather than
+       inferred. -->
+  <div id="diagScreen" class="panel hidden">
+    <div class="group-label" style="text-align:center;" data-i18n="diagTitle">🩺 تشخيص النظام</div>
+    <div class="conn-note" data-i18n="diagIntro">يفحص هذا التقرير النسخة والاتصال والخادم ومسارات المكالمات والتحديات، ويعرض أين تتوقف كل عملية بالضبط.</div>
+    <div class="diag-actions">
+      <button class="start-btn" id="diagRunBtn" data-i18n="diagRun">▶ ابدأ الفحص الكامل</button>
+      <button class="secondary-btn" id="diagCopyBtn" data-i18n="diagCopy">📋 نسخ التقرير</button>
+    </div>
+    <div class="group-label" data-i18n="diagPeerLabel">اسم مستخدم صديق (لفحص التوصيل)</div>
+    <input type="text" id="diagPeer" class="ltr-input" placeholder="username">
+    <div id="diagOut"></div>
+    <button class="secondary-btn" id="diagBackBtn" data-i18n="closeBtn">إغلاق</button>
   </div>
 
   <!-- Always-visible entry to a running match. A toast lasts three seconds;
@@ -4544,6 +4583,7 @@
   const dashboardLink = document.getElementById('dashboardLink');
   const programBuilderLink = document.getElementById('programBuilderLink');
   const teachersListLink = document.getElementById('teachersListLink');
+  const diagLink = document.getElementById('diagLink');
   const examImportLink = document.getElementById('examImportLink');
   const mailDiagLink = document.getElementById('mailDiagLink');
   const mailDiagScreen = document.getElementById('mailDiagScreen');
@@ -4622,6 +4662,12 @@
   const cbPlayBtn = document.getElementById('cbPlayBtn');
   const cbHint = document.getElementById('cbHint');
   const cbBackBtn = document.getElementById('cbBackBtn');
+  const diagScreen = document.getElementById('diagScreen');
+  const diagPeer = document.getElementById('diagPeer');
+  const diagOut = document.getElementById('diagOut');
+  const diagRunBtn = document.getElementById('diagRunBtn');
+  const diagCopyBtn = document.getElementById('diagCopyBtn');
+  const diagBackBtn = document.getElementById('diagBackBtn');
   const chalBanner = document.getElementById('chalBanner');
   const chalBannerText = document.getElementById('chalBannerText');
   const chalBannerBtn = document.getElementById('chalBannerBtn');
@@ -6031,6 +6077,34 @@
       exArchiveConfirm:'سيُخفى هذا الاختبار عن الطلاب. محاولاتهم السابقة تبقى محفوظة. هل تريد المتابعة؟',
       exArchived:'✓ تمت أرشفة الاختبار.', exRestored:'✓ أُعيد نشر الاختبار.',
       exArchiveFailed:'تعذّر تنفيذ العملية.',
+      diagTitle:'🩺 تشخيص النظام',
+      diagIntro:'يفحص هذا التقرير النسخة والاتصال والخادم ومسارات المكالمات والتحديات، ويعرض أين تتوقف كل عملية بالضبط.',
+      diagRun:'▶ ابدأ الفحص الكامل', diagCopy:'📋 نسخ التقرير', diagCopied:'✓ نُسخ التقرير.',
+      diagPeerLabel:'اسم مستخدم صديق (لفحص التوصيل)',
+      diagRunning:'جارٍ الفحص…', diagCrashed:'توقّف الفحص نفسه بخطأ:',
+      diagOwnerOnly:'هذه الأداة متاحة لحساب المالك فقط.',
+      diagGrpBuild:'النسخة', diagGrpConn:'الاتصال', diagGrpServer:'الخادم',
+      diagGrpLoops:'العمليات الخلفية', diagGrpMedia:'الوسائط', diagGrpDelivery:'التوصيل الفعلي',
+      diagBuildId:'رقم النسخة', diagHoistFix:'إصلاح ترتيب التحميل',
+      diagBackendUrl:'رابط الخادم', diagSignedIn:'الحساب الحالي', diagOnline:'الشبكة',
+      diagSecure:'البروتوكول', diagReachable:'استجابة الخادم', diagRespondedIn:'استجاب خلال {ms} مللي',
+      diagSignalQueue:'طابور إشارات المكالمات', diagNewActions:'النقاط الجديدة',
+      diagChalPoll:'استطلاع التحديات', diagCallWatch:'مراقبة المكالمات', diagMsgPoll:'استطلاع الرسائل',
+      diagPollCount:'عدد الاستطلاعات', diagLastError:'آخر خطأ',
+      diagMediaApi:'واجهة الكاميرا والميكروفون', diagRtcApi:'واجهة WebRTC', diagMicPerm:'إذن الميكروفون',
+      diagRoom:'غرفة الاتصال', diagSignalWrite:'كتابة الإشارة', diagSeq:'تم — رقم {n}',
+      diagPeerReceives:'هل تصل للطرف الآخر؟', diagChalCreate:'إنشاء تحدٍّ', diagChalSeen:'هل يراه الصديق؟',
+      diagPresent:'موجود ✓', diagMissing:'غير موجود', diagRunning2:'تعمل', diagStopped:'متوقفة',
+      diagYes:'نعم', diagNo:'لا', diagNone:'لا يوجد', diagUnknown:'غير معروف',
+      diagNoResponse:'لا استجابة', diagNeedPeer:'أدخل اسم صديق لفحص التوصيل',
+      diagVerdictOldHtml:'❌ ملف HTML المرفوع نسخة قديمة. حمّل الملف الأخير وارفعه، ثم افتح بنافذة خاصة.',
+      diagVerdictOldGs:'❌ ملف الخادم (.gs) لم يُنشر بنسخة جديدة. افتح Apps Script ← Deploy ← Manage deployments ← ✏️ ← Version: New version ← Deploy.',
+      diagVerdictNoBackend:'❌ رابط الخادم غير مضبوط في التطبيق.',
+      diagVerdictUnreachable:'❌ لا يستجيب الخادم إطلاقًا — تحقق من الرابط والاتصال.',
+      diagVerdictNotHttps:'❌ الصفحة ليست https — المتصفح يمنع الكاميرا والميكروفون تمامًا على http.',
+      diagVerdictLoopsDead:'❌ العمليات الخلفية متوقفة — لن تصل مكالمات ولا تحديات. غالبًا نسخة HTML قديمة.',
+      diagVerdictNoDelivery:'❌ الكتابة تنجح لكن لا تصل للطرف الآخر — الخلل في الخادم أو في نسخته المنشورة.',
+      diagVerdictAllGood:'✅ كل المسارات سليمة. إن بقيت المشكلة فهي في طبقة WebRTC نفسها (شبكة مقيّدة تحتاج خادم TURN).',
       exImportLink:'إدخال اختبار دراسي', exImportTitle:'📥 إدخال اختبار',
       exSubject:'المادة', exYear:'العام', exDuration:'المدة (دقيقة)', exExamTitle:'عنوان الورقة',
       exSource:'المصدر (إلزامي)', exSourcePh:'من أين جاءت هذه الورقة؟',
@@ -6906,6 +6980,34 @@
       exArchiveConfirm:'This paper will be hidden from students. Their past attempts remain saved. Continue?',
       exArchived:'✓ Exam archived.', exRestored:'✓ Exam republished.',
       exArchiveFailed:'The action could not be completed.',
+      diagTitle:'🩺 System diagnostics',
+      diagIntro:'Checks the build, connection, backend, and the call and challenge paths, showing exactly where each one stops.',
+      diagRun:'▶ Run full check', diagCopy:'📋 Copy report', diagCopied:'✓ Report copied.',
+      diagPeerLabel:'A friend username (to test delivery)',
+      diagRunning:'Running…', diagCrashed:'The check itself failed:',
+      diagOwnerOnly:'This tool is available to the owner account only.',
+      diagGrpBuild:'Build', diagGrpConn:'Connection', diagGrpServer:'Backend',
+      diagGrpLoops:'Background loops', diagGrpMedia:'Media', diagGrpDelivery:'Actual delivery',
+      diagBuildId:'Build id', diagHoistFix:'Load-order fix',
+      diagBackendUrl:'Backend URL', diagSignedIn:'Signed in as', diagOnline:'Network',
+      diagSecure:'Protocol', diagReachable:'Backend response', diagRespondedIn:'Responded in {ms} ms',
+      diagSignalQueue:'Call signal queue', diagNewActions:'Newest endpoints',
+      diagChalPoll:'Challenge polling', diagCallWatch:'Call watcher', diagMsgPoll:'Message polling',
+      diagPollCount:'Poll count', diagLastError:'Last error',
+      diagMediaApi:'Camera/mic API', diagRtcApi:'WebRTC API', diagMicPerm:'Microphone permission',
+      diagRoom:'Call room', diagSignalWrite:'Signal write', diagSeq:'ok — seq {n}',
+      diagPeerReceives:'Does the peer receive it?', diagChalCreate:'Create challenge', diagChalSeen:'Does the friend see it?',
+      diagPresent:'present ✓', diagMissing:'missing', diagRunning2:'running', diagStopped:'stopped',
+      diagYes:'yes', diagNo:'no', diagNone:'none', diagUnknown:'unknown',
+      diagNoResponse:'no response', diagNeedPeer:'Enter a friend username to test delivery',
+      diagVerdictOldHtml:'❌ The uploaded HTML is an old build. Download the latest file, upload it, and open in a private window.',
+      diagVerdictOldGs:'❌ The .gs backend was not redeployed. Apps Script → Deploy → Manage deployments → ✏️ → Version: New version → Deploy.',
+      diagVerdictNoBackend:'❌ The backend URL is not set in the app.',
+      diagVerdictUnreachable:'❌ The backend does not respond at all — check the URL and connection.',
+      diagVerdictNotHttps:'❌ The page is not https — browsers block camera and microphone entirely on http.',
+      diagVerdictLoopsDead:'❌ Background loops are stopped — no calls or challenges can arrive. Usually an old HTML build.',
+      diagVerdictNoDelivery:'❌ Writes succeed but nothing reaches the peer — the fault is in the backend or its deployed version.',
+      diagVerdictAllGood:'✅ Every path is healthy. If it still fails, the fault is in the WebRTC layer itself (a restricted network needing a TURN server).',
       exImportLink:'Import an exam', exImportTitle:'📥 Import an exam',
       exSubject:'Subject', exYear:'Year', exDuration:'Duration (min)', exExamTitle:'Paper title',
       exSource:'Source (required)', exSourcePh:'Where did this paper come from?',
@@ -7984,6 +8086,7 @@
     // they stay visible on top of the login screen after logout.
     friendsScreen.classList.add('hidden');
     friendProfileScreen.classList.add('hidden');
+    diagScreen.classList.add('hidden');
     examImportScreen.classList.add('hidden');
     mailDiagScreen.classList.add('hidden');
     guardianAuditScreen.classList.add('hidden');
@@ -12779,6 +12882,30 @@
     guardianAuditScreen.classList.remove('hidden');
     await renderGuardianAudit();
   });
+  diagLink.addEventListener('click', ()=>{
+    // Owner only: the report exposes the backend URL, session state and raw
+    // error codes. Useful to whoever maintains the platform, and nobody else.
+    if(!diagOwnerOnly()){ showToast(t('diagOwnerOnly'), nxIcon('lock'), 'system'); return; }
+    hideAllScreens();
+    diagScreen.classList.remove('hidden');
+    diagOut.innerHTML = '';
+  });
+  diagBackBtn.addEventListener('click', ()=>{
+    diagScreen.classList.add('hidden');
+    profilesEl.classList.remove('hidden');
+  });
+  diagRunBtn.addEventListener('click', async ()=>{
+    setBtnSaving(diagRunBtn, true);
+    diagOut.innerHTML = `<div class="dash-empty">${t('diagRunning')}</div>`;
+    try{ await runDiagnostics(); }
+    catch(err){
+      // The diagnostics screen must never be the thing that fails silently.
+      diagOut.innerHTML = `<div class="diag-verdict bad">${t('diagCrashed')}<br><br>${String(err && err.message || err)}</div>`;
+    }
+    setBtnSaving(diagRunBtn, false);
+  });
+  diagCopyBtn.addEventListener('click', diagCopyReport);
+
   examImportLink.addEventListener('click', ()=>{
     hideAllScreens();
     examImportScreen.classList.remove('hidden');
@@ -15791,6 +15918,166 @@
     if(!prof || currentProfile === 'guest') return;
     saveLearnerState(prof, currentServerUsername());
   }
+
+  /* ==================== MODULE: SYSTEM DIAGNOSTICS (OWNER ONLY) ====================
+     Reads the running system instead of inferring from source. Every check
+     records what it EXPECTED and what it FOUND, so a failure names its own
+     cause rather than leaving it to be guessed.
+
+     Owner-gated: it exposes the backend URL tail, session state and raw error
+     codes — useful to whoever maintains the platform, and no business of a
+     learner or a parent. */
+  var DIAG_BUILD = 'nexora-2026-08-16-diagnostics-1';
+  var diagLines = [];
+
+  function diagOwnerOnly(){
+    return !!(typeof ADMIN !== 'undefined' && ADMIN && ADMIN.username &&
+              String(ADMIN.role || '').toLowerCase() === 'owner');
+  }
+  function diagAdd(group, key, value, level){
+    diagLines.push({ group: group, key: key, value: String(value), level: level || 'ok' });
+  }
+  function diagRender(verdict){
+    const groups = [];
+    diagLines.forEach(function(l){
+      if(!groups.length || groups[groups.length - 1].name !== l.group) groups.push({ name: l.group, rows: [] });
+      groups[groups.length - 1].rows.push(l);
+    });
+    const icon = { ok:'✅', warn:'⚠️', bad:'❌', info:'•' };
+    diagOut.innerHTML =
+      (verdict ? `<div class="diag-verdict ${verdict.level}">${verdict.text}</div>` : '') +
+      groups.map(function(g){
+        return `<div class="diag-group">${g.name}</div>` + g.rows.map(function(r){
+          return `<div class="diag-row ${r.level}">
+            <span class="diag-ic">${icon[r.level] || '•'}</span>
+            <span class="diag-k">${r.key}</span>
+            <span class="diag-v">${String(r.value).replace(/[<>]/g,'')}</span>
+          </div>`;
+        }).join('');
+      }).join('');
+  }
+
+  async function runDiagnostics(){
+    diagLines = [];
+    const peer = (diagPeer.value || '').trim();
+    let fatal = null;   // the FIRST thing that makes everything downstream pointless
+
+    /* ---- 1. Which build is actually running? ---- */
+    diagAdd(t('diagGrpBuild'), t('diagBuildId'), DIAG_BUILD, 'info');
+    const hoistOk = (typeof CHAL_POLL_IDLE !== 'undefined');
+    diagAdd(t('diagGrpBuild'), t('diagHoistFix'), hoistOk ? t('diagPresent') : t('diagMissing'), hoistOk ? 'ok' : 'bad');
+    if(!hoistOk) fatal = fatal || t('diagVerdictOldHtml');
+
+    /* ---- 2. Connection ---- */
+    diagAdd(t('diagGrpConn'), t('diagBackendUrl'), SHEET_API_URL ? ('…' + SHEET_API_URL.slice(-24)) : t('diagMissing'), SHEET_API_URL ? 'ok' : 'bad');
+    if(!SHEET_API_URL) fatal = fatal || t('diagVerdictNoBackend');
+    diagAdd(t('diagGrpConn'), t('diagSignedIn'), currentServerUsername() || t('diagNone'), currentServerUsername() ? 'ok' : 'bad');
+    diagAdd(t('diagGrpConn'), t('diagOnline'), navigator.onLine ? t('diagYes') : t('diagNo'), navigator.onLine ? 'ok' : 'bad');
+    diagAdd(t('diagGrpConn'), t('diagSecure'), location.protocol === 'https:' ? 'https' : location.protocol,
+            location.protocol === 'https:' ? 'ok' : 'bad');
+    // Media capture is blocked outright on plain http — a call cannot start.
+    if(location.protocol !== 'https:') fatal = fatal || t('diagVerdictNotHttps');
+
+    /* ---- 3. Is the DEPLOYED backend the current one? ---- */
+    if(SHEET_API_URL){
+      const t0 = Date.now();
+      const probe = await postToSheet('room_state', { username: currentServerUsername(), sinceSignalSeq: 0 });
+      const ms = Date.now() - t0;
+      if(!probe){
+        diagAdd(t('diagGrpServer'), t('diagReachable'), t('diagNoResponse'), 'bad');
+        fatal = fatal || t('diagVerdictUnreachable');
+      } else if(!probe.ok){
+        diagAdd(t('diagGrpServer'), t('diagReachable'), (probe.error || '?'), 'bad');
+        if(String(probe.error).indexOf('unknown') > -1) fatal = fatal || t('diagVerdictOldGs');
+      } else {
+        diagAdd(t('diagGrpServer'), t('diagReachable'), fmt('diagRespondedIn', { ms: ms }), 'ok');
+        // lastSignalSeq only exists in the queue-based backend. Its absence is
+        // the single clearest sign the .gs was never redeployed.
+        const queueOk = (typeof probe.lastSignalSeq === 'number');
+        diagAdd(t('diagGrpServer'), t('diagSignalQueue'), queueOk ? t('diagPresent') : t('diagMissing'), queueOk ? 'ok' : 'bad');
+        if(!queueOk) fatal = fatal || t('diagVerdictOldGs');
+      }
+      // Does the deployment know the newest actions at all?
+      const exams = await postToSheet('list_all_exams', { requesterUsername: (ADMIN && ADMIN.username) || '', requesterPin: (ADMIN && ADMIN.pin) || '' });
+      diagAdd(t('diagGrpServer'), t('diagNewActions'),
+        exams && (exams.ok || exams.error === 'not_authorized') ? t('diagPresent') : t('diagMissing'),
+        exams && (exams.ok || exams.error === 'not_authorized') ? 'ok' : 'bad');
+    }
+
+    /* ---- 4. Background loops ---- */
+    const chalOn = (typeof chalPollId !== 'undefined') && chalPollId !== null;
+    const callOn = (typeof callDiag !== 'undefined') && callDiag.watchStarted;
+    const msgOn  = (typeof msgPollId !== 'undefined') && msgPollId !== null;
+    diagAdd(t('diagGrpLoops'), t('diagChalPoll'), chalOn ? t('diagRunning2') : t('diagStopped'), chalOn ? 'ok' : 'bad');
+    diagAdd(t('diagGrpLoops'), t('diagCallWatch'), callOn ? t('diagRunning2') : t('diagStopped'), callOn ? 'ok' : 'bad');
+    diagAdd(t('diagGrpLoops'), t('diagMsgPoll'), msgOn ? t('diagRunning2') : t('diagStopped'), msgOn ? 'ok' : 'warn');
+    if(typeof callDiag !== 'undefined'){
+      diagAdd(t('diagGrpLoops'), t('diagPollCount'), callDiag.polls, callDiag.polls > 0 ? 'ok' : 'warn');
+      if(callDiag.lastError) diagAdd(t('diagGrpLoops'), t('diagLastError'), callDiag.lastError, 'bad');
+    }
+    if(!chalOn || !callOn) fatal = fatal || t('diagVerdictLoopsDead');
+
+    /* ---- 5. Media devices ---- */
+    const hasMedia = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+    diagAdd(t('diagGrpMedia'), t('diagMediaApi'), hasMedia ? t('diagPresent') : t('diagMissing'), hasMedia ? 'ok' : 'bad');
+    diagAdd(t('diagGrpMedia'), t('diagRtcApi'), (typeof RTCPeerConnection !== 'undefined') ? t('diagPresent') : t('diagMissing'),
+            (typeof RTCPeerConnection !== 'undefined') ? 'ok' : 'bad');
+    if(navigator.permissions && navigator.permissions.query){
+      try{
+        const mic = await navigator.permissions.query({ name: 'microphone' });
+        diagAdd(t('diagGrpMedia'), t('diagMicPerm'), mic.state, mic.state === 'denied' ? 'bad' : 'ok');
+      }catch(e){ diagAdd(t('diagGrpMedia'), t('diagMicPerm'), t('diagUnknown'), 'info'); }
+    }
+
+    /* ---- 6. End-to-end delivery, if a peer was named ---- */
+    if(peer && SHEET_API_URL){
+      const room = (typeof callRoomFor === 'function') ? callRoomFor(peer) : '';
+      diagAdd(t('diagGrpDelivery'), t('diagRoom'), room || '?', 'info');
+      const sent = await postToSheet('call_signal', {
+        roomId: room, fromUser: currentServerUsername(), toUser: peer,
+        signal: { type: 'diagnostic', at: Date.now() }
+      });
+      diagAdd(t('diagGrpDelivery'), t('diagSignalWrite'),
+        sent && sent.ok ? fmt('diagSeq', { n: sent.seq || '?' }) : ((sent && sent.error) || t('diagNoResponse')),
+        sent && sent.ok ? 'ok' : 'bad');
+      // Read it back as the RECIPIENT would — the only proof that matters.
+      const asPeer = await postToSheet('room_state', { username: peer, sinceSignalSeq: 0 });
+      const got = ((asPeer && asPeer.signals) || []).filter(function(x){ return x.data && x.data.type === 'diagnostic'; });
+      diagAdd(t('diagGrpDelivery'), t('diagPeerReceives'), got.length ? t('diagYes') : t('diagNo'), got.length ? 'ok' : 'bad');
+      if(!got.length) fatal = fatal || t('diagVerdictNoDelivery');
+      await postToSheet('clear_call_signal', { roomId: room, fromUser: currentServerUsername(), toUser: peer });
+
+      // Challenge path, same treatment.
+      const ch = await postToSheet('create_challenge', { fromUser: currentServerUsername(), toUsers: [peer], mode: 'live' });
+      diagAdd(t('diagGrpDelivery'), t('diagChalCreate'),
+        ch && ch.ok ? (ch.challengeId || 'ok') : ((ch && ch.error) || t('diagNoResponse')), ch && ch.ok ? 'ok' : 'bad');
+      if(ch && ch.ok){
+        const peerPoll = await postToSheet('poll_challenges', { username: peer });
+        const seen = ((peerPoll && peerPoll.incoming) || []).some(function(c){ return c.challengeId === ch.challengeId; });
+        diagAdd(t('diagGrpDelivery'), t('diagChalSeen'), seen ? t('diagYes') : t('diagNo'), seen ? 'ok' : 'bad');
+        if(!seen) fatal = fatal || t('diagVerdictNoDelivery');
+        await postToSheet('cancel_challenge', { challengeId: ch.challengeId, username: currentServerUsername() });
+      }
+    } else if(!peer){
+      diagAdd(t('diagGrpDelivery'), t('diagPeerReceives'), t('diagNeedPeer'), 'warn');
+    }
+
+    diagRender(fatal ? { level:'bad', text: fatal } : { level:'ok', text: t('diagVerdictAllGood') });
+  }
+
+  function diagCopyReport(){
+    const text = [DIAG_BUILD, new Date().toISOString()].concat(
+      diagLines.map(function(l){ return '[' + l.level + '] ' + l.group + ' / ' + l.key + ': ' + l.value; })
+    ).join('\n');
+    navigator.clipboard.writeText(text).then(function(){
+      showToast(t('diagCopied'), nxIcon('check'), 'system');
+    }).catch(function(){
+      // Clipboard access can be refused; showing the text is better than
+      // failing silently on the one screen meant for diagnosing failures.
+      diagOut.innerHTML = `<textarea rows="14" style="width:100%; font-family:monospace; font-size:11px;">${text}</textarea>`;
+    });
+  }
+  /* ==================== END MODULE: SYSTEM DIAGNOSTICS ==================== */
 
   /* ==================== MODULE: LIVE CHALLENGES & CHAT ====================
      Apps Script offers no push channel, so "live" is adaptive polling: fast
