@@ -7886,8 +7886,7 @@
     // and they are never asked to supply a photo the app already has.
     if(key !== 'guest' && typeof ensurePrintablePhoto === 'function') ensurePrintablePhoto(key);
     if(key !== 'guest' && typeof migrateGuardianLinksUp === 'function') migrateGuardianLinksUp();
-    if(key !== 'guest' && typeof chalStartPolling === 'function') chalStartPolling();
-    if(key !== 'guest' && typeof startUnreadPolling === 'function') startUnreadPolling();
+    if(key !== 'guest' && typeof startRealtimeServices === 'function') startRealtimeServices();
     if(key !== 'guest' && typeof startCallWatch === 'function') startCallWatch();
     // Backfill the join date for sessions that signed in before the server
     // started returning it — otherwise it would stay blank until next login.
@@ -9214,6 +9213,14 @@
     const remember = !ulRememberMe || ulRememberMe.checked; // default true — identical to prior behavior unless explicitly unchecked
     if(remember) saveCurrentSession(key);
     if(SHEET_API_URL) postToSheet('login', { username: key });
+    // EVERY path into a session passes through here — a fresh sign-in and a
+    // session restored from storage alike. Starting the background services
+    // in the login BUTTON handler meant a restored session ran none of them,
+    // so challenges and the message badge were dead until the next explicit
+    // login. This is the one place that cannot be bypassed.
+    if(key !== 'guest' && typeof startRealtimeServices === 'function'){
+      setTimeout(startRealtimeServices, 400);   // let the shell finish rendering first
+    }
   }
   ulPwToggle.addEventListener('click', ()=>{
     const showing = ulPassword.type === 'text';
@@ -16332,6 +16339,27 @@
     chalStopPolling();
     chalPollId = setInterval(chalPoll, ms);
   }
+  /* Starts every background service that a signed-in session needs.
+     
+     The bug this fixes: these were started ONLY from the login handler, so a
+     session restored from storage — which is what happens every time the app
+     is reopened without signing in again — never started them. Challenges and
+     the message badge were simply dead until the next explicit login, while
+     call watching (started elsewhere) kept working, which is exactly what the
+     diagnostics showed.
+     
+     Safe to call repeatedly: each starter clears its own interval first. */
+  function startRealtimeServices(){
+    if(!SHEET_API_URL || !hasAuthenticatedSession()) return;
+    if(document.hidden) return;                 // nothing runs for a hidden tab
+    chalStartPolling();
+    if(typeof startUnreadPolling === 'function') startUnreadPolling();
+    if(typeof startCallWatch === 'function') startCallWatch();
+  }
+  function stopRealtimeServices(){
+    chalStopPolling();
+    if(typeof stopUnreadPolling === 'function') stopUnreadPolling();
+  }
   function chalStartPolling(){
     if(!SHEET_API_URL || !hasAuthenticatedSession()) return;
     chalPoll();
@@ -16343,7 +16371,7 @@
     // Call watching keeps running on a hidden tab: missing an incoming call
     // because the user switched tabs is exactly the failure being fixed here.
     if(document.hidden){ chalStopPolling(); stopUnreadPolling(); }
-    else if(hasAuthenticatedSession()){ chalStartPolling(); startUnreadPolling(); startCallWatch(); }
+    else startRealtimeServices();
   });
 
   async function chalPoll(){
