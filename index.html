@@ -2562,7 +2562,12 @@
         <button class="nova-send" id="novaSendBtn" aria-label="إرسال">↑</button>
       </div>
       <div class="nova-foot">
-        <label class="nova-voice-toggle"><input type="checkbox" id="novaVoiceChk" checked> <span data-i18n="novaVoiceLabel">الرد بالصوت</span></label>
+        <!-- Voice is OFF by default. SpeechSynthesis uses whatever voices the
+             device has installed, and the free Arabic voices on Windows and
+             Android mispronounce diacritics and stress badly. A child hearing
+             wrong pronunciation is worse than clean text, so the learner opts
+             IN rather than being read to badly by default. -->
+        <label class="nova-voice-toggle"><input type="checkbox" id="novaVoiceChk"> <span data-i18n="novaVoiceLabel">الرد بالصوت</span></label>
         <span class="nova-disclaimer" data-i18n="novaDisclaimer">نوفا مساعد آلي — قد يخطئ، وتقدّمك الحقيقي هو ما تظهره صفحاتك.</span>
       </div>
     </div>
@@ -4805,6 +4810,7 @@
       novaDueLine:'وعندك {n} سؤال حان موعد مراجعته.',
       novaFailed:'لم أستطع الوصول للإجابة الآن. جرّبي مرة أخرى بعد قليل.',
       novaOfflineOnly:'أحتاج اتصالًا بالخادم للإجابة على هذا. لكن يمكنني فتح الصفحات لكِ بدون إنترنت.',
+      sessionExpired:'انتهت جلستك لأسباب أمنية. سجّلي الدخول مرة أخرى للمتابعة.',
       novaNoArabicVoice:'لا يوجد صوت عربي مثبَّت على جهازك، فسأكتفي بالكتابة — لأن قراءة العربية بصوت إنجليزي ستكون مشوّهة. يمكنك تثبيت صوت عربي من إعدادات النظام.',
       novaMicUnsupported:'متصفحك لا يدعم إدخال الصوت. استخدمي الكتابة، أو جرّبي Chrome.',
       novaMicDenied:'المتصفح منع الميكروفون. اسمحي بالوصول من إعدادات الموقع ثم أعيدي المحاولة.',
@@ -5516,6 +5522,7 @@
       novaDueLine:'And {n} question(s) are due for review.',
       novaFailed:'I could not reach an answer just now. Please try again shortly.',
       novaOfflineOnly:'I need a server connection for that. I can still open pages for you offline.',
+      sessionExpired:'Your session has ended for security. Please sign in again to continue.',
       novaNoArabicVoice:'No Arabic voice is installed on this device, so I will stay in text — an English voice reading Arabic comes out garbled. You can add an Arabic voice in your system settings.',
       novaMicUnsupported:'Your browser does not support voice input. Please type instead, or try Chrome.',
       novaMicDenied:'The browser blocked the microphone. Allow access in site settings and try again.',
@@ -6856,6 +6863,19 @@
   }
 
   /* ---------- Google Sheet connection ---------- */
+  // The session token proves WHO is calling. The server no longer trusts a
+  // username in the request body, so this is attached to every request:
+  // endpoints that require it verify it, endpoints that do not simply ignore
+  // it. Attaching it centrally means no call site can forget.
+  let SESSION_TOKEN = null;
+  try{ SESSION_TOKEN = localStorage.getItem('nexoraSessionToken') || null; }catch(e){}
+  function setSessionToken(tok){
+    SESSION_TOKEN = tok || null;
+    try{
+      if(tok) localStorage.setItem('nexoraSessionToken', tok);
+      else localStorage.removeItem('nexoraSessionToken');
+    }catch(e){}
+  }
   function postToSheet(type, payload){
     if(!SHEET_API_URL) return Promise.resolve(null);
     // A genuine timeout — without this, a slow/hung request (Apps Script
@@ -6868,8 +6888,23 @@
     // longer than 20s on its very first call after being idle.
     const REQUEST_TIMEOUT_MS = 45000;
     const timeoutPromise = new Promise(resolve => setTimeout(()=> resolve(null), REQUEST_TIMEOUT_MS));
-    const fetchPromise = fetch(SHEET_API_URL, { method:'POST', body: JSON.stringify({ type, ...payload }) })
-      .then(r=>r.json()).catch(()=>null);
+    const fetchPromise = fetch(SHEET_API_URL, {
+        method:'POST',
+        body: JSON.stringify({ type, sessionToken: SESSION_TOKEN, ...payload })
+      })
+      .then(r=>r.json())
+      .then(res=>{
+        // An expired or revoked session must end the local session too,
+        // otherwise the app keeps trying with a token the server rejects and
+        // the learner sees silent failures with no explanation.
+        if(res && res.error === 'auth_required'){
+          setSessionToken(null);
+          if(typeof showToast === 'function') showToast(t('sessionExpired'), nxIcon('lock'), 'system');
+          if(typeof goToLoginGate === 'function') setTimeout(goToLoginGate, 900);
+        }
+        return res;
+      })
+      .catch(()=>null);
     return Promise.race([fetchPromise, timeoutPromise]);
   }
   // Turns a failed postToSheet() result into a message that actually
@@ -7168,6 +7203,9 @@
 
     if(SHEET_API_URL){
       const loginRes = await postToSheet('admin_login', { username, pin: hash });
+      // Store the token immediately: everything after this point that touches
+      // learner data depends on it.
+      if(loginRes && loginRes.ok && loginRes.sessionToken) setSessionToken(loginRes.sessionToken);
       if(loginRes && loginRes.ok && loginRes.admin){
         ADMIN = { username: loginRes.admin.username, pin: hash, name: loginRes.admin.name || username, role: loginRes.admin.role || 'owner' };
         saveAdminToStorage();
@@ -7420,6 +7458,7 @@
     updateLoginTransitionStep(t('loginStepSyncing'), 65);
     const hashedPin = await computePasswordHash(username, password);
     postToSheet('login', { username, pin: hashedPin }).then(async res=>{
+      if(res && res.ok && res.sessionToken) setSessionToken(res.sessionToken);
       setLoginLoading(false);
       if(res && res.ok && res.user){
         const key = 'custom_' + Date.now();
@@ -7546,6 +7585,7 @@
     if(!code){ loginCodeStep2Error.textContent = t('enterCodeFirst'); return; }
     setBtnSaving(loginCodeConfirmBtn, true);
     const res = await postToSheet('login_with_code', { username, code });
+    if(res && res.ok && res.sessionToken) setSessionToken(res.sessionToken);
     setBtnSaving(loginCodeConfirmBtn, false);
     if(!res || !res.ok || !res.user){
       loginCodeStep2Error.textContent = t('emailCodeInvalid');
@@ -7573,6 +7613,10 @@
     hideLoginTransition();
   });
   function logSessionLogout(){
+    // Revoke on the server BEFORE clearing locally, or the token would be
+    // dropped from this device while remaining valid for anyone holding it.
+    if(SESSION_TOKEN && SHEET_API_URL) postToSheet('logout', { sessionToken: SESSION_TOKEN });
+    setSessionToken(null);
     // Flush any unsynced learning state before the session ends, otherwise
     // it would be stranded on this device until the next login.
     if(learnerStateDirty && currentProfile && currentProfile !== 'guest') syncLearnerStateNow();
