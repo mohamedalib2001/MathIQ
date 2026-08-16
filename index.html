@@ -14881,6 +14881,18 @@
   function renderDiploma(){
     const f = diplomaFacts();
     if(!f) return null;
+    // Every element this function writes to must exist. A single renamed id
+    // would throw halfway through and leave the loader mid-bar — the exact
+    // symptom being fixed, and impossible to diagnose from the outside.
+    const required = { dpSerial:dpSerial, dpName:dpName, dpHolderName:dpHolderName,
+      dpTier:dpTier, dpJoined:dpJoined, dpMastered:dpMastered, dpBodyEl:dpBodyEl,
+      dpPrograms:dpPrograms, dpQr:dpQr, dpPhoto:dpPhoto };
+    const missing = Object.keys(required).filter(function(k){ return !required[k]; });
+    if(missing.length){
+      if(typeof callDiag !== 'undefined') callDiag.lastError = 'diploma missing: ' + missing.join(', ');
+      showToast(t('mcCaptureFailed'), nxIcon('alertTriangle'), 'system');
+      return null;
+    }
 
     dpSerial.textContent = f.memberId;
     dpName.textContent = f.name;
@@ -14972,9 +14984,12 @@
      not let a script READ its pixels — different permissions. The card only
      displays, so it always looked fine; the certificate has to read, so it
      came out blank. Same photo, two different capabilities. */
-  let printableCopyInFlight = false;
+  var printableCopyInFlight = false;
   async function ensurePrintablePhoto(key){
     const prof = PROFILES[key || currentProfile];
+    // Returning early when another conversion is running is correct — but it
+    // must return, not block. An awaited call that silently no-ops is far
+    // safer than one that waits on work it does not own.
     if(!prof || printableCopyInFlight) return false;
     if(prof.photoLocal && String(prof.photoLocal).indexOf('data:') === 0) return true;
     printableCopyInFlight = true;
@@ -15124,19 +15139,47 @@
       if(!f) return null;
       // Convert BEFORE capturing. ensurePrintablePhoto may already have done
       // it when the card opened, in which case this returns immediately.
-      await ensurePrintablePhoto(f.key);
-      await prepareDiplomaPhoto(f);
+      // BOUNDED. The photo steps reach the network, and a hung request left
+      // the loader frozen mid-bar with no way out — which is exactly what the
+      // certificate did. A certificate with a monogram beats one that never
+      // appears, so the photo work gets a deadline and the render continues.
+      await Promise.race([
+        (async function(){
+          await ensurePrintablePhoto(f.key);
+          await prepareDiplomaPhoto(f);
+        })(),
+        new Promise(function(r){ setTimeout(r, 12000); })
+      ]);
       await ctl.advance();
       // The QR is drawn synchronously by the library but still needs a paint.
       await new Promise(function(r){ setTimeout(r, 500); });
-      const canvas = await html2canvas(diplomaTemplate, { scale:2, backgroundColor:'#060b16', useCORS:true });
+      // html2canvas itself can hang on a font or image that never resolves.
+      const canvas = await Promise.race([
+        html2canvas(diplomaTemplate, { scale:2, backgroundColor:'#060b16', useCORS:true }),
+        new Promise(function(r){ setTimeout(function(){ r(null); }, 20000); })
+      ]);
+      if(!canvas){
+        showToast(t('mcCaptureFailed'), nxIcon('alertTriangle'), 'system');
+        return null;
+      }
       await ctl.advance();
       return { dataUrl: canvas.toDataURL('image/png'), facts: f };
     });
   }
   async function openDiplomaViewer(){
-    const built = await buildDiplomaImage();
-    if(!built) return;
+    let built = null;
+    try{
+      built = await buildDiplomaImage();
+    }catch(err){
+      // Nothing caught this before, so any throw inside the render simply
+      // ended the attempt in silence: the loader closed and no certificate
+      // appeared, with no explanation anywhere. A visible failure is the
+      // minimum a learner is owed.
+      showToast(t('mcCaptureFailed'), nxIcon('alertTriangle'), 'system');
+      if(typeof callDiag !== 'undefined') callDiag.lastError = 'diploma: ' + (err && err.message || err);
+      return;
+    }
+    if(!built){ showToast(t('mcCaptureFailed'), nxIcon('alertTriangle'), 'system'); return; }
     dvCurrent = built;
     dvImage.src = built.dataUrl;
     diplomaViewer.classList.remove('hidden');
