@@ -12203,6 +12203,9 @@
     hideLearnerShellScreens();
     memberCardScreen.classList.remove('hidden');
     mcCard.classList.remove('flipped');
+    // Begin converting the photo now, so the certificate later finds a
+    // printable copy already waiting instead of asking the learner for one.
+    ensurePrintablePhoto(currentProfile);
     withLoader(t('memberCardTitle'), [
       t('slStepMemberData'), t('slStepTier'), t('slStepQr')
     ], async function(ctl){
@@ -13635,6 +13638,74 @@
   // function is a temporal-dead-zone error waiting to happen — that pattern
   // has already taken this app down twice.
   let diplomaPhotoTrace = [];   // readable from the console for diagnosis
+  /* Converts the profile photo into a printable data: copy in the background,
+     the moment any screen that might need it opens. Doing this early means
+     the certificate almost never has to ask the learner for anything.
+
+     Why it is needed at all: a browser will DISPLAY a Drive image but will
+     not let a script READ its pixels — different permissions. The card only
+     displays, so it always looked fine; the certificate has to read, so it
+     came out blank. Same photo, two different capabilities. */
+  let printableCopyInFlight = false;
+  async function ensurePrintablePhoto(key){
+    const prof = PROFILES[key || currentProfile];
+    if(!prof || printableCopyInFlight) return false;
+    if(prof.photoLocal && String(prof.photoLocal).indexOf('data:') === 0) return true;
+    printableCopyInFlight = true;
+    try{
+      let src = prof.photo || '';
+      if(!src && SHEET_API_URL && (prof.username || key)){
+        const res = await postToSheet('get_user_photo', { username: prof.username || key });
+        if(res && res.ok && res.photoURL){
+          src = driveImageUrl(res.photoURL);
+          prof.photo = src;
+        }
+      }
+      if(!src) return false;
+      if(String(src).indexOf('data:') === 0){ prof.photoLocal = src; saveProfilesToStorage(); return true; }
+      const safe = await resolvePhotoForCanvas(src, (prof.username || key));
+      if(safe && String(safe).indexOf('data:') === 0){
+        prof.photoLocal = safe;
+        prof.photo = safe;
+        saveProfilesToStorage();
+        learnerStateDirty = true;
+        return true;
+      }
+      // Last resort with no server involved: load the image with
+      // crossOrigin="anonymous" and draw it to a canvas ourselves. Some hosts
+      // that refuse a fetch() still serve an image request with the header
+      // that makes the canvas readable — worth one attempt before giving up
+      // and asking the learner to pick the file.
+      const viaCanvas = await new Promise(function(resolve){
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = function(){
+          try{
+            const c = document.createElement('canvas');
+            c.width = 300; c.height = 300;
+            const ctx = c.getContext('2d');
+            const side = Math.min(img.naturalWidth, img.naturalHeight);
+            ctx.drawImage(img, (img.naturalWidth - side) / 2, (img.naturalHeight - side) / 2,
+                          side, side, 0, 0, 300, 300);
+            resolve(c.toDataURL('image/jpeg', 0.88)); // throws if the canvas is tainted
+          }catch(err){ resolve(null); }
+        };
+        img.onerror = function(){ resolve(null); };
+        setTimeout(function(){ resolve(null); }, 6000);
+        img.src = src;
+      });
+      if(viaCanvas){
+        prof.photoLocal = viaCanvas;
+        saveProfilesToStorage();
+        learnerStateDirty = true;
+        return true;
+      }
+      return false;
+    } finally {
+      printableCopyInFlight = false;
+    }
+  }
+
   async function prepareDiplomaPhoto(f){
     const prof = PROFILES[f.key];
     if(!prof) return false;
@@ -13710,7 +13781,9 @@
       await ctl.advance();
       const f = renderDiploma();
       if(!f) return null;
-      // Convert the photo BEFORE capturing, not after.
+      // Convert BEFORE capturing. ensurePrintablePhoto may already have done
+      // it when the card opened, in which case this returns immediately.
+      await ensurePrintablePhoto(f.key);
       await prepareDiplomaPhoto(f);
       await ctl.advance();
       // The QR is drawn synchronously by the library but still needs a paint.
