@@ -8118,6 +8118,11 @@
   }
   // The app's actual front door: username + password required to proceed.
   function goToLoginGate(){
+    // Every route back to the login screen passes through here — the logout
+    // link, the back button, an expired session, the editor. Cleaning up in
+    // logSessionLogout() alone left five of those paths showing the previous
+    // account's floating panels over a login form.
+    clearSessionUi();
     hideAllScreens();
     renderShellNav(null);
     ulUsername.value = ''; ulPassword.value = ''; ulError.textContent = '';
@@ -9286,7 +9291,40 @@
     selectProfileAndGoToSettings(key);
     hideLoginTransition();
   });
+  /* Anything that floats above the app and is hidden only by a poll returning
+     "nothing" will survive a logout, because logout STOPS the poll. Every such
+     surface has to be torn down explicitly here. */
+  function clearSessionUi(){
+    const floating = [
+      'chalBanner',      // live-challenge bar — the one that leaked
+      'chalInvite', 'chalBoard', 'groupChal',
+      'chatPanel', 'callPanel', 'callIncoming',
+      'msgPanel', 'msgWrap', 'novaPanel', 'novaFab',
+      'diplomaViewer', 'crPanel', 'smartLoader', 'notifPanel'
+    ];
+    floating.forEach(function(id){
+      const el = document.getElementById(id);
+      if(el) el.classList.add('hidden');
+    });
+    // In-memory state that these surfaces read from. Leaving it behind would
+    // let the next account briefly see the previous one's challenges.
+    if(typeof liveChallenges !== 'undefined') liveChallenges = [];
+    if(typeof chalOutgoing !== 'undefined') chalOutgoing = [];
+    if(typeof chalPendingInvite !== 'undefined') chalPendingInvite = null;
+    if(typeof chalAnnounced !== 'undefined') chalAnnounced = new Set();
+    if(typeof activeChallenge !== 'undefined') activeChallenge = null;
+    if(typeof msgRooms !== 'undefined') msgRooms = [];
+    if(typeof msgUnreadTotal !== 'undefined') msgUnreadTotal = 0;
+    if(typeof chatRoom !== 'undefined') chatRoom = null;
+    if(typeof chatRendered !== 'undefined') chatRendered = new Set();
+    const badge = document.getElementById('msgBadge');
+    if(badge){ badge.textContent = ''; badge.classList.add('hidden'); }
+    // A call must not keep the camera on after the account signs out.
+    if(typeof endCall === 'function'){ try{ endCall(); }catch(e){} }
+  }
+
   function logSessionLogout(){
+    clearSessionUi();
     if(typeof chalStopPolling === 'function') chalStopPolling();
     if(typeof stopUnreadPolling === 'function') stopUnreadPolling();
     if(typeof stopCallWatch === 'function') stopCallWatch();
@@ -16276,6 +16314,9 @@
      the only way in was a toast that vanished in three seconds. */
   function renderChallengeBanner(list){
     liveChallenges = list || [];
+    // A second guard: a late poll response arriving after logout must not
+    // put the bar back on a login screen.
+    if(!hasAuthenticatedSession()){ chalBanner.classList.add('hidden'); liveChallenges = []; return; }
     if(!liveChallenges.length){ chalBanner.classList.add('hidden'); return; }
     const c = liveChallenges[0];
     const others = c.toUsers.length > 1 ? c.toUsers.length : 1;
