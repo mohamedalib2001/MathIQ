@@ -5218,6 +5218,7 @@
       dpAccuracy:'الدقة', dpStreak:'أطول متتالية',
       dpHoursVal:'{n} ساعة', dpMinutesVal:'{n} دقيقة',
       dpQuote:'كل خطوة تتعلّمها اليوم تصنع إنجاز الغد.',
+      dpPhotoNeedsBackend:'تعذّر تحويل صورتك للشهادة. السبب الأرجح أن ملف الخادم (.gs) لم يُنشر بنسخة جديدة بعد — وسيط جلب الصور موجود فيه. الشهادة ستصدر بالحرف الأول حتى ذلك الحين.',
       dvDownloadBtn:'⬇️ تنزيل الشهادة', dvPrintBtn:'🖨️ طباعة',
       dpDownloadBtn:'🏅 اعرضي شهادة العضوية', dpStepRender:'نرسم الشهادة…',
       memberCardNavLabel:'بطاقة العضوية', memberCardTitle:'🪪 بطاقة العضوية',
@@ -5975,6 +5976,7 @@
       dpAccuracy:'Accuracy', dpStreak:'Best streak',
       dpHoursVal:'{n} h', dpMinutesVal:'{n} min',
       dpQuote:'Every step you learn today builds tomorrow\'s achievement.',
+      dpPhotoNeedsBackend:'Your photo could not be converted for the certificate. The most likely cause is that the .gs backend has not been redeployed — the photo relay lives there. The certificate will use your initial until then.',
       dvDownloadBtn:'⬇️ Download certificate', dvPrintBtn:'🖨️ Print',
       dpDownloadBtn:'🏅 View membership certificate', dpStepRender:'Rendering the certificate…',
       memberCardNavLabel:'Membership card', memberCardTitle:'🪪 Membership card',
@@ -13522,23 +13524,41 @@
      circle came out empty even though the photo shows fine on screen. So the
      photo is converted to a data: URL FIRST, and only then drawn. Returns
      true when a real photo is in place. */
+  // Declared BEFORE the function that assigns it. A `let` after the assigning
+  // function is a temporal-dead-zone error waiting to happen — that pattern
+  // has already taken this app down twice.
+  let diplomaPhotoTrace = [];   // readable from the console for diagnosis
   async function prepareDiplomaPhoto(f){
     const prof = PROFILES[f.key];
     if(!prof) return false;
+    // Records exactly where the chain stops. Three separate things can fail
+    // here — no photo stored, the browser blocked the fetch, the server relay
+    // is not deployed — and they are indistinguishable from an empty circle.
+    const trace = [];
     let src = prof.photo || '';
+    trace.push('local:' + (src ? (src.slice(0, 12) + '…') : 'EMPTY'));
     // Ask the server if this device has no photo cached at all.
     if(!src && SHEET_API_URL && (prof.username || f.key)){
       const res = await postToSheet('get_user_photo', { username: prof.username || f.key });
+      trace.push('server_url:' + (res && res.photoURL ? 'FOUND' : 'NONE'));
       if(res && res.ok && res.photoURL){
         src = driveImageUrl(res.photoURL);
         prof.photo = src;
         saveProfilesToStorage();
       }
     }
-    if(!src) return false;
+    if(!src){ diplomaPhotoTrace = trace.concat('RESULT:no_photo_anywhere'); return false; }
     if(String(src).indexOf('data:') !== 0 && typeof resolvePhotoForCanvas === 'function'){
       const safe = await resolvePhotoForCanvas(src, (prof.username || f.key));
-      if(!safe || String(safe).indexOf('data:') !== 0) return false; // unusable: keep the monogram
+      trace.push('convert:' + (safe && String(safe).indexOf('data:') === 0 ? 'OK' : 'FAILED'));
+      if(!safe || String(safe).indexOf('data:') !== 0){
+        // The relay is the only path that can convert a Drive link. If it
+        // failed, the backend almost certainly has not been redeployed with
+        // get_photo_base64 — say so instead of silently showing a letter.
+        diplomaPhotoTrace = trace.concat('RESULT:conversion_failed');
+        showToast(t('dpPhotoNeedsBackend'), nxIcon('alertTriangle'), 'system');
+        return false;
+      }
       prof.photo = safe;
       saveProfilesToStorage();
       src = safe;
@@ -13559,8 +13579,11 @@
       };
       setTimeout(resolve, 4000);
     });
-    return !!dpPhoto.querySelector('img');
+    const ok = !!dpPhoto.querySelector('img');
+    diplomaPhotoTrace = trace.concat('RESULT:' + (ok ? 'drawn' : 'image_failed_to_load'));
+    return ok;
   }
+
 
   // Renders and captures once. Both the viewer and the download use the same
   // image, so what the learner sees is byte-for-byte what they get.
