@@ -203,7 +203,16 @@
   @media (max-width:520px){
     .topbar-identity-text{ display:none; } /* tight mobile width — keep just the avatar, drop the text to avoid crowding */
   }
-  .topbar-icon-wrap{ position:relative; }
+  /* inline-flex, not the default inline: an inline wrapper aligns on the text
+     baseline, so a wrapper holding an emoji button sat higher than one holding
+     an SVG button. Flex alignment makes every topbar icon share one centre
+     line regardless of what is inside it. */
+  .topbar-icon-wrap{ position:relative; display:inline-flex; align-items:center; }
+  /* The badge is positioned against the WRAPPER, so it cannot drag the icon
+     out of line the way an inline-flow badge would. */
+  .topbar-icon-wrap > .nav-badge{
+    position:absolute; top:-5px; inset-inline-end:-5px; pointer-events:none;
+  }
   .notif-badge{
     position:absolute; top:-4px; inset-inline-end:-4px; background:var(--coral); color:#fff; font-size:9px;
     font-weight:800; border-radius:8px; min-width:15px; height:15px; display:flex; align-items:center; justify-content:center;
@@ -2756,7 +2765,7 @@
            a different kind of urgency from a system alert, and burying it in a
            general notification list is how people miss conversations. -->
       <div class="topbar-icon-wrap hidden" id="msgWrap">
-        <button class="topbar-icon-btn" id="msgBtn" data-i18n-title="msgTitle" title="المراسلات">💬</button>
+        <button class="topbar-icon-btn" id="msgBtn" data-i18n-title="msgTitle" title="المراسلات"><svg class="nx-icon" viewBox="0 0 24 24"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 8.5 8.5 0 0 1-3.8-.9L3 21l1.9-5.2A8.4 8.4 0 0 1 12 3a8.4 8.4 0 0 1 9 8.5z"/></svg></button>
         <span class="nav-badge hidden" id="msgBadge"></span>
         <div class="notif-panel hidden" id="msgPanel">
           <div class="notif-head"><span data-i18n="msgTitle">المراسلات</span></div>
@@ -7627,6 +7636,7 @@
     if(key !== 'guest' && typeof migrateGuardianLinksUp === 'function') migrateGuardianLinksUp();
     if(key !== 'guest' && typeof chalStartPolling === 'function') chalStartPolling();
     if(key !== 'guest' && typeof startUnreadPolling === 'function') startUnreadPolling();
+    if(key !== 'guest' && typeof startCallWatch === 'function') startCallWatch();
     // Backfill the join date for sessions that signed in before the server
     // started returning it — otherwise it would stay blank until next login.
     if(key !== 'guest' && SHEET_API_URL && !PROFILES[key].createdAt){
@@ -9066,6 +9076,7 @@
   function logSessionLogout(){
     if(typeof chalStopPolling === 'function') chalStopPolling();
     if(typeof stopUnreadPolling === 'function') stopUnreadPolling();
+    if(typeof stopCallWatch === 'function') stopCallWatch();
     // Revoke on the server BEFORE clearing locally, or the token would be
     // dropped from this device while remaining valid for anyone holding it.
     if(SESSION_TOKEN && SHEET_API_URL) postToSheet('logout', { sessionToken: SESSION_TOKEN });
@@ -15697,8 +15708,10 @@
   // A hidden tab must not keep polling: it consumes quota for a screen nobody
   // is looking at.
   document.addEventListener('visibilitychange', function(){
+    // Call watching keeps running on a hidden tab: missing an incoming call
+    // because the user switched tabs is exactly the failure being fixed here.
     if(document.hidden){ chalStopPolling(); stopUnreadPolling(); }
-    else if(hasAuthenticatedSession()){ chalStartPolling(); startUnreadPolling(); }
+    else if(hasAuthenticatedSession()){ chalStartPolling(); startUnreadPolling(); startCallWatch(); }
   });
 
   async function chalPoll(){
@@ -16107,15 +16120,35 @@
   /* ---------- ROOM STATE: typing + call signals in ONE request ---------- */
   let roomStateInFlight = false;
   async function pollRoomState(){
-    if(!chatRoom || !SHEET_API_URL || roomStateInFlight) return;
+    // Runs with or WITHOUT an open room. Requiring a room here is why calls
+    // never arrived: the person being called is normally on the home screen,
+    // so nobody was polling for the offer sitting in the sheet.
+    if(!SHEET_API_URL || roomStateInFlight || !hasAuthenticatedSession()) return;
     roomStateInFlight = true;
     let res;
     try{
-      res = await postToSheet('room_state', { roomId: chatRoom, username: currentServerUsername() });
+      res = await postToSheet('room_state', {
+        roomId: chatRoom || '', username: currentServerUsername()
+      });
     } finally { roomStateInFlight = false; }
     if(!res || !res.ok) return;
-    renderTyping(res.typing);
+    if(chatRoom) renderTyping(res.typing);
     (res.signals || []).forEach(handleIncomingSignal);
+  }
+
+  /* Watches for incoming calls all the time, not only inside a chat. Slow by
+     default so it costs almost nothing; the fast 1.5s poll only runs while a
+     call is actually being set up. */
+  let callWatchId = null;
+  function startCallWatch(){
+    if(callWatchId) clearInterval(callWatchId);
+    pollRoomState();
+    callWatchId = setInterval(function(){
+      if(!callSignalPollId) pollRoomState();   // never double-poll during setup
+    }, 6000);
+  }
+  function stopCallWatch(){
+    if(callWatchId){ clearInterval(callWatchId); callWatchId = null; }
   }
 
   /* ==================== MODULE: VOICE & VIDEO CALLS ====================
@@ -16194,9 +16227,20 @@
       }
     }, 45000);
   }
+  // The room is DERIVED from the two usernames, never read from whatever
+  // chatRoom happens to hold. Relying on that variable meant a signal sent
+  // from outside a chat went to an empty room and vanished — the offer was
+  // written, and nothing was ever addressed to the callee.
+  function callRoomFor(peer){
+    const me = String(currentServerUsername()).trim().toLowerCase();
+    const them = String(peer || '').trim().toLowerCase();
+    if(!them) return chatRoom || '';
+    return 'room_' + [me, them].sort().join('__');
+  }
   function sendSignal(signal){
+    const peer = callPeer || chatWith;
     return postToSheet('call_signal', {
-      roomId: chatRoom, fromUser: currentServerUsername(), toUser: callPeer || chatWith, signal: signal
+      roomId: callRoomFor(peer), fromUser: currentServerUsername(), toUser: peer, signal: signal
     });
   }
   function startCallSignalPolling(){
@@ -16211,7 +16255,9 @@
     if(!data || !data.type) return;
     if(data.type === 'offer'){
       if(chatPc) return;                       // already in a call
-      callIncomingOffer = { from: sig.from, sdp: data.sdp, video: !!data.video };
+      // Remember the room the CALLER used: the callee may have had no chat
+      // open, and answering into a null room would send the answer nowhere.
+      callIncomingOffer = { from: sig.from, sdp: data.sdp, video: !!data.video, roomId: sig.roomId || chatRoom };
       callInAvatar.textContent = (friendDisplayName(sig.from) || '?').trim().charAt(0);
       callInTitle.textContent = fmt('callIncomingTitle', { name: friendDisplayName(sig.from) });
       callInSub.textContent = t(data.video ? 'callVideoKind' : 'callAudioKind');
@@ -16235,6 +16281,9 @@
     callIncoming.classList.add('hidden');
     callPeer = callIncomingOffer.from;
     callIsVideo = callIncomingOffer.video;
+    // Adopt the caller's room so the answer and every ICE candidate land in
+    // the same place the offer came from.
+    if(callIncomingOffer.roomId) chatRoom = callIncomingOffer.roomId;
     callPeerName.textContent = friendDisplayName(callPeer);
     callPanel.classList.remove('hidden');
     callSetState('callConnecting');
@@ -16260,6 +16309,7 @@
   function rejectCall(){
     if(callIncomingOffer){
       callPeer = callIncomingOffer.from;
+      if(callIncomingOffer.roomId) chatRoom = callIncomingOffer.roomId;
       sendSignal({ type: 'bye' });
       callIncomingOffer = null;
     }
@@ -16275,8 +16325,10 @@
     callLocal.srcObject = null; callRemote.srcObject = null;
     callPanel.classList.add('hidden');
     callIncoming.classList.add('hidden');
-    if(chatRoom) postToSheet('clear_call_signal', {
-      roomId: chatRoom, fromUser: currentServerUsername(), toUser: callPeer
+    // Clear against the DERIVED room, so a stale offer cannot linger and make
+    // the next poll ring for a call that already ended.
+    if(callPeer) postToSheet('clear_call_signal', {
+      roomId: callRoomFor(callPeer), fromUser: currentServerUsername(), toUser: callPeer
     });
     callPeer = '';
   }
