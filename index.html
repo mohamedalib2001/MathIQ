@@ -16353,10 +16353,25 @@
      diagnostics showed.
      
      Safe to call repeatedly: each starter clears its own interval first. */
+  // Records WHY the services did or did not start. Two diagnostic rounds went
+  // past without this and both times I guessed the cause wrongly — the report
+  // said "stopped" but never said what the guard actually saw.
+  // Readable from the console: rtTrace
+  let rtTrace = [];
+  function rtLog(msg){
+    rtTrace.push(new Date().toISOString().slice(11, 19) + ' ' + msg);
+    if(rtTrace.length > 40) rtTrace.shift();
+  }
   let realtimeReadyId = null;
   function startRealtimeServices(){
-    if(!SHEET_API_URL) return;
-    if(document.hidden) return;                 // nothing runs for a hidden tab
+    rtLog('called | api=' + (!!SHEET_API_URL) +
+          ' hidden=' + document.hidden +
+          ' loggedInKey=' + String(loggedInKey) +
+          ' currentProfile=' + String(currentProfile) +
+          ' profileExists=' + !!(loggedInKey && PROFILES[loggedInKey]) +
+          ' auth=' + hasAuthenticatedSession());
+    if(!SHEET_API_URL){ rtLog('ABORT: no api url'); return; }
+    if(document.hidden){ rtLog('ABORT: tab hidden'); return; }
 
     // Do NOT give up when the session is not ready yet.
     //
@@ -16368,8 +16383,18 @@
     // result precisely: a brand-new session with zero polls.
     //
     // Now it retries until the session genuinely exists, then stops retrying.
-    if(!hasAuthenticatedSession()){
-      if(realtimeReadyId) return;               // a retry loop is already running
+    // The services only need to know WHICH username to poll for. Requiring a
+    // full local profile object was too strict: currentServerUsername() falls
+    // back to the profile key, so a valid username can exist while
+    // PROFILES[loggedInKey] does not — a child profile signed in directly, for
+    // example. That stricter check is why a brand-new session reported zero
+    // polls twice in a row.
+    const who = (typeof currentServerUsername === 'function') ? currentServerUsername() : '';
+    const usable = !!(who && who !== 'guest');
+    if(usable && !hasAuthenticatedSession()) rtLog('auth guard false but username usable: ' + who);
+    if(!usable){
+      rtLog('waiting for session…');
+      if(realtimeReadyId){ rtLog('retry loop already running'); return; }
       let tries = 0;
       realtimeReadyId = setInterval(function(){
         tries++;
@@ -16377,23 +16402,39 @@
           clearInterval(realtimeReadyId); realtimeReadyId = null;
           startRealtimeServices();
         } else if(tries > 40){                  // ~20s: no session is coming
+          rtLog('GAVE UP after 20s | loggedInKey=' + String(loggedInKey) +
+                ' profileExists=' + !!(loggedInKey && PROFILES[loggedInKey]));
           clearInterval(realtimeReadyId); realtimeReadyId = null;
         }
       }, 500);
       return;
     }
     if(realtimeReadyId){ clearInterval(realtimeReadyId); realtimeReadyId = null; }
+    rtLog('STARTING all services for ' + who);
     chalStartPolling();
     if(typeof startUnreadPolling === 'function') startUnreadPolling();
     if(typeof startCallWatch === 'function') startCallWatch();
+    rtLog('started | chal=' + !!chalPollId +
+          ' unread=' + (typeof msgPollId !== 'undefined' ? !!msgPollId : 'n/a'));
   }
   function stopRealtimeServices(){
     if(realtimeReadyId){ clearInterval(realtimeReadyId); realtimeReadyId = null; }
     chalStopPolling();
     if(typeof stopUnreadPolling === 'function') stopUnreadPolling();
   }
+  // Exposed so the diagnostics report can read the trace and, if the services
+  // are stopped, attempt a start there and then and record what happened.
+  window.rtTrace = function(){ return rtTrace; };
+  window.rtForceStart = function(){
+    rtLog('FORCED from diagnostics');
+    startRealtimeServices();
+    return rtTrace;
+  };
   function chalStartPolling(){
-    if(!SHEET_API_URL || !hasAuthenticatedSession()) return;
+    rtLog('chalStartPolling | api=' + (!!SHEET_API_URL) + ' auth=' + hasAuthenticatedSession());
+    // Same relaxation as above: a usable username is the real requirement.
+    const who = (typeof currentServerUsername === 'function') ? currentServerUsername() : '';
+    if(!SHEET_API_URL || !who || who === 'guest'){ rtLog('chal poll not started'); return; }
     chalPoll();
     chalSetRate(CHAL_POLL_IDLE);
   }
@@ -16407,7 +16448,8 @@
   });
 
   async function chalPoll(){
-    if(!SHEET_API_URL || !hasAuthenticatedSession()) return;
+    const who = (typeof currentServerUsername === 'function') ? currentServerUsername() : '';
+    if(!SHEET_API_URL || !who || who === 'guest') return;
     const res = await postToSheet('poll_challenges', { username: currentServerUsername() });
     if(!res || !res.ok) return;
     chalOutgoing = res.outgoing || [];
@@ -16901,7 +16943,8 @@
   }
 
   async function pollUnread(){
-    if(!SHEET_API_URL || !hasAuthenticatedSession()) return;
+    const who = (typeof currentServerUsername === 'function') ? currentServerUsername() : '';
+    if(!SHEET_API_URL || !who || who === 'guest') return;
     const res = await postToSheet('unread_counts', {
       username: currentServerUsername(), seen: msgSeen
     });
