@@ -4662,6 +4662,52 @@
   /* ---------- guardian lookup (parents are stored inside their child's profile) ---------- */
   // Returns [{ studentKey, role: 'mother'|'father', pin }] for every student
   // profile that has a guardian entry matching this username.
+  /* Children resolved by the SERVER, so a parent sees them on any device.
+     The local list is only a cache for offline use — it can never be the
+     source of truth, because a fresh browser has no copy of the children's
+     profiles to search at all. */
+  async function fetchMyChildrenFromServer(){
+    const uname = currentServerUsername();
+    if(!SHEET_API_URL || !uname) return null;
+    const res = await postToSheet('get_my_children', { guardianUsername: uname });
+    if(!res || !res.ok || !Array.isArray(res.children)) return null;
+
+    // Materialise each child as a local profile so every existing screen —
+    // the dashboard, the child file, the reports — works unchanged.
+    const keys = [];
+    res.children.forEach(function(c){
+      let key = Object.keys(PROFILES).find(function(k){
+        return PROFILES[k].username && PROFILES[k].username.toLowerCase() === String(c.username).toLowerCase();
+      });
+      if(!key){
+        // Explicit character class. An escaped \\w matches a literal backslash,
+        // so every username collapsed to the SAME empty key and each child would
+        // have overwritten the one before it.
+        key = 'child_' + String(c.username).replace(/[^A-Za-z0-9_]/g, '');
+        PROFILES[key] = freshProfile(c.name || c.username, c.avatar || '🙂', c.color || '#e08370');
+        profileOrder.push(key);
+      }
+      const p = PROFILES[key];
+      p.username = c.username;
+      if(c.name) p.name = c.name;
+      if(c.birthDate) p.birthDate = c.birthDate;
+      if(c.photoURL) p.photo = driveImageUrl(c.photoURL);
+      keys.push(key);
+    });
+    saveProfilesToStorage();
+    return keys;
+  }
+  // Pushes this child's guardian usernames up, so the link survives the
+  // device that created it.
+  function syncGuardianLinksUp(prof){
+    if(!SHEET_API_URL || !prof || !prof.username) return;
+    const links = [];
+    ['mother','father'].forEach(function(role){
+      const gRec = prof.guardians && prof.guardians[role];
+      if(gRec && gRec.username) links.push({ guardianUsername: gRec.username, role: role });
+    });
+    postToSheet('set_guardian_links', { childUsername: prof.username, links: links });
+  }
   function findGuardianLinks(username){
     const uname = String(username).toLowerCase();
     const links = [];
@@ -5179,7 +5225,8 @@
       slStepHistory:'نقرأ سجلك…', slStepBadges:'نحصي إنجازاتك…', slStepCerts:'نجهّز شهاداتك…',
       slStepMastery:'نقيس الإتقان…', slStepNext:'نحدّد خطوتك التالية…',
       slStepEnrollments:'نفتح برامجك…', slStepProgress:'نحدّث تقدّمك…', slStepReady:'نرتّب الواجهة…',
-      slStepFriends:'نتصل بالخادم…', slStepPresence:'نتحقق من المتصلين…', slStepRequests:'نراجع الطلبات…',
+      slStepChildren:'نبحث عن أبنائك على الخادم…', slStepChildData:'نجهّز بياناتهم…',
+            slStepFriends:'نتصل بالخادم…', slStepPresence:'نتحقق من المتصلين…', slStepRequests:'نراجع الطلبات…',
       slStepCourses:'نحمّل الدورات…', slStepLessons:'نجهّز الدروس…', slStepYourProgress:'نستعيد تقدّمك…',
       slStepGenerate:'نولّد أسئلة جديدة…', slStepVerify:'نتحقق من صحتها رياضيًا…', slStepShuffle:'نرتّب الجولة…',
             slStepProfile:'نقرأ ملفك التعليمي…', slStepIndicators:'نحسب المؤشرات المعرفية…',
@@ -5939,7 +5986,8 @@
       slStepHistory:'Reading your history…', slStepBadges:'Counting achievements…', slStepCerts:'Preparing certificates…',
       slStepMastery:'Measuring mastery…', slStepNext:'Choosing your next step…',
       slStepEnrollments:'Opening your programs…', slStepProgress:'Updating progress…', slStepReady:'Arranging the view…',
-      slStepFriends:'Contacting the server…', slStepPresence:'Checking who is online…', slStepRequests:'Reviewing requests…',
+      slStepChildren:'Finding your children on the server…', slStepChildData:'Preparing their data…',
+            slStepFriends:'Contacting the server…', slStepPresence:'Checking who is online…', slStepRequests:'Reviewing requests…',
       slStepCourses:'Loading courses…', slStepLessons:'Preparing lessons…', slStepYourProgress:'Restoring your progress…',
       slStepGenerate:'Generating fresh questions…', slStepVerify:'Verifying them mathematically…', slStepShuffle:'Arranging the round…',
             slStepProfile:'Reading your learning record…', slStepIndicators:'Computing cognitive indicators…',
@@ -7239,6 +7287,7 @@
       if(clearPinFlag){ p.pin = ''; }
       else if(enteredPassword){ p.pin = await computePasswordHash(p.username || key, enteredPassword); }
       // else: field left blank and not cleared → password stays unchanged
+      syncGuardianLinksUp(p);
       if(photoToSave !== undefined){
         p.photo = photoToSave;
         // Keep a SEPARATE printable copy. p.photo gets overwritten with a
@@ -11412,9 +11461,23 @@
     parentDashboardBackBtn.classList.remove('hidden');
     parentDashboardScreenEl.classList.remove('hidden');
   }
-  function openParentViewFromLearner(){
+  async function openParentViewFromLearner(){
     if(guardianUnlockedChildren && guardianUnlockedChildren.length){
       showParentView(guardianUnlockedChildren);
+      return;
+    }
+    // Ask the server before falling back to whatever this device happens to
+    // hold. This is what makes the children appear on a new browser.
+    const serverKeys = await withLoader(t('myChildrenNavLabel'),
+      [t('slStepChildren'), t('slStepChildData')], async function(ctl){
+        await ctl.advance();
+        const keys = await fetchMyChildrenFromServer();
+        await ctl.advance();
+        return keys;
+      });
+    if(serverKeys && serverKeys.length){
+      guardianUnlockedChildren = serverKeys;
+      showParentView(serverKeys);
       return;
     }
     guardianUnlockPin.value = '';
@@ -11480,7 +11543,9 @@
         // feature was gone, broken, or simply not set up.
         ...(typeof iAmAGuardian === 'function'
           ? [{ icon:nxIcon('users'), label:t('myChildrenNavLabel'),
-               run: ()=> iAmAGuardian() ? openParentViewFromLearner() : explainNoChildrenLinked() }]
+               // Server-first: a device that has never seen these children
+               // still resolves them, so the item can no longer be wrong.
+               run: ()=> openParentViewFromLearner() }]
           : []),
         { icon:nxIcon('settings'), label:t('shellNavAccount'), run: ()=> editMyProfileLink.click() },
         { icon:nxIcon('logout'), label:t('shellNavLogout'), run: ()=> goToLoginGate() }
