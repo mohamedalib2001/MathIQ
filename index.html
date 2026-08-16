@@ -1218,6 +1218,137 @@
   .guardian-box input.ltr-input{ direction:ltr; text-align:left; }
   .guardian-box .clear-guardian{ font-size:11px; color:var(--coral); text-decoration:underline; cursor:pointer; }
 
+  /* ---------- MEMBERSHIP DIPLOMA ----------
+     Off-screen with PHYSICAL offsets. inset-inline-start resolves against the
+     element's own direction and this element is rtl, so it would resolve to
+     `right` and leave the corner visible — the exact bug that put a stray box
+     on the login screen. visibility:hidden and opacity:0 are also avoided:
+     html2canvas honours both and would capture a blank page.
+     Only linear/repeating-linear gradients — conic and radial rasterise as
+     blanks. */
+  #diplomaTemplate{
+    position:fixed; top:0; left:-99999px; right:auto; pointer-events:none;
+    width:1500px; font-family:'Cairo','IBM Plex Sans Arabic','Tajawal',sans-serif;
+    direction:rtl; unicode-bidi:plaintext;
+  }
+  .dp-page{
+    display:flex; gap:16px; padding:18px;
+    background:linear-gradient(160deg,#060b16 0%,#0a1222 55%,#05080f 100%);
+  }
+  .dp-main{
+    position:relative; flex:1; min-width:0; overflow:hidden;
+    background:linear-gradient(165deg,#0a1526 0%,#0d1b30 45%,#070d1a 100%);
+    border:1.5px solid rgba(212,175,55,0.55); border-radius:18px;
+    padding:30px 34px 26px; text-align:center; color:#e9edf5;
+  }
+  .dp-guilloche{
+    position:absolute; inset:0; opacity:0.12; pointer-events:none;
+    background-image:
+      repeating-linear-gradient(109deg,#d4af37 0 0.5px,transparent 0.5px 6px),
+      repeating-linear-gradient(71deg,#d4af37 0 0.5px,transparent 0.5px 9px);
+  }
+  /* The sweeping arc across the header, as in the reference. */
+  .dp-arc{
+    position:absolute; top:-190px; inset-inline-start:-90px; width:150%; height:340px;
+    background:linear-gradient(160deg,#0e1f38,#0a1526);
+    border-bottom:2px solid rgba(212,175,55,0.6);
+    border-radius:0 0 62% 62%; pointer-events:none;
+  }
+  .dp-brand{ position:absolute; top:22px; inset-inline-start:28px; z-index:3; text-align:start; }
+  .dp-brand-name{ font-weight:800; font-size:20px; color:#f0d68a; letter-spacing:2px; }
+  .dp-brand-sub{ font-size:7.5px; color:#d4af37; letter-spacing:5px; margin-top:2px; }
+  .dp-serial{ position:absolute; top:22px; inset-inline-end:28px; z-index:3; text-align:center; }
+  .dp-serial-label{ font-size:9px; color:#8ea0bb; letter-spacing:1px; }
+  .dp-serial-no{ font-family:'Courier New',monospace; font-size:13px; color:#f0d68a; margin-top:3px; letter-spacing:1px; direction:ltr; }
+  .dp-qr{ width:62px; height:62px; background:#fff; padding:4px; border-radius:5px; margin:8px auto 0; }
+  .dp-qr img, .dp-qr canvas{ width:100% !important; height:100% !important; display:block; }
+
+  .dp-crest{
+    position:relative; z-index:3; width:74px; height:74px; margin:56px auto 6px;
+    border-radius:14px; background:linear-gradient(150deg,#f0d68a,#a3801c);
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 1px 0 rgba(255,255,255,0.5) inset, 0 6px 18px rgba(0,0,0,0.5);
+  }
+  .dp-crest span{ font-weight:800; font-size:38px; color:#0a1526; }
+  .dp-title{ position:relative; z-index:3; font-size:48px; font-weight:800; color:#f0d68a; margin:6px 0 0; line-height:1.15; }
+  .dp-title-en{ position:relative; z-index:3; font-size:10px; letter-spacing:6px; color:#d4af37; margin-top:6px; }
+  .dp-tagline{ position:relative; z-index:3; font-size:14px; color:#b9c6da; margin-top:12px; }
+  .dp-attest{ position:relative; z-index:3; font-size:15px; color:#b9c6da; margin-top:20px; }
+  .dp-name{ position:relative; z-index:3; font-size:40px; font-weight:800; color:#fdfbf4; margin-top:10px; line-height:1.25; }
+  .dp-role{ position:relative; z-index:3; font-size:14px; color:#b9c6da; margin-top:8px; }
+  .dp-tier-pill{
+    position:relative; z-index:3; display:inline-block; margin-top:12px; padding:7px 26px;
+    border-radius:26px; border:1px solid rgba(212,175,55,0.7);
+    background:linear-gradient(145deg,rgba(240,214,138,0.16),rgba(163,128,28,0.1));
+    color:#f0d68a; font-weight:800; font-size:15px;
+  }
+  .dp-body{ position:relative; z-index:3; font-size:13.5px; line-height:2.1; color:#b9c6da; margin:20px auto 0; max-width:620px; }
+
+  .dp-holder{ position:absolute; inset-inline-start:34px; top:250px; z-index:3; width:180px; text-align:center; }
+  .dp-photo{
+    width:112px; height:112px; border-radius:50%; margin:0 auto; overflow:hidden;
+    border:2px solid #d4af37; background:#0a1526;
+    display:flex; align-items:center; justify-content:center;
+    font-weight:800; font-size:46px; color:#f0d68a;
+  }
+  .dp-photo img{ width:100% !important; height:100% !important; object-fit:cover; display:block; }
+  .dp-holder-name{ font-size:14px; font-weight:700; color:#e9edf5; margin-top:10px; }
+  .dp-holder-id{ font-family:'Courier New',monospace; font-size:11px; color:#8ea0bb; margin-top:4px; direction:ltr; }
+  .dp-joined{
+    margin-top:12px; border:1px solid rgba(212,175,55,0.45); border-radius:10px; padding:8px 6px;
+    font-size:10px; color:#8ea0bb;
+  }
+  .dp-joined b{ display:block; font-size:13px; color:#f0d68a; margin-top:3px; direction:ltr; }
+
+  .dp-sign{ position:relative; z-index:3; display:flex; align-items:flex-end; justify-content:space-between; gap:16px; margin-top:34px; }
+  .dp-seal{
+    width:92px; height:92px; border-radius:50%; flex:none;
+    background:repeating-linear-gradient(45deg,rgba(255,255,255,0.10) 0 1px,transparent 1px 5px),
+               linear-gradient(150deg,#f0d68a,#a3801c);
+    display:flex; flex-direction:column; align-items:center; justify-content:center; color:#0a1526;
+    box-shadow:0 0 0 3px rgba(0,0,0,0.25), 0 0 0 4px rgba(212,175,55,0.6), 0 1px 0 rgba(255,255,255,0.5) inset;
+  }
+  .dp-seal span{ font-weight:800; font-size:30px; line-height:1; }
+  .dp-seal i{ font-style:normal; font-size:6px; letter-spacing:2px; margin-top:2px; }
+  .dp-sign-block{ text-align:center; }
+  .dp-sign-line{ width:170px; height:1px; background:rgba(212,175,55,0.6); margin-bottom:7px; }
+  .dp-sign-name{ font-size:13px; font-weight:700; color:#e9edf5; }
+  .dp-sign-role{ font-size:10.5px; color:#8ea0bb; margin-top:3px; }
+  .dp-verify{ text-align:center; border:1px solid rgba(212,175,55,0.45); border-radius:12px; padding:9px 14px; }
+  .dp-verify-title{ font-size:11px; color:#e9edf5; font-weight:700; }
+  .dp-verify-url{ font-size:9.5px; color:#8ea0bb; margin-top:3px; direction:ltr; }
+  .dp-issuer{ position:relative; z-index:3; font-size:9.5px; color:#6f819c; line-height:1.7; margin-top:18px; }
+
+  .dp-panel{ width:430px; flex:none; display:flex; flex-direction:column; gap:10px; }
+  .dp-panel-title{ font-size:15px; font-weight:800; color:#f0d68a; text-align:center; padding:6px 0; }
+  .dp-panel-sub{ font-size:12.5px; font-weight:700; color:#e9edf5; text-align:center; margin-top:6px; }
+  .dp-card{ background:#0b1424; border:1px solid rgba(212,175,55,0.28); border-radius:13px; padding:13px; }
+  .dp-level-head{ display:flex; justify-content:space-between; align-items:baseline; font-size:12px; color:#b9c6da; }
+  .dp-level-head b{ font-size:20px; color:#f0d68a; }
+  .dp-bar{ height:8px; border-radius:5px; background:#060d18; overflow:hidden; margin-top:9px; }
+  .dp-fill{ height:100%; border-radius:5px; background:linear-gradient(90deg,#16a34a,#4ade80); }
+  .dp-level-foot{ font-size:10.5px; color:#8ea0bb; margin-top:7px; }
+  .dp-two{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .dp-grid4{ display:grid; grid-template-columns:1fr 1fr; gap:9px; }
+  .dp-stat{ text-align:center; }
+  .dp-stat b{ display:block; font-size:26px; color:#f0d68a; line-height:1.1; }
+  .dp-stat span{ display:block; font-size:10.5px; color:#8ea0bb; margin-top:5px; }
+  .dp-stat.sm b{ font-size:19px; }
+  .dp-prog-row{
+    display:flex; align-items:center; gap:9px; background:#0b1424;
+    border:1px solid rgba(212,175,55,0.22); border-radius:11px; padding:9px 11px; margin-bottom:7px;
+  }
+  .dp-prog-name{ flex:1; min-width:0; font-size:11.5px; color:#e9edf5; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .dp-prog-bar{ width:96px; height:6px; border-radius:4px; background:#060d18; overflow:hidden; flex:none; }
+  .dp-prog-fill{ height:100%; border-radius:4px; background:linear-gradient(90deg,#16a34a,#4ade80); }
+  .dp-prog-pct{ font-size:11px; color:#f0d68a; width:38px; text-align:center; flex:none; direction:ltr; }
+  .dp-prog-row.stale .dp-prog-fill{ background:linear-gradient(90deg,#78716c,#a8a29e); }
+  .dp-empty{ font-size:11px; color:#8ea0bb; text-align:center; padding:12px; }
+  .dp-quote{
+    margin-top:auto; background:#0b1424; border:1px solid rgba(212,175,55,0.28);
+    border-radius:13px; padding:15px; text-align:center; font-size:13px; color:#e9edf5; line-height:1.9;
+  }
+
   /* ---------- SMART LOADER ---------- */
   #smartLoader{
     position:fixed; inset:0; z-index:960; display:flex; align-items:center; justify-content:center;
@@ -2563,6 +2694,96 @@
     <button class="secondary-btn" id="synapseBackBtn" data-i18n="backBtn">رجوع</button>
   </div>
 
+  <!-- MEMBERSHIP DIPLOMA — full-page certificate with a performance panel.
+       Kept off-screen with PHYSICAL offsets so html2canvas can rasterise it;
+       visibility:hidden or opacity:0 would capture a blank page. -->
+  <div id="diplomaTemplate" aria-hidden="true">
+    <div class="dp-page">
+      <div class="dp-main">
+        <div class="dp-guilloche" aria-hidden="true"></div>
+        <div class="dp-arc" aria-hidden="true"></div>
+        <div class="dp-brand">
+          <div class="dp-brand-name">NEXORA</div>
+          <div class="dp-brand-sub">A C A D E M Y</div>
+        </div>
+        <div class="dp-serial">
+          <div class="dp-serial-label" data-i18n="dpSerialLabel">رقم الشهادة</div>
+          <div class="dp-serial-no" id="dpSerial"></div>
+          <div class="dp-qr" id="dpQr"></div>
+        </div>
+
+        <div class="dp-crest" aria-hidden="true"><span>N</span></div>
+        <h1 class="dp-title" data-i18n="dpTitle">شهادة عضوية</h1>
+        <div class="dp-title-en">N E X O R A &nbsp; A C A D E M Y</div>
+        <div class="dp-tagline" data-i18n="dpTagline">فخر الانتماء .. مسيرة التميّز</div>
+
+        <div class="dp-attest" data-i18n="dpAttest">تشهد أكاديمية نِكسورا بأن</div>
+        <div class="dp-name" id="dpName"></div>
+        <div class="dp-role" data-i18n="dpRole">عضو مسجَّل في الأكاديمية</div>
+        <div class="dp-tier-pill" id="dpTier"></div>
+
+        <div class="dp-body" data-i18n="dpBody">وقد أتم بنجاح مراحل التعلّم والتدريب في برامج الأكاديمية، حيث أثبت تفوّقًا في المهارات والمعرفة والتطوير المستمر.</div>
+
+        <div class="dp-holder">
+          <div class="dp-photo" id="dpPhoto"></div>
+          <div class="dp-holder-name" id="dpHolderName"></div>
+          <div class="dp-holder-id" id="dpHolderId"></div>
+          <div class="dp-joined">
+            <span data-i18n="dpJoined">تاريخ الانضمام</span>
+            <b id="dpJoined"></b>
+          </div>
+        </div>
+
+        <div class="dp-sign">
+          <div class="dp-seal" aria-hidden="true"><span>N</span><i data-i18n="dpSealText">OFFICIAL</i></div>
+          <div class="dp-sign-block">
+            <div class="dp-sign-line"></div>
+            <div class="dp-sign-name" data-i18n="dpSignName">أكاديمية نِكسورا</div>
+            <div class="dp-sign-role" data-i18n="dpSignRole">الإدارة الأكاديمية</div>
+          </div>
+          <div class="dp-verify">
+            <div class="dp-verify-title" data-i18n="dpVerifyTitle">تحقّق من الشهادة</div>
+            <div class="dp-verify-url" id="dpVerifyUrl"></div>
+          </div>
+        </div>
+        <div class="dp-issuer" data-i18n="dpIssuer">أكاديمية نِكسورا — من منظومة إنفرا إنجن لتقنية المعلومات والأمن السيبراني والذكاء الاصطناعي</div>
+      </div>
+
+      <aside class="dp-panel">
+        <div class="dp-panel-title" data-i18n="dpPanelTitle">أداؤك في الأكاديمية</div>
+
+        <div class="dp-card dp-level">
+          <div class="dp-level-head">
+            <span data-i18n="dpMastered">المستويات المُتقنة</span>
+            <b id="dpMastered"></b>
+          </div>
+          <div class="dp-bar"><div class="dp-fill" id="dpMasterFill"></div></div>
+          <div class="dp-level-foot"><span id="dpMasterNote"></span></div>
+        </div>
+
+        <div class="dp-two">
+          <div class="dp-card dp-stat"><b id="dpBadges"></b><span data-i18n="dpBadges">الشارات المحقّقة</span></div>
+          <div class="dp-card dp-stat"><b id="dpCerts"></b><span data-i18n="dpCerts">الشهادات</span></div>
+        </div>
+
+        <div class="dp-panel-sub" data-i18n="dpProgress">التقدّم في البرامج</div>
+        <div id="dpPrograms"></div>
+
+        <div class="dp-panel-sub" data-i18n="dpStats">إحصاءات عامة</div>
+        <div class="dp-grid4">
+          <div class="dp-card dp-stat sm"><b id="dpHours"></b><span data-i18n="dpHours">وقت التعلّم</span></div>
+          <div class="dp-card dp-stat sm"><b id="dpSessions"></b><span data-i18n="dpSessions">الجلسات</span></div>
+          <div class="dp-card dp-stat sm"><b id="dpAccuracy"></b><span data-i18n="dpAccuracy">الدقة</span></div>
+          <div class="dp-card dp-stat sm"><b id="dpStreak"></b><span data-i18n="dpStreak">أطول متتالية</span></div>
+        </div>
+
+        <div class="dp-quote">
+          <span data-i18n="dpQuote">كل خطوة تتعلّمها اليوم تصنع إنجاز الغد.</span>
+        </div>
+      </aside>
+    </div>
+  </div>
+
   <!-- SMART LOADER
        A blank screen during a wait tells the learner nothing, and a spinner
        tells them only "something". This names the actual step in progress and
@@ -2704,6 +2925,7 @@
       <button class="start-btn" id="mcFlipBtn" data-i18n="mcFlipBtn">🔄 اقلب البطاقة</button>
       <button class="secondary-btn" id="mcDownloadBtn" data-i18n="mcDownloadBtn">⬇️ تنزيل PNG</button>
       <button class="secondary-btn" id="mcPrintBtn" data-i18n="mcPrintBtn">🖨️ طباعة</button>
+      <button class="secondary-btn" id="mcDiplomaBtn" data-i18n="dpDownloadBtn">🏅 شهادة العضوية الكاملة</button>
     </div>
     <button class="secondary-btn" id="mcBackBtn" data-i18n="closeBtn">إغلاق</button>
   </div>
@@ -3750,6 +3972,26 @@
   const novaSendBtn = document.getElementById('novaSendBtn');
   const novaCloseBtn = document.getElementById('novaCloseBtn');
   const novaVoiceChk = document.getElementById('novaVoiceChk');
+  const diplomaTemplate = document.getElementById('diplomaTemplate');
+  const dpSerial = document.getElementById('dpSerial');
+  const dpName = document.getElementById('dpName');
+  const dpHolderName = document.getElementById('dpHolderName');
+  const dpHolderId = document.getElementById('dpHolderId');
+  const dpTier = document.getElementById('dpTier');
+  const dpJoined = document.getElementById('dpJoined');
+  const dpVerifyUrl = document.getElementById('dpVerifyUrl');
+  const dpMastered = document.getElementById('dpMastered');
+  const dpMasterFill = document.getElementById('dpMasterFill');
+  const dpMasterNote = document.getElementById('dpMasterNote');
+  const dpBadges = document.getElementById('dpBadges');
+  const dpCerts = document.getElementById('dpCerts');
+  const dpHours = document.getElementById('dpHours');
+  const dpSessions = document.getElementById('dpSessions');
+  const dpAccuracy = document.getElementById('dpAccuracy');
+  const dpStreak = document.getElementById('dpStreak');
+  const dpPrograms = document.getElementById('dpPrograms');
+  const dpQr = document.getElementById('dpQr');
+  const dpPhoto = document.getElementById('dpPhoto');
   const memberCardScreen = document.getElementById('memberCardScreen');
   const mcStage = document.getElementById('mcStage');
   const mcCard = document.getElementById('mcCard');
@@ -3767,6 +4009,7 @@
   const mcFlipBtn = document.getElementById('mcFlipBtn');
   const mcDownloadBtn = document.getElementById('mcDownloadBtn');
   const mcPrintBtn = document.getElementById('mcPrintBtn');
+  const mcDiplomaBtn = document.getElementById('mcDiplomaBtn');
   const mcBackBtn = document.getElementById('mcBackBtn');
   const synapseScreen = document.getElementById('synapseScreen');
   const synTrajectory = document.getElementById('synTrajectory');
@@ -4260,6 +4503,12 @@
       abacusLog: [],               // compressed solution-path summaries, bounded at 40
       abacusStage: 1,              // 1..5 — visible abacus through to mental (Anzan)
       abExplainStats: { asked:0, answered:0, matched:0, unsure:0 }, // strategic awareness
+      // Fields the certificate designs call for that were never measured.
+      // Recording starts now; the certificate shows them only once there is
+      // something real to show, never a plausible-looking placeholder.
+      learningSeconds: 0,      // engaged time, accumulated per answered question
+      challengeCount: 0,       // completed sessions of any kind
+      dayStreak: { current:0, best:0, lastDay:null },
       twinSessions: [],            // recorded sessions, replayable as an opponent
       cogSnapshots: [],            // weekly indicator snapshots, for trajectory
       sessionLog: [], // rolling log for the weekly report: { date, score, accuracy, questionCount, operation }
@@ -4301,6 +4550,9 @@
       abacusLog: p.abacusLog || [],
       abacusStage: p.abacusStage || 1,
       abExplainStats: p.abExplainStats || { asked:0, answered:0, matched:0, unsure:0 },
+      learningSeconds: p.learningSeconds || 0,
+      challengeCount: p.challengeCount || 0,
+      dayStreak: p.dayStreak || { current:0, best:0, lastDay:null },
       twinSessions: p.twinSessions || [],
       cogSnapshots: p.cogSnapshots || [],
       sessionLog: p.sessionLog || [],
@@ -4898,6 +5150,22 @@
       novaNoSpeech:'لم أسمع شيئًا. اقتربي من الميكروفون وحاولي مرة أخرى.',
       novaChipServices:'ما الخدمات المتاحة؟', novaChipProgress:'كيف تقدّمي؟',
       novaChipReview:'ابدئي مراجعة اليوم', novaChipOpenSynapse:'افتحي سينابس',
+      dpTitle:'شهادة عضوية', dpTagline:'فخر الانتماء .. مسيرة التميّز',
+      dpAttest:'تشهد أكاديمية نِكسورا بأن', dpRole:'عضو مسجَّل في الأكاديمية',
+      dpBody:'وقد أتم بنجاح مراحل التعلّم والتدريب في برامج الأكاديمية، حيث أثبت تفوّقًا في المهارات والمعرفة والتطوير المستمر.',
+      dpSerialLabel:'رقم الشهادة', dpJoined:'تاريخ الانضمام',
+      dpSignName:'أكاديمية نِكسورا', dpSignRole:'الإدارة الأكاديمية', dpSealText:'OFFICIAL',
+      dpVerifyTitle:'تحقّق من الشهادة',
+      dpIssuer:'أكاديمية نِكسورا — من منظومة إنفرا إنجن لتقنية المعلومات والأمن السيبراني والذكاء الاصطناعي',
+      dpPanelTitle:'أداؤك في الأكاديمية', dpMastered:'المستويات المُتقنة',
+      dpMasterNote:'بناءً على {n} سؤال أجبتَه فعلًا', dpNoActivity:'ابدأ التدريب لتظهر مؤشراتك هنا',
+      dpBadges:'الشارات المحقّقة', dpCerts:'الشهادات', dpProgress:'التقدّم في البرامج',
+      dpNoPrograms:'لم تُسجَّل نتائج في أي برنامج بعد',
+      dpStats:'إحصاءات عامة', dpHours:'وقت التعلّم', dpSessions:'الجلسات',
+      dpAccuracy:'الدقة', dpStreak:'أطول متتالية',
+      dpHoursVal:'{n} ساعة', dpMinutesVal:'{n} دقيقة',
+      dpQuote:'كل خطوة تتعلّمها اليوم تصنع إنجاز الغد.',
+      dpDownloadBtn:'🏅 شهادة العضوية الكاملة', dpStepRender:'نرسم الشهادة…',
       memberCardNavLabel:'بطاقة العضوية', memberCardTitle:'🪪 بطاقة العضوية',
       memberCardHint:'اضغط على البطاقة لقلبها ورؤية الوجه الخلفي.',
       mcNameLabel:'اسم العضو', mcSince:'عضو منذ', mcLevel:'المستوى', mcStatus:'الحالة',
@@ -5628,6 +5896,22 @@
       novaNoSpeech:'I did not hear anything. Move closer to the microphone and try again.',
       novaChipServices:'What services are available?', novaChipProgress:'How is my progress?',
       novaChipReview:'Start today\'s review', novaChipOpenSynapse:'Open Synapse',
+      dpTitle:'Certificate of Membership', dpTagline:'The pride of belonging · a path of distinction',
+      dpAttest:'NEXORA Academy certifies that', dpRole:'Registered member of the academy',
+      dpBody:'has successfully progressed through the academy\'s learning and training programs, demonstrating skill, knowledge and continuous development.',
+      dpSerialLabel:'Certificate no.', dpJoined:'Member since',
+      dpSignName:'NEXORA Academy', dpSignRole:'Academic Administration', dpSealText:'OFFICIAL',
+      dpVerifyTitle:'Verify this certificate',
+      dpIssuer:'NEXORA Academy — part of INFRA ENGINE for information technology, cybersecurity and artificial intelligence',
+      dpPanelTitle:'Your performance', dpMastered:'Levels mastered',
+      dpMasterNote:'Based on {n} questions actually answered', dpNoActivity:'Start practising and your indicators appear here',
+      dpBadges:'Badges earned', dpCerts:'Certificates', dpProgress:'Program progress',
+      dpNoPrograms:'No results recorded in any program yet',
+      dpStats:'Overall statistics', dpHours:'Learning time', dpSessions:'Sessions',
+      dpAccuracy:'Accuracy', dpStreak:'Best streak',
+      dpHoursVal:'{n} h', dpMinutesVal:'{n} min',
+      dpQuote:'Every step you learn today builds tomorrow\'s achievement.',
+      dpDownloadBtn:'🏅 Full membership certificate', dpStepRender:'Rendering the certificate…',
       memberCardNavLabel:'Membership card', memberCardTitle:'🪪 Membership card',
       memberCardHint:'Tap the card to flip it and see the back.',
       mcNameLabel:'Member name', mcSince:'Member since', mcLevel:'Level', mcStatus:'Status',
@@ -11774,6 +12058,7 @@
   }
   mcCard.addEventListener('click', ()=> mcCard.classList.toggle('flipped'));
   mcFlipBtn.addEventListener('click', ()=> mcCard.classList.toggle('flipped'));
+  mcDiplomaBtn.addEventListener('click', downloadDiploma);
   mcBackBtn.addEventListener('click', ()=>{
     memberCardScreen.classList.add('hidden');
     showProgramsHub();
@@ -12437,6 +12722,29 @@
   }
   // A weekly snapshot is what makes trajectory possible at all. Taken at
   // most once per calendar week so the history stays meaningful.
+  /* A day streak counted from calendar days of real activity. Practising
+     twice in one day does not extend it, and a missed day resets it — the
+     number has to mean what a learner assumes it means. */
+  function updateDayStreak(prof){
+    if(!prof) return;
+    if(!prof.dayStreak) prof.dayStreak = { current:0, best:0, lastDay:null };
+    const st = prof.dayStreak;
+    const today = new Date().toISOString().slice(0, 10);
+    if(st.lastDay === today) return;                 // already counted today
+    const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+    st.current = (st.lastDay === yesterday) ? st.current + 1 : 1;
+    st.lastDay = today;
+    if(st.current > st.best) st.best = st.current;
+  }
+  // The CURRENT streak is only true if the last active day was today or
+  // yesterday; otherwise it is a stale number and reads as zero.
+  function liveDayStreak(prof){
+    const st = prof && prof.dayStreak;
+    if(!st || !st.lastDay) return 0;
+    const today = new Date().toISOString().slice(0, 10);
+    const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+    return (st.lastDay === today || st.lastDay === yesterday) ? st.current : 0;
+  }
   function maybeSnapshotCognitiveProfile(prof){
     if(!synapseHasEnoughData(prof)) return;
     if(!prof.cogSnapshots) prof.cogSnapshots = [];
@@ -12862,11 +13170,12 @@
     const due = typeof reviewDueItems === 'function' ? reviewDueItems(p).length : 0;
     const mastered = KNOWLEDGE_LEVELS.filter(l => isBucketMastered(p, l.bucket)).length;
     const weak = typeof computeWeakestBucket === 'function' ? computeWeakestBucket(p) : null;
-    const lvl = typeof computeLevel === 'function' ? computeLevel(p.totalCorrect || 0) : null;
+    // No XP-level system exists here; standing is measured by mastered
+    // levels, which is what the rest of the app shows.
     return {
       name: profileDisplayName(currentProfile), answered: answered, accuracy: acc,
       due: due, mastered: mastered, total: KNOWLEDGE_LEVELS.length,
-      badges: p.badges ? p.badges.size : 0, level: lvl ? lvl.level : null,
+      badges: p.badges ? p.badges.size : 0,
       weakest: weak && weak.acc < 75 ? { op: t('bucket' + capitalize(weak.bucket)), acc: weak.acc } : null,
       streak: p.best ? p.best.streak : 0
     };
@@ -12995,6 +13304,157 @@
 
   /* ==================== END MODULE: NOVA ASSISTANT ==================== */
 
+  /* ==================== MODULE: MEMBERSHIP DIPLOMA ====================
+     The full-page membership certificate with a performance panel.
+
+     Every figure below resolves to something the learner actually did. The
+     reference design carried invented numbers — 85,450 points, 128 learning
+     hours, 24 badges, programs that do not exist in this platform. Reproducing
+     those would have made a beautiful document that lies to a parent, which
+     destroys the value of every certificate the academy issues.
+
+     Anything not yet measured renders as "—" with the field still present, so
+     the layout is complete and the claim is not. */
+  function diplomaFacts(){
+    const key = currentProfile, prof = PROFILES[key];
+    if(!prof) return null;
+
+    const answered = prof.totalAnswered || 0;
+    const accuracy = answered ? Math.round((prof.totalCorrect / answered) * 100) : null;
+    // There is no XP-level system in this platform, despite what the
+    // reference design implied. The real measure of standing is how many of
+    // the twelve knowledge levels have been MASTERED — which the top bar
+    // already shows. Inventing a "Level 7 / Professional" would have been a
+    // number with nothing behind it.
+    const hours = (prof.learningSeconds || 0) / 3600;
+
+    // Per-program progress, from real recorded work only. A program the
+    // learner never opened is omitted rather than shown at 0%.
+    const programs = [];
+    KNOWLEDGE_LEVELS.forEach(function(l){
+      const m = computeLevelMastery(prof, l.bucket);
+      if(m !== null) programs.push({ name: t(l.nameKey), pct: m, stale: isMasteryStale(prof, l.bucket) });
+    });
+    if(typeof computeProgramProfiles === 'function'){
+      computeProgramProfiles().forEach(function(p){
+        if(p.ind && p.ind.accuracy !== null) programs.push({ name: p.title, pct: p.ind.accuracy, stale:false });
+      });
+    }
+
+    return {
+      key: key, name: profileDisplayName(key), username: prof.username || '',
+      memberId: membershipId(prof, key),
+      since: memberSinceDate(prof),
+      tier: membershipTier(prof),
+      correctTotal: prof.totalCorrect || 0,
+      badges: prof.badges ? prof.badges.size : 0,
+      totalBadges: (typeof BADGES !== 'undefined' && BADGES.length) ? BADGES.length : null,
+      answered: answered,
+      accuracy: accuracy,
+      bestStreak: prof.best ? prof.best.streak : 0,
+      dayStreak: liveDayStreak(prof),
+      bestDayStreak: (prof.dayStreak && prof.dayStreak.best) || 0,
+      sessions: prof.challengeCount || 0,
+      // Below one full hour we show minutes: "0 hours" on a certificate reads
+      // as "did nothing", which is not what 40 minutes of work means.
+      hours: hours >= 1 ? Math.round(hours * 10) / 10 : null,
+      minutes: hours < 1 ? Math.round(hours * 60) : null,
+      certificates: (prof.certificatesIssued || []).length,
+      programs: programs,
+      masteredCount: KNOWLEDGE_LEVELS.filter(function(l){ return isBucketMastered(prof, l.bucket); }).length,
+      totalLevels: KNOWLEDGE_LEVELS.length
+    };
+  }
+  // Renders a value, or an honest dash. Never a zero dressed as an achievement.
+  function dFact(v, suffix){
+    if(v === null || v === undefined || v === '') return '—';
+    return String(v) + (suffix || '');
+  }
+
+  function renderDiploma(){
+    const f = diplomaFacts();
+    if(!f) return null;
+
+    dpSerial.textContent = f.memberId;
+    dpName.textContent = f.name;
+    dpHolderName.textContent = f.name;
+    dpHolderId.textContent = f.memberId;
+    dpTier.textContent = t(f.tier.key);
+    dpJoined.textContent = f.since
+      ? f.since.toLocaleDateString(currentLang === 'ar' ? 'ar-EG' : 'en-US', { year:'numeric', month:'2-digit', day:'2-digit' })
+      : '—';
+    dpVerifyUrl.textContent = CERT_VERIFY_BASE_URL.replace(/^https?:\/\//, '') + '?verifyMember=' + f.memberId;
+
+    // Mastery is the real standing measure in this platform.
+    dpMastered.textContent = f.masteredCount + ' / ' + f.totalLevels;
+    dpMasterFill.style.width = Math.round((f.masteredCount / f.totalLevels) * 100) + '%';
+    dpMasterNote.textContent = f.answered
+      ? fmt('dpMasterNote', { n: f.answered })
+      : t('dpNoActivity');
+
+    dpBadges.textContent = f.totalBadges ? (f.badges + ' / ' + f.totalBadges) : dFact(f.badges);
+    dpCerts.textContent = dFact(f.certificates);
+    // Minutes below one hour: "0" would read as "did nothing".
+    dpHours.textContent = f.hours !== null ? fmt('dpHoursVal', { n: f.hours })
+      : (f.minutes ? fmt('dpMinutesVal', { n: f.minutes }) : '—');
+    dpSessions.textContent = f.sessions ? String(f.sessions) : '—';
+    dpAccuracy.textContent = f.accuracy !== null ? f.accuracy + '%' : '—';
+    dpStreak.textContent = f.bestStreak ? String(f.bestStreak) : '—';
+
+    // Only programs with recorded work. A program never opened is omitted,
+    // not shown at 0% — an empty bar reads as failure rather than absence.
+    dpPrograms.innerHTML = f.programs.length
+      ? f.programs.slice(0, 9).map(function(p){
+          return `<div class="dp-prog-row${p.stale ? ' stale' : ''}">
+            <span class="dp-prog-pct">${p.pct}%</span>
+            <span class="dp-prog-bar"><span class="dp-prog-fill" style="width:${p.pct}%"></span></span>
+            <span class="dp-prog-name">${p.name}</span>
+          </div>`;
+        }).join('')
+      : `<div class="dp-empty">${t('dpNoPrograms')}</div>`;
+
+    dpQr.innerHTML = '';
+    if(typeof QRCode === 'function'){
+      new QRCode(dpQr, {
+        text: CERT_VERIFY_BASE_URL + '?verifyMember=' + encodeURIComponent(f.memberId),
+        width: 54, height: 54, correctLevel: QRCode.CorrectLevel.M
+      });
+    }
+    // Same avatar helper the whole app uses, so the diploma can never
+    // disagree with the top bar about whether a photo exists.
+    dpPhoto.innerHTML = '';
+    backfillAndRenderAvatar(f.key, dpPhoto, 112);
+    const monogram = function(){
+      if(dpPhoto.querySelector('img')) return;
+      dpPhoto.innerHTML = '';
+      dpPhoto.textContent = (f.name || '?').trim().charAt(0); // never an emoji
+    };
+    monogram();
+    setTimeout(monogram, 1500);
+    return f;
+  }
+
+  async function downloadDiploma(){
+    if(typeof html2canvas !== 'function'){ showToast(t('mcCaptureFailed'), nxIcon('alertTriangle'), 'system'); return; }
+    return withLoader(t('dpTitle'), [t('slStepMemberData'), t('slStepQr'), t('dpStepRender')], async function(ctl){
+      await ctl.advance();
+      const f = renderDiploma();
+      if(!f) return;
+      await ctl.advance();
+      // Give the QR and the photo a moment to actually exist in the DOM —
+      // html2canvas captures what is there at that instant, not what is
+      // about to arrive.
+      await new Promise(function(r){ setTimeout(r, 900); });
+      const canvas = await html2canvas(diplomaTemplate, { scale:2, backgroundColor:'#060b16', useCORS:true });
+      await ctl.advance();
+      const link = document.createElement('a');
+      link.download = 'nexora-membership-' + f.memberId + '.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    });
+  }
+  /* ==================== END MODULE: MEMBERSHIP DIPLOMA ==================== */
+
   /* ==================== MODULE: MEMBERSHIP CARD ====================
      Every field is read from the learner's real record. Nothing is invented:
      no fabricated "valid through" date, no tier the account has not actually
@@ -13054,8 +13514,11 @@
       ? since.toLocaleDateString(currentLang === 'ar' ? 'ar-EG' : 'en-US', { year:'numeric', month:'short' })
       : t('mcSinceUnknown');
 
-    const lvl = typeof computeLevel === 'function' ? computeLevel(prof.totalCorrect || 0) : null;
-    mcLevel.textContent = lvl ? String(lvl.level) : '—';
+    // Shows mastered knowledge levels out of twelve — the measure the app
+    // actually keeps. It previously called a computeLevel() that does not
+    // exist anywhere, so this field could only ever print a dash.
+    const masteredNow = KNOWLEDGE_LEVELS.filter(function(l){ return isBucketMastered(prof, l.bucket); }).length;
+    mcLevel.textContent = masteredNow + '/' + KNOWLEDGE_LEVELS.length;
     // "Active" is a claim about the account, so it is stated only when there
     // is recent recorded activity to support it.
     const log = prof.sessionLog || [];
@@ -13593,6 +14056,9 @@
       abacusLog: prof.abacusLog || [],
       abacusStage: prof.abacusStage || 1,
       abExplainStats: prof.abExplainStats || { asked:0, answered:0, matched:0, unsure:0 },
+      learningSeconds: prof.learningSeconds || 0,
+      challengeCount: prof.challengeCount || 0,
+      dayStreak: prof.dayStreak || { current:0, best:0, lastDay:null },
       cogSnapshots: prof.cogSnapshots || [],
       twinSessions: prof.twinSessions || [],
       errorTypeCounts: prof.errorTypeCounts || {},
@@ -13628,6 +14094,9 @@
     prof.abacusLog = state.abacusLog || [];
     prof.abacusStage = state.abacusStage || 1;
     prof.abExplainStats = state.abExplainStats || { asked:0, answered:0, matched:0, unsure:0 };
+    prof.learningSeconds = Math.max(prof.learningSeconds || 0, state.learningSeconds || 0);
+    prof.challengeCount = Math.max(prof.challengeCount || 0, state.challengeCount || 0);
+    if(state.dayStreak) prof.dayStreak = state.dayStreak;
     prof.cogSnapshots = state.cogSnapshots || [];
     prof.twinSessions = state.twinSessions || [];
     prof.errorTypeCounts = state.errorTypeCounts || {};
@@ -14893,6 +15362,13 @@
     count += 1;
     const elapsed = (performance.now() - questionStartTs) / 1000;
     twinRecordAnswer(isCorrect, elapsed * 1000);
+    // Engaged learning time, accumulated per question. Capped at 120s so a
+    // learner who walked away mid-question cannot inflate the total — an
+    // hours figure that counts idle time is not a learning-time figure.
+    if(PROFILES[currentProfile]){
+      const capped = Math.min(120, Math.max(0, elapsed));
+      PROFILES[currentProfile].learningSeconds = (PROFILES[currentProfile].learningSeconds || 0) + capped;
+    }
 
     if(!challengeMode && !raceMode){
       const prof = PROFILES[currentProfile];
@@ -15658,6 +16134,8 @@
     if(!prof.sessionLog) prof.sessionLog = [];
     prof.sessionLog.push({ date: new Date().toISOString(), score, accuracy: acc, questionCount: count, operation: op });
     if(prof.sessionLog.length > 90) prof.sessionLog.shift(); // keep roughly 2-3 months of daily use
+    prof.challengeCount = (prof.challengeCount || 0) + 1;
+    updateDayStreak(prof);
     commitTwinRecording(prof, score, acc);
     maybeSnapshotCognitiveProfile(prof);
     learnerStateDirty = true;
