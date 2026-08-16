@@ -7400,6 +7400,32 @@
   try{ SESSION_TOKEN = localStorage.getItem('nexoraSessionToken') || null; }catch(e){}
   // Guards against several in-flight requests each firing their own logout.
   let sessionEndingNow = false;
+  let sessionRenewInFlight = false, sessionRenewFailedAt = 0;
+  /* Re-authenticates in the background using the stored credentials of the
+     profile that is already signed in locally. Runs at most once a minute so
+     a persistent failure cannot become a request loop, and stays completely
+     silent — the learner has nothing to decide here. */
+  async function maybeRenewSessionSilently(){
+    if(sessionRenewInFlight || SESSION_TOKEN) return false;
+    if(Date.now() - sessionRenewFailedAt < 60000) return false;
+    const prof = PROFILES[currentProfile];
+    if(!prof || !prof.username || !prof.pin || currentProfile === 'guest') return false;
+    sessionRenewInFlight = true;
+    try{
+      const res = await fetch(SHEET_API_URL, {
+        method:'POST',
+        body: JSON.stringify({ type:'login', username: prof.username, pin: prof.pin })
+      }).then(r=>r.json()).catch(()=>null);
+      if(res && res.ok && res.sessionToken){
+        setSessionToken(res.sessionToken);
+        return true;
+      }
+      sessionRenewFailedAt = Date.now();
+      return false;
+    } finally {
+      sessionRenewInFlight = false;
+    }
+  }
   function setSessionToken(tok){
     SESSION_TOKEN = tok || null;
     try{
@@ -7429,13 +7455,14 @@
         // at all is not an expiry — it is simply a device that has not signed
         // in under the new scheme yet, and forcing it out created a loop the
         // learner could not escape: sign in, get kicked, sign in again.
-        // No token yet on this device: tell the learner what to do instead
-        // of failing in silence. Their data is safe locally and will sync the
-        // moment they sign in again.
-        if(res && res.error === 'session_missing' && !sessionEndingNow){
-          sessionEndingNow = true;
-          if(typeof showToast === 'function') showToast(t('sessionNeedsSignIn'), nxIcon('lock'), 'system');
-          setTimeout(function(){ sessionEndingNow = false; }, 6000);
+        // No token on this device. Do NOT nag: the app can obtain one by
+        // itself from the credentials already saved for the signed-in
+        // profile. Telling the learner to sign out and back in was asking
+        // them to do work the app is perfectly able to do — and because
+        // several requests fire every few seconds, that one message became a
+        // stream of them.
+        if(res && res.error === 'session_missing'){
+          maybeRenewSessionSilently();
         }
         if(res && res.error === 'session_expired' && SESSION_TOKEN && !sessionEndingNow){
           sessionEndingNow = true;   // one notice, however many requests fail at once
