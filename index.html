@@ -13075,32 +13075,43 @@
     // resolve it to a data: URL in the background so the DOWNLOAD works too.
     // The monogram remains the fallback, never an emoji, which html2canvas
     // renders as a garbled shape.
+    // Use the SAME helper every other avatar in the app uses.
+    //
+    // The bug: this built its own logic reading prof.photo directly. On a
+    // device where the photo was never cached locally that field is empty —
+    // so the card fell back to a monogram while the top bar, which calls
+    // backfillAndRenderAvatar, fetched the photo from the server and showed
+    // it. Same learner, same screen, two different answers.
+    //
+    // backfillAndRenderAvatar renders what is local, then fetches from the
+    // server when it is missing and re-renders. Reusing it means the card can
+    // never again disagree with the rest of the app.
     mcPhoto.innerHTML = '';
-    if(prof.photo){
-      const img = document.createElement('img');
-      img.src = prof.photo;
-      // A dead link must not leave an empty gold circle on a card the learner
-      // keeps — fall back to the monogram the moment loading fails.
-      img.onerror = function(){
-        mcPhoto.innerHTML = '';
-        mcPhoto.textContent = (displayName || '?').trim().charAt(0);
-      };
-      mcPhoto.appendChild(img);
-
-      // Convert once, in the background, so PNG export and print are not
-      // limited to devices where the photo happens to be local already.
-      if(String(prof.photo).indexOf('data:') !== 0 && typeof resolvePhotoForCanvas === 'function'){
-        resolvePhotoForCanvas(prof.photo, (prof.username || key)).then(function(safe){
-          if(safe && String(safe).indexOf('data:') === 0){
-            prof.photo = safe;             // cached for next time
-            saveProfilesToStorage();
-            const live = mcPhoto.querySelector('img');
-            if(live) live.src = safe;
-          }
-        });
-      }
-    } else {
+    backfillAndRenderAvatar(key, mcPhoto, 52);
+    // The helper falls back to profile.avatar, which is an EMOJI — html2canvas
+    // renders colour emoji as a garbled shape, so on this card a monogram
+    // replaces it whenever no real photo resolved.
+    const applyMonogramIfNoPhoto = function(){
+      if(mcPhoto.querySelector('img')) return;
+      mcPhoto.innerHTML = '';
+      mcPhoto.style.fontSize = '';
       mcPhoto.textContent = (displayName || '?').trim().charAt(0);
+    };
+    applyMonogramIfNoPhoto();
+    // The server fetch above is async; re-check once it has had time to land.
+    setTimeout(applyMonogramIfNoPhoto, 1800);
+
+    // Separately, convert a remote photo to a data: URL so the PNG export and
+    // print work too — html2canvas cannot rasterise a Drive link.
+    if(prof.photo && String(prof.photo).indexOf('data:') !== 0 && typeof resolvePhotoForCanvas === 'function'){
+      resolvePhotoForCanvas(prof.photo, (prof.username || key)).then(function(safe){
+        if(safe && String(safe).indexOf('data:') === 0){
+          prof.photo = safe;
+          saveProfilesToStorage();
+          const live = mcPhoto.querySelector('img');
+          if(live) live.src = safe;
+        }
+      });
     }
 
     // QR points at the same verification page certificates use, so a scan
