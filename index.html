@@ -13063,15 +13063,44 @@
     const active = lastSeen && (Date.now() - lastSeen) < 45 * 86400000;
     mcStatus.textContent = t(active ? 'mcStatusActive' : 'mcStatusDormant');
 
-    // Photo, falling back to a monogram — never an emoji, which html2canvas
-    // cannot rasterise (it produced a garbled shape on the certificate).
+    // Photo handling.
+    //
+    // This used to accept ONLY data: URLs, because html2canvas cannot
+    // rasterise a Drive link. But that punished the on-screen card for a
+    // limitation that belongs to the download: a learner whose photo lives on
+    // Drive — which is every learner who uploaded from another device — saw a
+    // monogram even though their photo was right there in the top bar.
+    //
+    // So: show the photo immediately whatever its form, and separately
+    // resolve it to a data: URL in the background so the DOWNLOAD works too.
+    // The monogram remains the fallback, never an emoji, which html2canvas
+    // renders as a garbled shape.
     mcPhoto.innerHTML = '';
-    if(prof.photo && String(prof.photo).indexOf('data:') === 0){
+    if(prof.photo){
       const img = document.createElement('img');
       img.src = prof.photo;
+      // A dead link must not leave an empty gold circle on a card the learner
+      // keeps — fall back to the monogram the moment loading fails.
+      img.onerror = function(){
+        mcPhoto.innerHTML = '';
+        mcPhoto.textContent = (displayName || '?').trim().charAt(0);
+      };
       mcPhoto.appendChild(img);
+
+      // Convert once, in the background, so PNG export and print are not
+      // limited to devices where the photo happens to be local already.
+      if(String(prof.photo).indexOf('data:') !== 0 && typeof resolvePhotoForCanvas === 'function'){
+        resolvePhotoForCanvas(prof.photo, (prof.username || key)).then(function(safe){
+          if(safe && String(safe).indexOf('data:') === 0){
+            prof.photo = safe;             // cached for next time
+            saveProfilesToStorage();
+            const live = mcPhoto.querySelector('img');
+            if(live) live.src = safe;
+          }
+        });
+      }
     } else {
-      mcPhoto.textContent = (displayName || '?').trim().charAt(0); // never an emoji: html2canvas cannot rasterise colour emoji
+      mcPhoto.textContent = (displayName || '?').trim().charAt(0);
     }
 
     // QR points at the same verification page certificates use, so a scan
