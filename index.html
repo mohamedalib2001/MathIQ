@@ -4873,7 +4873,14 @@
       novaDueLine:'وعندك {n} سؤال حان موعد مراجعته.',
       slElapsed:'{s} ث', slDone:'تم ✓',
       slSlowNote:'الخادم يستغرق وقتًا أطول من المعتاد — ما زلنا ننتظر، لم يتوقف شيء.',
-      slStepProfile:'نقرأ ملفك التعليمي…', slStepIndicators:'نحسب المؤشرات المعرفية…',
+      slStepSkillMap:'نجمع مهاراتك…', slStepAssessments:'نراجع نتائج التقييمات…', slStepLevels:'نحسب المستويات…',
+      slStepHistory:'نقرأ سجلك…', slStepBadges:'نحصي إنجازاتك…', slStepCerts:'نجهّز شهاداتك…',
+      slStepMastery:'نقيس الإتقان…', slStepNext:'نحدّد خطوتك التالية…',
+      slStepEnrollments:'نفتح برامجك…', slStepProgress:'نحدّث تقدّمك…', slStepReady:'نرتّب الواجهة…',
+      slStepFriends:'نتصل بالخادم…', slStepPresence:'نتحقق من المتصلين…', slStepRequests:'نراجع الطلبات…',
+      slStepCourses:'نحمّل الدورات…', slStepLessons:'نجهّز الدروس…', slStepYourProgress:'نستعيد تقدّمك…',
+      slStepGenerate:'نولّد أسئلة جديدة…', slStepVerify:'نتحقق من صحتها رياضيًا…', slStepShuffle:'نرتّب الجولة…',
+            slStepProfile:'نقرأ ملفك التعليمي…', slStepIndicators:'نحسب المؤشرات المعرفية…',
       slStepPrograms:'نراجع أداءك في كل برنامج…', slStepInsights:'نستخرج الملاحظات…',
       slStepMemberData:'نجهّز بيانات العضوية…', slStepTier:'نحدّد فئتك…', slStepQr:'ننشئ رمز التحقق…',
       slStepDue:'نبحث عن الأسئلة المستحقة…', slStepResolve:'نسترجع الأسئلة من برامجك…',
@@ -5596,7 +5603,14 @@
       novaDueLine:'And {n} question(s) are due for review.',
       slElapsed:'{s}s', slDone:'Done ✓',
       slSlowNote:'The server is taking longer than usual — we are still waiting, nothing has stalled.',
-      slStepProfile:'Reading your learning record…', slStepIndicators:'Computing cognitive indicators…',
+      slStepSkillMap:'Gathering your skills…', slStepAssessments:'Reviewing assessment results…', slStepLevels:'Computing levels…',
+      slStepHistory:'Reading your history…', slStepBadges:'Counting achievements…', slStepCerts:'Preparing certificates…',
+      slStepMastery:'Measuring mastery…', slStepNext:'Choosing your next step…',
+      slStepEnrollments:'Opening your programs…', slStepProgress:'Updating progress…', slStepReady:'Arranging the view…',
+      slStepFriends:'Contacting the server…', slStepPresence:'Checking who is online…', slStepRequests:'Reviewing requests…',
+      slStepCourses:'Loading courses…', slStepLessons:'Preparing lessons…', slStepYourProgress:'Restoring your progress…',
+      slStepGenerate:'Generating fresh questions…', slStepVerify:'Verifying them mathematically…', slStepShuffle:'Arranging the round…',
+            slStepProfile:'Reading your learning record…', slStepIndicators:'Computing cognitive indicators…',
       slStepPrograms:'Reviewing performance per program…', slStepInsights:'Extracting observations…',
       slStepMemberData:'Preparing membership details…', slStepTier:'Determining your tier…', slStepQr:'Generating the verification code…',
       slStepDue:'Finding questions that are due…', slStepResolve:'Retrieving them from your programs…',
@@ -6408,6 +6422,8 @@
   }
   function showProgramsHub(){
     if(!requireAuth('programs')) return;
+    withLoader(t('shellNavPrograms'), [t('slStepEnrollments'), t('slStepProgress'), t('slStepReady')],
+      async function(ctl){ await ctl.advance(); await ctl.advance(); await ctl.advance(); });
     const p = PROFILES[currentProfile];
     if(!p) return;
     programsHubGreeting.textContent = fmt('hubGreeting', { name: profileDisplayName(currentProfile) });
@@ -8686,6 +8702,8 @@
   }
   function renderMySkills(){
     if(!requireAuth('skills')) return;
+    withLoader(t('shellNavSkills'), [t('slStepSkillMap'), t('slStepAssessments'), t('slStepLevels')],
+      async function(ctl){ await ctl.advance(); await ctl.advance(); await ctl.advance(); });
     mySkillsList.innerHTML = '';
     const skills = lpEnsureDefaultSkills();
     skills.forEach(s=>{
@@ -10426,6 +10444,9 @@
   /* ==================== END MODULE: ERROR STATE ==================== */
   function openProgramPlayer(program){
     if(!requireAuth('programPlayer')) return;
+    withLoader(program && program.title ? program.title : t('shellNavPrograms'),
+      [t('slStepCourses'), t('slStepLessons'), t('slStepYourProgress')],
+      async function(ctl){ await ctl.advance(); await ctl.advance(); await ctl.advance(); });
     if(!program){
       programsHubEl.classList.add('hidden');
       programPlayerEl.classList.remove('hidden');
@@ -10784,7 +10805,10 @@
   let pgSet = [], pgIndex = 0, pgCorrect = 0, pgProgram = null, pgSkills = null, pgStart = 0;
 
   function startGeneratedPractice(program, skills){
+    slBegin(t('pgPracticeTitle'), [t('slStepGenerate'), t('slStepVerify'), t('slStepShuffle')]);
+    slAdvance();
     pgSet = pgBuildSet(skills, 10);
+    slAdvance(); slEnd();
     if(!pgSet.length){ showToast(t('pgNoneAvailable'), nxIcon('alertTriangle'), 'learning'); return; }
     pgIndex = 0; pgCorrect = 0; pgProgram = program; pgSkills = skills; pgStart = Date.now();
     renderGeneratedQuestion();
@@ -11742,9 +11766,9 @@
     withLoader(t('memberCardTitle'), [
       t('slStepMemberData'), t('slStepTier'), t('slStepQr')
     ], async function(ctl){
-      ctl.advance(); ctl.advance();
+      await ctl.advance(); await ctl.advance();
       renderMembershipCard();
-      ctl.advance();
+      await ctl.advance();
     });
     renderShellNav('learner');
   }
@@ -11799,9 +11823,9 @@
     withLoader(t('synapseNavLabel'), [
       t('slStepProfile'), t('slStepIndicators'), t('slStepPrograms'), t('slStepInsights')
     ], async function(ctl){
-      ctl.advance();
+      await ctl.advance();
       renderSynapseProfile();
-      ctl.advance(); ctl.advance(); ctl.advance();
+      await ctl.advance(); await ctl.advance(); await ctl.advance();
     });
     renderShellNav('learner');
   }
@@ -12648,11 +12672,26 @@
   }
   /* Wraps any async task. The loader is guaranteed to close — a thrown error
      used to be the classic way to leave a spinner on screen forever. */
+  // A synchronous render finishes in under a frame, so the loader was being
+  // opened and closed before the browser ever painted it — which is exactly
+  // why nothing appeared. Each step is given a moment to be seen, and the
+  // whole thing is guaranteed to close even if the task throws.
+  const SL_MIN_STEP_MS = 260;
+  const SL_MIN_TOTAL_MS = 700;
+  function slWait(ms){ return new Promise(function(r){ setTimeout(r, ms); }); }
+
   async function withLoader(title, steps, task){
     slBegin(title, steps);
+    const started = Date.now();
     try{
-      return await task({ advance: slAdvance });
+      // yield once so the loader paints before any heavy synchronous work
+      await slWait(30);
+      return await task({
+        advance: async function(){ slAdvance(); await slWait(SL_MIN_STEP_MS); }
+      });
     } finally {
+      const spent = Date.now() - started;
+      if(spent < SL_MIN_TOTAL_MS) await slWait(SL_MIN_TOTAL_MS - spent);
       slEnd();
     }
   }
@@ -14587,6 +14626,8 @@
 
   function renderKnowledgeMap(){
     if(!requireAuth('knowledgeMap')) return;
+    withLoader(t('shellNavJourney'), [t('slStepMastery'), t('slStepLevels'), t('slStepNext')],
+      async function(ctl){ await ctl.advance(); await ctl.advance(); await ctl.advance(); });
     const p = PROFILES[currentProfile];
     if(!p){ return; }
     knowledgeMapList.innerHTML = '';
@@ -16100,6 +16141,8 @@
 
   function renderMyStats(){
     if(!requireAuth('myStats')) return;
+    withLoader(t('shellNavAchievements'), [t('slStepHistory'), t('slStepBadges'), t('slStepCerts')],
+      async function(ctl){ await ctl.advance(); await ctl.advance(); await ctl.advance(); });
     const p = PROFILES[currentProfile];
     if(!p) return;
     backfillAndRenderAvatar(currentProfile, myStatsAvatar, 64);
@@ -16348,17 +16391,25 @@
   }
   async function renderFriends(){
     if(!requireAuth('friends')) return;
+    // A genuine network wait — this is where a blank screen hurt most.
+    slBegin(t('friendsNavLabel'), [t('slStepFriends'), t('slStepPresence'), t('slStepRequests')]);
+    slAdvance();
     friendsListArea.innerHTML = `<div class="dash-empty">${t('teachersLoading')}</div>`;
     friendsIncomingArea.innerHTML = '';
-    if(!SHEET_API_URL){ friendsListArea.innerHTML = `<div class="dash-empty">${t('lpSeedNoBackend')}</div>`; return; }
+    // Every early return must close the loader, or the screen stays behind
+    // an overlay that never dismisses.
+    if(!SHEET_API_URL){ slEnd(); friendsListArea.innerHTML = `<div class="dash-empty">${t('lpSeedNoBackend')}</div>`; return; }
     beginForegroundRequest();
     let res = null;
     try{ res = await postToSheet('list_friends', { username: currentServerUsername() }); }
     finally{ endForegroundRequest(); }
+    slAdvance();
     if(!res || !res.ok){
+      slEnd();
       friendsListArea.innerHTML = `<div class="dash-empty">${describeSyncFailure(res, 'lpSyncCreateFailed')}</div>`;
       return;
     }
+    slEnd();
     // Renders the real photo when the sender has one, a neutral initial
     // otherwise. When the sender never completed a profile, say so plainly
     // instead of showing a raw internal id as if it were their name.
