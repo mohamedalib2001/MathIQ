@@ -1708,6 +1708,78 @@
   .oc-audit b{ color:var(--ink); }
   .oc-audit span{ color:var(--ink-dim); font-size:10px; display:block; margin-top:2px; direction:ltr; }
 
+  /* ---------- PHASE 2 — EXECUTIVE PORTAL ---------- */
+  .ex-portal{
+    display:grid; grid-template-columns:1.05fr 1fr; align-items:stretch;
+    background:var(--ex-bg); border:1px solid var(--ex-line); border-radius:16px;
+    overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,0.45);
+  }
+  .ex-portal-viz{
+    position:relative; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:26px;
+    padding:38px 30px; min-height:470px;
+    border-inline-end:1px solid var(--ex-line);
+    background:
+      radial-gradient(620px 380px at 50% 34%, rgba(139,92,246,0.10), transparent 64%),
+      linear-gradient(170deg, #0a1020 0%, #070b14 100%);
+  }
+  .ex-net{ width:min(270px, 74%); height:auto; }
+  .ex-orbit{ fill:none; stroke:rgba(139,92,246,0.20); stroke-width:1; }
+  .ex-orbit-2{ stroke:rgba(6,182,212,0.13); }
+  .ex-links line{ stroke:rgba(139,92,246,0.20); stroke-width:1; }
+  .ex-node{ fill:#a78bfa; }
+  .ex-node-core{ fill:#c4b5fd; }
+  @media (prefers-reduced-motion: no-preference){
+    /* One slow rotation, 40s. Anything faster reads as a loading state and
+       pulls the eye from the form the owner came here to fill in. */
+    .ex-orbit{ transform-origin:160px 160px; animation:exSpin 40s linear infinite; }
+    .ex-orbit-2{ animation-duration:64s; animation-direction:reverse; }
+    .ex-node-core{ animation:exCore 4.5s ease-in-out infinite; }
+  }
+  @keyframes exSpin{ to{ transform:rotate(360deg) } }
+  @keyframes exCore{ 0%,100%{ opacity:1 } 50%{ opacity:.5 } }
+
+  /* In normal flow, not absolutely positioned: the absolute version collided
+     with itself the moment the panel height changed, which the first render
+     showed immediately. */
+  .ex-portal-wordmark{ text-align:center; }
+  .ex-portal-brand{
+    font-family:'Cairo',sans-serif; font-weight:800; font-size:34px;
+    letter-spacing:9px; color:#f1f5fd; line-height:1; margin-inline-start:9px;
+  }
+  .ex-portal-brand-sub{
+    font-size:10px; letter-spacing:9px; color:var(--ex-ink-faint);
+    margin-top:9px; margin-inline-start:9px; line-height:1;
+  }
+  .ex-portal-line{
+    width:64px; height:1px; margin:16px auto;
+    background:linear-gradient(90deg, transparent, rgba(139,92,246,0.85), transparent);
+  }
+  .ex-portal-tag{
+    font-size:9.5px; letter-spacing:3.4px; color:#a78bfa;
+    font-weight:700; line-height:1.7;
+  }
+  .ex-portal-form{ padding:34px 30px; display:flex; flex-direction:column; justify-content:center; }
+  /* The portal supplies the frame, so the inner editor must not draw a second
+     one — nested panels are the fastest way to make an interface look cheap. */
+  .ex-portal-form .mini-editor{ background:transparent; border:none; padding:0; box-shadow:none; }
+  /* The executive accent, not the learner mint: a different class of product
+     should not sign off with the same button. */
+  .ex-portal-form .start-btn{
+    background:linear-gradient(145deg,#8b5cf6,#6d28d9); color:#fff;
+    box-shadow:0 10px 26px rgba(109,40,217,0.34);
+  }
+  .ex-portal-form .secondary-btn{ border-color:var(--ex-line-strong); color:var(--ex-ink-dim); }
+
+  /* Placed AFTER the base rules deliberately. A media query adds no
+     specificity, so declaring it earlier let the later `display:flex` win and
+     the visualisation stayed on a 390px phone. */
+  @media (max-width:900px){
+    .ex-portal{ grid-template-columns:1fr; }
+    .ex-portal-viz{ display:none; }
+    .ex-portal-form{ padding:26px 20px; }
+  }
+
   /* ---------- RESTRICTED AREA HEADER ---------- */
   .sec-header{ text-align:center; padding:4px 0 14px; }
   .sec-shield{ width:62px; height:62px; margin:0 auto 12px; border-radius:16px;
@@ -2187,6 +2259,81 @@
     .ja-nudge{ animation:jaNudgeIn .3s ease forwards; }
   }
   @keyframes jaNudgeIn{ from{ opacity:0; transform:translateY(10px) } to{ opacity:1; transform:none } }
+
+  /* ==================== PHASE 1 — EXECUTIVE DESIGN SYSTEM ====================
+     A separate token set, not a re-theme of the learner interface. The two
+     audiences want opposite things: a learner needs warmth and colour, an
+     owner needs quiet and hierarchy. Sharing one palette would compromise
+     both.
+
+     Restraint is the whole point — §30. Depth comes from spacing, weight and
+     one accent, not from glow on every surface. */
+  .exec{
+    --ex-void:#05080f;          /* deepest layer — the room the panels sit in */
+    --ex-bg:#080c16;
+    --ex-surface:#0c1220;
+    --ex-raised:#111827;
+    --ex-line:rgba(148,163,184,0.13);
+    --ex-line-strong:rgba(148,163,184,0.24);
+    --ex-ink:#e9eef8;
+    --ex-ink-dim:#94a3b8;
+    --ex-ink-faint:#64748b;
+    --ex-accent:#8b5cf6;        /* intelligence — violet, used sparingly */
+    --ex-accent-soft:rgba(139,92,246,0.12);
+    --ex-tech:#06b6d4;          /* secondary technological accent only */
+    --ex-ok:#10b981;            /* verified / healthy */
+    --ex-warn:#f59e0b;
+    --ex-crit:#ef4444;          /* critical security events ONLY */
+    --ex-gold:#d8bd7a;
+  }
+
+  /* ---- typography scale: hierarchy carries the luxury, not ornament ---- */
+  .ex-eyebrow{ font-size:10px; letter-spacing:3.2px; text-transform:uppercase;
+    color:var(--ex-ink-faint); font-weight:600; }
+  .ex-h1{ font-family:'Cairo',sans-serif; font-weight:800; font-size:clamp(24px,3.4vw,38px);
+    line-height:1.18; color:var(--ex-ink); letter-spacing:-0.4px; }
+  .ex-h2{ font-family:'Cairo',sans-serif; font-weight:800; font-size:17px; color:var(--ex-ink); }
+  .ex-body{ font-size:13px; line-height:1.85; color:var(--ex-ink-dim); }
+  .ex-mono{ font-family:'Courier New',monospace; letter-spacing:0.5px; }
+
+  /* ---- surfaces: one hairline, one soft shadow, no glassmorphism ---- */
+  .ex-panel{
+    background:var(--ex-surface); border:1px solid var(--ex-line);
+    border-radius:14px; box-shadow:0 1px 0 rgba(255,255,255,0.025) inset, 0 12px 32px rgba(0,0,0,0.34);
+  }
+  .ex-panel-quiet{ background:var(--ex-bg); border:1px solid var(--ex-line); border-radius:12px; }
+
+  /* ---- status dots: colour is the only signal, no pulsing by default ---- */
+  .ex-dot{ width:6px; height:6px; border-radius:50%; display:inline-block; flex:none; }
+  .ex-dot.ok{ background:var(--ex-ok); box-shadow:0 0 8px rgba(16,185,129,0.55); }
+  .ex-dot.warn{ background:var(--ex-warn); box-shadow:0 0 8px rgba(245,158,11,0.5); }
+  .ex-dot.crit{ background:var(--ex-crit); box-shadow:0 0 8px rgba(239,68,68,0.5); }
+  .ex-dot.idle{ background:var(--ex-ink-faint); }
+
+  /* ---- confidence chips: the visible half of the data-integrity rule ---- */
+  .ex-conf{ font-size:9px; letter-spacing:0.6px; padding:2px 7px; border-radius:20px;
+    font-weight:700; text-transform:uppercase; }
+  .ex-conf.high{ background:rgba(16,185,129,0.12); color:#34d399; }
+  .ex-conf.medium{ background:rgba(245,158,11,0.12); color:#fbbf24; }
+  .ex-conf.low{ background:rgba(148,163,184,0.12); color:#94a3b8; }
+  .ex-conf.insufficient{ background:rgba(148,163,184,0.08); color:var(--ex-ink-faint); }
+
+  /* ---- motion: 150-500ms, and nothing that loops in the periphery ---- */
+  @media (prefers-reduced-motion: no-preference){
+    .ex-fade{ animation:exFade .34s cubic-bezier(.22,.61,.36,1) both; }
+    .ex-fade-1{ animation-delay:.05s } .ex-fade-2{ animation-delay:.11s }
+    .ex-fade-3{ animation-delay:.17s } .ex-fade-4{ animation-delay:.23s }
+  }
+  @keyframes exFade{ from{ opacity:0; transform:translateY(10px) } to{ opacity:1; transform:none } }
+
+  /* ---- skeletons: never a blank panel while data loads (§24) ---- */
+  .ex-skel{ background:linear-gradient(90deg, rgba(148,163,184,0.06) 25%,
+    rgba(148,163,184,0.13) 50%, rgba(148,163,184,0.06) 75%);
+    background-size:200% 100%; border-radius:6px; }
+  @media (prefers-reduced-motion: no-preference){
+    .ex-skel{ animation:exShimmer 1.5s linear infinite; }
+  }
+  @keyframes exShimmer{ to{ background-position:-200% 0 } }
 
   /* ---------- JASSI ASSISTANT AVATAR ----------
      Embedded as WebP data URIs. A single-file app cannot rely on separate
@@ -4570,10 +4717,41 @@
   <!-- ADMIN LOGIN GATE -->
   <div id="adminLoginGate" class="panel hidden">
     <div class="mini-editor">
-      <!-- A restricted-area header. This is the one screen where signalling
-           the security posture is part of the function: it tells an authorised
-           owner they are in the right place, and tells anyone else that
-           attempts are recorded. -->
+      <!-- PHASE 2 — EXECUTIVE PORTAL.
+           Split composition: an ambient visualisation of the academy on one
+           side, authentication on the other. The visualisation is SVG and CSS
+           only — §19 rules out libraries, and a canvas loop would burn battery
+           on a screen people sit at for ten seconds. -->
+      <div class="ex-portal exec">
+        <div class="ex-portal-viz" aria-hidden="true">
+          <svg viewBox="0 0 320 320" class="ex-net">
+            <defs>
+              <radialGradient id="exGlow" cx="50%" cy="50%">
+                <stop offset="0%" stop-color="#8b5cf6" stop-opacity="0.30"/>
+                <stop offset="100%" stop-color="#8b5cf6" stop-opacity="0"/>
+              </radialGradient>
+            </defs>
+            <circle cx="160" cy="160" r="150" fill="url(#exGlow)"/>
+            <circle cx="160" cy="160" r="96" class="ex-orbit"/>
+            <circle cx="160" cy="160" r="136" class="ex-orbit ex-orbit-2"/>
+            <g class="ex-links">
+              <line x1="160" y1="160" x2="160" y2="64"/><line x1="160" y1="160" x2="243" y2="112"/>
+              <line x1="160" y1="160" x2="243" y2="208"/><line x1="160" y1="160" x2="160" y2="256"/>
+              <line x1="160" y1="160" x2="77" y2="208"/><line x1="160" y1="160" x2="77" y2="112"/>
+            </g>
+            <circle cx="160" cy="160" r="9" class="ex-node ex-node-core"/>
+            <circle cx="160" cy="64"  r="4.5" class="ex-node"/><circle cx="243" cy="112" r="4.5" class="ex-node"/>
+            <circle cx="243" cy="208" r="4.5" class="ex-node"/><circle cx="160" cy="256" r="4.5" class="ex-node"/>
+            <circle cx="77"  cy="208" r="4.5" class="ex-node"/><circle cx="77"  cy="112" r="4.5" class="ex-node"/>
+          </svg>
+          <div class="ex-portal-wordmark">
+            <div class="ex-portal-brand">JASSI</div>
+            <div class="ex-portal-brand-sub">ACADEMY</div>
+            <div class="ex-portal-line"></div>
+            <div class="ex-portal-tag" data-i18n="exPortalTag">EXECUTIVE COMMAND CENTER</div>
+          </div>
+        </div>
+        <div class="ex-portal-form">
       <div class="sec-header">
         <div class="sec-shield">
           <svg viewBox="0 0 24 24" class="sec-shield-svg">
@@ -4603,6 +4781,8 @@
       <button class="start-btn" id="adminLoginBtn" data-i18n="loginConfirm">دخول</button>
       <div class="link-line subtle-link hidden" id="adminResetLink" data-i18n="adminResetLink">نسيت كلمة مرور الإدارة؟</div>
       <button class="secondary-btn" id="adminLoginCancelBtn" data-i18n="cancelBtn">إلغاء</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -7638,6 +7818,7 @@
       secStoredNotHashed:'كلمة المرور المخزّنة نص صريح لا تجزئة — غالبًا أُدخلت يدويًا في الجدول. استخدم «نسيت كلمة مرور الإدارة؟» لتعيينها بشكل صحيح.',
       secStoredWhitespace:'اسم المستخدم المخزّن يحوي مسافة زائدة في الجدول. افتح جدول Admin واحذف المسافة من بداية الاسم أو نهايته، ثم أعد المحاولة.',
       secCaseDiffers:'الحساب موجود لكن صيغة الاسم المخزّن تختلف عمّا كتبته (الطول {n}). استخدم «نسيت كلمة مرور الإدارة؟» — سيُصحّح ذلك تلقائيًا.',
+      exPortalTag:'مركز القيادة التنفيذي',
       secRestricted:'منطقة محظورة · دخول مصرّح فقط',
       secEncrypted:'اتصال مشفّر', secHashed:'كلمة المرور مجزّأة', secAudited:'كل محاولة مسجّلة',
       secAttemptsLeft:'⚠ متبقٍ {n} محاولات قبل الإيقاف المؤقت',
@@ -9134,6 +9315,7 @@
       secStoredNotHashed:'The stored password is plain text rather than a hash — most likely typed directly into the sheet. Use "Forgot admin password" to set it properly.',
       secStoredWhitespace:'The stored username contains stray whitespace in the sheet. Open the Admin sheet, remove the space from the start or end of the name, and try again.',
       secCaseDiffers:'The account exists but the stored username differs in form from what you typed (length {n}). Use "Forgot admin password" — that will correct it automatically.',
+      exPortalTag:'EXECUTIVE COMMAND CENTER',
       secRestricted:'Restricted area · authorised access only',
       secEncrypted:'Encrypted connection', secHashed:'Password hashed', secAudited:'Attempts recorded',
       secAttemptsLeft:'⚠ {n} attempts remaining before a temporary lock',
@@ -20560,7 +20742,7 @@
     memberPrefix: 'NX'
   };
 
-  var DIAG_BUILD = 'jassi-2026-08-17-0906-bef3e7ec16ca';
+  var DIAG_BUILD = 'jassi-2026-08-17-0930-0a9b5e7610fb';
   var DIAG_BUILD_AT = '2026-08-17';
   /* Capability inventory: checks that each feature EXISTS in the running
      file, not that its name appears somewhere. A stale build fails these
