@@ -10595,6 +10595,10 @@
   function applyOwnerVisibility(){
     if(typeof ownerCenterLink === 'undefined' || !ownerCenterLink) return;
     ownerCenterLink.classList.toggle('hidden', !isOwnerSession());
+    // Same gate, same moment. My earlier check ran once during setup — before
+    // anyone had signed in — so ADMIN was empty and the tile stayed hidden
+    // for every subsequent login.
+    if(execCenterLink) execCenterLink.classList.toggle('hidden', !isOwnerSession());
   }
   function renderProfiles(){
     applyOwnerVisibility();
@@ -16144,9 +16148,14 @@
     await exLoad();
     setBtnSaving(exRefreshBtn, false);
   });
-  // The tile is REVEALED for an owner rather than shown-and-refused: a door
-  // that always says no is worse than no door.
-  if(typeof exIsOwner === 'function' && exIsOwner()) execCenterLink.classList.remove('hidden');
+  /* Evaluated when the admin panel OPENS, not once during setup. The old
+     check ran before anyone had signed in, so ADMIN was empty, the tile
+     stayed hidden, and the executive centre was unreachable no matter who
+     logged in afterwards. */
+  function exSyncTileVisibility(){
+    if(!execCenterLink) return;
+    execCenterLink.classList.toggle('hidden', !(typeof exIsOwner === 'function' && exIsOwner()));
+  }
   aiBankLink.addEventListener('click', openAiBank);
   abSeedBtn.addEventListener('click', abSeed);
   abRefreshBtn.addEventListener('click', abRefresh);
@@ -19809,6 +19818,14 @@
     novaUserSaid(text);
     novaInput.value = '';
 
+    /* Normalised ONCE, at the very top. Arabic diacritics defeat every
+       pattern in this file, and every local matcher below reads this copy.
+       Declared here rather than mid-function because the matchers above the
+       old position hit its temporal dead zone and threw on the first
+       question — the assistant then answered nothing at all.
+       The learner's exact words are still what reach the model and history. */
+    const q = (typeof novaNormalise === 'function') ? novaNormalise(text) : text;
+
     // 1. A navigation request is handled locally: instant, and offline-safe.
     const route = novaMatchRoute(text);
     const wantsNav = /افتح|اذهب|روح|شغّل|ابدأ|open|go to|show me/i.test(text);
@@ -19852,14 +19869,6 @@
     // every time so a child is not taught two different methods.
     const concept = novaExplainConcept(q);
     if(concept){ novaSay(concept); return; }
-
-    // Arabic diacritics defeat every pattern in this file: a learner typing
-    // "تقدّمي" with a shadda does not match /تقدم/, and the question falls
-    // through to the model — which then sits in "thinking" with no reply.
-    // Normalising ONCE here fixes the whole matching layer rather than
-    // patching one regex at a time. The original text is still what gets
-    // sent to the model and stored in history; only matching uses this.
-    const q = (typeof novaNormalise === 'function') ? novaNormalise(text) : text;
 
     // Identity and greetings come first. They are about the conversation
     // rather than the platform, and routing "من أنت؟" into the services
@@ -21359,7 +21368,7 @@
     taglineArabic: 'تعلّم · تطوّر · ارتقِ'
   };
 
-  var DIAG_BUILD = 'jassi-2026-08-17-1216-04b12094f582';
+  var DIAG_BUILD = 'jassi-2026-08-17-1225-0e980d89ac9b';
   var DIAG_BUILD_AT = '2026-08-17';
   /* Capability inventory: checks that each feature EXISTS in the running
      file, not that its name appears somewhere. A stale build fails these
@@ -22535,6 +22544,9 @@
   let exData = null;
 
   function exIsOwner(){
+    // Delegates to the platform's existing owner check rather than repeating
+    // the rule — two copies of an authorisation test drift apart.
+    if(typeof isOwnerSession === 'function') return isOwnerSession();
     return !!(ADMIN && ADMIN.username && String(ADMIN.role || '') === 'owner');
   }
 
