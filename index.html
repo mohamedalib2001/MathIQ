@@ -19430,7 +19430,7 @@
   // `var`, matching the other loop bindings: a `let` here would sit in its
   // temporal dead zone during boot and throw the moment an early call touched
   // it, silently aborting whatever called it.
-  var realtimeReadyId = null;
+  var realtimeReadyId = null, realtimeVisibilityHook = false;
   function startRealtimeServices(){
     rtLog('called | api=' + (!!SHEET_API_URL) +
           ' hidden=' + document.hidden +
@@ -19439,7 +19439,22 @@
           ' profileExists=' + !!(loggedInKey && PROFILES[loggedInKey]) +
           ' auth=' + hasAuthenticatedSession());
     if(!SHEET_API_URL){ rtLog('ABORT: no api url'); return; }
-    if(document.hidden){ rtLog('ABORT: tab hidden'); return; }
+    if(document.hidden){
+      // Do not abandon — arrange to start when the tab is next visible.
+      // Abandoning meant a session that began in a background tab never
+      // started its services at all.
+      rtLog('deferred: tab hidden');
+      if(!realtimeVisibilityHook){
+        realtimeVisibilityHook = true;
+        document.addEventListener('visibilitychange', function once(){
+          if(document.hidden) return;
+          document.removeEventListener('visibilitychange', once);
+          realtimeVisibilityHook = false;
+          startRealtimeServices();
+        });
+      }
+      return;
+    }
 
     // Do NOT give up when the session is not ready yet.
     //
@@ -19479,9 +19494,18 @@
     }
     if(realtimeReadyId){ clearInterval(realtimeReadyId); realtimeReadyId = null; }
     rtLog('STARTING all services for ' + who);
-    chalStartPolling();
-    if(typeof startUnreadPolling === 'function') startUnreadPolling();
-    if(typeof startCallWatch === 'function') startCallWatch();
+    // Each starter is isolated. Previously a throw inside the FIRST one — a
+    // missing binding, a bad interval value, anything — aborted the two that
+    // followed, and the diagnostics then showed exactly what was reported:
+    // challenge and message polling stopped while call watching, started from
+    // another path entirely, kept running. One service failing must never
+    // take the others with it.
+    try{ chalStartPolling(); }
+    catch(e){ rtLog('chalStartPolling THREW: ' + (e && e.message)); }
+    try{ if(typeof startUnreadPolling === 'function') startUnreadPolling(); }
+    catch(e){ rtLog('startUnreadPolling THREW: ' + (e && e.message)); }
+    try{ if(typeof startCallWatch === 'function') startCallWatch(); }
+    catch(e){ rtLog('startCallWatch THREW: ' + (e && e.message)); }
     rtLog('started | chal=' + !!chalPollId +
           ' unread=' + (typeof msgPollId !== 'undefined' ? !!msgPollId : 'n/a'));
   }
@@ -19511,8 +19535,15 @@
   document.addEventListener('visibilitychange', function(){
     // Call watching keeps running on a hidden tab: missing an incoming call
     // because the user switched tabs is exactly the failure being fixed here.
-    if(document.hidden){ chalStopPolling(); stopUnreadPolling(); }
-    else startRealtimeServices();
+    if(document.hidden){ chalStopPolling(); stopUnreadPolling(); return; }
+    // Deferred by a tick: visibilitychange can fire while document.hidden is
+    // still true, and startRealtimeServices aborts on that flag. The result
+    // was a tab that paused its polling on the way out and never resumed on
+    // the way back — which is what the diagnostics kept reporting, since the
+    // report itself runs right after a tab switch.
+    setTimeout(function(){
+      if(!document.hidden) startRealtimeServices();
+    }, 0);
   });
 
   async function chalPoll(){
