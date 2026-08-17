@@ -2531,6 +2531,20 @@
   .lw-mark{ width:18px; height:18px; margin-inline-end:7px; vertical-align:-4px; }
   .dp-crest.jassi-mark, .sk-crest.jassi-mark{ background-color:transparent; border:none; }
   .mc-brand-mark.jassi-mark{ background-color:transparent; }
+  /* ---------- LOGIN ASSISTANT BADGE ---------- */
+  .login-badge{
+    width:104px; height:104px; margin:0 auto 16px; border-radius:50%;
+    background-repeat:no-repeat; background-position:center; background-size:cover;
+    box-shadow:0 12px 34px rgba(108,61,255,0.30), 0 0 0 1px rgba(212,175,55,0.22);
+  }
+  /* Hidden below 900px: the sign-in panel already stacks there, and a decorative
+     portrait pushes the fields below the fold on a phone. */
+  @media (max-width:900px){ .login-badge{ display:none; } }
+  @media (prefers-reduced-motion: no-preference){
+    .login-badge{ animation:lbIn .5s cubic-bezier(.22,.61,.36,1) both; }
+  }
+  @keyframes lbIn{ from{ opacity:0; transform:scale(.9) } to{ opacity:1; transform:none } }
+
   .jassi-mark{
     background-repeat:no-repeat; background-position:center; background-size:contain;
     display:inline-block; flex:none;
@@ -5150,6 +5164,7 @@
   <div class="login-split-wrapper">
     <div class="login-brand-panel" aria-hidden="true">
       <div class="login-brand-content">
+        <div class="login-badge" id="loginAssistantBadge" aria-hidden="true"></div>
         <div class="login-brand-wordmark"><span class="jassi-mark jassi-mark-sm lw-mark" aria-hidden="true"></span>JASSI Academy</div>
         <div class="login-brand-tagline" data-i18n="loginBrandTagline">منصة التعلّم الذكي</div>
         <h1 class="login-brand-headline" data-i18n="loginBrandHeadline">تعلّم أذكى.
@@ -6181,6 +6196,10 @@
   /* Paints every .jassi-mark from the central brand config. Called after the
      DOM is ready and again whenever marks are added dynamically. */
   function applyBrandMarks(root){
+    const badge = (root || document).querySelector('#loginAssistantBadge');
+    if(badge && APP_BRAND.assistantBadge){
+      badge.style.backgroundImage = 'url("' + APP_BRAND.assistantBadge + '")';
+    }
     const scope = root || document;
     scope.querySelectorAll('.jassi-mark').forEach(function(el){
       // Small placements get the compact variant: the full mark below 24px
@@ -10995,6 +11014,23 @@
     wrongStreakByOp = { add:0, sub:0, mul:0, div:0, percent:0, exponent:0, sqrt:0, numberRecognition:0 };
   }
 
+  /* Hides the learner shell alongside every panel.
+     
+     appShell wraps the signed-in experience — the greeting, the progress bar,
+     the profile card, the programs. It was never hidden by anything, so
+     showing the sign-in screen left all of it in the document underneath:
+     scrolling down revealed the previous user's name and data on what looks
+     like a logged-out page. On a shared or family device that is a privacy
+     failure, not a cosmetic one. */
+  function hideAppShell(){
+    const shell = document.getElementById('appShell');
+    if(shell) shell.classList.add('hidden');
+  }
+  function showAppShell(){
+    const shell = document.getElementById('appShell');
+    if(shell) shell.classList.remove('hidden');
+  }
+
   function hideAllScreens(){
     clearInterval(timerInterval);
     clearInterval(minuteInterval);
@@ -11086,6 +11122,35 @@
     adminLoginHint.classList.remove('hidden');
   }
 
+  /* Guarantees the sign-in screen is ALONE.
+     
+     The reported state — the previous account's greeting, progress and
+     profile card sitting below a sign-in form — is a privacy failure on a
+     shared or family device, not a cosmetic one. Rather than chase which of
+     the several routes into the login screen forgot to clean up, this asserts
+     the invariant directly: when the sign-in form is up, every sibling screen
+     is down. */
+  function enforceLoginIsolation(){
+    const login = document.getElementById('usernameLogin');
+    if(!login || login.classList.contains('hidden')) return;
+    // Every screen-level panel, not just direct siblings: the panels sit at
+    // different depths, so a sibling-only sweep missed the profile card that
+    // was actually bleeding through.
+    let hidden = 0;
+    document.querySelectorAll('.panel, .app-shell > .screen').forEach(function(el){
+      if(el === login || el.contains(login) || login.contains(el)) return;
+      if(el.classList.contains('hidden')) return;
+      // Fixed or absolute chrome (toasts, the assistant, modals) floats over
+      // the page instead of flowing beneath it, and the language and theme
+      // controls live there — hiding it would break this screen.
+      const cs = getComputedStyle(el);
+      if(cs.position === 'fixed' || cs.position === 'absolute') return;
+      el.classList.add('hidden');
+      hidden++;
+    });
+    if(hidden && typeof rtLog === 'function') rtLog('login isolation hid ' + hidden + ' panel(s)');
+  }
+
   function goToLoginGate(){
     setTimeout(function(){
       if(typeof jaCheckBackendFresh === 'function') jaCheckBackendFresh();
@@ -11098,6 +11163,7 @@
     // logSessionLogout() alone left five of those paths showing the previous
     // account's floating panels over a login form.
     clearSessionUi();
+    setTimeout(enforceLoginIsolation, 0);
     hideAllScreens();
     renderShellNav(null);
     ulUsername.value = ''; ulPassword.value = ''; ulError.textContent = '';
@@ -12467,6 +12533,7 @@
      "nothing" will survive a logout, because logout STOPS the poll. Every such
      surface has to be torn down explicitly here. */
   function clearSessionUi(){
+    setTimeout(enforceLoginIsolation, 0);
     const floating = [
       'chalBanner',      // live-challenge bar — the one that leaked
       'chalInvite', 'chalBoard', 'groupChal',
@@ -21359,6 +21426,10 @@
     // one place so a future identity change is a single edit.
     logoMark: JASSI_MARK,
     logoMarkCompact: JASSI_MARK_COMPACT,
+    // The assistant badge, used on the sign-in page. 160px at 15KB base64:
+    // large enough for a hero placement, small enough that it costs nothing
+    // on load and survives offline like the rest of the brand assets.
+    assistantBadge: 'data:image/webp;base64,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',
     primaryColor: '#6C3DFF',
     secondaryColor: '#A855F7',
     accentColor: '#D4AF37',
@@ -21368,7 +21439,7 @@
     taglineArabic: 'تعلّم · تطوّر · ارتقِ'
   };
 
-  var DIAG_BUILD = 'jassi-2026-08-17-1225-0e980d89ac9b';
+  var DIAG_BUILD = 'jassi-2026-08-17-1238-4e45d1de34d5';
   var DIAG_BUILD_AT = '2026-08-17';
   /* Capability inventory: checks that each feature EXISTS in the running
      file, not that its name appears somewhere. A stale build fails these
@@ -21740,6 +21811,19 @@
   window.rtTrace = function(){ return rtTrace; };
   /* One call that answers every question at once. Paste rtState() in the
      console and send the result — it replaces a round of back-and-forth. */
+  /* Exposed so the diagnostics centre — and a support session — can assert
+     the invariant without reading the DOM by hand. */
+  window.checkLoginIsolation = function(){
+    const login = document.getElementById('usernameLogin');
+    if(!login || login.classList.contains('hidden')) return { active:false };
+    const siblings = [...document.querySelectorAll('.panel, .app-shell > .screen')].filter(function(el){
+      if(el === login || el.contains(login) || login.contains(el)) return false;
+      const cs = getComputedStyle(el);
+      return cs.position === 'static' && !el.classList.contains('hidden');
+    });
+    enforceLoginIsolation();
+    return { active:true, leaked: siblings.map(function(e){ return e.id || e.className.slice(0,24); }) };
+  };
   window.rtState = function(){
     return {
       hidden: document.hidden,
