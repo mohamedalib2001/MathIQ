@@ -5237,6 +5237,22 @@
       <div class="feedback wrong" id="adminLoginError" style="min-height:16px;"></div>
       <button class="start-btn" id="adminLoginBtn" data-i18n="loginConfirm">دخول</button>
       <div class="link-line subtle-link hidden" id="adminResetLink" data-i18n="adminResetLink">نسيت كلمة مرور الإدارة؟</div>
+      <!-- A second, independent way in. It shares nothing with the password
+           path — no hash, no stored PIN — so whatever breaks there cannot
+           break this. -->
+      <div class="link-line" style="margin-top:6px;">
+        <a href="#" id="adminCodeLink" data-i18n="adminCodeLink">تسجيل الدخول بكود عبر البريد</a>
+      </div>
+
+      <div id="adminCodeStep" class="hidden" style="margin-top:12px;">
+        <div class="conn-note" id="adminCodeSent"></div>
+        <input type="text" id="adminCodeInput" class="ltr-input" maxlength="6"
+               style="text-align:center; letter-spacing:5px; margin-top:9px;"
+               data-i18n-placeholder="emailCodePlaceholder" placeholder="123456">
+        <div class="feedback wrong" id="adminCodeError" style="min-height:16px;" aria-live="polite"></div>
+        <button class="start-btn" id="adminCodeVerifyBtn" data-i18n="adminCodeVerify">دخول بالكود</button>
+      </div>
+
       <button class="secondary-btn" id="adminLoginCancelBtn" data-i18n="cancelBtn">إلغاء</button>
         </div>
       </div>
@@ -6580,6 +6596,12 @@
   const adminLoginTitleEl = document.getElementById('adminLoginTitle');
   const adminUserInput = document.getElementById('adminUserInput');
   const adminPinInput = document.getElementById('adminPinInput');
+  const adminCodeLink = document.getElementById('adminCodeLink');
+  const adminCodeStep = document.getElementById('adminCodeStep');
+  const adminCodeSent = document.getElementById('adminCodeSent');
+  const adminCodeInput = document.getElementById('adminCodeInput');
+  const adminCodeError = document.getElementById('adminCodeError');
+  const adminCodeVerifyBtn = document.getElementById('adminCodeVerifyBtn');
   const adminAttempts = document.getElementById('adminAttempts');
   const adminLoginHint = document.getElementById('adminLoginHint');
   const adminResetLink = document.getElementById('adminResetLink');
@@ -8487,6 +8509,12 @@
       secStoredWhitespace:'اسم المستخدم المخزّن يحوي مسافة زائدة في الجدول. افتح جدول Admin واحذف المسافة من بداية الاسم أو نهايته، ثم أعد المحاولة.',
       secCaseDiffers:'الحساب موجود لكن صيغة الاسم المخزّن تختلف عمّا كتبته (الطول {n}). استخدم «نسيت كلمة مرور الإدارة؟» — سيُصحّح ذلك تلقائيًا.',
       exPortalTag:'مركز القيادة التنفيذي',
+      adminCodeLink:'تسجيل الدخول بكود عبر البريد',
+      adminCodeNeedUser:'اكتب اسم المستخدم أولًا.',
+      adminCodeNeedCode:'أدخل الكود المرسل إلى بريدك.',
+      adminCodeSentTo:'إن كان الحساب «{u}» مسجّلًا ببريد، فقد أُرسل إليه كود من ست خانات. صالح 10 دقائق ولمرة واحدة.',
+      adminCodeVerify:'دخول بالكود',
+      adminCodeFailed:'تعذّر إرسال الكود. تحقق من الاتصال وأعد المحاولة.',
       secRestricted:'منطقة محظورة · دخول مصرّح فقط',
       secEncrypted:'اتصال مشفّر', secHashed:'كلمة المرور مجزّأة', secAudited:'كل محاولة مسجّلة',
       secAttemptsLeft:'⚠ متبقٍ {n} محاولات قبل الإيقاف المؤقت',
@@ -10085,6 +10113,12 @@
       secStoredWhitespace:'The stored username contains stray whitespace in the sheet. Open the Admin sheet, remove the space from the start or end of the name, and try again.',
       secCaseDiffers:'The account exists but the stored username differs in form from what you typed (length {n}). Use "Forgot admin password" — that will correct it automatically.',
       exPortalTag:'EXECUTIVE COMMAND CENTER',
+      adminCodeLink:'Sign in with an emailed code',
+      adminCodeNeedUser:'Enter the username first.',
+      adminCodeNeedCode:'Enter the code sent to your email.',
+      adminCodeSentTo:'If the account "{u}" has an email on file, a six-digit code has been sent to it. Valid for 10 minutes, single use.',
+      adminCodeVerify:'Sign in with code',
+      adminCodeFailed:'Could not send the code. Check your connection and try again.',
       secRestricted:'Restricted area · authorised access only',
       secEncrypted:'Encrypted connection', secHashed:'Password hashed', secAudited:'Attempts recorded',
       secAttemptsLeft:'⚠ {n} attempts remaining before a temporary lock',
@@ -11444,7 +11478,7 @@
      Apps Script deployment is older than the page, and every server-side fix
      — the tolerant username lookup, the login-code mailer, the password
      repair — is simply absent. */
-  const EXPECTED_GS_BUILD = 'gs-2026-08-17-1318-366dcb65';
+  const EXPECTED_GS_BUILD = 'gs-2026-08-17-1359-382f56ac';
 
   async function jaCheckBackendFresh(){
     if(!SHEET_API_URL || !adminLoginHint) return;
@@ -12457,6 +12491,53 @@
     adminLoginGateEl.classList.add('hidden');
     goToProfiles();
   }
+  adminCodeLink.addEventListener('click', async (e)=>{
+    e.preventDefault();
+    const username = adminUserInput.value.trim();
+    if(!username){ adminLoginError.textContent = t('adminCodeNeedUser'); return; }
+    adminLoginError.textContent = '';
+    setBtnSaving(adminCodeLink, true);
+    const res = await postToSheet('request_admin_code', { username });
+    setBtnSaving(adminCodeLink, false);
+    if(!res || !res.ok){
+      adminLoginError.textContent = describeSyncFailure(res, 'adminCodeFailed');
+      return;
+    }
+    // The reply is identical whether or not the account exists, so the wording
+    // must not promise delivery it cannot confirm.
+    adminCodeSent.textContent = fmt('adminCodeSentTo', { u: username });
+    adminCodeStep.classList.remove('hidden');
+    adminCodeInput.focus();
+  });
+
+  adminCodeVerifyBtn.addEventListener('click', async ()=>{
+    const username = adminUserInput.value.trim();
+    const code = adminCodeInput.value.trim();
+    adminCodeError.textContent = '';
+    if(!code){ adminCodeError.textContent = t('adminCodeNeedCode'); return; }
+    setBtnSaving(adminCodeVerifyBtn, true);
+    const res = await postToSheet('verify_admin_code', { username, code });
+    setBtnSaving(adminCodeVerifyBtn, false);
+    if(!res || !res.ok){
+      adminCodeError.textContent = res && res.error === 'code_expired' ? t('emailCodeExpired')
+        : (res && res.error === 'code_used' ? t('emailCodeUsed') : t('emailCodeInvalid'));
+      return;
+    }
+    if(res.sessionToken) setSessionToken(res.sessionToken);
+    // The stored PIN comes back so the session behaves exactly like a password
+    // sign-in for everything downstream — without the owner ever needing it.
+    ADMIN = { username: res.admin.username, pin: res.pin,
+              name: res.admin.name || res.admin.username, role: res.admin.role || 'owner' };
+    saveAdminToStorage();
+    adminAttemptClear();
+    adminCodeStep.classList.add('hidden');
+    adminCodeInput.value = '';
+    adminLoginGateEl.classList.add('hidden');
+    hideLoginTransition();
+    goToProfiles();
+  });
+
+  adminCodeInput.addEventListener('keydown', e=>{ if(e.key === 'Enter') adminCodeVerifyBtn.click(); });
   adminPinInput.addEventListener('keydown', e=>{ if(e.key === 'Enter') adminLoginBtn.click(); });
 
   backToLoginLink.addEventListener('click', goToLoginGate);
@@ -21805,7 +21886,7 @@
     taglineArabic: 'تعلّم · تطوّر · ارتقِ'
   };
 
-  var DIAG_BUILD = 'jassi-2026-08-17-1354-9ae1897986f4';
+  var DIAG_BUILD = 'jassi-2026-08-17-1359-86329f0e6856';
   var DIAG_BUILD_AT = '2026-08-17';
   /* Capability inventory: checks that each feature EXISTS in the running
      file, not that its name appears somewhere. A stale build fails these
