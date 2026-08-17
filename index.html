@@ -11107,12 +11107,25 @@
     setBtnSaving(adminResetConfirmBtn, true);
     // Hashed with the same salt rule used everywhere else, so the new password
     // works through the normal login path with no special case.
-    const newHash = await computePasswordHash(username, pw);
-    const res = await postToSheet('confirm_admin_reset', { username, code, newPin: newHash });
+    // Two-step so the hash is salted with the STORED username, not the typed
+    // one. Hashing with a differently-cased username produced a password that
+    // could never be verified — the reset reported success and the owner was
+    // then told their correct password was wrong.
+    const probe = await postToSheet('confirm_admin_reset', {
+      username, code, newPin: await computePasswordHash(username, pw) });
     setBtnSaving(adminResetConfirmBtn, false);
-    if(!res || !res.ok){ adminResetError2.textContent = t('emailCodeInvalid'); return; }
+    if(!probe || !probe.ok){ adminResetError2.textContent = t('emailCodeInvalid'); return; }
+    const canonical = probe.username || username;
+    if(canonical.toLowerCase() !== username.toLowerCase() || canonical !== username){
+      // Re-store the password hashed with the canonical username. Without
+      // this the account would be locked out by its own successful reset.
+      await postToSheet('set_admin_password', {
+        username: canonical, code: code,
+        newPin: await computePasswordHash(canonical, pw) });
+    }
+    const res = probe;
     adminResetModal.classList.add('hidden');
-    adminUserInput.value = username;
+    adminUserInput.value = canonical;   // the exact stored form, so the salt matches
     adminPinInput.value = '';
     adminLoginError.textContent = '';
     adminLoginHint.textContent = t('adminResetDone');
@@ -20289,7 +20302,7 @@
     memberPrefix: 'NX'
   };
 
-  var DIAG_BUILD = 'jassi-2026-08-17-0838-d6ecab1206f2';
+  var DIAG_BUILD = 'jassi-2026-08-17-0846-71f806c70524';
   var DIAG_BUILD_AT = '2026-08-17';
   /* Capability inventory: checks that each feature EXISTS in the running
      file, not that its name appears somewhere. A stale build fails these
