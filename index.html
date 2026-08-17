@@ -1715,7 +1715,7 @@
     width:1500px; z-index:-1; pointer-events:none;
   }
   .sk-sheet{
-    position:relative; width:1500px; min-height:1060px; padding:52px 60px 44px;
+    position:relative; width:1500px; min-height:1180px; padding:52px 60px 44px;
     box-sizing:border-box; overflow:hidden;
     background:
       radial-gradient(900px 420px at 50% -8%, rgba(240,214,138,0.10), transparent 62%),
@@ -1771,6 +1771,35 @@
     text-shadow:0 2px 22px rgba(240,214,138,0.20);
   }
   .sk-meta{ position:relative; z-index:2; text-align:center; margin-top:8px; font-size:13.5px; color:#93a4c0; }
+
+  .sk-identity{ position:relative; z-index:2; display:flex; align-items:center;
+    justify-content:center; gap:28px; margin-top:26px; }
+  .sk-photo{
+    width:132px; height:132px; border-radius:50%; flex:none; overflow:hidden;
+    display:flex; align-items:center; justify-content:center;
+    background:linear-gradient(150deg,#101a2c,#0a1120);
+    border:3px solid rgba(240,214,138,0.62);
+    box-shadow:0 0 0 6px rgba(240,214,138,0.10), 0 12px 34px rgba(0,0,0,0.45);
+    font-family:'Cairo',sans-serif; font-weight:800; font-size:52px; color:#f0d68a;
+  }
+  /* !important because html2canvas re-computes sizing during capture and an
+     unconstrained img collapses the circle in the exported PNG. */
+  .sk-photo img{ width:100% !important; height:100% !important; object-fit:cover; display:block; }
+  .sk-identity-text{ text-align:center; }
+  .sk-prog-wrap{ position:relative; z-index:2; margin-top:24px; }
+  .sk-prog{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+  .sk-prog-cell{ display:flex; align-items:center; gap:9px; padding:10px 12px;
+    background:rgba(240,214,138,0.05); border:1px solid rgba(240,214,138,0.20);
+    border-radius:10px; }
+  .sk-prog-icon{ font-size:17px; flex:none; }
+  .sk-prog-body{ flex:1; min-width:0; }
+  .sk-prog-name{ font-size:12.5px; color:#e2e9f7; font-weight:600;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .sk-prog-meta{ font-size:10px; color:#8fa2bd; margin-top:2px; }
+  .sk-prog-pct{ font-family:'Cairo',sans-serif; font-weight:800; font-size:16px;
+    color:#f0d68a; flex:none; }
+  .sk-prog-none{ grid-column:1/-1; text-align:center; font-size:12px;
+    color:#8fa2bd; padding:12px; }
 
   .sk-verdict{
     position:relative; z-index:2; margin:26px auto 0; width:420px; text-align:center;
@@ -1830,6 +1859,14 @@
   .sk-issuer{ position:relative; z-index:2; text-align:center; margin-top:20px;
     font-size:10.5px; color:#6f7f99; }
 
+  /* The sheet has no fixed height: adding programs must extend it rather than
+     clip them. html2canvas measures the rendered box, so the export grows too. */
+  @media (max-width:700px){
+    .sv-sheet{ max-width:none; max-height:94vh; padding:10px; }
+    .sv-actions{ flex-direction:column; }
+    .sv-actions button{ min-height:48px; }
+    .sv-body{ -webkit-overflow-scrolling:touch; }
+  }
   #skillViewer{ position:fixed; inset:0; z-index:980; display:flex; align-items:center;
     justify-content:center; background:rgba(4,7,14,0.9); padding:16px; }
   .sv-sheet{ width:100%; max-width:1000px; max-height:92vh; display:flex; flex-direction:column;
@@ -4031,9 +4068,14 @@
       <div class="sk-title-en">S K I L L &nbsp; A S S E S S M E N T &nbsp; C E R T I F I C A T E</div>
       <div class="sk-rule"></div>
 
-      <div class="sk-attest" id="skAttest">تشهد أكاديمية جاسي العالمية للتدريب والتطوير بأن</div>
-      <div class="sk-name" id="skName"></div>
-      <div class="sk-meta" id="skMeta"></div>
+      <div class="sk-identity">
+        <div class="sk-photo" id="skPhoto"></div>
+        <div class="sk-identity-text">
+          <div class="sk-attest" id="skAttest">تشهد أكاديمية جاسي العالمية للتدريب والتطوير بأن</div>
+          <div class="sk-name" id="skName"></div>
+          <div class="sk-meta" id="skMeta"></div>
+        </div>
+      </div>
 
       <div class="sk-verdict">
         <div class="sk-verdict-label" id="skVerdictLabel">المستوى العام المقاس</div>
@@ -4043,6 +4085,11 @@
       </div>
 
       <div class="sk-grid" id="skGrid"></div>
+
+      <div class="sk-prog-wrap" id="skProgWrap">
+        <div class="sk-section-title" id="skProgTitle">البرامج التدريبية</div>
+        <div class="sk-prog" id="skProg"></div>
+      </div>
 
       <div class="sk-cog-wrap" id="skCogWrap">
         <div class="sk-section-title" id="skCogTitle">المؤشرات المعرفية المقاسة</div>
@@ -4145,7 +4192,7 @@
              IN rather than being read to badly by default. -->
         <label class="nova-voice-toggle"><input type="checkbox" id="novaVoiceChk"> <span data-i18n="novaVoiceLabel">الرد بالصوت</span></label>
         <span class="nova-badge" data-i18n="novaPoweredBy">ضمن منظومة INFRA ENGINE</span>
-        <span class="nova-disclaimer" data-i18n="novaDisclaimer">نوفا مساعد آلي — قد يخطئ، وتقدّمك الحقيقي هو ما تظهره صفحاتك.</span>
+        <span class="nova-disclaimer" data-i18n="novaDisclaimer">JASSI AI مساعد آلي — قد يخطئ، وتقدّمك الحقيقي هو ما تظهره صفحاتك.</span>
       </div>
     </div>
   </div>
@@ -5526,6 +5573,9 @@
   const skScore = document.getElementById('skScore');
   const skBand = document.getElementById('skBand');
   const skStars = document.getElementById('skStars');
+  const skPhoto = document.getElementById('skPhoto');
+  const skProg = document.getElementById('skProg');
+  const skProgTitle = document.getElementById('skProgTitle');
   const skGrid = document.getElementById('skGrid');
   const skCog = document.getElementById('skCog');
   const skCogWrap = document.getElementById('skCogWrap');
@@ -7149,8 +7199,8 @@
       kbGuardianT:'متابعة الأبناء — لأولياء الأمور',
       kbGuardianB:'إذا كنت ولي أمر، يمكنك متابعة تقدّم أبنائك من حساب واحد.\n\nكيف تُربَط: افتح حساب ابنك ← «حسابي» ← حسابات أولياء الأمور ← أدخل اسم المستخدم وكلمة المرور الخاصة بك في خانة الأم أو الأب ← احفظ.\n\nبعدها يظهر «أبنائي» في قائمتك، وتُزامَن الروابط فتعمل من أي جهاز.',
       novaPlaceholder:'اكتبي سؤالك أو اضغطي الميكروفون…', novaVoiceLabel:'الرد بالصوت',
-      novaDisclaimer:'نوفا مساعد آلي — قد يخطئ، وتقدّمك الحقيقي هو ما تظهره صفحاتك.',
-      novaGreeting:'مرحبًا {name}! أنا نوفا، مساعدتك في الأكاديمية. اسأليني عن أي خدمة، أو عن تقدّمك، أو اطلبي مني فتح أي صفحة.',
+      novaDisclaimer:'JASSI AI مساعد آلي — قد يخطئ، وتقدّمك الحقيقي هو ما تظهره صفحاتك.',
+      novaGreeting:'مرحبًا {name}! أنا JASSI AI، مساعدك في أكاديمية جاسي. اسأليني عن أي خدمة، أو عن تقدّمك، أو اطلبي مني فتح أي صفحة.',
       novaStateIdle:'جاهزة للمساعدة', novaStateListening:'أستمع إليكِ…',
       novaStateThinking:'أفكّر…', novaStateSpeaking:'أتحدّث…',
       novaOpening:'تمام، سأفتح لكِ {s}.', novaOpenAction:'▸ افتحي {s}',
@@ -7223,11 +7273,14 @@
       skNotMeasured:'لم يُقَس بعد',
       skAgeYears:'{n} سنة',
       skFromAttempts:'من {n} محاولة', skNeedMore:'يحتاج {n} محاولة على الأقل',
+      skProgTitle:'البرامج التدريبية', skProgLessons:'{d} من {t} درسًا',
+      skProgDone:'مكتمل', skProgNone:'لم يُسجَّل في أي برنامج تدريبي بعد.',
       skCogTitle:'المؤشرات المعرفية المقاسة',
       skBasis:'هذا التقييم مبني على {a} محاولة مسجّلة عبر {d} يومًا، وقياس {m} من {total} مهارة، بدقة عامة {acc}، وإتقان {lv} من {lvt} مستوى.',
       skCaution:'⚠ تقييم أوّلي: البيانات المتاحة أقل من الحد اللازم لتقييم نهائي ({n} محاولة على {d} أيام). المستويات المعروضة مؤشرات مبدئية تتغيّر مع استمرار التدريب.',
       skVerifyLabel:'تحقّق من الشهادة', skSignTitle:'الإدارة الأكاديمية',
       skIssuer:'أكاديمية جاسي العالمية للتدريب والتطوير — ضمن منظومة INFRA ENGINE · كل الأرقام في هذه الشهادة مقاسة من أداء فعلي مسجّل',
+      skIosHint:'إن لم يبدأ التنزيل تلقائيًا، اضغط مطوّلًا على الشهادة واختر «حفظ الصورة».',
       skDownload:'⬇️ تنزيل الشهادة', skPrint:'🖨 طباعة',
       skStepMeasure:'نقيس مهاراتك من سجلّك…', skStepRender:'نُعدّ الشهادة…',
       skFailed:'تعذّر إعداد الشهادة. أعد المحاولة.',
@@ -7381,7 +7434,7 @@
       dcTitle:'أدوات تشخيص الأخطاء وإصلاحها',
       dcGrpCore:'محركات التدريب (الحساب الذهني والأباكوس)',
       dcGrpInsights:'سينابس والمهارات والخريطة والإحصاءات',
-      dcGrpTemplates:'قوالب المستندات', dcGrpExtras:'الدردشة ونوفا والسباق',
+      dcGrpTemplates:'قوالب المستندات', dcGrpExtras:'الدردشة والمساعد والسباق',
       dcGrpAdminSvc:'خدمات الإدارة',
       dcQuestionGen:'مولّد أسئلة التدريب', dcPatternGen:'مولّد الأنماط',
       dcScoring:'محرك التصحيح', dcOpStats:'العمليات التي تدرّب عليها',
@@ -7395,7 +7448,7 @@
       dcTplCert:'قالب الشهادة', dcTplDiploma:'قالب شهادة العضوية', dcTplCard:'بطاقة العضوية',
       dcZeroSize:'أبعاد صفرية', dcCaptureRisk:'خطر على التصوير', dcCertIssued:'شهادات صادرة',
       dcChatRoundTrip:'إرسال واستقبال رسالة', dcTypingApi:'مؤشر الكتابة',
-      dcNovaAi:'ذكاء نوفا', dcNovaSpeech:'صوت نوفا', dcRaceScreen:'شاشة السباق',
+      dcNovaAi:'ذكاء المساعد', dcNovaSpeech:'صوت المساعد', dcRaceScreen:'شاشة السباق',
       dcLoaderEngine:'محرك شريط التحميل',
       dcAdminSvc:'خدمات الإدارة', dcSvcStudents:'قائمة المتصلين', dcSvcTeachers:'قائمة المعلّمين',
       dcSvcMail:'تشخيص البريد', dcServiceFlags:'خدمات معطّلة', dcAllEnabled:'كلها مفعّلة',
@@ -8605,8 +8658,8 @@
       kbGuardianT:'Following your children — for guardians',
       kbGuardianB:'Open your child\'s account → My account → guardian accounts → enter YOUR username and password under mother or father → save.\n\n"My children" then appears in your menu, and the link syncs to any device.',
       novaPlaceholder:'Type your question, or tap the microphone…', novaVoiceLabel:'Reply with voice',
-      novaDisclaimer:'Nova is an automated assistant — it can be wrong. Your real progress is what your own pages show.',
-      novaGreeting:'Hello {name}! I am Nova, your assistant here. Ask me about any service, about your progress, or tell me to open a page.',
+      novaDisclaimer:'JASSI AI is an automated assistant — it can be wrong. Your real progress is what your own pages show.',
+      novaGreeting:'Hello {name}! I am JASSI AI, your assistant at JASSI Academy. Ask me about any service, about your progress, or tell me to open a page.',
       novaStateIdle:'Ready to help', novaStateListening:'Listening…',
       novaStateThinking:'Thinking…', novaStateSpeaking:'Speaking…',
       novaOpening:'Sure, opening {s} for you.', novaOpenAction:'▸ Open {s}',
@@ -8680,11 +8733,14 @@
       skNotMeasured:'not yet measured',
       skAgeYears:'{n} years',
       skFromAttempts:'from {n} attempts', skNeedMore:'needs at least {n} attempts',
+      skProgTitle:'Training programs', skProgLessons:'{d} of {t} lessons',
+      skProgDone:'complete', skProgNone:'Not enrolled in any training program yet.',
       skCogTitle:'Measured cognitive indicators',
       skBasis:'This assessment rests on {a} recorded attempts across {d} days, {m} of {total} skills measured, {acc} overall accuracy, and {lv} of {lvt} levels mastered.',
       skCaution:'⚠ Provisional assessment: the available data is below the threshold for a final result ({n} attempts across {d} days). The levels shown are preliminary and will change as practice continues.',
       skVerifyLabel:'Verify this certificate', skSignTitle:'Academic Administration',
       skIssuer:'JASSI Global Academy for Training & Development — Part of the INFRA ENGINE Ecosystem · Every figure on this certificate is measured from recorded performance',
+      skIosHint:'If the download does not start, press and hold the certificate and choose "Save Image".',
       skDownload:'⬇️ Download', skPrint:'🖨 Print',
       skStepMeasure:'Measuring your skills from your record…', skStepRender:'Preparing the certificate…',
       skFailed:'Could not prepare the certificate. Please try again.',
@@ -8838,7 +8894,7 @@
       dcTitle:'Diagnostics & repair tools',
       dcGrpCore:'Practice engines (mental math & abacus)',
       dcGrpInsights:'Synapse, skills, map & stats',
-      dcGrpTemplates:'Document templates', dcGrpExtras:'Chat, Nova & race',
+      dcGrpTemplates:'Document templates', dcGrpExtras:'Chat, assistant & race',
       dcGrpAdminSvc:'Admin services',
       dcQuestionGen:'Practice question driver', dcPatternGen:'Pattern generator',
       dcScoring:'Scoring engine', dcOpStats:'Operations practised',
@@ -8852,7 +8908,7 @@
       dcTplCert:'Certificate template', dcTplDiploma:'Membership certificate template', dcTplCard:'Membership card',
       dcZeroSize:'zero size', dcCaptureRisk:'capture risk', dcCertIssued:'Certificates issued',
       dcChatRoundTrip:'Send & receive a message', dcTypingApi:'Typing indicator',
-      dcNovaAi:'Nova AI', dcNovaSpeech:'Nova voice', dcRaceScreen:'Race screen',
+      dcNovaAi:'Assistant AI', dcNovaSpeech:'Assistant voice', dcRaceScreen:'Race screen',
       dcLoaderEngine:'Loader engine',
       dcAdminSvc:'Admin services', dcSvcStudents:'Online list', dcSvcTeachers:'Teachers list',
       dcSvcMail:'Mail diagnostics', dcServiceFlags:'Disabled services', dcAllEnabled:'all enabled',
@@ -15685,10 +15741,21 @@
   skillViewer.addEventListener('click', function(ev){ if(ev.target === skillViewer) skillViewer.classList.add('hidden'); });
   skvDownloadBtn.addEventListener('click', ()=>{
     if(!skvCurrent) return;
+    const name = 'jassi-skill-assessment-' + (skvCurrent.assessment.memberId || 'certificate') + '.png';
     const link = document.createElement('a');
     link.href = skvCurrent.dataUrl;
-    link.download = 'jassi-skill-assessment-' + (skvCurrent.assessment.memberId || 'certificate') + '.png';
+    link.download = name;
+    // iOS Safari ignores a click on a detached anchor, so it must be in the
+    // document — and removed afterwards so it never accumulates.
+    link.style.display = 'none';
+    document.body.appendChild(link);
     link.click();
+    setTimeout(function(){ try{ document.body.removeChild(link); }catch(e){} }, 100);
+    // Safari on iOS ignores the download attribute entirely; opening the image
+    // lets the learner save it with a long press rather than getting nothing.
+    if(/iPad|iPhone|iPod/.test(navigator.userAgent)){
+      showToast(t('skIosHint'), nxIcon('info'), 'system');
+    }
   });
   skvPrintBtn.addEventListener('click', ()=>{
     if(!skvCurrent) return;
@@ -15696,10 +15763,26 @@
     if(!w) return;
     // A4 landscape, image only: printing the live page would carry the app
     // chrome onto the sheet.
-    w.document.write('<html><head><title>' + t('skTitle') +
-      '</title><style>@page{size:A4 landscape;margin:8mm}body{margin:0}img{width:100%}</style></head>' +
-      '<body><img src="' + skvCurrent.dataUrl + '" onload="window.print();window.close();"></body></html>');
+    // Waiting for the image to LOAD before printing: calling print() on an
+    // unloaded image yields a blank page on Safari and older Chrome, which is
+    // the classic "printed nothing" report.
+    w.document.write(
+      '<!DOCTYPE html><html dir="' + (currentLang === 'ar' ? 'rtl' : 'ltr') + '"><head>' +
+      '<meta charset="utf-8"><title>' + t('skTitle') + '</title>' +
+      '<style>' +
+      '@page{ size:A4 landscape; margin:6mm; }' +
+      'html,body{ margin:0; padding:0; background:#fff; }' +
+      'img{ width:100%; height:auto; display:block; }' +
+      '@media print{ body{ -webkit-print-color-adjust:exact; print-color-adjust:exact; } }' +
+      '</style></head><body>' +
+      '<img id="p" src="' + skvCurrent.dataUrl + '">' +
+      '<script>var i=document.getElementById("p");' +
+      'function go(){ setTimeout(function(){ window.print(); }, 120); }' +
+      'if(i.complete) go(); else i.onload = go;' +
+      'window.onafterprint = function(){ window.close(); };' +
+      '<\/script></body></html>');
     w.document.close();
+    w.focus();
   });
   cbPlayBtn.addEventListener('click', playChallengeRound);
   async function chalExit(action, btn, okKey){
@@ -16997,9 +17080,39 @@
     const log = prof.sessionLog || [];
     const days = new Set(log.map(function(x){ return String(x.date).slice(0, 10); })).size;
 
+    // --- training programs, with real completion figures ---
+    const programs = [];
+    try{
+      const who = String(prof.username || currentProfile).toLowerCase();
+      const enrolled = lpLoad(LP_KEYS.ENROLLMENTS).filter(function(e){
+        return String(e.learnerUsername || '').toLowerCase() === who;
+      });
+      const all = lpLoad(LP_KEYS.PROGRAMS);
+      const done = lpLoad(LP_KEYS.LESSON_COMPLETIONS).filter(function(c){
+        return String(c.learnerUsername || '').toLowerCase() === who;
+      }).map(function(c){ return c.lessonId; });
+      enrolled.forEach(function(en){
+        const pr = all.find(function(x){ return x.id === en.programId; });
+        if(!pr) return;
+        const lessons = (typeof lpGetLessonsForProgram === 'function') ? lpGetLessonsForProgram(pr.id) : [];
+        const d = lessons.filter(function(l){ return done.indexOf(l.id) > -1; }).length;
+        programs.push({
+          title: pr.title, total: lessons.length, done: d,
+          percent: lessons.length ? Math.round((d / lessons.length) * 100) : 0,
+          complete: lessons.length > 0 && d === lessons.length
+        });
+      });
+      // Furthest progress first: a certificate should lead with what was
+      // actually achieved rather than with whatever was enrolled in first.
+      programs.sort(function(x, y){ return y.percent - x.percent; });
+    }catch(e){ /* an unbuilt program list simply yields none */ }
+
     return {
       name: profileDisplayName(currentProfile),
       memberId: typeof membershipId === 'function' ? membershipId(currentProfile) : '',
+      programs: programs,
+      programsComplete: programs.filter(function(x){ return x.complete; }).length,
+      photo: (prof.photoLocal && String(prof.photoLocal).indexOf('data:') === 0) ? prof.photoLocal : null,
       isFemale: !(prof.gender === 'male'),
       age: f.age,
       grade: f.grade,
@@ -17066,6 +17179,43 @@
       '</div>';
     }).join('');
 
+    // The photo. Only a data: copy is used — html2canvas cannot read pixels
+    // from a Drive URL, which is why an <img src="https://…"> renders as an
+    // empty circle in the exported PNG even though it displays fine on screen.
+    skPhoto.innerHTML = '';
+    if(a.photo){
+      const img = document.createElement('img');
+      img.src = a.photo;
+      // A dead image must fall back to the monogram rather than leave a hole.
+      img.onerror = function(){
+        skPhoto.innerHTML = '';
+        skPhoto.textContent = (a.name || '?').trim().charAt(0);
+      };
+      skPhoto.appendChild(img);
+    } else {
+      skPhoto.textContent = (a.name || '?').trim().charAt(0);
+    }
+
+    // Training programs with their real completion figures.
+    skProgTitle.textContent = t('skProgTitle');
+    if(a.programs.length){
+      skProg.innerHTML = a.programs.slice(0, 9).map(function(pr){
+        return '<div class="sk-prog-cell">' +
+          '<span class="sk-prog-icon">' + (pr.complete ? '🏆' : '📘') + '</span>' +
+          '<span class="sk-prog-body">' +
+            '<span class="sk-prog-name">' + pr.title + '</span>' +
+            '<span class="sk-prog-meta">' + fmt('skProgLessons', { d: pr.done, t: pr.total }) +
+              (pr.complete ? ' · ' + t('skProgDone') : '') + '</span>' +
+          '</span>' +
+          '<span class="sk-prog-pct">' + pr.percent + '%</span>' +
+        '</div>';
+      }).join('');
+    } else {
+      // Stated plainly rather than hiding the section: a reader should know
+      // the learner has not enrolled yet, not be left to guess.
+      skProg.innerHTML = '<div class="sk-prog-none">' + t('skProgNone') + '</div>';
+    }
+
     // Cognitive indicators are omitted entirely when unmeasured rather than
     // shown as zeros.
     if(a.cognitive.length >= 3){
@@ -17109,6 +17259,11 @@
   }
 
   async function buildSkillImage(){
+    // Prepare the printable copy first: without it the photo circle exports
+    // empty, which is the single most reported certificate fault.
+    if(typeof ensurePrintablePhoto === 'function'){
+      try{ await ensurePrintablePhoto(currentProfile); }catch(e){}
+    }
     const a = skAssess();
     if(!a) return null;
     skFillTemplate(a);
@@ -18467,7 +18622,7 @@
     // answer about a study plan or timetable from anywhere in the app.
     const sv = await novaServerFacts();
     const context = f ? novaFactsForPrompt(f, sv) : '';
-    const recent = novaHistory.slice(-4).map(h => (h.role === 'user' ? 'الطالب: ' : 'نوفا: ') + h.text).join('\n');
+    const recent = novaHistory.slice(-4).map(h => (h.role === 'user' ? 'الطالب: ' : 'JASSI AI: ') + h.text).join('\n');
     // The manner is documented as explicitly as the facts. An assistant that
     // knows everything and addresses a struggling nine-year-old like a manual
     // is not professional — most of the children using this are between six
@@ -19849,7 +20004,7 @@
     memberPrefix: 'NX'
   };
 
-  var DIAG_BUILD = 'jassi-2026-08-17-0752-fc959e13c4b1';
+  var DIAG_BUILD = 'jassi-2026-08-17-0807-43a9ba98449c';
   var DIAG_BUILD_AT = '2026-08-17';
   /* Capability inventory: checks that each feature EXISTS in the running
      file, not that its name appears somewhere. A stale build fails these
