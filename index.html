@@ -3299,14 +3299,14 @@
           <div class="dp-qr" id="dpQr"></div>
         </div>
 
-        <div class="dp-crest" aria-hidden="true"><span>N</span></div>
+        <div class="dp-crest" aria-hidden="true"><span>J</span></div>
         <h1 class="dp-title" data-i18n="dpTitle">شهادة عضوية</h1>
-        <div class="dp-title-en">N E X O R A &nbsp; A C A D E M Y</div>
+        <div class="dp-title-en">J A S S I &nbsp; A C A D E M Y</div>
         <div class="dp-tagline" data-i18n="dpTagline">فخر الانتماء .. مسيرة التميّز</div>
 
         <div class="dp-attest" data-i18n="dpAttest">تشهد أكاديمية جاسي بأن</div>
         <div class="dp-name" id="dpName"></div>
-        <div class="dp-role" data-i18n="dpRole">عضو مسجَّل في الأكاديمية</div>
+        <div class="dp-role" id="dpRoleEl" data-i18n="dpRole">عضو مسجَّل في الأكاديمية</div>
         <div class="dp-tier-pill" id="dpTier"></div>
 
         <div class="dp-body" id="dpBodyEl"></div>
@@ -3322,7 +3322,7 @@
         </div>
 
         <div class="dp-sign">
-          <div class="dp-seal" aria-hidden="true"><span>N</span><i data-i18n="dpSealText">OFFICIAL</i></div>
+          <div class="dp-seal" aria-hidden="true"><span>J</span><i data-i18n="dpSealText">OFFICIAL</i></div>
           <div class="dp-sign-block">
             <div class="dp-sign-line"></div>
             <div class="dp-sign-name" data-i18n="dpSignName">أكاديمية جاسي</div>
@@ -3958,7 +3958,7 @@
           <div class="mc-guilloche" aria-hidden="true"></div>
           <div class="mc-top">
             <div class="mc-brand">
-              <div class="mc-brand-mark">N</div>
+              <div class="mc-brand-mark">J</div>
               <div>
                 <div class="mc-brand-name">JASSI</div>
                 <div class="mc-brand-sub">A C A D E M Y</div>
@@ -4592,7 +4592,7 @@
 
         <!-- Vertical gold banner (top-right) -->
         <div class="cert-banner">
-          <div class="cert-banner-mark"><span class="cert-mono">N</span></div>
+          <div class="cert-banner-mark"><span class="cert-mono">J</span></div>
           <div class="cert-banner-ar" id="certBannerArEl">أكاديمية جاسي</div>
           <div class="cert-banner-en">JASSI ACADEMY</div>
           <div class="cert-banner-stars">★★★★★</div>
@@ -4601,7 +4601,7 @@
         <!-- Centred brand lockup -->
         <div class="cert-brand">
           <div class="cert-brand-row">
-            <div class="cert-brand-mark"><span class="cert-mono">N</span></div>
+            <div class="cert-brand-mark"><span class="cert-mono">J</span></div>
             <div>
               <div class="cert-brand-en">JASSI</div>
               <div class="cert-brand-sub">A C A D E M Y</div>
@@ -5326,6 +5326,28 @@
   const dpMasterFill = document.getElementById('dpMasterFill');
   const dpMasterNote = document.getElementById('dpMasterNote');
   const dpBodyEl = document.getElementById('dpBodyEl');
+  const dpRoleEl = document.getElementById('dpRoleEl');
+
+  /* Converts the certificate narrative to feminine forms.
+     
+     Applied to the assembled sentence rather than kept as a parallel set of
+     translation keys, because the narrative is built from up to eight
+     fragments and duplicating every one would double the surface for a
+     mismatch. The substitutions are ordered longest-first so a longer word is
+     never partially rewritten by a shorter rule. */
+  function toFeminine(text){
+    const rules = [
+      ['مسيرته','مسيرتها'], ['أساسه','أساسها'], ['إجاباته','إجاباتها'],
+      ['لديه','لديها'], ['فُتحت له','فُتحت لها'], ['ونتمنى له','ونتمنى لها'],
+      ['وهو يبني','وهي تبني'], ['وهو في','وهي في'], ['ليبدأ','لتبدأ'],
+      ['وقد أجاب','وقد أجابت'], ['وأتقن','وأتقنت'], ['وقد أثبت','وقد أثبتت'],
+      ['وحصد','وحصدت'], ['وبلغت','وبلغت'],
+      ['محقّقًا','محقّقةً'], ['مواظبًا','مواظبةً'], ['تفوّقًا','تفوّقًا']
+    ];
+    let out = String(text || '');
+    rules.forEach(function(r){ out = out.split(r[0]).join(r[1]); });
+    return out;
+  }
   const dpBadges = document.getElementById('dpBadges');
   const dpCerts = document.getElementById('dpCerts');
   const dpHours = document.getElementById('dpHours');
@@ -6957,7 +6979,7 @@
       novaChipServices:'ما الخدمات المتاحة؟', novaChipProgress:'كيف تقدّمي؟',
       novaChipReview:'ابدئي مراجعة اليوم', novaChipOpenSynapse:'افتحي سينابس',
       dpTitle:'شهادة عضوية', dpTagline:'فخر الانتماء .. مسيرة التميّز',
-      dpAttest:'تشهد أكاديمية جاسي بأن', dpRole:'عضو مسجَّل في الأكاديمية',
+      dpAttest:'تشهد أكاديمية جاسي بأن', dpRole:'عضو مسجَّل في الأكاديمية', dpRoleF:'عضوة مسجَّلة في الأكاديمية',
       dpBody:'وقد أتم بنجاح مراحل التعلّم والتدريب في برامج الأكاديمية، حيث أثبت تفوّقًا في المهارات والمعرفة والتطوير المستمر.',
       dpSerialLabel:'رقم الشهادة', dpJoined:'تاريخ الانضمام',
       dpSignName:'أكاديمية جاسي', dpSignRole:'الإدارة الأكاديمية', dpSealText:'OFFICIAL',
@@ -7655,6 +7677,45 @@
        the active profile's gender is 'male'; everything else falls
        through to the (complete) `ar` block above unchanged. */
     ar_m: {
+      /* Masculine forms. The mechanism existed but these keys were never
+         added to it, so a boy was addressed with feminine verbs across the
+         certificate, the assistant and every error message. */
+      pgMemoryQ:'احفظ هذه الأرقام ثم اكتبها بترتيب <b>عكسي</b>:<br><b style="letter-spacing:4px; direction:ltr; display:inline-block; margin-top:6px;">{seq}</b>',
+      loginCodeNoEmail:'لا يوجد بريد إلكتروني مسجَّل على هذا الحساب، فلا يمكن إرسال كود إليه. سجّل الدخول بكلمة المرور ثم أضف بريدك من «حسابي».',
+      forgotAccountOwnerTitle:'أنت صاحبة التطبيق ونسيت حساب الإدارة؟',
+      resetPasswordFailed:'تعذّر تعيين كلمة المرور. حاول مرة أخرى.',
+      pbSeedAllPartial:'اكتمل جزئيًا: {succeeded} من 9 برامج نجحت. فشل: {failedNames}. راجع شيت الأخطاء وحاول تفعيل الفاشلة يدويًا من الأزرار أدناه.',
+      guardianPinRequired:'اكتب كلمة مرور لحساب ولي الأمر — بدونها لن يستطيع تسجيل الدخول.',
+      guardianNoPinWarn:'⚠️ هذا الحساب محفوظ بدون كلمة مرور ولا يمكنه تسجيل الدخول. اكتب كلمة مرور هنا واحفظ.',
+      mailDiagFixHint:'الحل: افتح محرر Apps Script، شغّلي الدالة grantMailPermission مرة واحدة، ووافقي على الصلاحيات. بدونها لن يصل أي كود إلى البريد.',
+      gaNothingLocal:'لا توجد روابط أولياء أمور محفوظة على هذا المتصفح. افتح التطبيق من الجهاز الذي أنشأتِ الروابط عليه وسجّل الدخول بحساب طالب — تُرفع تلقائيًا.',
+      guardianAuditNoPin:'بدون كلمة مرور صالحة — لن يستطيع تسجيل الدخول. اكتب كلمة مرور واحفظ.',
+      guardianNoChildrenFound:'لم نجد أبناءً مرتبطين بهذا الحساب على الخادم. افتح «حسابي» في حساب كل طفل، وأضف اسم المستخدم وكلمة المرور الخاصة بك في خانة الأم أو الأب، ثم احفظ مرة واحدة.',
+      guardianNoLinksHow:'لربط ابنك أو ابنتك: سجّل الدخول بحسابها ← «حسابي» ← حسابات أولياء الأمور ← اكتب اسم المستخدم وكلمة المرور الخاصة بك في خانة الأم أو الأب ← احفظ. بعدها سيظهر اسمها هنا مباشرة.',
+      novaPlaceholder:'اكتب سؤالك أو اضغط الميكروفون…',
+      novaOpening:'تمام، سأفتح لك {s}.',
+      novaNoDataYet:'لم تبدئي التدريب بعد، فلا توجد أرقام أعرضها. ابدأ أول جولة وسأتابع تقدّمك.',
+      novaProgressLine:'أجبت على {n} سؤالًا بدقة {acc}%، وأتقنت {m} من {total} مستوى، ولديك {b} إنجازًا.',
+      novaRateLimited:'وصلت للحد الأقصى من الأسئلة هذه الساعة. جرّب بعد قليل.',
+      novaOfflineOnly:'أحتاج اتصالًا بالخادم للإجابة على هذا. لكن يمكنني فتح الصفحات لك بدون إنترنت.',
+      sessionNeedsSignIn:'لحفظ تقدّمك على الخادم، سجّل الخروج ثم الدخول مرة واحدة. بياناتك محفوظة على هذا الجهاز ولن تضيع.',
+      sessionExpired:'انتهت جلستك لأسباب أمنية. سجّل الدخول مرة أخرى للمتابعة.',
+      novaMicUnsupported:'متصفحك لا يدعم إدخال الصوت. استخدم الكتابة، أو جرّب Chrome.',
+      novaNoSpeech:'لم أسمع شيئًا. اقتربي من الميكروفون وحاول مرة أخرى.',
+      novaChipReview:'ابدأ مراجعة اليوم',
+      unkReasonPattern:'اخترت لك تمرين المنازل — {n}% من أخطائك من نوع {p}',
+      cogHowSpeed:'مقارنة متوسط زمن إجابتك بالزمن المستهدف لكل عملية — مقارنة بنفسك أنت فقط، لا بأحد آخر.',
+      cogInsightFatigue:'تركيزك يبدأ بالتراجع بعد السؤال {n} تقريبًا — جرّب جولات أقصر.',
+      cogInsightPeak:'أفضل أداء لك في {band} — أعلى بـ {n}% من باقي اليوم.',
+      cogInsightFastLoose:'أنت سريعة جدًا لكن الدقة أقل — جرّب التمهّل قليلًا قبل الإجابة.',
+      synTwinOpponentName:'أنت يوم {d}',
+      synTwinWin:'🏆 هزمتِ مستواك السابق!',
+      synTwinLose:'مستواك السابق تفوّق هذه المرة — راجع وأعد المحاولة',
+      unkReasonReview:'اخترت لك مراجعة: {n} سؤال حان موعد استرجاعه',
+      unkReasonWeak:'اخترت لك {op} — دقتك فيها {acc}% وهي أضعف نقطة حاليًا',
+      unkReasonRotate:'اخترت لك {op} للحفاظ على إتقانك فيها',
+      raceFullError:'هذا السباق ممتلئ بالفعل (لاعبان). جرّب كودًا آخر أو أنشئي سباقًا جديدًا.',
+      raceJoinConnError:'تعذّر الاتصال بالخادم. تأكدي من الاتصال وحاول مرة أخرى.',
       loginWelcomeDesc:'سجّل الدخول للوصول إلى مساحة التعلّم الخاصة بك.',
       securityNoteText:'اتصال آمن — بياناتك محمية داخل أكاديمية جاسي',
       loginStepSyncing:'جارٍ مزامنة بياناتك...',
@@ -8356,6 +8417,7 @@
       novaNoSpeech:'I did not hear anything. Move closer to the microphone and try again.',
       novaChipServices:'What services are available?', novaChipProgress:'How is my progress?',
       novaChipReview:'Start today\'s review', novaChipOpenSynapse:'Open Synapse',
+      dpRoleF:'Registered member of the academy',
       dpTitle:'Certificate of Membership', dpTagline:'The pride of belonging · a path of distinction',
       dpAttest:'JASSI Academy certifies that', dpRole:'Registered member of the academy',
       dpBody:'has successfully progressed through the academy\'s learning and training programs, demonstrating skill, knowledge and continuous development.',
@@ -15656,11 +15718,12 @@
       ? `بيانات أداء طالبة اسمها ${name} في الحساب الذهني حسب نوع العملية: ${statsLine}. اكتبي ملاحظة قصيرة جدًا (جملة أو جملتين، أقل من 25 كلمة) بالعربية لولي الأمر أو المعلم، تلخّص نقطة القوة ونقطة تحتاج تحسين، بأسلوب مهني ومشجّع، بدون مقدمات.`
       : `Performance data for a student named ${name} in mental math by operation: ${statsLine}. Write a very short note (one or two sentences, under 25 words) in English for a parent or teacher, summarizing a strength and an area needing improvement, in a professional and encouraging tone, no preamble.`;
     targetEl.innerHTML = nxSkeletonText(2);
-    callAi(prompt).then(text=>{
-      if(!text || !targetEl.isConnected){ targetEl.innerHTML = ''; return; } // clear the skeleton cleanly on empty/stale response
+    callAi(prompt).then(res=>{
+      const text = aiText(res);
+      if(!text || !targetEl.isConnected){ targetEl.innerHTML = ''; return; }
       targetEl.textContent = '🤖 ' + text;
       targetEl.classList.add('visible');
-    });
+    }).catch(()=>{ targetEl.innerHTML = ''; });
   }
 
   /* ---------- problem generation ---------- */
@@ -18180,7 +18243,13 @@
       // Only claim distinction when the evidence supports it.
       lines.push(f.masteredCount >= 6 ? t('dpJourneyCloseHigh') : t('dpJourneyClose'));
     }
-    dpBodyEl.textContent = lines.join(' ');
+    // The certificate follows the HOLDER's gender. Everything else in the app
+    // is worded for whoever is reading; this document belongs to one person
+    // and is kept and shown, so getting it wrong is the most visible error of
+    // all — a girl's certificate reading "وهو … وأتقن" was exactly that.
+    const holderIsFemale = !(PROFILES[currentProfile] && PROFILES[currentProfile].gender === 'male');
+    dpBodyEl.textContent = holderIsFemale ? toFeminine(lines.join(' ')) : lines.join(' ');
+    if(dpRoleEl) dpRoleEl.textContent = holderIsFemale ? t('dpRoleF') : t('dpRole');
 
     dpBadges.textContent = f.totalBadges ? (f.badges + ' / ' + f.totalBadges) : dFact(f.badges);
     dpCerts.textContent = dFact(f.certificates);
@@ -19274,7 +19343,7 @@
     memberPrefix: 'NX'
   };
 
-  var DIAG_BUILD = 'jassi-2026-08-17-0735-839a61eeeb07';
+  var DIAG_BUILD = 'jassi-2026-08-17-0747-aaab6b0b2d96';
   var DIAG_BUILD_AT = '2026-08-17';
   /* Capability inventory: checks that each feature EXISTS in the running
      file, not that its name appears somewhere. A stale build fails these
@@ -25258,7 +25327,8 @@
       const prompt = currentLang === 'ar'
         ? `اشرحي بأسلوب بسيط ومشجّع مناسب للأطفال، بالعربية، خطوة بخطوة، كيف نحل هذه المسألة: "${text}" والناتج الصحيح هو ${correctStr}. لا تتجاوزي 3 جمل قصيرة، ولا تكرري نص المسألة، ابدئي بالشرح مباشرة.`
         : `Explain, in a simple and encouraging kid-friendly way in English, step by step, how to solve this problem: "${text}" where the correct answer is ${correctStr}. No more than 3 short sentences, don't repeat the problem text, start the explanation directly.`;
-      callAi(prompt).then(explanation=>{
+      callAi(prompt).then(raw=>{
+        const explanation = aiText(raw);
         if(!explanation){
           btn.textContent = t('explainFailed');
           btn.disabled = false;
@@ -25273,24 +25343,43 @@
     return row;
   }
 
+  /* callAi resolves to a STRING on success and an OBJECT on failure
+     ({ failed:true, reason:… }). Five call sites assumed a string, and an
+     object is truthy — so `if(!text)` let it through and the UI printed
+     "[object Object]". This turns any shape into safe text exactly once. */
+  function aiText(res){
+    if(typeof res === 'string') return res.trim();
+    if(res && typeof res.text === 'string') return res.text.trim();
+    return '';
+  }
+
   function loadDailyAiFact(){
     if(!SHEET_API_URL) return;
     const todayKey = 'mm_ai_fact_' + new Date().toISOString().slice(0,10) + '_' + currentLang;
     let cached = null;
     try{ cached = localStorage.getItem(todayKey); }catch(e){}
-    if(cached){ aiFactCard.textContent = '' + cached; aiFactCard.classList.remove('hidden'); return; }
+    if(cached && cached.indexOf('[object') === -1){
+      aiFactCard.textContent = cached; aiFactCard.classList.remove('hidden'); return;
+    }
+    // Purge a poisoned cache from the earlier bug rather than displaying it.
+    if(cached){ try{ localStorage.removeItem(todayKey); }catch(e){} }
     const prompt = currentLang === 'ar'
       ? 'اكتبي حقيقة رياضية ممتعة وقصيرة جدًا أو لغزًا رياضيًا بسيطًا مناسبًا للأطفال، بالعربية، جملة أو جملتين كحد أقصى، بأسلوب مرح ومشوّق بدون مقدمات.'
       : 'Write one very short fun math fact or a simple riddle for children, in English, at most two sentences, in a playful and exciting tone, no preamble.';
     aiFactCard.innerHTML = nxSkeletonText(2);
     aiFactCard.classList.remove('hidden');
-    callAi(prompt).then(text=>{
-      if(!text){ aiFactCard.classList.add('hidden'); return; } // no fake success — hide cleanly on empty/failed response
+    callAi(prompt).then(res=>{
+      // callAi returns an OBJECT on failure ({ failed:true, reason:… }), not a
+      // string. `if(!text)` passed it through because an object is truthy,
+      // and the card then rendered "[object Object]" — and cached it, so the
+      // broken text survived every reload.
+      const text = (typeof res === 'string') ? res : (res && typeof res.text === 'string' ? res.text : '');
+      if(!text.trim()){ aiFactCard.classList.add('hidden'); return; }
       const clean = text.length > 220 ? text.slice(0,220) + '…' : text;
       try{ localStorage.setItem(todayKey, clean); }catch(e){}
-      aiFactCard.textContent = '' + clean;
+      aiFactCard.textContent = clean;
       aiFactCard.classList.remove('hidden');
-    });
+    }).catch(()=>{ aiFactCard.classList.add('hidden'); });
   }
 
   function loadAiEncouragement(profileName, scoreVal_, accVal){
@@ -25301,11 +25390,12 @@
       : `Write one very short (under 20 words) encouraging sentence in English for a child named ${profileName} who scored ${scoreVal_} points with ${accVal}% accuracy in a mental math practice. Be warm, playful, and kid-appropriate. No preamble, one sentence only.`;
     aiEncourageCard.innerHTML = nxSkeletonText(1);
     aiEncourageCard.classList.remove('hidden');
-    callAi(prompt).then(text=>{
-      if(!text){ aiEncourageCard.classList.add('hidden'); return; } // no fake success — hide cleanly
+    callAi(prompt).then(res=>{
+      const text = aiText(res);
+      if(!text){ aiEncourageCard.classList.add('hidden'); return; }
       aiEncourageCard.textContent = '🤖 ' + text;
       aiEncourageCard.classList.remove('hidden');
-    });
+    }).catch(()=>{ aiEncourageCard.classList.add('hidden'); });
   }
 
   /* ---------- daily goal + "today's mission" smart dashboard card ---------- */
@@ -25443,7 +25533,8 @@
       : (weak
           ? `Write a very short (under 18 words) motivational notification in English for a student named ${name}, whose accuracy in ${t('bucket'+capitalize(weak.bucket))} is currently ${weak.acc}%. Gently encourage her to practice it today. No preamble.`
           : `Write a very short (under 15 words) friendly welcome notification in English for a student named ${name} starting her practice. No preamble.`);
-    callAi(prompt).then(text=>{
+    callAi(prompt).then(res=>{
+      const text = aiText(res);
       if(!text) return;
       const clean = text.length > 160 ? text.slice(0,160) + '…' : text;
       try{ localStorage.setItem(todayKey, clean); }catch(e){}
@@ -25466,7 +25557,10 @@
     const prompt = currentLang === 'ar'
       ? `اكتبي مسألة كلامية قصيرة ومبتكرة ومناسبة للأطفال بالعربية، عملية ${opWord}، بالعددين ${a} و${b}، بسيناريو ممتع ومختلف (حيوانات، فضاء، ألعاب، إلخ). جملة أو جملتين بحد أقصى، تنتهي بسؤال واضح، بدون مقدمات ولا حل.`
       : `Write a short, creative, kid-friendly word problem in English, operation: ${opWord}, using the numbers ${a} and ${b}, with a fun and varied scenario (animals, space, games, etc). At most two sentences, ending with a clear question, no preamble and no solution.`;
-    callAi(prompt).then(text=>{
+    callAi(prompt).then(res=>{
+      // The most damaging of the six sites: a failure object here would have
+      // been shown to a child AS THE QUESTION ITSELF.
+      const text = aiText(res);
       if(!text) return;
       // only apply if the student is still looking at this exact question
       if(count === targetIndex && !playEl.classList.contains('hidden') && equationEl.classList.contains('word-mode')){
@@ -27050,7 +27144,7 @@
       const prompt = currentLang === 'ar'
         ? `اكتبي جملة مرحة قصيرة جدًا (أقل من 18 كلمة) بالعربية تعلّق على نتيجة سباق حساب ذهني بين طفلتين، الطالبة الأولى حصلت على ${myScore} نقطة والثانية على ${oppScore} نقطة. كوني ودودة ومشجّعة للاثنتين معًا، بدون مقدمات.`
         : `Write one very short (under 18 words), playful English sentence commenting on a mental math race result between two kids, player one scored ${myScore} and player two scored ${oppScore}. Be warm and encouraging to both, no preamble.`;
-      callAi(prompt).then(text=>{ if(text) raceResultBanter.textContent = '🤖 ' + text; });
+      callAi(prompt).then(res=>{ const text = aiText(res); if(text) raceResultBanter.textContent = '🤖 ' + text; }).catch(()=>{});
     }
 
     raceResultScreenEl.classList.remove('hidden');
