@@ -21805,7 +21805,7 @@
     taglineArabic: 'تعلّم · تطوّر · ارتقِ'
   };
 
-  var DIAG_BUILD = 'jassi-2026-08-17-1348-9d6338d043cf';
+  var DIAG_BUILD = 'jassi-2026-08-17-1354-9ae1897986f4';
   var DIAG_BUILD_AT = '2026-08-17';
   /* Capability inventory: checks that each feature EXISTS in the running
      file, not that its name appears somewhere. A stale build fails these
@@ -22183,6 +22183,45 @@
      the only way to inspect it without a full sign-in, and it changes nothing
      about who may reach it — openMindLab still gates on requireAuth. */
   window.openMindLab = function(){ return openMindLab(); };
+  /* Traces one admin sign-in end to end and reports every step: which URL was
+     called, what hash was sent, and what came back. Reveals no secret — the
+     hash is truncated and the password never appears — but it separates "wrong
+     password" from "wrong server", which repeated guessing could not. */
+  window.traceAdminLogin = async function(username, password){
+    const out = { url: SHEET_API_URL, expectedGsBuild: EXPECTED_GS_BUILD };
+    try{
+      out.storedUrl = localStorage.getItem('mm_sheet_api_url');
+      out.migratedFrom = localStorage.getItem('mm_api_migrated_from');
+    }catch(e){}
+    const hash = await computePasswordHash(username, password);
+    out.hashStarts = hash.slice(0, 8);
+    out.hashLength = hash.length;
+
+    const ping = await postToSheet('gs_build', {});
+    out.serverReachable = !!(ping && ping.ok);
+    out.serverBuild = ping && ping.build ? ping.build : null;
+    out.buildMatches = out.serverBuild === EXPECTED_GS_BUILD;
+
+    const res = await postToSheet('admin_login', { username: username, pin: hash });
+    out.loginOk = !!(res && res.ok);
+    out.loginError = res && res.error ? res.error : (res ? null : 'no response');
+    if(res && res.ok && res.admin){ out.role = res.admin.role; out.canonical = res.admin.username; }
+
+    const probe = await postToSheet('admin_login_probe', { username: username, pin: hash });
+    if(probe && probe.ok){
+      out.rowsInSheet = probe.adminRowCount;
+      out.rows = (probe.rows || []).map(function(r){
+        return { user: r.storedMasked, len: r.storedLength, looseMatch: r.looseMatch,
+                 exactMatch: r.exactMatch, hashMatches: r.hashMatches,
+                 storedHashed: r.storedHashLooksHashed, role: r.role };
+      });
+    } else {
+      out.probe = probe && probe.error ? probe.error : 'probe unavailable';
+    }
+    console.log(JSON.stringify(out, null, 2));
+    return out;
+  };
+
   window.checkLoginIsolation = function(){
     const login = document.getElementById('usernameLogin');
     if(!login || login.classList.contains('hidden')) return { active:false };
