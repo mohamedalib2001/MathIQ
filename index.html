@@ -1713,6 +1713,58 @@
   .oc-audit b{ color:var(--ink); }
   .oc-audit span{ color:var(--ink-dim); font-size:10px; display:block; margin-top:2px; direction:ltr; }
 
+  /* ---------- EXECUTIVE COMMAND CENTER ---------- */
+  #execCenter{ background:var(--ex-void); min-height:100vh; padding:18px; }
+  .ex-topbar{ display:flex; align-items:center; justify-content:space-between; gap:14px;
+    padding-bottom:16px; border-bottom:1px solid var(--ex-line); margin-bottom:22px; }
+  .ex-topbar-id{ display:flex; align-items:center; gap:11px; min-width:0; }
+  .ex-topbar-mark{ width:26px; height:26px; }
+  .ex-topbar-title{ display:block; font-family:'Cairo',sans-serif; font-weight:800;
+    font-size:15px; color:var(--ex-ink); }
+  .ex-topbar-sub{ display:block; font-size:10.5px; color:var(--ex-ink-faint); margin-top:2px; }
+  .ex-topbar-actions{ display:flex; gap:7px; flex:none; }
+  .ex-btn-ghost{ background:transparent; border:1px solid var(--ex-line-strong);
+    color:var(--ex-ink-dim); border-radius:9px; padding:8px 14px; font-size:12px;
+    cursor:pointer; min-height:38px; }
+  .ex-btn-ghost:hover{ color:var(--ex-ink); border-color:var(--ex-accent); }
+
+  .ex-hero{ margin-bottom:22px; }
+  .ex-hero .ex-h1{ margin:8px 0 6px; }
+
+  /* Auto-fit rather than a fixed column count: the grid reflows at every width
+     without a breakpoint per size, and a single KPI never stretches absurdly. */
+  .ex-kpis{ display:grid; grid-template-columns:repeat(auto-fit, minmax(168px, 1fr));
+    gap:12px; margin-bottom:16px; }
+  .ex-kpi{ background:var(--ex-surface); border:1px solid var(--ex-line);
+    border-radius:13px; padding:15px 16px; }
+  .ex-kpi-label{ font-size:10.5px; color:var(--ex-ink-faint); letter-spacing:0.4px; }
+  .ex-kpi-value{ font-family:'Cairo',sans-serif; font-weight:800; font-size:30px;
+    color:var(--ex-ink); line-height:1.1; margin-top:6px; }
+  .ex-kpi-value.unknown{ color:var(--ex-ink-faint); font-size:24px; }
+  .ex-kpi-foot{ display:flex; align-items:center; gap:7px; margin-top:9px; flex-wrap:wrap; }
+  .ex-trend{ font-size:11px; font-weight:700; }
+  .ex-trend.up{ color:var(--ex-ok); } .ex-trend.down{ color:var(--ex-warn); }
+  .ex-trend.flat{ color:var(--ex-ink-faint); }
+
+  .ex-cols{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  @media (max-width:820px){ .ex-cols{ grid-template-columns:1fr; } }
+  .ex-panel-head{ display:flex; align-items:center; justify-content:space-between;
+    gap:10px; padding:15px 16px 11px; border-bottom:1px solid var(--ex-line); }
+  .ex-row{ display:flex; align-items:center; gap:10px; padding:11px 16px;
+    border-bottom:1px solid var(--ex-line); font-size:12.5px; color:var(--ex-ink-dim); }
+  .ex-row:last-child{ border-bottom:none; }
+  .ex-row-main{ flex:1; min-width:0; color:var(--ex-ink); }
+  .ex-row-meta{ font-size:10px; color:var(--ex-ink-faint); flex:none; direction:ltr; }
+  .ex-empty{ padding:22px 16px; text-align:center; font-size:12px; color:var(--ex-ink-faint); }
+
+  /* Sparkline drawn as a CSS bar row rather than SVG paths: the data is a
+     handful of daily points and a chart library would be far more weight than
+     the insight justifies. */
+  .ex-spark{ display:flex; align-items:flex-end; gap:3px; height:64px; padding:16px; }
+  .ex-spark i{ flex:1; background:linear-gradient(180deg, var(--ex-accent), rgba(139,92,246,0.28));
+    border-radius:2px 2px 0 0; min-height:2px; }
+  .ex-spark-note{ padding:0 16px 15px; font-size:11px; color:var(--ex-ink-faint); }
+
   /* ---------- PHASE 2 — EXECUTIVE PORTAL ---------- */
   .ex-portal{
     display:grid; grid-template-columns:1.05fr 1fr; align-items:stretch;
@@ -2277,6 +2329,16 @@
     align-self:flex-end;
   }
   .nova-row.is-nova .nova-row-av{ border-color:rgba(139,92,246,0.45); }
+  /* Explicit dimensions that no later utility class can override. The
+     conversation avatar is a fixed 30px chip; the launcher avatar fills its
+     button. Sharing one class made the second rule win here. */
+  .nova-row-av-jassi{
+    background-repeat:no-repeat; background-position:center; background-size:cover;
+  }
+  .nova-row .nova-row-av{ width:30px !important; height:30px !important; flex:0 0 30px !important; }
+  @media (max-width:480px){
+    .nova-row .nova-row-av{ width:26px !important; height:26px !important; flex:0 0 26px !important; }
+  }
   .nova-row-av img{ width:100%; height:100%; object-fit:cover; display:block; }
   /* The bubble was a direct child of the flex COLUMN and carried align-self.
      Wrapping it in a flex ROW made it a horizontal flex item, where the
@@ -3723,6 +3785,7 @@
       <!-- Owner-only: hidden entirely for controller and assistant roles,
            because a tile that appears and then refuses is worse than absent. -->
       <div class="admin-tool-tile hidden" id="ownerCenterLink"><span class="tile-icon">👑</span><span data-i18n="ocTitle">مركز تحكّم المالك</span></div>
+      <div class="admin-tool-tile hidden" id="execCenterLink"><span class="tile-icon">📊</span><span data-i18n="exTitle">مركز القيادة التنفيذي</span></div>
       <div class="admin-tool-tile" id="aiBankLink"><span class="tile-icon">🧠</span><span data-i18n="abTitle">بنك معرفة الذكاء الاصطناعي</span></div>
       <div class="admin-tool-tile" id="scheduleLink"><span class="tile-icon">🗓</span><span data-i18n="schTitle">جدول الحصص</span></div>
       <div class="admin-tool-tile" id="reportsLink"><span class="tile-icon">📋</span><span data-i18n="repTitle">تقارير الحصص</span></div>
@@ -4568,6 +4631,58 @@
     <div class="conn-note" data-i18n="coNote">هنا كل تحدٍّ أرسلته وحالته. يمكنك سحب أي دعوة لم يُرَد عليها بعد.</div>
     <div id="chalOutList"></div>
     <button class="secondary-btn" id="coCloseBtn" data-i18n="closeBtn">إغلاق</button>
+  </div>
+
+  <!-- ==================== EXECUTIVE COMMAND CENTER ====================
+       A separate shell for the owner. Not a re-theme of the learner view:
+       the two audiences want opposite things, and one layout serving both
+       compromises each. Rendered only for role 'owner'. -->
+  <div id="execCenter" class="panel hidden exec">
+    <div class="ex-topbar">
+      <div class="ex-topbar-id">
+        <span class="jassi-mark jassi-mark-sm ex-topbar-mark" aria-hidden="true"></span>
+        <span>
+          <span class="ex-topbar-title" data-i18n="exTitle">مركز القيادة التنفيذي</span>
+          <span class="ex-topbar-sub" id="exWho"></span>
+        </span>
+      </div>
+      <div class="ex-topbar-actions">
+        <button class="ex-btn-ghost" id="exRefreshBtn" data-i18n="exRefresh">↻ تحديث</button>
+        <button class="ex-btn-ghost" id="exCloseBtn" data-i18n="closeBtn">إغلاق</button>
+      </div>
+    </div>
+
+    <div class="ex-hero ex-fade">
+      <div class="ex-eyebrow" data-i18n="exHeroEyebrow">حالة الأكاديمية</div>
+      <div class="ex-h1" id="exHeroLine"></div>
+      <div class="ex-body" id="exHeroSub"></div>
+    </div>
+
+    <div class="ex-kpis" id="exKpis"></div>
+
+    <div class="ex-cols">
+      <section class="ex-panel ex-fade ex-fade-2">
+        <div class="ex-panel-head">
+          <span class="ex-h2" data-i18n="exSecTitle">مركز الأمان</span>
+          <span class="ex-conf high" id="exSecBadge"></span>
+        </div>
+        <div id="exSecBody"></div>
+      </section>
+      <section class="ex-panel ex-fade ex-fade-3">
+        <div class="ex-panel-head">
+          <span class="ex-h2" data-i18n="exActTitle">آخر الإجراءات الإدارية</span>
+        </div>
+        <div id="exActBody"></div>
+      </section>
+    </div>
+
+    <div class="ex-panel ex-fade ex-fade-4" style="margin-top:14px;">
+      <div class="ex-panel-head">
+        <span class="ex-h2" data-i18n="exGrowthTitle">اتجاه الأكاديمية</span>
+        <span class="ex-conf" id="exGrowthConf"></span>
+      </div>
+      <div id="exGrowthBody"></div>
+    </div>
   </div>
 
   <!-- SMART LOADER
@@ -6076,6 +6191,19 @@
     });
   }
 
+  const execCenter = document.getElementById('execCenter');
+  const exWho = document.getElementById('exWho');
+  const exHeroLine = document.getElementById('exHeroLine');
+  const exHeroSub = document.getElementById('exHeroSub');
+  const exKpis = document.getElementById('exKpis');
+  const exSecBody = document.getElementById('exSecBody');
+  const exSecBadge = document.getElementById('exSecBadge');
+  const exActBody = document.getElementById('exActBody');
+  const exGrowthBody = document.getElementById('exGrowthBody');
+  const exGrowthConf = document.getElementById('exGrowthConf');
+  const exRefreshBtn = document.getElementById('exRefreshBtn');
+  const exCloseBtn = document.getElementById('exCloseBtn');
+  const execCenterLink = document.getElementById('execCenterLink');
   const chalOutScreen = document.getElementById('chalOutScreen');
   const chalOutList = document.getElementById('chalOutList');
   const coCloseBtn = document.getElementById('coCloseBtn');
@@ -8007,6 +8135,33 @@
       jaNudgeMuted:'✓ أُوقفت الاقتراحات التلقائية. المساعد يبقى متاحًا عند فتحه.',
       novaTimedOut:'استغرقت خدمة الذكاء الاصطناعي وقتًا أطول من المتوقع فأوقفت الانتظار. يمكنك سؤالي مجددًا — وهذه الخدمات التي أشرحها فورًا بلا انتظار:',
       loginCodeForWho:'الكود مُرسَل لحساب: {u}',
+      exTitle:'مركز القيادة التنفيذي', exRefresh:'↻ تحديث',
+      exWhoLine:'{name} · صلاحية المالك', exHeroEyebrow:'حالة الأكاديمية',
+      exHeroLine:'{active} متعلّمًا نشطًا من {total} خلال آخر {d} يومًا',
+      exHeroNoActive:'{n} متعلّمًا مسجّلًا · بيانات النشاط غير متاحة بعد',
+      exHeroSince:'مبني على {n} يومًا من اللقطات المسجّلة.',
+      exHeroNewHistory:'بدأ تسجيل اللقطات اليوم — الاتجاهات ستظهر خلال أسبوعين.',
+      exKpiActive:'المتعلّمون النشطون', exKpiLearners:'إجمالي المتعلّمين',
+      exKpiCerts:'الشهادات', exKpiExams:'محاولات الاختبارات',
+      exKpiPrograms:'البرامج', exKpiCompletions:'الدروس المكتملة',
+      exConf_high:'ثقة عالية', exConf_medium:'ثقة متوسطة',
+      exConf_low:'ثقة منخفضة', exConf_insufficient:'بيانات غير كافية',
+      exSecTitle:'مركز الأمان', exActTitle:'آخر الإجراءات الإدارية',
+      exGrowthTitle:'اتجاه الأكاديمية',
+      exGrowthNeedsDays:'الاتجاه يحتاج يومين مسجّلين على الأقل. اللقطات تُسجَّل تلقائيًا كل يوم تفتح فيه هذه الشاشة.',
+      exGrowthNote:'{n} يومًا مسجّلًا — من {from} إلى {to}',
+      exMech_passwordHashed:'كلمات المرور مجزّأة (SHA-256 بملح اسم المستخدم)',
+      exMech_sessionTokens:'رموز جلسة تُصدر عند كل دخول',
+      exMech_tokenHashedAtRest:'الرموز مخزّنة مجزّأة لا صريحة',
+      exMech_attemptThrottling:'إيقاف مؤقت بعد ٥ محاولات فاشلة',
+      exMech_auditLogging:'تسجيل إجراءات الإدارة',
+      exMech_transportHttps:'اتصال مشفّر HTTPS',
+      exSessions24:'{n} جلسة خلال آخر ٢٤ ساعة',
+      exAdmins:'{a} حساب إداري · منهم {o} مالك',
+      exEvent:'{actor} — {action}', exNoEvents:'لا إجراءات إدارية مسجّلة بعد.',
+      exLoading:'جارٍ القراءة من الخادم…',
+      exLoadFailed:'تعذّرت قراءة البيانات من الخادم.',
+      exOwnerOnly:'هذه الشاشة لحساب المالك فقط.',
       bsToday:'نسخة اليوم', bsDaysOld:'عمرها {n} يومًا',
       bsCopied:'✓ نُسخ رقم النسخة.', bsCopyHint:'اضغط لنسخ رقم النسخة',
       coTitle:'تحدياتي المُرسَلة', coNavLabel:'تحدياتي',
@@ -9529,6 +9684,33 @@
       jaNudgeMuted:'✓ Automatic suggestions are off. The assistant stays available when you open it.',
       novaTimedOut:'The AI service took longer than expected, so I stopped waiting. Ask me again — and here is what I can explain instantly without waiting:',
       loginCodeForWho:'Code sent for account: {u}',
+      exTitle:'Executive Command Center', exRefresh:'↻ Refresh',
+      exWhoLine:'{name} · Owner access', exHeroEyebrow:'Academy status',
+      exHeroLine:'{active} active learners of {total} in the last {d} days',
+      exHeroNoActive:'{n} registered learners · activity data not available yet',
+      exHeroSince:'Based on {n} days of recorded snapshots.',
+      exHeroNewHistory:'Snapshot recording started today — trends appear within two weeks.',
+      exKpiActive:'Active learners', exKpiLearners:'Total learners',
+      exKpiCerts:'Certificates', exKpiExams:'Exam attempts',
+      exKpiPrograms:'Programs', exKpiCompletions:'Lessons completed',
+      exConf_high:'high confidence', exConf_medium:'medium confidence',
+      exConf_low:'low confidence', exConf_insufficient:'insufficient data',
+      exSecTitle:'Security Center', exActTitle:'Recent admin actions',
+      exGrowthTitle:'Academy trend',
+      exGrowthNeedsDays:'A trend needs at least two recorded days. Snapshots are taken automatically each day this screen is opened.',
+      exGrowthNote:'{n} recorded days — {from} to {to}',
+      exMech_passwordHashed:'Passwords hashed (SHA-256, salted with the username)',
+      exMech_sessionTokens:'Session tokens issued on each sign-in',
+      exMech_tokenHashedAtRest:'Tokens stored hashed, never in the clear',
+      exMech_attemptThrottling:'Temporary lock after 5 failed attempts',
+      exMech_auditLogging:'Administrative actions logged',
+      exMech_transportHttps:'Encrypted HTTPS transport',
+      exSessions24:'{n} sessions in the last 24 hours',
+      exAdmins:'{a} admin accounts · {o} owner',
+      exEvent:'{actor} — {action}', exNoEvents:'No administrative actions recorded yet.',
+      exLoading:'Reading from the server…',
+      exLoadFailed:'Could not read data from the server.',
+      exOwnerOnly:'This screen is for the owner account only.',
       bsToday:"today's build", bsDaysOld:'{n} days old',
       bsCopied:'✓ Build stamp copied.', bsCopyHint:'Tap to copy the build stamp',
       coTitle:'My sent challenges', coNavLabel:'My challenges',
@@ -10859,6 +11041,7 @@
     friendProfileScreen.classList.add('hidden');
     diagScreen.classList.add('hidden');
     planAssign.classList.add('hidden');
+    execCenter.classList.add('hidden');
     aiBankScreen.classList.add('hidden');
     scheduleScreen.classList.add('hidden');
     reportsScreen.classList.add('hidden');
@@ -15951,6 +16134,19 @@
   });
   diagCopyBtn.addEventListener('click', diagCopyReport);
 
+  execCenterLink.addEventListener('click', openExecutiveCenter);
+  exCloseBtn.addEventListener('click', ()=>{
+    execCenter.classList.add('hidden'); profilesEl.classList.remove('hidden');
+  });
+  exRefreshBtn.addEventListener('click', async ()=>{
+    setBtnSaving(exRefreshBtn, true);
+    exRenderSkeleton();
+    await exLoad();
+    setBtnSaving(exRefreshBtn, false);
+  });
+  // The tile is REVEALED for an owner rather than shown-and-refused: a door
+  // that always says no is worse than no door.
+  if(typeof exIsOwner === 'function' && exIsOwner()) execCenterLink.classList.remove('hidden');
   aiBankLink.addEventListener('click', openAiBank);
   abSeedBtn.addEventListener('click', abSeed);
   abRefreshBtn.addEventListener('click', abRefresh);
@@ -17827,7 +18023,11 @@
     av.className = 'nova-row-av';
     av.setAttribute('aria-hidden', 'true');   // the text already names the speaker
     if(who === 'nova'){
-      av.classList.add('ja-av');
+      // The mark is applied directly rather than via .ja-av: that class sets
+      // width:100% for the launcher button and, later in the stylesheet, beat
+      // .nova-row-av's fixed 30px — the avatar then filled the whole row.
+      av.style.backgroundImage = 'url("' + APP_BRAND.logoMarkCompact + '")';
+      av.classList.add('nova-row-av-jassi');
     } else {
       // The learner's own photo when one is synced, their initial otherwise —
       // reusing the avatar helper so the face matches every other screen.
@@ -21159,7 +21359,7 @@
     taglineArabic: 'تعلّم · تطوّر · ارتقِ'
   };
 
-  var DIAG_BUILD = 'jassi-2026-08-17-1025-400866bcee04';
+  var DIAG_BUILD = 'jassi-2026-08-17-1213-588a2bd98904';
   var DIAG_BUILD_AT = '2026-08-17';
   /* Capability inventory: checks that each feature EXISTS in the running
      file, not that its name appears somewhere. A stale build fails these
@@ -22079,6 +22279,147 @@
     if(!text || !chatRoom) return;
     chatInput.value = '';
     await chatSendOnce(text);
+  }
+
+  /* ==================== EXECUTIVE COMMAND CENTER ====================
+     Owner-only. Every figure comes from executive_overview, which returns a
+     CONFIDENCE with each metric — so a number that cannot yet be trusted is
+     shown without a trend rather than with an invented one. A dashboard that
+     guesses is worse than one that admits a gap: the owner acts on these. */
+  let exData = null;
+
+  function exIsOwner(){
+    return !!(ADMIN && ADMIN.username && String(ADMIN.role || '') === 'owner');
+  }
+
+  async function openExecutiveCenter(){
+    if(!exIsOwner()){ showToast(t('exOwnerOnly'), nxIcon('lock'), 'system'); return; }
+    hideAllScreens();
+    execCenter.classList.remove('hidden');
+    exWho.textContent = fmt('exWhoLine', { name: ADMIN.name || ADMIN.username });
+    exRenderSkeleton();
+    await exLoad();
+  }
+
+  /* Skeletons rather than a blank panel: an empty dashboard and a broken one
+     look identical while data is in flight. */
+  function exRenderSkeleton(){
+    exKpis.innerHTML = new Array(4).fill(0).map(function(){
+      return '<div class="ex-kpi"><div class="ex-skel" style="height:11px;width:60%"></div>' +
+             '<div class="ex-skel" style="height:28px;width:45%;margin-top:10px"></div></div>';
+    }).join('');
+    const wait = '<div class="ex-empty">' + t('exLoading') + '</div>';
+    exSecBody.innerHTML = wait; exActBody.innerHTML = wait; exGrowthBody.innerHTML = wait;
+  }
+
+  async function exLoad(){
+    const creds = { requesterUsername: ADMIN.username, requesterPin: ADMIN.pin };
+    const results = await Promise.all([
+      postToSheet('executive_overview', creds).catch(function(){ return null; }),
+      postToSheet('security_overview', creds).catch(function(){ return null; })
+    ]);
+    const ov = results[0], sec = results[1];
+    if(!ov || !ov.ok){
+      // Named honestly. "Something went wrong" sends an owner hunting.
+      const msg = '<div class="ex-empty">' + describeSyncFailure(ov, 'exLoadFailed') + '</div>';
+      exKpis.innerHTML = msg; exSecBody.innerHTML = msg;
+      exActBody.innerHTML = msg; exGrowthBody.innerHTML = msg;
+      return;
+    }
+    exData = ov;
+    exRenderHero(ov); exRenderKpis(ov); exRenderGrowth(ov); exRenderSecurity(sec);
+  }
+
+  function exRenderHero(ov){
+    const m = ov.metrics;
+    exHeroLine.textContent = (m.activeLearners.value === null)
+      ? fmt('exHeroNoActive', { n: m.learners.value })
+      : fmt('exHeroLine', { active: m.activeLearners.value, total: m.learners.value, d: ov.activeWindowDays });
+    exHeroSub.textContent = ov.historyDays >= 2
+      ? fmt('exHeroSince', { n: ov.historyDays })
+      : t('exHeroNewHistory');
+  }
+
+  function exKpiCard(label, metric){
+    const unknown = metric.value === null || metric.value === undefined;
+    let foot;
+    // A trend is drawn ONLY where a real earlier snapshot exists. This single
+    // rule is what keeps the dashboard honest.
+    if(!unknown && metric.trend !== null && metric.trend !== undefined &&
+       metric.confidence !== 'insufficient'){
+      const dir = metric.trend > 0 ? 'up' : (metric.trend < 0 ? 'down' : 'flat');
+      foot = '<span class="ex-trend ' + dir + '">' + (metric.trend > 0 ? '+' : '') + metric.trend + '</span>' +
+             '<span class="ex-conf ' + metric.confidence + '">' + t('exConf_' + metric.confidence) + '</span>';
+    } else {
+      foot = '<span class="ex-conf insufficient">' + t('exConf_insufficient') + '</span>';
+    }
+    return '<div class="ex-kpi"><div class="ex-kpi-label">' + label + '</div>' +
+      '<div class="ex-kpi-value' + (unknown ? ' unknown' : '') + '">' +
+      (unknown ? '—' : metric.value) + '</div>' +
+      '<div class="ex-kpi-foot">' + foot + '</div></div>';
+  }
+
+  function exRenderKpis(ov){
+    const m = ov.metrics;
+    exKpis.innerHTML =
+      exKpiCard(t('exKpiActive'), m.activeLearners) +
+      exKpiCard(t('exKpiLearners'), m.learners) +
+      exKpiCard(t('exKpiCerts'), m.certificates) +
+      exKpiCard(t('exKpiExams'), m.examAttempts) +
+      exKpiCard(t('exKpiPrograms'), m.programs) +
+      exKpiCard(t('exKpiCompletions'), m.completions);
+  }
+
+  function exRenderGrowth(ov){
+    const h = ov.history || [];
+    const lvl = h.length >= 14 ? 'high' : (h.length >= 7 ? 'medium' : 'low');
+    exGrowthConf.textContent = t('exConf_' + lvl);
+    exGrowthConf.className = 'ex-conf ' + lvl;
+    if(h.length < 2){
+      // Two points is the minimum for a line to mean anything.
+      exGrowthBody.innerHTML = '<div class="ex-empty">' + t('exGrowthNeedsDays') + '</div>';
+      return;
+    }
+    const vals = h.map(function(d){ return d.learners; });
+    const max = Math.max.apply(null, vals) || 1;
+    exGrowthBody.innerHTML = '<div class="ex-spark">' + vals.map(function(v){
+        return '<i style="height:' + Math.max(4, Math.round((v / max) * 100)) + '%"></i>';
+      }).join('') + '</div><div class="ex-spark-note">' +
+      fmt('exGrowthNote', { n: h.length, from: h[0].date, to: h[h.length - 1].date }) + '</div>';
+  }
+
+  function exRenderSecurity(sec){
+    if(!sec || !sec.ok){
+      exSecBody.innerHTML = '<div class="ex-empty">' + t('exLoadFailed') + '</div>';
+      exSecBadge.textContent = ''; return;
+    }
+    // Mechanisms that genuinely exist in this codebase. No score is computed:
+    // an invented "92% secure" is exactly the kind of claim to avoid.
+    const mech = sec.mechanisms || {};
+    const keys = Object.keys(mech);
+    const on = keys.filter(function(k){ return mech[k]; }).length;
+    exSecBadge.textContent = on + '/' + keys.length;
+    exSecBadge.className = 'ex-conf ' + (on === keys.length ? 'high' : 'medium');
+
+    const rows = keys.map(function(k){
+      return '<div class="ex-row"><span class="ex-dot ' + (mech[k] ? 'ok' : 'warn') + '"></span>' +
+             '<span class="ex-row-main">' + t('exMech_' + k) + '</span></div>';
+    });
+    if(sec.activeSessions24h !== null && sec.activeSessions24h !== undefined){
+      rows.push('<div class="ex-row"><span class="ex-dot idle"></span><span class="ex-row-main">' +
+        fmt('exSessions24', { n: sec.activeSessions24h }) + '</span></div>');
+    }
+    rows.push('<div class="ex-row"><span class="ex-dot idle"></span><span class="ex-row-main">' +
+      fmt('exAdmins', { a: sec.admins, o: sec.owners }) + '</span></div>');
+    exSecBody.innerHTML = rows.join('');
+
+    const ev = sec.recentEvents || [];
+    exActBody.innerHTML = ev.length ? ev.slice(0, 8).map(function(e){
+        const when = e.at ? new Date(e.at).toLocaleString(currentLang === 'ar' ? 'ar-EG' : 'en-US') : '';
+        return '<div class="ex-row"><span class="ex-row-main">' +
+          fmt('exEvent', { actor: e.actor, action: e.action }) + '</span>' +
+          '<span class="ex-row-meta">' + when + '</span></div>';
+      }).join('') : '<div class="ex-empty">' + t('exNoEvents') + '</div>';
   }
 
   /* ---------- OUTGOING CHALLENGES ----------
