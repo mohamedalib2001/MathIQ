@@ -6921,9 +6921,27 @@
   // Google Sheet connection — baked in as the default backend, but still
   // overridable via the "🔗 ربط جوجل شيت" panel (saved to localStorage,
   // which takes priority if the person ever needs to point at a different sheet).
-  const DEFAULT_SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbwP1mDdgV4b2Yyw2RkYvAh2tf1AYKmk-ABjP0OLebHVCD8dfp65YYchF3BUNLintXNy7g/exec';
+  /* Every new Apps Script deployment gets a new URL. The stored key is
+     tracked alongside it so a browser that saved an EARLIER deployment is
+     migrated rather than left talking to a retired backend forever — which is
+     invisible from the interface and looks exactly like a broken feature. */
+  const DEFAULT_SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbxDEQYM2OpXw5cSO3qdviRJDQZ_fLZzqtG6IEGIQ-huPFZDIAQW6-4BgHuC57Vfmzsa9A/exec';
+  const RETIRED_API_URLS = [
+    'https://script.google.com/macros/s/AKfycbwP1mDdgV4b2Yyw2RkYvAh2tf1AYKmk-ABjP0OLebHVCD8dfp65YYchF3BUNLintXNy7g/exec'
+  ];
   let SHEET_API_URL = DEFAULT_SHEET_API_URL;
-  try { SHEET_API_URL = localStorage.getItem('mm_sheet_api_url') || DEFAULT_SHEET_API_URL; } catch(e){ SHEET_API_URL = DEFAULT_SHEET_API_URL; }
+  try {
+    const stored = localStorage.getItem('mm_sheet_api_url');
+    // A stored URL normally wins — an administrator may have pointed this
+    // install at their own backend deliberately. But a URL we KNOW is retired
+    // is never honoured: it would silently outrank every future update.
+    if(stored && RETIRED_API_URLS.indexOf(stored) === -1){
+      SHEET_API_URL = stored;
+    } else {
+      SHEET_API_URL = DEFAULT_SHEET_API_URL;
+      if(stored) localStorage.setItem('mm_sheet_api_url', DEFAULT_SHEET_API_URL);
+    }
+  } catch(e){ SHEET_API_URL = DEFAULT_SHEET_API_URL; }
   let loggedInKey = null; // profile key currently "logged in", or null
 
   /* ---------- password hashing (Web Crypto, client-side) ----------
@@ -21062,7 +21080,7 @@
     taglineArabic: 'تعلّم · تطوّر · ارتقِ'
   };
 
-  var DIAG_BUILD = 'jassi-2026-08-17-1001-deaab76ae3ef';
+  var DIAG_BUILD = 'jassi-2026-08-17-1006-16acd62c3cd4';
   var DIAG_BUILD_AT = '2026-08-17';
   /* Capability inventory: checks that each feature EXISTS in the running
      file, not that its name appears somewhere. A stale build fails these
