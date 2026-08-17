@@ -7320,14 +7320,29 @@
   let SHEET_API_URL = DEFAULT_SHEET_API_URL;
   try {
     const stored = localStorage.getItem('mm_sheet_api_url');
-    // A stored URL normally wins — an administrator may have pointed this
-    // install at their own backend deliberately. But a URL we KNOW is retired
-    // is never honoured: it would silently outrank every future update.
-    if(stored && RETIRED_API_URLS.indexOf(stored) === -1){
+    /* A stored URL used to win outright, and a named list of retired ones was
+       the only escape. That could never keep up: every republish mints a new
+       Apps Script URL, so a browser holding ANY earlier deployment kept
+       talking to old code — the account verified on the server while the page
+       was asking a different server entirely.
+
+       The rule is now general. A stored URL is honoured only when it points
+       somewhere we could not have shipped: a genuinely custom backend. Any
+       other script.google.com deployment is treated as a stale copy of ours
+       and replaced with the one this file was built against. */
+    const isGoogleScript = function(u){ return /script\.google\.com\/macros\//.test(u || ''); };
+    const isRetired = stored && (RETIRED_API_URLS.indexOf(stored) > -1 ||
+      (isGoogleScript(stored) && stored !== DEFAULT_SHEET_API_URL));
+    if(stored && !isRetired){
       SHEET_API_URL = stored;
     } else {
       SHEET_API_URL = DEFAULT_SHEET_API_URL;
-      if(stored) localStorage.setItem('mm_sheet_api_url', DEFAULT_SHEET_API_URL);
+      if(stored){
+        localStorage.setItem('mm_sheet_api_url', DEFAULT_SHEET_API_URL);
+        // Recorded so the diagnostics can say a migration happened rather
+        // than leaving the owner to wonder why anything changed.
+        try{ localStorage.setItem('mm_api_migrated_from', stored); }catch(e){}
+      }
     }
   } catch(e){ SHEET_API_URL = DEFAULT_SHEET_API_URL; }
   let loggedInKey = null; // profile key currently "logged in", or null
@@ -8500,6 +8515,7 @@
       dcRespondedIn:'استجاب خلال {n} مللي', dcNoResponse:'لا استجابة',
       dcAccount:'الحساب الحالي', dcSessionToken:'رمز الجلسة', dcAdminSession:'جلسة الإدارة',
       dcTokenAccepted:'الخادم يقبل الرمز',
+      dcApiMigrated:'نُقل من رابط خادم قديم', dcFixApiMigrated:'كان متصفحك يخاطب نشرًا سابقًا محفوظًا محليًا — وهو سبب رفض كلمة المرور الصحيحة. نُقل تلقائيًا للرابط الحالي.',
       dcGsBuild:'نسخة الخادم المنشورة', dcGsBuildNone:'لا تحمل بصمة — نشر قديم جدًا',
       dcFixGsStale:'ملف .gs المنشور لا يطابق هذه الصفحة. كل إصلاحات الدخول والبريد في الخادم — انشره كـ«نشر جديد» لا «تحديث».',
       dcGrpBuild:'التحقق من النسخة',
@@ -10097,6 +10113,7 @@
       dcRespondedIn:'responded in {n} ms', dcNoResponse:'no response',
       dcAccount:'Current account', dcSessionToken:'Session token', dcAdminSession:'Admin session',
       dcTokenAccepted:'Server accepts the token',
+      dcApiMigrated:'Migrated from an old backend URL', dcFixApiMigrated:'Your browser was calling an earlier deployment saved locally — the reason a correct password was refused. It has been moved to the current URL automatically.',
       dcGsBuild:'Deployed backend build', dcGsBuildNone:'carries no stamp — a very old deployment',
       dcFixGsStale:'The published .gs does not match this page. Every sign-in and mail fix lives in the backend — publish it as New deployment, not Update.',
       dcGrpBuild:'Build verification',
@@ -21788,7 +21805,7 @@
     taglineArabic: 'تعلّم · تطوّر · ارتقِ'
   };
 
-  var DIAG_BUILD = 'jassi-2026-08-17-1329-8b04d484f43d';
+  var DIAG_BUILD = 'jassi-2026-08-17-1348-9d6338d043cf';
   var DIAG_BUILD_AT = '2026-08-17';
   /* Capability inventory: checks that each feature EXISTS in the running
      file, not that its name appears somewhere. A stale build fails these
@@ -24624,6 +24641,16 @@
         dcAdd(G, t('dcServerBuild'), t('dcServerBuildUnset'), 'info', t('dcFixSetBuild'));
       }
     }
+
+    // The endpoint actually in use, and whether a stale one was replaced.
+    // A browser holding an older deployment is invisible from the interface
+    // and looks exactly like a wrong password.
+    try{
+      const from = localStorage.getItem('mm_api_migrated_from');
+      if(from){
+        dcAdd(G, t('dcApiMigrated'), from.slice(-28), 'warn', t('dcFixApiMigrated'));
+      }
+    }catch(e){}
 
     // The deployed backend's own stamp, next to the page's. Two files must be
     // published for a change to take effect, and this is the only way to see
