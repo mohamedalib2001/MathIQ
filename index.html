@@ -2440,6 +2440,25 @@
     --jassi-info:#06B6D4;
   }
 
+  /* ---------- BUILD STAMP ----------
+     Deliberately quiet: it must be findable when needed and invisible the
+     rest of the time. A banner would be noise on every screen forever. */
+  .build-stamp{
+    display:block; margin:10px auto 0; width:fit-content; max-width:92vw;
+    font-family:'Courier New',monospace; font-size:9px; letter-spacing:0.4px;
+    color:var(--ink-dim); opacity:.42; cursor:pointer; user-select:all;
+    padding:3px 9px; border-radius:20px; border:1px solid transparent;
+    direction:ltr; transition:opacity .18s ease, border-color .18s ease;
+  }
+  .build-stamp:hover, .build-stamp:focus-visible{
+    opacity:1; border-color:var(--chip-border); outline:none;
+  }
+  .build-stamp.copied{ color:var(--mint); opacity:1; }
+  .build-stamp .bs-age{ opacity:.7; }
+  /* Flagged amber once the running file is more than a day old — the usual
+     symptom of an upload that did not land. */
+  .build-stamp.stale{ color:#F59E0B; opacity:.85; }
+
   /* ---------- JASSI BRAND MARK ----------
      Applied as a background so any element can carry the mark without extra
      markup. Set by JS from APP_BRAND rather than hard-coded here, keeping one
@@ -3485,6 +3504,7 @@
     </div>
     <div id="loginCodeStep2" class="hidden">
       <div class="forgot-account-text" data-i18n="loginCodeEnterCode">أدخلي الكود اللي وصلك على بريدك الإلكتروني.</div>
+      <div class="conn-note" id="loginCodeForWho" style="text-align:center;"></div>
       <input type="text" id="loginCodeInput" class="ltr-input" maxlength="6" style="text-align:center; letter-spacing:4px; margin-top:10px;" data-i18n-placeholder="emailCodePlaceholder" placeholder="123456">
       <div class="feedback wrong" id="loginCodeStep2Error" style="min-height:16px;" aria-live="polite"></div>
       <button class="start-btn" id="loginCodeConfirmBtn">
@@ -3678,6 +3698,13 @@
     <div class="brand-tagline" data-i18n="brandTagline">منصة التعلّم الذكي للحساب الذهني والأباكوس</div>
     <div class="ai-powered-badge"><span>✦</span><span data-i18n="aiPoweredBadge">مدعوم بالذكاء الاصطناعي</span></div>
     <div class="rule"></div>
+  <!-- BUILD STAMP.
+       Answers one question at a glance: is the file in this browser the one
+       that was just uploaded? Several rounds were spent fixing faults in a
+       file that never reached the server, and nothing on screen could tell
+       the two situations apart. Tap to copy. -->
+  <div class="build-stamp" id="buildStamp" role="button" tabindex="0"
+       data-i18n-title="bsCopyHint" title="اضغط لنسخ رقم النسخة"></div>
   </header>
 
   <!-- PROFILE PICKER -->
@@ -7978,6 +8005,10 @@
       jaNudgeBackGo:'ما هي؟', jaNudgeCert:'لديك شهادات محفوظة — يمكنك عرضها أو تنزيلها.',
       jaNudgeCertGo:'اعرضها', jaNudgeDismiss:'لاحقًا', jaNudgeMute:'لا تُظهر مجددًا',
       jaNudgeMuted:'✓ أُوقفت الاقتراحات التلقائية. المساعد يبقى متاحًا عند فتحه.',
+      novaTimedOut:'استغرقت خدمة الذكاء الاصطناعي وقتًا أطول من المتوقع فأوقفت الانتظار. يمكنك سؤالي مجددًا — وهذه الخدمات التي أشرحها فورًا بلا انتظار:',
+      loginCodeForWho:'الكود مُرسَل لحساب: {u}',
+      bsToday:'نسخة اليوم', bsDaysOld:'عمرها {n} يومًا',
+      bsCopied:'✓ نُسخ رقم النسخة.', bsCopyHint:'اضغط لنسخ رقم النسخة',
       coTitle:'تحدياتي المُرسَلة', coNavLabel:'تحدياتي',
       coNote:'هنا كل تحدٍّ أرسلته وحالته. يمكنك سحب أي دعوة لم يُرَد عليها بعد.',
       coEmpty:'لم ترسل أي تحدٍّ بعد. افتح «أصدقائي» وتحدَّ صديقًا.',
@@ -9496,6 +9527,10 @@
       jaNudgeBackGo:'What is it?', jaNudgeCert:'You have saved certificates — you can view or download them.',
       jaNudgeCertGo:'Show them', jaNudgeDismiss:'Later', jaNudgeMute:'Do not show again',
       jaNudgeMuted:'✓ Automatic suggestions are off. The assistant stays available when you open it.',
+      novaTimedOut:'The AI service took longer than expected, so I stopped waiting. Ask me again — and here is what I can explain instantly without waiting:',
+      loginCodeForWho:'Code sent for account: {u}',
+      bsToday:"today's build", bsDaysOld:'{n} days old',
+      bsCopied:'✓ Build stamp copied.', bsCopyHint:'Tap to copy the build stamp',
       coTitle:'My sent challenges', coNavLabel:'My challenges',
       coNote:'Every challenge you sent and its status. You can withdraw any invitation that has not been answered.',
       coEmpty:'You have not sent a challenge yet. Open "Friends" and challenge someone.',
@@ -11877,6 +11912,7 @@
   const loginCodeUsernameInput = document.getElementById('loginCodeUsernameInput');
   const loginCodeStep1Error = document.getElementById('loginCodeStep1Error');
   const loginCodeSendBtn = document.getElementById('loginCodeSendBtn');
+  const loginCodeForWho = document.getElementById('loginCodeForWho');
   const loginCodeInput = document.getElementById('loginCodeInput');
   const loginCodeStep2Error = document.getElementById('loginCodeStep2Error');
   const loginCodeConfirmBtn = document.getElementById('loginCodeConfirmBtn');
@@ -12164,7 +12200,11 @@
     }
   });
   loginWithCodeLink.addEventListener('click', ()=>{
-    loginCodeUsernameInput.value = '';
+    // Carry over whatever was already typed on the sign-in form. Clearing it
+    // made the learner retype a username they had just entered, and the
+    // screenshot showed the code step reached with the field left blank —
+    // so a code was requested for nobody and no mail was ever sent.
+    loginCodeUsernameInput.value = (usernameInput && usernameInput.value.trim()) || '';
     loginCodeInput.value = '';
     loginCodeStep1Error.textContent = '';
     loginCodeStep2Error.textContent = '';
@@ -12191,6 +12231,10 @@
     // Otherwise a generic success, so a stranger cannot discover which
     // usernames exist by watching this response.
     if(res && res.ok){
+      // The username is shown on the code step so the learner can see which
+      // account the code belongs to — and spot a typo before waiting for a
+      // message that will never arrive.
+      if(loginCodeForWho) loginCodeForWho.textContent = fmt('loginCodeForWho', { u: username });
       loginCodeStep1.classList.add('hidden');
       loginCodeStep2.classList.remove('hidden');
       loginCodeInput.focus();
@@ -18257,6 +18301,20 @@
     return out;
   }
 
+  /* Strips what Arabic writers add freely and matchers never account for:
+     diacritics, tatweel, and the interchangeable hamza/ya/ta-marbuta forms.
+     Applied to a COPY used only for matching — the model and the stored
+     history keep the learner's exact words. */
+  function novaNormalise(str){
+    return String(str || '')
+      .replace(/[\u064B-\u0652\u0670\u0640]/g, '')   // harakat + tatweel
+      .replace(/[\u0622\u0623\u0625\u0671]/g, 'ا')   // آ إ أ ٱ -> ا
+      .replace(/\u0649/g, 'ي')                          // ى -> ي
+      .replace(/\u0629/g, 'ه')                          // ة -> ه
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
   /* ---- 1a. IDENTITY & SOCIAL ----
      "من أنت؟" fell through every matcher and landed on the services list, so
      the assistant answered a question about itself with a catalogue. And a
@@ -19559,7 +19617,7 @@
       return;
     }
     // 2. A question about their own record is answered from stored data.
-    const local = novaLocalAnswer(text);
+    const local = novaLocalAnswer(q);
     if(local){
       // Some local answers need a server round trip; awaiting here keeps the
       // call sites identical whether the data was local or fetched.
@@ -19573,7 +19631,7 @@
 
     // A follow-up refers to the previous answer, so it is resolved first —
     // otherwise "and then?" would be matched as a fresh topic.
-    const followUp = novaResolveFollowUp(text);
+    const followUp = novaResolveFollowUp(q);
     if(followUp){ novaSay(followUp); return; }
 
     // "Why do I keep getting this wrong" — answered from recorded error types.
@@ -19587,35 +19645,43 @@
       if(rec){ novaSay(rec); return; }
     }
     // A parent asking about their child.
-    const parentAns = novaParentAnswer(text);
+    const parentAns = novaParentAnswer(q);
     if(parentAns){ novaSay(parentAns); return; }
 
     // A mathematical method — static teaching content, deliberately identical
     // every time so a child is not taught two different methods.
-    const concept = novaExplainConcept(text);
+    const concept = novaExplainConcept(q);
     if(concept){ novaSay(concept); return; }
+
+    // Arabic diacritics defeat every pattern in this file: a learner typing
+    // "تقدّمي" with a shadda does not match /تقدم/, and the question falls
+    // through to the model — which then sits in "thinking" with no reply.
+    // Normalising ONCE here fixes the whole matching layer rather than
+    // patching one regex at a time. The original text is still what gets
+    // sent to the model and stored in history; only matching uses this.
+    const q = (typeof novaNormalise === 'function') ? novaNormalise(text) : text;
 
     // Identity and greetings come first. They are about the conversation
     // rather than the platform, and routing "من أنت؟" into the services
     // catalogue is what made the assistant feel like a search box.
-    const social = novaSocialAnswer(text);
+    const social = novaSocialAnswer(q);
     if(social){ novaSay(social); return; }
 
     // Emotional states next. A child who writes "my brother laughs at me" is
     // not asking about a feature, and matching them to one would be worse
     // than saying nothing.
-    const emotional = novaEmotional(text);
+    const emotional = novaEmotional(q);
     if(emotional){ novaSay(emotional); return; }
 
     // Causal reasoning next. "I answer fast but make mistakes" would match
     // the speed topic on keywords and give the wrong answer — the question is
     // about the trade-off, not about speed.
-    const reasoned = novaReason(text);
+    const reasoned = novaReason(q);
     if(reasoned){ novaSay(reasoned); return; }
 
     // A message too vague to route: ask one question with concrete options
     // rather than guessing or apologising.
-    const clarify = novaClarify(text);
+    const clarify = novaClarify(q);
     if(clarify){
       novaSay(clarify.text, clarify.options.map(function(o){
         return { label: t(o.labelKey), run: function(){ novaHandle(o.query); } };
@@ -19625,12 +19691,12 @@
 
     // 4. Service questions from the knowledge base, with the query expanded by
     // known misspellings so "ابكس" finds the abacus entry.
-    let kb = novaKbAnswer(novaExpandQuery(text));
+    let kb = novaKbAnswer(novaExpandQuery(q));
 
     // 4b. The automatic index: derived from the knowledge base itself, so any
     // content added later is searchable without a pattern being written.
     if(!kb){
-      const indexed = novaIndexSearch(text);
+      const indexed = novaIndexSearch(q);
       if(indexed) kb = { text: t(indexed.bodyKey), route: indexed.route };
     }
 
@@ -19639,7 +19705,7 @@
     // content for "how often should I practise" exists, but a child writing
     // "اقعد قد ايه" shares no keyword with it.
     if(!kb){
-      const intent = novaMatchIntent(text);
+      const intent = novaMatchIntent(q);
       if(intent){
         const entry = NOVA_KB.find(function(k){ return k.id === intent; });
         if(entry) kb = { text: t(entry.bodyKey), route: entry.route };
@@ -19666,6 +19732,15 @@
     if(!SHEET_API_URL){ novaSay(t('novaOfflineOnly')); return; }
     novaBusy = true;
     novaSetState('thinking');
+    // A hard ceiling on the model call. Without it a request that never
+    // settles leaves the panel in "thinking" forever with no reply and no
+    // way to ask again — the state the learner reported.
+    let novaStuckTimer = setTimeout(function(){
+      if(!novaBusy) return;
+      novaBusy = false;
+      novaSetState('idle');
+      novaSay(t('novaTimedOut') + '\n\n' + novaServicesOverview());
+    }, 20000);
     let bankContext = '';
     try{
       const bank = await postToSheet('ai_retrieve', { query: text, lang: currentLang, limit: 4 });
@@ -19764,6 +19839,10 @@
     } catch(err){
       answer = null;
     } finally {
+      // finally is the only correct place: it runs on success, on failure and
+      // on an early return, so the watchdog can never fire after the model
+      // has actually answered.
+      clearTimeout(novaStuckTimer);
       novaBusy = false;
       novaSetState('idle');
     }
@@ -21080,7 +21159,7 @@
     taglineArabic: 'تعلّم · تطوّر · ارتقِ'
   };
 
-  var DIAG_BUILD = 'jassi-2026-08-17-1014-eaa709ac69c1';
+  var DIAG_BUILD = 'jassi-2026-08-17-1025-400866bcee04';
   var DIAG_BUILD_AT = '2026-08-17';
   /* Capability inventory: checks that each feature EXISTS in the running
      file, not that its name appears somewhere. A stale build fails these
@@ -29233,6 +29312,67 @@
       else closeCommandPalette();
     }
   });
+
+  /* ---- BUILD STAMP ----
+     DIAG_BUILD carries the date the file was produced. Comparing it with
+     today turns "is this the newest file?" from a matter of trust into a
+     glance — and an amber stamp is the first thing to check when a fix
+     appears not to have worked. */
+  function renderBuildStamp(){
+    const el = document.getElementById('buildStamp');
+    if(!el || typeof DIAG_BUILD === 'undefined') return;
+    // Format: jassi-YYYY-MM-DD-HHMM-hash
+    const m = String(DIAG_BUILD).match(/(\d{4})-(\d{2})-(\d{2})-(\d{2})(\d{2})/);
+    let ageDays = null;
+    if(m){
+      const built = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]),
+                             Number(m[4]), Number(m[5]));
+      ageDays = Math.floor((Date.now() - built.getTime()) / 86400000);
+    }
+    const short = String(DIAG_BUILD).replace(/^jassi-/, '');
+    el.textContent = '';
+    const code = document.createElement('span');
+    code.textContent = short;
+    el.appendChild(code);
+    if(ageDays !== null){
+      const age = document.createElement('span');
+      age.className = 'bs-age';
+      age.textContent = '  ·  ' + (ageDays <= 0 ? t('bsToday') : fmt('bsDaysOld', { n: ageDays }));
+      el.appendChild(age);
+      // A build older than a day is usually an upload that never landed.
+      el.classList.toggle('stale', ageDays >= 1);
+    }
+  }
+
+  function copyBuildStamp(){
+    const el = document.getElementById('buildStamp');
+    if(!el) return;
+    const text = String(DIAG_BUILD);
+    const done = function(){
+      el.classList.add('copied');
+      showToast(t('bsCopied'), nxIcon('check'), 'system');
+      setTimeout(function(){ el.classList.remove('copied'); }, 1600);
+    };
+    // Clipboard access needs a secure context and can be refused; the
+    // fallback keeps the stamp usable rather than failing silently.
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(done).catch(function(){
+        window.prompt(t('bsCopyHint'), text);
+      });
+    } else {
+      window.prompt(t('bsCopyHint'), text);
+    }
+  }
+
+  (function wireBuildStamp(){
+    const el = document.getElementById('buildStamp');
+    if(!el) return;
+    el.addEventListener('click', copyBuildStamp);
+    el.addEventListener('keydown', function(e){
+      if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); copyBuildStamp(); }
+    });
+  })();
+  renderBuildStamp();
 
   applyBrandMarks();
   applyLanguage('ar');
