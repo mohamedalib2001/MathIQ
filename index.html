@@ -1705,6 +1705,142 @@
   .dc-repair-txt{ flex:1; min-width:0; font-size:12px; line-height:1.7; }
   .dc-repair button{ width:auto; margin:0; padding:7px 14px; font-size:11.5px; min-height:40px; flex:none; }
 
+  /* ---------- SKILL ASSESSMENT CERTIFICATE ----------
+     Fixed pixel dimensions throughout: html2canvas rasterises what it
+     measures, so a responsive template would export a different document from
+     each device. */
+  #skillTemplate{
+    position:fixed; left:-99999px; right:auto; top:0;   /* physical offsets: a
+      logical one inverts under RTL and drags the sheet into view */
+    width:1500px; z-index:-1; pointer-events:none;
+  }
+  .sk-sheet{
+    position:relative; width:1500px; min-height:1060px; padding:52px 60px 44px;
+    box-sizing:border-box; overflow:hidden;
+    background:
+      radial-gradient(900px 420px at 50% -8%, rgba(240,214,138,0.10), transparent 62%),
+      radial-gradient(700px 500px at 100% 100%, rgba(99,102,241,0.08), transparent 60%),
+      linear-gradient(160deg, #070b14 0%, #0c1424 46%, #070b14 100%);
+    font-family:'IBM Plex Sans Arabic','Tajawal',sans-serif; color:#e8eefc;
+  }
+  .sk-frame{
+    position:absolute; inset:18px; border:1.5px solid rgba(240,214,138,0.34);
+    border-radius:6px; pointer-events:none;
+  }
+  .sk-frame::after{
+    content:''; position:absolute; inset:7px;
+    border:0.75px solid rgba(240,214,138,0.16); border-radius:3px;
+  }
+  .sk-corner{ position:absolute; width:54px; height:54px; pointer-events:none; }
+  .sk-corner::before, .sk-corner::after{ content:''; position:absolute; background:#f0d68a; opacity:.65; }
+  .sk-corner::before{ width:100%; height:2px; } .sk-corner::after{ width:2px; height:100%; }
+  .sk-tl{ top:26px; left:26px; } .sk-tr{ top:26px; right:26px; }
+  .sk-bl{ bottom:26px; left:26px; } .sk-br{ bottom:26px; right:26px; }
+  .sk-tr::before, .sk-br::before{ right:0 } .sk-tr::after, .sk-br::after{ right:0 }
+  .sk-bl::before, .sk-br::before{ bottom:0 } .sk-bl::after, .sk-br::after{ bottom:0 }
+
+  .sk-head{ position:relative; z-index:2; display:flex; align-items:center; justify-content:space-between; gap:24px; }
+  .sk-crest{
+    width:76px; height:76px; border-radius:15px; flex:none;
+    display:flex; align-items:center; justify-content:center;
+    background:linear-gradient(150deg,#f0d68a,#c9a94f); color:#0a0f1a;
+    font-family:'Cairo',sans-serif; font-weight:800; font-size:40px;
+    box-shadow:0 8px 26px rgba(240,214,138,0.24);
+  }
+  .sk-brand{ flex:1; text-align:center; }
+  .sk-brand-ar{ font-family:'Cairo',sans-serif; font-weight:800; font-size:21px; color:#f0d68a; }
+  .sk-brand-en{ font-size:10.5px; letter-spacing:3.4px; color:#8fa2bd; margin-top:6px; }
+  .sk-qr{ width:76px; height:76px; flex:none; background:#fff; border-radius:8px; padding:5px; box-sizing:border-box; }
+  .sk-qr img, .sk-qr canvas{ width:100% !important; height:100% !important; display:block; }
+
+  .sk-title-ar{
+    position:relative; z-index:2; text-align:center; margin-top:26px;
+    font-family:'Cairo',sans-serif; font-weight:800; font-size:52px; line-height:1.15;
+    background:linear-gradient(180deg,#ffffff 0%,#f0d68a 100%);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .sk-title-en{ position:relative; z-index:2; text-align:center; margin-top:8px;
+    font-size:12px; letter-spacing:5px; color:#9fb0c9; }
+  .sk-rule{ position:relative; z-index:2; height:1px; margin:20px auto 0; width:62%;
+    background:linear-gradient(90deg,transparent,rgba(240,214,138,0.6),transparent); }
+
+  .sk-attest{ position:relative; z-index:2; text-align:center; margin-top:24px; font-size:16px; color:#b9c6da; }
+  .sk-name{
+    position:relative; z-index:2; text-align:center; margin-top:12px;
+    font-family:'Cairo',sans-serif; font-weight:800; font-size:46px; color:#fff;
+    text-shadow:0 2px 22px rgba(240,214,138,0.20);
+  }
+  .sk-meta{ position:relative; z-index:2; text-align:center; margin-top:8px; font-size:13.5px; color:#93a4c0; }
+
+  .sk-verdict{
+    position:relative; z-index:2; margin:26px auto 0; width:420px; text-align:center;
+    padding:20px 18px; border-radius:16px;
+    background:linear-gradient(160deg, rgba(240,214,138,0.10), rgba(240,214,138,0.03));
+    border:1.5px solid rgba(240,214,138,0.38);
+  }
+  .sk-verdict-label{ font-size:12.5px; color:#b9c6da; letter-spacing:1px; }
+  .sk-verdict-score{ font-family:'Cairo',sans-serif; font-weight:800; font-size:64px; line-height:1.05; color:#f0d68a; margin-top:4px; }
+  .sk-verdict-band{ font-family:'Cairo',sans-serif; font-weight:800; font-size:22px; color:#fff; margin-top:2px; }
+  .sk-stars{ margin-top:8px; font-size:19px; letter-spacing:5px; color:#f0d68a; }
+
+  .sk-section-title{ font-family:'Cairo',sans-serif; font-weight:800; font-size:15px;
+    color:#f0d68a; margin-bottom:12px; text-align:center; }
+  .sk-grid{ position:relative; z-index:2; display:grid; grid-template-columns:repeat(4,1fr);
+    gap:12px; margin-top:26px; }
+  .sk-cell{ background:rgba(255,255,255,0.035); border:1px solid rgba(148,163,184,0.20);
+    border-radius:12px; padding:14px 12px; text-align:center; }
+  .sk-cell-name{ font-size:13px; color:#cdd8ea; font-weight:600; }
+  .sk-cell-score{ font-family:'Cairo',sans-serif; font-weight:800; font-size:27px; margin-top:5px; color:#f0d68a; }
+  .sk-cell-score.unmeasured{ color:#5d6c85; font-size:22px; }
+  .sk-cell-bar{ height:5px; border-radius:3px; background:rgba(255,255,255,0.07); margin-top:8px; overflow:hidden; }
+  .sk-cell-fill{ height:100%; border-radius:3px; background:linear-gradient(90deg,#c9a94f,#f0d68a); }
+  .sk-cell-n{ font-size:9.5px; color:#7c8ba5; margin-top:6px; }
+
+  .sk-cog-wrap{ position:relative; z-index:2; margin-top:24px; }
+  .sk-cog{ display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+  .sk-cog-cell{ background:rgba(99,102,241,0.07); border:1px solid rgba(99,102,241,0.22);
+    border-radius:10px; padding:10px 8px; text-align:center; }
+  .sk-cog-label{ font-size:11px; color:#a9b8d0; }
+  .sk-cog-val{ font-family:'Cairo',sans-serif; font-weight:800; font-size:20px; color:#c7d2fe; margin-top:3px; }
+
+  .sk-basis{ position:relative; z-index:2; margin-top:24px; text-align:center;
+    font-size:12.5px; color:#93a4c0; line-height:1.9; }
+  /* An explicit caution when the evidence base is thin — a provisional
+     reading must never be mistaken for a final one. */
+  .sk-caution{ position:relative; z-index:2; margin:14px auto 0; max-width:900px;
+    padding:11px 16px; border-radius:10px; text-align:center; font-size:12.5px; line-height:1.8;
+    background:rgba(245,158,11,0.10); border:1px solid rgba(245,158,11,0.36); color:#f0c674;
+  }
+  .sk-foot{ position:relative; z-index:2; display:flex; align-items:flex-end;
+    justify-content:space-between; gap:20px; margin-top:30px; }
+  .sk-verify{ text-align:start; max-width:430px; }
+  .sk-verify-label{ font-size:11px; color:#8fa2bd; }
+  .sk-verify-url{ font-family:'Courier New',monospace; font-size:10.5px; color:#b9c6da;
+    direction:ltr; margin-top:4px; word-break:break-all; }
+  .sk-sign{ text-align:center; }
+  .sk-sign-line{ width:210px; height:1px; background:rgba(240,214,138,0.5); margin-bottom:8px; }
+  .sk-sign-name{ font-family:'Cairo',sans-serif; font-weight:800; font-size:16px; color:#f0d68a; }
+  .sk-sign-title{ font-size:11px; color:#8fa2bd; margin-top:3px; }
+  .sk-seal{ width:86px; height:86px; border-radius:50%; flex:none;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    border:2px solid rgba(240,214,138,0.55); color:#f0d68a;
+    background:radial-gradient(circle, rgba(240,214,138,0.13), transparent 70%); }
+  .sk-seal span{ font-family:'Cairo',sans-serif; font-weight:800; font-size:32px; line-height:1; }
+  .sk-seal i{ font-style:normal; font-size:6.5px; letter-spacing:2px; margin-top:3px; }
+  .sk-issuer{ position:relative; z-index:2; text-align:center; margin-top:20px;
+    font-size:10.5px; color:#6f7f99; }
+
+  #skillViewer{ position:fixed; inset:0; z-index:980; display:flex; align-items:center;
+    justify-content:center; background:rgba(4,7,14,0.9); padding:16px; }
+  .sv-sheet{ width:100%; max-width:1000px; max-height:92vh; display:flex; flex-direction:column;
+    background:var(--bg); border:1.5px solid var(--chip-border); border-radius:16px; padding:14px; }
+  .sv-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+  .sv-title{ font-family:'Cairo',sans-serif; font-weight:800; font-size:15px; color:var(--ink); }
+  .sv-body{ flex:1; overflow:auto; }
+  .sv-body img{ width:100%; border-radius:10px; display:block; }
+  .sv-actions{ display:flex; gap:8px; margin-top:12px; }
+  .sv-actions button{ flex:1; margin:0; }
+
   /* ---------- MESSAGES INBOX ---------- */
   .msg-row{ display:flex; align-items:center; gap:9px; padding:9px 10px; border-radius:11px;
     cursor:pointer; min-height:52px; }
@@ -3871,6 +4007,82 @@
     <button class="secondary-btn" id="abBackBtn" data-i18n="closeBtn">إغلاق</button>
   </div>
 
+  <!-- SKILL ASSESSMENT CERTIFICATE
+       Rendered off-screen at a fixed 1500px width so the captured image is
+       identical on a phone and a desktop. Positioned with a physical `left`
+       offset rather than a logical one, because logical offsets invert under
+       RTL and would drag the template into view. -->
+  <div id="skillTemplate" aria-hidden="true">
+    <div class="sk-sheet" id="skSheet">
+      <div class="sk-frame"></div>
+      <div class="sk-corner sk-tl"></div><div class="sk-corner sk-tr"></div>
+      <div class="sk-corner sk-bl"></div><div class="sk-corner sk-br"></div>
+
+      <div class="sk-head">
+        <div class="sk-crest"><span>J</span></div>
+        <div class="sk-brand">
+          <div class="sk-brand-ar">أكاديمية جاسي العالمية للتدريب والتطوير</div>
+          <div class="sk-brand-en">JASSI GLOBAL ACADEMY FOR TRAINING &amp; DEVELOPMENT</div>
+        </div>
+        <div class="sk-qr" id="skQr"></div>
+      </div>
+
+      <div class="sk-title-ar">شهادة قياس مستوى المهارة</div>
+      <div class="sk-title-en">S K I L L &nbsp; A S S E S S M E N T &nbsp; C E R T I F I C A T E</div>
+      <div class="sk-rule"></div>
+
+      <div class="sk-attest" id="skAttest">تشهد أكاديمية جاسي العالمية للتدريب والتطوير بأن</div>
+      <div class="sk-name" id="skName"></div>
+      <div class="sk-meta" id="skMeta"></div>
+
+      <div class="sk-verdict">
+        <div class="sk-verdict-label" id="skVerdictLabel">المستوى العام المقاس</div>
+        <div class="sk-verdict-score" id="skScore"></div>
+        <div class="sk-verdict-band" id="skBand"></div>
+        <div class="sk-stars" id="skStars"></div>
+      </div>
+
+      <div class="sk-grid" id="skGrid"></div>
+
+      <div class="sk-cog-wrap" id="skCogWrap">
+        <div class="sk-section-title" id="skCogTitle">المؤشرات المعرفية المقاسة</div>
+        <div class="sk-cog" id="skCog"></div>
+      </div>
+
+      <div class="sk-basis" id="skBasis"></div>
+      <div class="sk-caution hidden" id="skCaution"></div>
+
+      <div class="sk-foot">
+        <div class="sk-verify">
+          <div class="sk-verify-label" id="skVerifyLabel">تحقّق من الشهادة</div>
+          <div class="sk-verify-url" id="skVerifyUrl"></div>
+        </div>
+        <div class="sk-sign">
+          <div class="sk-sign-line"></div>
+          <div class="sk-sign-name">أكاديمية جاسي</div>
+          <div class="sk-sign-title" id="skSignTitle">الإدارة الأكاديمية</div>
+        </div>
+        <div class="sk-seal"><span>J</span><i>OFFICIAL</i></div>
+      </div>
+      <div class="sk-issuer" id="skIssuer"></div>
+    </div>
+  </div>
+
+  <!-- Viewer: shows the captured PNG, so what is seen is what downloads. -->
+  <div id="skillViewer" class="hidden" role="dialog" aria-modal="true">
+    <div class="sv-sheet">
+      <div class="sv-head">
+        <div class="sv-title" id="skvTitle">شهادة قياس مستوى المهارة</div>
+        <button class="chat-close" id="skvCloseBtn" aria-label="إغلاق">✕</button>
+      </div>
+      <div class="sv-body"><img id="skvImg" alt=""></div>
+      <div class="sv-actions">
+        <button class="start-btn" id="skvDownloadBtn" data-i18n="skDownload">⬇️ تنزيل الشهادة</button>
+        <button class="secondary-btn" id="skvPrintBtn" data-i18n="skPrint">🖨 طباعة</button>
+      </div>
+    </div>
+  </div>
+
   <!-- SMART LOADER
        A blank screen during a wait tells the learner nothing, and a spinner
        tells them only "something". This names the actual step in progress and
@@ -5307,6 +5519,30 @@
   const novaSendBtn = document.getElementById('novaSendBtn');
   const novaCloseBtn = document.getElementById('novaCloseBtn');
   const novaVoiceChk = document.getElementById('novaVoiceChk');
+  const skSheet = document.getElementById('skSheet');
+  const skName = document.getElementById('skName');
+  const skMeta = document.getElementById('skMeta');
+  const skAttest = document.getElementById('skAttest');
+  const skScore = document.getElementById('skScore');
+  const skBand = document.getElementById('skBand');
+  const skStars = document.getElementById('skStars');
+  const skGrid = document.getElementById('skGrid');
+  const skCog = document.getElementById('skCog');
+  const skCogWrap = document.getElementById('skCogWrap');
+  const skCogTitle = document.getElementById('skCogTitle');
+  const skBasis = document.getElementById('skBasis');
+  const skCaution = document.getElementById('skCaution');
+  const skQr = document.getElementById('skQr');
+  const skVerifyUrl = document.getElementById('skVerifyUrl');
+  const skVerifyLabel = document.getElementById('skVerifyLabel');
+  const skSignTitle = document.getElementById('skSignTitle');
+  const skVerdictLabel = document.getElementById('skVerdictLabel');
+  const skIssuer = document.getElementById('skIssuer');
+  const skillViewer = document.getElementById('skillViewer');
+  const skvImg = document.getElementById('skvImg');
+  const skvCloseBtn = document.getElementById('skvCloseBtn');
+  const skvDownloadBtn = document.getElementById('skvDownloadBtn');
+  const skvPrintBtn = document.getElementById('skvPrintBtn');
   const diplomaViewer = document.getElementById('diplomaViewer');
   const dvImage = document.getElementById('dvImage');
   const dvCloseBtn = document.getElementById('dvCloseBtn');
@@ -6978,6 +7214,23 @@
       novaNoSpeech:'لم أسمع شيئًا. اقتربي من الميكروفون وحاولي مرة أخرى.',
       novaChipServices:'ما الخدمات المتاحة؟', novaChipProgress:'كيف تقدّمي؟',
       novaChipReview:'ابدئي مراجعة اليوم', novaChipOpenSynapse:'افتحي سينابس',
+      skTitle:'شهادة قياس مستوى المهارة', skNavLabel:'شهادة المستوى',
+      skAttest:'تشهد أكاديمية جاسي العالمية للتدريب والتطوير بأن المتدرّب',
+      skAttestF:'تشهد أكاديمية جاسي العالمية للتدريب والتطوير بأن المتدرّبة',
+      skVerdictLabel:'المستوى العام المقاس',
+      skBandExpert:'خبير', skBandAdvanced:'متقدّم', skBandCompetent:'كفء',
+      skBandDeveloping:'قيد التطوّر', skBandFoundation:'مرحلة التأسيس',
+      skNotMeasured:'لم يُقَس بعد',
+      skAgeYears:'{n} سنة',
+      skFromAttempts:'من {n} محاولة', skNeedMore:'يحتاج {n} محاولة على الأقل',
+      skCogTitle:'المؤشرات المعرفية المقاسة',
+      skBasis:'هذا التقييم مبني على {a} محاولة مسجّلة عبر {d} يومًا، وقياس {m} من {total} مهارة، بدقة عامة {acc}، وإتقان {lv} من {lvt} مستوى.',
+      skCaution:'⚠ تقييم أوّلي: البيانات المتاحة أقل من الحد اللازم لتقييم نهائي ({n} محاولة على {d} أيام). المستويات المعروضة مؤشرات مبدئية تتغيّر مع استمرار التدريب.',
+      skVerifyLabel:'تحقّق من الشهادة', skSignTitle:'الإدارة الأكاديمية',
+      skIssuer:'أكاديمية جاسي العالمية للتدريب والتطوير — ضمن منظومة INFRA ENGINE · كل الأرقام في هذه الشهادة مقاسة من أداء فعلي مسجّل',
+      skDownload:'⬇️ تنزيل الشهادة', skPrint:'🖨 طباعة',
+      skStepMeasure:'نقيس مهاراتك من سجلّك…', skStepRender:'نُعدّ الشهادة…',
+      skFailed:'تعذّر إعداد الشهادة. أعد المحاولة.',
       dpTitle:'شهادة عضوية', dpTagline:'فخر الانتماء .. مسيرة التميّز',
       dpAttest:'تشهد أكاديمية جاسي بأن', dpRole:'عضو مسجَّل في الأكاديمية', dpRoleF:'عضوة مسجَّلة في الأكاديمية',
       dpBody:'وقد أتم بنجاح مراحل التعلّم والتدريب في برامج الأكاديمية، حيث أثبت تفوّقًا في المهارات والمعرفة والتطوير المستمر.',
@@ -8418,6 +8671,23 @@
       novaChipServices:'What services are available?', novaChipProgress:'How is my progress?',
       novaChipReview:'Start today\'s review', novaChipOpenSynapse:'Open Synapse',
       dpRoleF:'Registered member of the academy',
+      skTitle:'Skill Assessment Certificate', skNavLabel:'Skill certificate',
+      skAttest:'JASSI Global Academy for Training & Development certifies that the trainee',
+      skAttestF:'JASSI Global Academy for Training & Development certifies that the trainee',
+      skVerdictLabel:'Measured overall level',
+      skBandExpert:'Expert', skBandAdvanced:'Advanced', skBandCompetent:'Competent',
+      skBandDeveloping:'Developing', skBandFoundation:'Foundation',
+      skNotMeasured:'not yet measured',
+      skAgeYears:'{n} years',
+      skFromAttempts:'from {n} attempts', skNeedMore:'needs at least {n} attempts',
+      skCogTitle:'Measured cognitive indicators',
+      skBasis:'This assessment rests on {a} recorded attempts across {d} days, {m} of {total} skills measured, {acc} overall accuracy, and {lv} of {lvt} levels mastered.',
+      skCaution:'⚠ Provisional assessment: the available data is below the threshold for a final result ({n} attempts across {d} days). The levels shown are preliminary and will change as practice continues.',
+      skVerifyLabel:'Verify this certificate', skSignTitle:'Academic Administration',
+      skIssuer:'JASSI Global Academy for Training & Development — Part of the INFRA ENGINE Ecosystem · Every figure on this certificate is measured from recorded performance',
+      skDownload:'⬇️ Download', skPrint:'🖨 Print',
+      skStepMeasure:'Measuring your skills from your record…', skStepRender:'Preparing the certificate…',
+      skFailed:'Could not prepare the certificate. Please try again.',
       dpTitle:'Certificate of Membership', dpTagline:'The pride of belonging · a path of distinction',
       dpAttest:'JASSI Academy certifies that', dpRole:'Registered member of the academy',
       dpBody:'has successfully progressed through the academy\'s learning and training programs, demonstrating skill, knowledge and continuous development.',
@@ -14522,6 +14792,7 @@
         { icon:nxIcon('target'), label:t('synapseNavLabel'), run: ()=> openSynapse() },
         { icon:nxIcon('award'), label:t('memberCardNavLabel'), run: ()=> openMembershipCard() },
         { icon:nxIcon('clipboard'), label:t('examsNavLabel'), run: ()=> openExams() },
+        { icon:nxIcon('award'), label:t('skNavLabel'), run: ()=> openSkillCertificate() },
         { icon:nxIcon('target'), label:t('spMyNavLabel'), run: ()=> openMyPlan() },
         { icon:nxIcon('book'), label:t('shellNavJourney'), run: ()=>{ if(isServiceOn('knowledgeMap')) knowledgeMapOpenBtn.click(); } },
         { icon:nxIcon('puzzle'), label:t('shellNavSkills'), run: ()=>{ hideLearnerShellScreens(); mySkillsScreen.classList.remove('hidden'); renderMySkills(); renderShellNav('learner'); } },
@@ -15410,6 +15681,26 @@
     showProgramsHub();
   });
   examsSubmitBtn.addEventListener('click', ()=> submitExam(false));
+  skvCloseBtn.addEventListener('click', ()=> skillViewer.classList.add('hidden'));
+  skillViewer.addEventListener('click', function(ev){ if(ev.target === skillViewer) skillViewer.classList.add('hidden'); });
+  skvDownloadBtn.addEventListener('click', ()=>{
+    if(!skvCurrent) return;
+    const link = document.createElement('a');
+    link.href = skvCurrent.dataUrl;
+    link.download = 'jassi-skill-assessment-' + (skvCurrent.assessment.memberId || 'certificate') + '.png';
+    link.click();
+  });
+  skvPrintBtn.addEventListener('click', ()=>{
+    if(!skvCurrent) return;
+    const w = window.open('', '_blank');
+    if(!w) return;
+    // A4 landscape, image only: printing the live page would carry the app
+    // chrome onto the sheet.
+    w.document.write('<html><head><title>' + t('skTitle') +
+      '</title><style>@page{size:A4 landscape;margin:8mm}body{margin:0}img{width:100%}</style></head>' +
+      '<body><img src="' + skvCurrent.dataUrl + '" onload="window.print();window.close();"></body></html>');
+    w.document.close();
+  });
   cbPlayBtn.addEventListener('click', playChallengeRound);
   async function chalExit(action, btn, okKey){
     if(!activeChallenge) return;
@@ -16633,6 +16924,221 @@
     if(novaOrb.classList.contains('listening')) novaSetState('idle');
     try{ if(novaRecognition) novaRecognition.stop(); }catch(e){}
   }
+
+  /* ==================== MODULE: SKILL ASSESSMENT CERTIFICATE ====================
+     A measured statement of where a learner stands — not a participation
+     award.
+
+     Every figure comes from recorded attempts. Where the evidence is too thin
+     to support a claim, the certificate says so rather than filling the gap:
+     a document that praises a level the learner has not reached is worth
+     nothing to the parent reading it, and worse than nothing to the learner. */
+
+  // Bands are stated on the certificate itself so the reader can judge the
+  // scale rather than trust an adjective.
+  const SKILL_BANDS = [
+    { min: 90, key:'skBandExpert',   en:'Expert',       stars: 5 },
+    { min: 75, key:'skBandAdvanced', en:'Advanced',     stars: 4 },
+    { min: 60, key:'skBandCompetent',en:'Competent',    stars: 3 },
+    { min: 40, key:'skBandDeveloping',en:'Developing',  stars: 2 },
+    { min: 0,  key:'skBandFoundation',en:'Foundation',  stars: 1 }
+  ];
+  function skBandFor(score){
+    return SKILL_BANDS.find(function(b){ return score >= b.min; }) || SKILL_BANDS[SKILL_BANDS.length - 1];
+  }
+
+  // The minimum evidence for any claim. Below it the skill is reported as
+  // "not yet measured" — an honest gap beats an invented number.
+  const SK_MIN_ATTEMPTS = 20;
+  const SK_MIN_DAYS = 3;
+
+  function skAssess(){
+    const prof = PROFILES[currentProfile];
+    if(!prof) return null;
+    const f = novaProgressFacts();
+    if(!f) return null;
+
+    // --- per-operation measurement, straight from the mastery engine ---
+    const skills = [];
+    KNOWLEDGE_LEVELS.forEach(function(l){
+      const m = computeLevelMastery(prof, l.bucket);
+      const st = (prof.opStats && prof.opStats[l.bucket]) || null;
+      const attempts = st ? (st.t || 0) : 0;
+      skills.push({
+        name: t(l.nameKey),
+        bucket: l.bucket,
+        // null means UNMEASURED, which the template must render as "—" rather
+        // than as zero. Zero is a claim; null is an absence of one.
+        score: (m === null || attempts < SK_MIN_ATTEMPTS) ? null : m,
+        attempts: attempts,
+        mastered: isBucketMastered(prof, l.bucket),
+        measured: attempts >= SK_MIN_ATTEMPTS
+      });
+    });
+
+    const measured = skills.filter(function(x){ return x.score !== null; });
+    const overall = measured.length
+      ? Math.round(measured.reduce(function(a, x){ return a + x.score; }, 0) / measured.length)
+      : null;
+
+    // --- cognitive indicators, only those with enough evidence ---
+    let cognitive = [];
+    try{
+      const cp = computeCognitiveProfile(prof);
+      if(cp){
+        Object.keys(cp).forEach(function(k){
+          if(cp[k] === null || cp[k] === undefined) return;
+          cognitive.push({ key: k, label: t('cog' + capitalize(k)), value: Math.round(cp[k]) });
+        });
+      }
+    }catch(e){ cognitive = []; }
+
+    // --- days of evidence: a single-session result is not an assessment ---
+    const log = prof.sessionLog || [];
+    const days = new Set(log.map(function(x){ return String(x.date).slice(0, 10); })).size;
+
+    return {
+      name: profileDisplayName(currentProfile),
+      memberId: typeof membershipId === 'function' ? membershipId(currentProfile) : '',
+      isFemale: !(prof.gender === 'male'),
+      age: f.age,
+      grade: f.grade,
+      issuedAt: new Date(),
+      skills: skills,
+      measuredCount: measured.length,
+      totalSkills: skills.length,
+      overall: overall,
+      band: overall !== null ? skBandFor(overall) : null,
+      cognitive: cognitive,
+      abacusStage: prof.abacusStage || 0,
+      attempts: f.answered,
+      accuracy: f.accuracy,
+      mastered: f.mastered,
+      totalLevels: f.total,
+      badges: f.badges,
+      hours: Math.round((prof.learningSeconds || 0) / 360) / 10,
+      days: days,
+      strongest: f.strongest,
+      weakest: f.weakest,
+      // The certificate is only valid as an assessment when the evidence base
+      // is real. This flag drives an explicit banner rather than a silent
+      // downgrade, so nobody mistakes a provisional reading for a final one.
+      sufficient: measured.length >= 2 && days >= SK_MIN_DAYS && f.answered >= SK_MIN_ATTEMPTS
+    };
+  }
+
+  /* ---- rendering ---- */
+  function skFillTemplate(a){
+    skName.textContent = a.name;
+
+    const bits = [];
+    if(a.memberId) bits.push(a.memberId);
+    if(a.age) bits.push(fmt('skAgeYears', { n: a.age }));
+    if(a.grade) bits.push(a.grade);
+    bits.push(a.issuedAt.toLocaleDateString(currentLang === 'ar' ? 'ar-EG' : 'en-US'));
+    skMeta.textContent = bits.join('  ·  ');
+    // The attestation follows the HOLDER's gender, as on every other document.
+    skAttest.textContent = a.isFemale ? t('skAttestF') : t('skAttest');
+
+    if(a.overall === null){
+      skScore.textContent = '—';
+      skBand.textContent = t('skNotMeasured');
+      skStars.textContent = '';
+    } else {
+      skScore.textContent = a.overall + '%';
+      skBand.textContent = t(a.band.key);
+      // Filled and empty stars both drawn, so the scale is visible rather than
+      // implied by a count the reader has to guess at.
+      skStars.textContent = '★'.repeat(a.band.stars) + '☆'.repeat(5 - a.band.stars);
+    }
+
+    skGrid.innerHTML = a.skills.map(function(sk){
+      const unmeasured = sk.score === null;
+      return '<div class="sk-cell">' +
+        '<div class="sk-cell-name">' + sk.name + '</div>' +
+        '<div class="sk-cell-score' + (unmeasured ? ' unmeasured' : '') + '">' +
+          (unmeasured ? '—' : sk.score + '%') + '</div>' +
+        '<div class="sk-cell-bar"><div class="sk-cell-fill" style="width:' +
+          (unmeasured ? 0 : sk.score) + '%"></div></div>' +
+        '<div class="sk-cell-n">' + (unmeasured
+          ? fmt('skNeedMore', { n: SK_MIN_ATTEMPTS })
+          : fmt('skFromAttempts', { n: sk.attempts })) + '</div>' +
+      '</div>';
+    }).join('');
+
+    // Cognitive indicators are omitted entirely when unmeasured rather than
+    // shown as zeros.
+    if(a.cognitive.length >= 3){
+      skCogWrap.style.display = '';
+      skCogTitle.textContent = t('skCogTitle');
+      skCog.innerHTML = a.cognitive.slice(0, 8).map(function(c){
+        return '<div class="sk-cog-cell"><div class="sk-cog-label">' + c.label +
+               '</div><div class="sk-cog-val">' + c.value + '</div></div>';
+      }).join('');
+    } else {
+      skCogWrap.style.display = 'none';
+    }
+
+    // The basis line lets a reader weigh the result instead of trusting it.
+    skBasis.textContent = fmt('skBasis', {
+      a: a.attempts, d: a.days, m: a.measuredCount, total: a.totalSkills,
+      acc: a.accuracy === null ? '—' : a.accuracy + '%',
+      lv: a.mastered, lvt: a.totalLevels
+    });
+
+    if(a.sufficient){
+      skCaution.classList.add('hidden');
+    } else {
+      skCaution.classList.remove('hidden');
+      skCaution.textContent = fmt('skCaution', { n: SK_MIN_ATTEMPTS, d: SK_MIN_DAYS });
+    }
+
+    skVerifyLabel.textContent = t('skVerifyLabel');
+    skSignTitle.textContent = t('skSignTitle');
+    skVerdictLabel.textContent = t('skVerdictLabel');
+    const url = CERT_VERIFY_BASE_URL + '?verifyMember=' + encodeURIComponent(a.memberId);
+    skVerifyUrl.textContent = url.replace(/^https?:\/\//, '');
+    skIssuer.textContent = t('skIssuer');
+
+    skQr.innerHTML = '';
+    if(typeof QRCode === 'function' && a.memberId){
+      try{ new QRCode(skQr, { text: url, width: 66, height: 66,
+        colorDark:'#0a0f1a', colorLight:'#ffffff', correctLevel: QRCode.CorrectLevel.M }); }
+      catch(e){ /* a missing QR must not block the certificate */ }
+    }
+  }
+
+  async function buildSkillImage(){
+    const a = skAssess();
+    if(!a) return null;
+    skFillTemplate(a);
+    // Let fonts and the QR settle before rasterising: capturing too early
+    // produces a certificate with missing glyphs.
+    await new Promise(function(r){ setTimeout(r, 260); });
+    if(typeof html2canvas !== 'function') return null;
+    const canvas = await html2canvas(skSheet, {
+      backgroundColor: '#070b14', scale: 2, useCORS: true, logging: false,
+      width: 1500, windowWidth: 1500
+    });
+    return { dataUrl: canvas.toDataURL('image/png'), assessment: a };
+  }
+
+  async function openSkillCertificate(){
+    if(!requireAuth('skillCert')) return;
+    const res = await withLoader(t('skTitle'), [t('skStepMeasure'), t('skStepRender')],
+      async function(ctl){
+        await ctl.advance();
+        const built = await buildSkillImage();
+        await ctl.advance();
+        return built;
+      });
+    if(!res){ showToast(t('skFailed'), nxIcon('alertTriangle'), 'system'); return; }
+    skvImg.src = res.dataUrl;
+    skvCurrent = res;
+    skillViewer.classList.remove('hidden');
+  }
+  let skvCurrent = null;
+  /* ==================== END MODULE: SKILL ASSESSMENT ==================== */
 
   /* ==================== MODULE: LOCAL INTELLIGENCE ====================
      Seven capabilities that let the assistant answer from THIS system rather
@@ -19343,7 +19849,7 @@
     memberPrefix: 'NX'
   };
 
-  var DIAG_BUILD = 'jassi-2026-08-17-0747-aaab6b0b2d96';
+  var DIAG_BUILD = 'jassi-2026-08-17-0752-fc959e13c4b1';
   var DIAG_BUILD_AT = '2026-08-17';
   /* Capability inventory: checks that each feature EXISTS in the running
      file, not that its name appears somewhere. A stale build fails these
