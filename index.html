@@ -8430,6 +8430,7 @@
       socPraise:'سعيد أن ذلك نفعك 🌟 أكمل، وأنا معك.',
       jaLauncherAria:'مساعد جاسي الذكي', jaSubtitle:'مساعدك الذكي داخل الأكاديمية',
       chatRetry:'إعادة الإرسال',
+      secBackendOld:'⚠ ملف الخادم المنشور أقدم من هذه الصفحة.\nالمنشور: {has}\nالمطلوب: {want}\nافتح Apps Script ← نشر ← «نشر جديد» (لا تحديث).',
       secBackendStale:'⚠ ملف الخادم (.gs) المنشور أقدم من هذه الصفحة. إصلاحات الدخول موجودة في الخادم — انشره كـ«نشر ← نشر جديد» (لا تحديث)، ثم أعد المحاولة. وإن بقيت المشكلة، شغّل الدالة RESET_OWNER_PASSWORD_MANUALLY من محرر Apps Script.',
       secNoAdminRow:'لا يوجد أي حساب إدارة في قاعدة البيانات. افتح جدول Admin في Google Sheets — إن كان فارغًا، فأول دخول سيُنشئ الحساب.',
       secNoSuchUser:'اسم المستخدم هذا غير موجود بين حسابات الإدارة ({n} حسابًا مسجّلًا). تحقق من الاسم — قد يكون مختلفًا عمّا تتذكره.',
@@ -8465,6 +8466,8 @@
       dcRespondedIn:'استجاب خلال {n} مللي', dcNoResponse:'لا استجابة',
       dcAccount:'الحساب الحالي', dcSessionToken:'رمز الجلسة', dcAdminSession:'جلسة الإدارة',
       dcTokenAccepted:'الخادم يقبل الرمز',
+      dcGsBuild:'نسخة الخادم المنشورة', dcGsBuildNone:'لا تحمل بصمة — نشر قديم جدًا',
+      dcFixGsStale:'ملف .gs المنشور لا يطابق هذه الصفحة. كل إصلاحات الدخول والبريد في الخادم — انشره كـ«نشر جديد» لا «تحديث».',
       dcGrpBuild:'التحقق من النسخة',
       dcBuildId:'بصمة النسخة العاملة', dcBuildAge:'عمر النسخة', dcBuildDays:'{n} يومًا',
       dcCapabilities:'الميزات الموجودة فعليًا', dcCapMissing:'ميزات مفقودة',
@@ -10024,6 +10027,7 @@
       socPraise:'Glad that helped 🌟 Carry on, I am with you.',
       jaLauncherAria:'JASSI Assistant', jaSubtitle:'Your intelligent assistant inside the academy',
       chatRetry:'Retry',
+      secBackendOld:'⚠ The published Apps Script is older than this page.\nDeployed: {has}\nExpected: {want}\nOpen Apps Script > Deploy > New deployment (not Update).',
       secBackendStale:'⚠ The published Apps Script is older than this page. The sign-in fixes live in the backend — publish it as Deploy → New deployment (not Update), then try again. If it persists, run RESET_OWNER_PASSWORD_MANUALLY from the Apps Script editor.',
       secNoAdminRow:'There is no admin account in the database. Open the Admin sheet in Google Sheets — if it is empty, the first sign-in will create the account.',
       secNoSuchUser:'That username is not among the admin accounts ({n} registered). Check the spelling — it may differ from what you remember.',
@@ -10059,6 +10063,8 @@
       dcRespondedIn:'responded in {n} ms', dcNoResponse:'no response',
       dcAccount:'Current account', dcSessionToken:'Session token', dcAdminSession:'Admin session',
       dcTokenAccepted:'Server accepts the token',
+      dcGsBuild:'Deployed backend build', dcGsBuildNone:'carries no stamp — a very old deployment',
+      dcFixGsStale:'The published .gs does not match this page. Every sign-in and mail fix lives in the backend — publish it as New deployment, not Update.',
       dcGrpBuild:'Build verification',
       dcBuildId:'Running build stamp', dcBuildAge:'Build age', dcBuildDays:'{n} days',
       dcCapabilities:'Features actually present', dcCapMissing:'Missing features',
@@ -11383,12 +11389,23 @@
   /* Verifies the published backend matches this page. A stale Apps Script
      deployment carries the very login bugs this page was updated to fix, so
      discovering it through a failed sign-in wastes the owner's time. */
+  /* The .gs build this page was shipped alongside. A mismatch means the
+     Apps Script deployment is older than the page, and every server-side fix
+     — the tolerant username lookup, the login-code mailer, the password
+     repair — is simply absent. */
+  const EXPECTED_GS_BUILD = 'gs-2026-08-17-1318-366dcb65';
+
   async function jaCheckBackendFresh(){
     if(!SHEET_API_URL || !adminLoginHint) return;
-    const res = await postToSheet('admin_login_probe', { username: '', pin: '' });
-    if(res && res.ok) return;                       // current backend
-    if(res && res.error && res.error !== 'unknown_type') return;  // some other fault
-    adminLoginHint.textContent = t('secBackendStale');
+    const res = await postToSheet('gs_build', {});
+    // Three outcomes, three different things to tell the owner.
+    if(res && res.ok && res.build === EXPECTED_GS_BUILD) return;   // in step
+    if(res && res.ok && res.build){
+      adminLoginHint.textContent = fmt('secBackendOld', { has: res.build, want: EXPECTED_GS_BUILD });
+    } else {
+      // No stamp at all means a deployment older than this mechanism.
+      adminLoginHint.textContent = t('secBackendStale');
+    }
     adminLoginHint.classList.remove('hidden');
   }
 
@@ -21732,7 +21749,7 @@
     taglineArabic: 'تعلّم · تطوّر · ارتقِ'
   };
 
-  var DIAG_BUILD = 'jassi-2026-08-17-1309-509355d9d784';
+  var DIAG_BUILD = 'jassi-2026-08-17-1318-0332962ae442';
   var DIAG_BUILD_AT = '2026-08-17';
   /* Capability inventory: checks that each feature EXISTS in the running
      file, not that its name appears somewhere. A stale build fails these
@@ -24567,6 +24584,18 @@
       } else {
         dcAdd(G, t('dcServerBuild'), t('dcServerBuildUnset'), 'info', t('dcFixSetBuild'));
       }
+    }
+
+    // The deployed backend's own stamp, next to the page's. Two files must be
+    // published for a change to take effect, and this is the only way to see
+    // whether both actually were.
+    if(SHEET_API_URL){
+      const gs = await postToSheet('gs_build', {});
+      const deployed = gs && gs.ok ? gs.build : null;
+      const match = deployed === EXPECTED_GS_BUILD;
+      dcAdd(G, t('dcGsBuild'),
+        deployed ? (deployed + (match ? ' ✓' : ' ≠ ' + EXPECTED_GS_BUILD)) : t('dcGsBuildNone'),
+        match ? 'ok' : 'bad', match ? '' : t('dcFixGsStale'));
     }
 
     // Cache headers explain a stale file that WAS uploaded correctly.
