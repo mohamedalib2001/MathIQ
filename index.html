@@ -139,6 +139,17 @@
   @keyframes boot-pulse-core{ 0%,100%{ opacity:0.85; transform:scale(1); } 50%{ opacity:1; transform:scale(1.08); } }
   .boot-brand{ font-family:'Cairo',sans-serif; font-weight:800; font-size:20px; letter-spacing:1.5px; }
   .boot-step-text{ font-size:12.5px; color:#94A3B8; min-height:16px; }
+  .lt-identity{ text-align:center; margin-top:14px; }
+  .lt-name{ font-family:'Cairo',sans-serif; font-weight:800; font-size:19px; color:#F1F5F9; }
+  .lt-role{ font-size:11.5px; color:#94A3B8; margin-top:3px; letter-spacing:0.5px; }
+  @media (prefers-reduced-motion: no-preference){
+    .lt-identity{ animation:ltFadeUp .38s ease forwards; }
+  }
+  @keyframes ltFadeUp{ from{ opacity:0; transform:translateY(8px) } to{ opacity:1; transform:none } }
+  /* !important because the avatar element is reused across screens and the
+     shared rule would otherwise size an img to its intrinsic dimensions. */
+  .login-transition-avatar img{ width:100% !important; height:100% !important;
+    object-fit:cover; display:block; border-radius:50%; }
   .boot-progress-wrap{ width:180px; height:3px; border-radius:3px; background:rgba(148,163,184,0.18); overflow:hidden; }
   .boot-progress-bar{ height:100%; width:0%; background:linear-gradient(90deg,#6366F1,#06B6D4); border-radius:3px; transition:width .25s ease; }
   .boot-error{ text-align:center; max-width:320px; }
@@ -1683,6 +1694,13 @@
   .oc-audit span{ color:var(--ink-dim); font-size:10px; display:block; margin-top:2px; direction:ltr; }
 
   /* ---------- DIAGNOSTIC CENTRE ---------- */
+  .dc-progress{ margin:12px 0 6px; }
+  .dc-progress-label{ font-size:12px; color:var(--ink); min-height:18px; margin-bottom:6px; }
+  .dc-progress-track{ height:6px; border-radius:4px; background:var(--input-bg); overflow:hidden; }
+  .dc-progress-bar{ height:100%; width:0; border-radius:4px;
+    background:linear-gradient(90deg,#6366F1,#06B6D4); transition:width .28s ease; }
+  @media (prefers-reduced-motion: reduce){ .dc-progress-bar{ transition:none; } }
+
   .dc-summary{ display:flex; gap:8px; margin:12px 0; }
   .dc-summary div{ flex:1; text-align:center; background:var(--input-bg);
     border:1px solid var(--chip-border); border-radius:11px; padding:10px 6px; }
@@ -3191,6 +3209,10 @@
     </svg>
   </div>
   <div class="login-transition-avatar hidden" id="loginTransitionAvatar" aria-hidden="true"></div>
+  <div class="lt-identity hidden" id="ltIdentity">
+    <div class="lt-name" id="ltName"></div>
+    <div class="lt-role" id="ltRole"></div>
+  </div>
   <div class="boot-brand">JASSI Academy</div>
   <div class="boot-step-text" id="loginTransitionText"></div>
   <div class="boot-progress-wrap"><div class="boot-progress-bar" id="loginTransitionBar"></div></div>
@@ -3831,6 +3853,10 @@
     <div class="conn-note" data-i18n="dcIntro">كل فحص هنا يُجرى فعليًا على النظام الحيّ الآن، ولا يقرأ حالة محفوظة.</div>
 
     <button class="start-btn" id="dcRunAllBtn" data-i18n="dcRunAll">▶ شغّل كل الفحوص</button>
+    <div class="dc-progress hidden" id="dcProgress">
+      <div class="dc-progress-label" id="dcProgressLabel"></div>
+      <div class="dc-progress-track"><div class="dc-progress-bar" id="dcProgressBar"></div></div>
+    </div>
     <div class="dc-summary hidden" id="dcSummary"></div>
     <div id="dcResults"></div>
 
@@ -5539,6 +5565,9 @@
   const ocBackBtn = document.getElementById('ocBackBtn');
   const diagCenter = document.getElementById('diagCenter');
   const dcRunAllBtn = document.getElementById('dcRunAllBtn');
+  const dcProgress = document.getElementById('dcProgress');
+  const dcProgressLabel = document.getElementById('dcProgressLabel');
+  const dcProgressBar = document.getElementById('dcProgressBar');
   const dcSummary = document.getElementById('dcSummary');
   const dcResults = document.getElementById('dcResults');
   const dcRepairBox = document.getElementById('dcRepairBox');
@@ -6651,6 +6680,9 @@
       lpSyncArchiveFailed:'تعذّر الأرشفة على الخادم. حاولي مرة أخرى.',
       lpSyncRestoreFailed:'تعذّرت الاستعادة من الخادم. حاولي مرة أخرى.',
       lpSyncProgressFailed:'تعذّرت مزامنة تقدّمكِ مع الخادم. حاولي مرة أخرى.',
+      ltRoleOwner:'حساب الإدارة', ltRoleLearner:'حساب متعلّم', ltRoleTeacher:'حساب معلّم',
+      ltStepPermissions:'نجهّز صلاحياتك…', ltStepWorkspace:'نفتح مساحة عملك…',
+      loginStepAuth:'نتحقق من بياناتك…',
       loginStepVerifying:'جارٍ التحقق من الهوية', loginStepPreparing:'جارٍ تجهيز مساحة التعلّم...', loginStepSyncing:'جارٍ مزامنة بياناتكِ...',
       loginStepWelcome:'مرحبًا بعودتكِ، {name}',
       sessionWarningTitle:'جلستك على وشك الانتهاء', sessionWarningText:'لم نلاحظ أي نشاط منكِ لفترة طويلة. لأمان حسابك، سيتم تسجيل خروجك تلقائيًا خلال:',
@@ -7461,6 +7493,18 @@
       dcFixServiceFlags:'خدمات معطّلة لن تظهر للطلاب. راجع «تفعيل الخدمات».',
 
       dcIntro:'كل فحص هنا يُجرى فعليًا على النظام الحيّ الآن، ولا يقرأ حالة محفوظة.',
+      dcStepOf:'({n}/{total}) {name}', dcScanDone:'✓ اكتمل الفحص في {n} ثانية',
+      dcStepFailed:'فشل هذا الفحص',
+      dcStepBuild:'نتحقق من النسخة والميزات…', dcStepConnection:'نختبر الاتصال بالخادم…',
+      dcStepAuth:'نفحص الجلسة والصلاحيات…', dcStepLoops:'نفحص العمليات الخلفية…',
+      dcStepSheets:'نتصل بجداول قاعدة البيانات…', dcStepPrograms:'نفحص البرامج التعليمية…',
+      dcStepExams:'نفحص الاختبارات الدراسية…', dcStepCore:'نُشغّل محركات التدريب…',
+      dcStepInsights:'نفحص سينابس والمهارات…', dcStepSocial:'نختبر التوصيل للأصدقاء…',
+      dcStepExtras:'نختبر الدردشة والمساعد…', dcStepMedia:'نفحص الصوت والكاميرا…',
+      dcStepTemplates:'نفحص قوالب الشهادات…', dcStepAdminSvc:'نفحص خدمات الإدارة…',
+      dcStepDocs:'نفحص المكتبات والصور…', dcStepLearner:'نفحص بيانات المتعلّم…',
+      dcStepIntegrity:'نفحص سلامة الواجهة…',
+      schCancelled:'✓ أُلغيت الحصة.', spArchived:'✓ أُرشفت الخطة.', spRestored:'✓ أُعيدت الخطة.',
       dcRunAll:'▶ شغّل كل الفحوص', dcToolsTitle:'أدوات متخصصة',
       dcPassed:'ناجح', dcWarnings:'تنبيه', dcFailures:'فشل',
       dcGrpConnection:'الاتصال بالخادم', dcGrpAuth:'الجلسة والصلاحيات',
@@ -8207,6 +8251,9 @@
       lpSyncArchiveFailed:'Could not archive on the server. Please try again.',
       lpSyncRestoreFailed:'Could not restore from the server. Please try again.',
       lpSyncProgressFailed:'Could not sync your progress with the server. Please try again.',
+      ltRoleOwner:'Administrator', ltRoleLearner:'Learner', ltRoleTeacher:'Teacher',
+      ltStepPermissions:'Preparing your permissions…', ltStepWorkspace:'Opening your workspace…',
+      loginStepAuth:'Checking your credentials…',
       loginStepVerifying:'Verifying your identity', loginStepPreparing:'Preparing your learning space...', loginStepSyncing:'Syncing your data...',
       loginStepWelcome:'Welcome back, {name}',
       sessionWarningTitle:'Your session is about to expire', sessionWarningText:"We haven't noticed any activity for a while. For your account's security, you'll be signed out automatically in:",
@@ -8921,6 +8968,18 @@
       dcFixServiceFlags:'Disabled services will not appear for learners. Review "Service activation".',
 
       dcIntro:'Every check here probes the live system right now; none of it reports a stored status.',
+      dcStepOf:'({n}/{total}) {name}', dcScanDone:'✓ Scan finished in {n}s',
+      dcStepFailed:'this check failed',
+      dcStepBuild:'Verifying the build and its features…', dcStepConnection:'Testing the server connection…',
+      dcStepAuth:'Checking session and permissions…', dcStepLoops:'Checking background services…',
+      dcStepSheets:'Reaching the database tables…', dcStepPrograms:'Checking learning programs…',
+      dcStepExams:'Checking school exams…', dcStepCore:'Running the practice engines…',
+      dcStepInsights:'Checking Synapse and skills…', dcStepSocial:'Testing delivery to friends…',
+      dcStepExtras:'Testing chat and the assistant…', dcStepMedia:'Checking audio and camera…',
+      dcStepTemplates:'Checking certificate templates…', dcStepAdminSvc:'Checking admin services…',
+      dcStepDocs:'Checking libraries and photos…', dcStepLearner:'Checking learner data…',
+      dcStepIntegrity:'Checking interface integrity…',
+      schCancelled:'✓ Class cancelled.', spArchived:'✓ Plan archived.', spRestored:'✓ Plan restored.',
       dcRunAll:'▶ Run all checks', dcToolsTitle:'Specialised tools',
       dcPassed:'passed', dcWarnings:'warnings', dcFailures:'failures',
       dcGrpConnection:'Server connection', dcGrpAuth:'Session & permissions',
@@ -10964,11 +11023,29 @@
   });
 
   adminLoginBtn.addEventListener('click', async ()=>{
+    // Wrapped so EVERY exit dismisses the screen. Counting return paths by
+    // hand and adding a hide() to each is how one gets missed, and a single
+    // missed path leaves the user staring at a frozen loader — worse than
+    // showing no loader at all.
+    try{ await runAdminLogin(); }
+    finally{
+      if(typeof hideLoginTransition === 'function' &&
+         !adminLoginGateEl.classList.contains('hidden')) hideLoginTransition();
+      adminLoginBtn.disabled = false;
+    }
+  });
+  async function runAdminLogin(){
     const username = adminUserInput.value.trim();
     const password = adminPinInput.value;
     if(!username || !password){ adminLoginError.textContent = t('enterBothFields'); return; }
     adminLoginBtn.disabled = true;
+    // The owner path never showed the transition screen: it verified and
+    // jumped, so on a slow connection the button simply sat there for several
+    // seconds with nothing explaining the wait. The learner path already did
+    // this properly; this brings the two in line.
+    showLoginTransition(t('loginStepVerifying'));
     const hash = await computePasswordHash(username, password);
+    updateLoginTransitionStep(t('loginStepAuth'), 35);
 
     if(SHEET_API_URL){
       const loginRes = await postToSheet('admin_login', { username, pin: hash });
@@ -10978,8 +11055,23 @@
       if(loginRes && loginRes.ok && loginRes.admin){
         ADMIN = { username: loginRes.admin.username, pin: hash, name: loginRes.admin.name || username, role: loginRes.admin.role || 'owner' };
         saveAdminToStorage();
+        // Identity is confirmed only now — show it, and name the remaining
+        // work rather than leaving a bar moving against nothing.
+        showLoginTransitionIdentity({
+          name: ADMIN.name || ADMIN.username,
+          role: t('ltRoleOwner'),
+          photo: null,
+          initial: (ADMIN.name || ADMIN.username || '?').trim().charAt(0)
+        });
+        updateLoginTransitionStep(fmt('loginStepWelcome', { name: ADMIN.name || ADMIN.username }), 70);
+        await new Promise(function(r){ setTimeout(r, 260); });
+        updateLoginTransitionStep(t('ltStepPermissions'), 85);
+        await new Promise(function(r){ setTimeout(r, 220); });
+        updateLoginTransitionStep(t('ltStepWorkspace'), 100);
+        await new Promise(function(r){ setTimeout(r, 200); });
         adminLoginBtn.disabled = false;
         adminLoginGateEl.classList.add('hidden');
+        hideLoginTransition();
         goToProfiles();
         return;
       }
@@ -10989,12 +11081,14 @@
       // registration attempt that reports the same generic error.
       const existsRes = await postToSheet('admin_exists', {});
       if(existsRes && existsRes.ok && existsRes.exists){
+        hideLoginTransition();
         adminLoginBtn.disabled = false;
         adminLoginError.textContent = t('adminWrongPassword');
         adminResetLink.classList.remove('hidden');
         return;
       }
       const registerRes = await postToSheet('register_admin', { username, pin: hash, name: username, role: 'owner' });
+      hideLoginTransition();
       adminLoginBtn.disabled = false;
       if(registerRes && registerRes.ok){
         ADMIN = { username, pin: hash, name: username, role: registerRes.role };
@@ -11029,7 +11123,7 @@
     }
     adminLoginGateEl.classList.add('hidden');
     goToProfiles();
-  });
+  }
   adminPinInput.addEventListener('keydown', e=>{ if(e.key === 'Enter') adminLoginBtn.click(); });
 
   backToLoginLink.addEventListener('click', goToLoginGate);
@@ -11108,11 +11202,15 @@
   const loginTransitionBar = document.getElementById('loginTransitionBar');
   const loginTransitionAvatar = document.getElementById('loginTransitionAvatar');
   const loginTransitionGraphWrap = document.getElementById('loginTransitionGraphWrap');
+  const ltIdentity = document.getElementById('ltIdentity');
+  const ltName = document.getElementById('ltName');
+  const ltRole = document.getElementById('ltRole');
   function showLoginTransition(stepText){
     loginTransitionScreen.classList.remove('hidden', 'boot-done');
     loginTransitionText.textContent = stepText;
     loginTransitionBar.style.width = '40%';
     loginTransitionAvatar.classList.add('hidden'); // reset — identity isn't confirmed yet at this point
+    if(ltIdentity) ltIdentity.classList.add('hidden'); // never show the PREVIOUS user while verifying the next
     loginTransitionGraphWrap.classList.remove('hidden');
   }
   function updateLoginTransitionStep(stepText, pct){
@@ -11128,6 +11226,42 @@
     setAvatarElement(loginTransitionAvatar, profile, 90);
     loginTransitionAvatar.classList.remove('hidden');
     loginTransitionGraphWrap.classList.add('hidden');
+    // Name and role beside the face: an avatar alone does not confirm WHICH
+    // account was matched, which is the reassurance this screen exists for.
+    if(ltIdentity){
+      ltName.textContent = profile.name || '';
+      ltRole.textContent = t('ltRoleLearner');
+      ltIdentity.classList.remove('hidden');
+    }
+  }
+  /* Shows WHO was just authenticated, alongside the work still running.
+     
+     A progress bar with no name is indistinguishable from a hung request. The
+     moment credentials are confirmed, the person's own face and name replace
+     the abstract graphic — which both reassures them the right account was
+     matched and makes a wrong-account sign-in obvious immediately. */
+  function showLoginTransitionIdentity(who){
+    if(loginTransitionScreen.classList.contains('hidden') || !who) return;
+    loginTransitionGraphWrap.classList.add('hidden');
+    loginTransitionAvatar.classList.remove('hidden');
+    loginTransitionAvatar.innerHTML = '';
+    if(who.photo){
+      const img = document.createElement('img');
+      img.src = who.photo;
+      // A dead photo link must not leave an empty circle mid-login.
+      img.onerror = function(){
+        loginTransitionAvatar.innerHTML = '';
+        loginTransitionAvatar.textContent = who.initial || '?';
+      };
+      loginTransitionAvatar.appendChild(img);
+    } else if(who.emoji){
+      loginTransitionAvatar.textContent = who.emoji;
+    } else {
+      loginTransitionAvatar.textContent = who.initial || '?';
+    }
+    ltName.textContent = who.name || '';
+    ltRole.textContent = who.role || '';
+    ltIdentity.classList.remove('hidden');
   }
   function hideLoginTransition(){
     if(loginTransitionScreen.classList.contains('hidden')) return;
@@ -20004,7 +20138,7 @@
     memberPrefix: 'NX'
   };
 
-  var DIAG_BUILD = 'jassi-2026-08-17-0807-43a9ba98449c';
+  var DIAG_BUILD = 'jassi-2026-08-17-0817-a5ab97345b1d';
   var DIAG_BUILD_AT = '2026-08-17';
   /* Capability inventory: checks that each feature EXISTS in the running
      file, not that its name appears somewhere. A stale build fails these
@@ -21002,8 +21136,10 @@
     }).join('');
     abEntries.querySelectorAll('[data-retire]').forEach(function(b){
       b.addEventListener('click', async function(){
+        setBtnSaving(b, true);
         await postToSheet('ai_set_entry_status', Object.assign(abCreds(), {
           entryId: b.dataset.retire, retire: b.dataset.on === '1' }));
+        setBtnSaving(b, false);
         abRender();
       });
     });
@@ -21099,7 +21235,10 @@
     schList.querySelectorAll('[data-cancel]').forEach(function(b){
       b.addEventListener('click', async function(){
         if(!confirm(t('schCancelConfirm'))) return;
+        setBtnSaving(b, true);
         await postToSheet('cancel_schedule', Object.assign(clCreds(), { scheduleId: b.dataset.cancel }));
+        setBtnSaving(b, false);
+        showToast(t('schCancelled'), nxIcon('check'), 'system');
         schRenderList();
       });
     });
@@ -21720,7 +21859,9 @@
         const r = await postToSheet('archive_plan', Object.assign(spCreds(), {
           planId: b.dataset.arch, restore: restoring }));
         setBtnSaving(b, false);
-        if(r && r.ok) spRenderList();
+        if(!r || !r.ok){ showToast(t('spSaveFailed'), nxIcon('alertTriangle'), 'system'); return; }
+        showToast(t(restoring ? 'spRestored' : 'spArchived'), nxIcon('check'), 'system');
+        spRenderList();
       });
     });
   }
@@ -21768,9 +21909,18 @@
     myPlanArea.querySelectorAll('[data-item]').forEach(function(row){
       row.addEventListener('click', async function(){
         const undo = row.dataset.done === '1';
+        // Ticked instantly, confirmed by the server afterwards: waiting for a
+        // round trip before the checkmark moves makes the tap feel broken.
+        row.classList.toggle('done', !undo);
         const r = await postToSheet('complete_plan_item', {
           username: currentServerUsername(), itemId: row.dataset.item, undo: undo });
-        if(r && r.ok) openMyPlan();
+        if(!r || !r.ok){
+          // Revert the optimistic tick rather than leaving a false state.
+          row.classList.toggle('done', undo);
+          showToast(t('spSaveFailed'), nxIcon('alertTriangle'), 'system');
+          return;
+        }
+        openMyPlan();
       });
     });
   }
@@ -21973,31 +22123,66 @@
     }).join('');
   }
 
+  /* Sixteen check groups used to run in complete silence — some of them
+     making several network round trips — so a full scan looked identical to a
+     frozen screen for ten seconds or more. Every step now names itself, shows
+     its position in the sequence, and reports failures WITHOUT stopping the
+     rest: one unreachable table must not hide the other fifteen groups. */
+  const DC_STEPS = [
+    { key:'dcStepBuild',      run: function(){ return dcCheckBuild(); } },
+    { key:'dcStepConnection', run: function(){ return dcCheckConnection(); } },
+    { key:'dcStepAuth',       run: function(){ return dcCheckAuth(); } },
+    { key:'dcStepLoops',      run: function(){ return dcCheckBackground(); } },
+    { key:'dcStepSheets',     run: function(){ return dcCheckSheets(); } },
+    { key:'dcStepPrograms',   run: function(){ return dcCheckPrograms(); } },
+    { key:'dcStepExams',      run: function(){ return dcCheckExams(); } },
+    { key:'dcStepCore',       run: function(){ return dcCheckCore(); } },
+    { key:'dcStepInsights',   run: function(){ return dcCheckInsights(); } },
+    { key:'dcStepSocial',     run: function(){ return dcCheckSocial(); } },
+    { key:'dcStepExtras',     run: function(){ return dcCheckExtras(); } },
+    { key:'dcStepMedia',      run: function(){ return dcCheckMedia(); } },
+    { key:'dcStepTemplates',  run: function(){ return dcCheckTemplates(); } },
+    { key:'dcStepAdminSvc',   run: function(){ return dcCheckAdminServices(); } },
+    { key:'dcStepDocs',       run: function(){ return dcCheckDocuments(); } },
+    { key:'dcStepLearner',    run: function(){ return dcCheckLearner(); } },
+    { key:'dcStepIntegrity',  run: function(){ return dcCheckIntegrity(); } }
+  ];
+
   async function dcRunAll(){
     if(dcBusy) return;
     dcBusy = true;
     dcRows = [];
     dcResults.classList.add('dc-running');
     setBtnSaving(dcRunAllBtn, true);
+    dcProgress.classList.remove('hidden');
+    const started = Date.now();
     try{
-      await dcCheckBuild();
-      await dcCheckConnection();
-      await dcCheckAuth();
-      await dcCheckBackground();
-      await dcCheckSheets();
-      await dcCheckPrograms();
-      await dcCheckExams();
-      await dcCheckCore();
-      await dcCheckInsights();
-      await dcCheckSocial();
-      await dcCheckExtras();
-      await dcCheckMedia();
-      await dcCheckTemplates();
-      await dcCheckAdminServices();
-      await dcCheckDocuments();
-      await dcCheckLearner();
-      await dcCheckIntegrity();
+      for(let i = 0; i < DC_STEPS.length; i++){
+        const step = DC_STEPS[i];
+        dcProgressLabel.textContent = fmt('dcStepOf', {
+          n: i + 1, total: DC_STEPS.length, name: t(step.key)
+        });
+        dcProgressBar.style.width = Math.round((i / DC_STEPS.length) * 100) + '%';
+        // Yielding to the browser so the label actually paints before the
+        // step blocks — without this the text would only appear at the end.
+        await new Promise(function(r){ setTimeout(r, 30); });
+        try{
+          await step.run();
+        }catch(e){
+          // A failing group is reported and the scan continues. Aborting here
+          // would hide every check after it — the opposite of a diagnostic.
+          dcAdd(t('dcGrpLoops'), t(step.key), t('dcStepFailed') + ': ' + (e && e.message), 'bad');
+        }
+        // Results appear as they arrive rather than all at the end, so a slow
+        // scan still shows progress the reader can act on.
+        dcRender();
+      }
+      dcProgressBar.style.width = '100%';
+      dcProgressLabel.textContent = fmt('dcScanDone', {
+        n: Math.round((Date.now() - started) / 100) / 10
+      });
     } finally {
+      setTimeout(function(){ dcProgress.classList.add('hidden'); }, 1400);
       dcBusy = false;
       dcResults.classList.remove('dc-running');
       setBtnSaving(dcRunAllBtn, false);
