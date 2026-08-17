@@ -7556,6 +7556,11 @@
       licPublic:'منشور رسميًا للاستخدام العام', licUnspecified:'غير محدد',
       brandShortName:'أكاديمية جاسي',
       chatRetry:'إعادة الإرسال',
+      secNoAdminRow:'لا يوجد أي حساب إدارة في قاعدة البيانات. افتح جدول Admin في Google Sheets — إن كان فارغًا، فأول دخول سيُنشئ الحساب.',
+      secNoSuchUser:'اسم المستخدم هذا غير موجود بين حسابات الإدارة ({n} حسابًا مسجّلًا). تحقق من الاسم — قد يكون مختلفًا عمّا تتذكره.',
+      secStoredNotHashed:'كلمة المرور المخزّنة نص صريح لا تجزئة — غالبًا أُدخلت يدويًا في الجدول. استخدم «نسيت كلمة مرور الإدارة؟» لتعيينها بشكل صحيح.',
+      secStoredWhitespace:'اسم المستخدم المخزّن يحوي مسافة زائدة في الجدول. افتح جدول Admin واحذف المسافة من بداية الاسم أو نهايته، ثم أعد المحاولة.',
+      secCaseDiffers:'الحساب موجود لكن صيغة الاسم المخزّن تختلف عمّا كتبته (الطول {n}). استخدم «نسيت كلمة مرور الإدارة؟» — سيُصحّح ذلك تلقائيًا.',
       secRestricted:'منطقة محظورة · دخول مصرّح فقط',
       secEncrypted:'اتصال مشفّر', secHashed:'كلمة المرور مجزّأة', secAudited:'كل محاولة مسجّلة',
       secAttemptsLeft:'⚠ متبقٍ {n} محاولات قبل الإيقاف المؤقت',
@@ -9040,6 +9045,11 @@
       licPublic:'Officially published for public use', licUnspecified:'Unspecified',
       brandShortName:'JASSI Academy',
       chatRetry:'Retry',
+      secNoAdminRow:'There is no admin account in the database. Open the Admin sheet in Google Sheets — if it is empty, the first sign-in will create the account.',
+      secNoSuchUser:'That username is not among the admin accounts ({n} registered). Check the spelling — it may differ from what you remember.',
+      secStoredNotHashed:'The stored password is plain text rather than a hash — most likely typed directly into the sheet. Use "Forgot admin password" to set it properly.',
+      secStoredWhitespace:'The stored username contains stray whitespace in the sheet. Open the Admin sheet, remove the space from the start or end of the name, and try again.',
+      secCaseDiffers:'The account exists but the stored username differs in form from what you typed (length {n}). Use "Forgot admin password" — that will correct it automatically.',
       secRestricted:'Restricted area · authorised access only',
       secEncrypted:'Encrypted connection', secHashed:'Password hashed', secAudited:'Attempts recorded',
       secAttemptsLeft:'⚠ {n} attempts remaining before a temporary lock',
@@ -11187,6 +11197,30 @@
     }
   }
 
+  /* Turns a probe result into a specific, actionable sentence. Each branch
+     corresponds to a genuinely different cause with a genuinely different
+     remedy — which is the whole reason the probe exists. */
+  function describeAdminFailure(probe, typed){
+    if(!probe || !probe.ok) return t('adminWrongPassword');
+    if(probe.adminRowCount === 0) return t('secNoAdminRow');
+    const loose = (probe.rows || []).filter(function(r){ return r.looseMatch; });
+    if(!loose.length) return fmt('secNoSuchUser', { n: probe.adminRowCount });
+
+    const row = loose[0];
+    // The account exists and was found — so the password itself is wrong,
+    // unless the stored value was never hashed or carries stray whitespace.
+    if(!row.storedHashLooksHashed){
+      return t('secStoredNotHashed');
+    }
+    if(row.hasLeadingSpace || row.hasTrailingSpace){
+      return t('secStoredWhitespace');
+    }
+    if(!row.exactMatch){
+      return fmt('secCaseDiffers', { n: row.storedLength });
+    }
+    return t('adminWrongPassword');
+  }
+
   async function runAdminLogin(){
     const st = adminAttemptState();
     if(st.until > Date.now()){
@@ -11247,7 +11281,12 @@
         const next = { n: cur.n + 1, until: (cur.n + 1) >= ADMIN_MAX_ATTEMPTS ? Date.now() + ADMIN_LOCK_MS : 0 };
         adminAttemptSave(next);
         adminShowAttempts();
-        adminLoginError.textContent = t('adminWrongPassword');
+        // Diagnose rather than repeat the same generic refusal. "Wrong
+        // password" and "the account row was never found" look identical to
+        // the owner but need completely different fixes, and guessing between
+        // them has already cost several rounds.
+        const probe = await postToSheet('admin_login_probe', { username, pin: hash });
+        adminLoginError.textContent = describeAdminFailure(probe, username);
         adminResetLink.classList.remove('hidden');
         return;
       }
@@ -20302,7 +20341,7 @@
     memberPrefix: 'NX'
   };
 
-  var DIAG_BUILD = 'jassi-2026-08-17-0849-a596661cee0e';
+  var DIAG_BUILD = 'jassi-2026-08-17-0851-9bdf8fa0a904';
   var DIAG_BUILD_AT = '2026-08-17';
   /* Capability inventory: checks that each feature EXISTS in the running
      file, not that its name appears somewhere. A stale build fails these
