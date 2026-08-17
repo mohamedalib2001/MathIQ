@@ -7141,6 +7141,18 @@
       dcRespondedIn:'استجاب خلال {n} مللي', dcNoResponse:'لا استجابة',
       dcAccount:'الحساب الحالي', dcSessionToken:'رمز الجلسة', dcAdminSession:'جلسة الإدارة',
       dcTokenAccepted:'الخادم يقبل الرمز',
+      dcPreconditions:'شروط التشغيل لحظة الفحص',
+      dcLiveProbe:'محاولة تشغيل حيّة الآن',
+      dcProbeRecovered:'نجح التشغيل عند المحاولة الآن',
+      dcProbeStillDead:'فشل التشغيل حتى بالمحاولة المباشرة',
+      dcStartTrace:'سجل قرارات المشغّل', dcTraceEmpty:'فارغ — المشغّل لم يُستدعَ إطلاقًا',
+      dcPollMoving:'هل الاستطلاع يعمل فعلًا؟',
+      dcPollGrew:'نعم — ازداد من {a} إلى {b} خلال ثانيتين',
+      dcPollFrozen:'لا — ثابت عند {n} رغم أن المؤقّت قائم',
+      dcFixTiming:'الخدمات تعمل عند الطلب لكنها لا تبدأ تلقائيًا — المشكلة في توقيت الاستدعاء لا في المنطق. أرسل لي «سجل قرارات المشغّل» أعلاه.',
+      dcFixSeeTrace:'المشغّل رفض البدء. السبب مكتوب في «سجل قرارات المشغّل» أعلاه — أرسله لي كما هو.',
+      dcFixNeverCalled:'المشغّل لم يُستدعَ. هذا يعني أن مسار الإقلاع لم يصل إليه — أرسل لي هذا السطر.',
+      dcFixFrozen:'المؤقّت قائم لكنه لا ينفّذ شيئًا — غالبًا استثناء داخل دالة الاستطلاع. افتح F12 وأرسل لي أول خطأ أحمر.',
       dcLoopChal:'استطلاع التحديات', dcLoopMsg:'استطلاع الرسائل', dcLoopCall:'مراقبة المكالمات',
       dcLoopPresence:'تتبّع الحضور', dcLoopHeartbeat:'نبضة الاتصال',
       dcPollCount:'عدد الاستطلاعات المنفَّذة', dcTabVisible:'حالة التبويب',
@@ -8512,6 +8524,18 @@
       dcRespondedIn:'responded in {n} ms', dcNoResponse:'no response',
       dcAccount:'Current account', dcSessionToken:'Session token', dcAdminSession:'Admin session',
       dcTokenAccepted:'Server accepts the token',
+      dcPreconditions:'Start conditions at check time',
+      dcLiveProbe:'Live start attempt now',
+      dcProbeRecovered:'started successfully when attempted now',
+      dcProbeStillDead:'failed to start even on a direct attempt',
+      dcStartTrace:'Starter decision log', dcTraceEmpty:'empty — the starter was never called',
+      dcPollMoving:'Is polling actually running?',
+      dcPollGrew:'yes — grew from {a} to {b} in two seconds',
+      dcPollFrozen:'no — frozen at {n} despite a live timer',
+      dcFixTiming:'Services start on demand but not automatically — the fault is in WHEN it is called, not the logic. Send me the starter decision log above.',
+      dcFixSeeTrace:'The starter refused. The reason is written in the decision log above — send it to me verbatim.',
+      dcFixNeverCalled:'The starter was never called, meaning the boot path never reached it. Send me this line.',
+      dcFixFrozen:'The timer exists but does nothing — most likely an exception inside the polling function. Open F12 and send me the first red error.',
       dcLoopChal:'Challenge polling', dcLoopMsg:'Message polling', dcLoopCall:'Call watching',
       dcLoopPresence:'Presence tracking', dcLoopHeartbeat:'Connection heartbeat',
       dcPollCount:'Polls executed', dcTabVisible:'Tab state',
@@ -10975,8 +10999,8 @@
 
   function logSessionLogout(){
     clearSessionUi();
-    if(typeof chalStopPolling === 'function') chalStopPolling();
-    if(typeof stopUnreadPolling === 'function') stopUnreadPolling();
+    if(typeof chalStopPolling === 'function') chalStopPolling('logout');
+    if(typeof stopUnreadPolling === 'function') stopUnreadPolling('logout');
     if(typeof stopCallWatch === 'function') stopCallWatch();
     // Revoke on the server BEFORE clearing locally, or the token would be
     // dropped from this device while remaining valid for anyone holding it.
@@ -19390,7 +19414,7 @@
   // That is why invitations were accepted and no match ever opened — the
   // same defect that stopped calls arriving.
   var CHAL_POLL_IDLE = 12000, CHAL_POLL_ACTIVE = 3000, CHAT_POLL = 4000;
-  var chalPollId = null, chalPollRate = CHAL_POLL_IDLE;
+  var chalPollId = null, chalPollRate = CHAL_POLL_IDLE, chalPollRuns = 0;
   var chalPendingInvite = null, chalOutgoing = [];
   // Survives across polls; the polled objects do not.
   var chalAnnounced = new Set();
@@ -19399,8 +19423,15 @@
   var chatFetchInFlight = false;          // prevents overlapping fetches
   var chatRendered = new Set();           // message ids already on screen
 
-  function chalStopPolling(){
-    if(chalPollId){ clearInterval(chalPollId); chalPollId = null; }
+  function chalStopPolling(reason){
+    // Recording the CALLER is the half that was missing: six reports showed
+    // loops stopped and none showed what stopped them. A stack line names the
+    // culprit immediately instead of another round of guessing.
+    if(chalPollId){
+      const src = (new Error().stack || '').split('\n')[2] || '';
+      rtLog('chal STOPPED by ' + (reason || src.trim().slice(0, 60)));
+      clearInterval(chalPollId); chalPollId = null;
+    }
   }
   function chalSetRate(ms){
     if(chalPollRate === ms && chalPollId) return;
@@ -19511,12 +19542,31 @@
   }
   function stopRealtimeServices(){
     if(realtimeReadyId){ clearInterval(realtimeReadyId); realtimeReadyId = null; }
-    chalStopPolling();
-    if(typeof stopUnreadPolling === 'function') stopUnreadPolling();
+    chalStopPolling('stopRealtimeServices');
+    if(typeof stopUnreadPolling === 'function') stopUnreadPolling('stopRealtimeServices');
   }
   // Exposed so the diagnostics report can read the trace and, if the services
   // are stopped, attempt a start there and then and record what happened.
   window.rtTrace = function(){ return rtTrace; };
+  /* One call that answers every question at once. Paste rtState() in the
+     console and send the result — it replaces a round of back-and-forth. */
+  window.rtState = function(){
+    return {
+      hidden: document.hidden,
+      visibility: document.visibilityState,
+      api: !!SHEET_API_URL,
+      loggedInKey: typeof loggedInKey !== 'undefined' ? loggedInKey : 'undef',
+      currentProfile: typeof currentProfile !== 'undefined' ? currentProfile : 'undef',
+      auth: typeof hasAuthenticatedSession === 'function' ? hasAuthenticatedSession() : 'n/a',
+      username: typeof currentServerUsername === 'function' ? currentServerUsername() : 'n/a',
+      chalPollId: chalPollId, chalPollRuns: chalPollRuns,
+      msgPollId: typeof msgPollId !== 'undefined' ? msgPollId : 'undef',
+      callWatchId: typeof callWatchId !== 'undefined' ? callWatchId : 'undef',
+      callPolls: typeof callDiag !== 'undefined' ? callDiag.polls : 'n/a',
+      retryLoop: realtimeReadyId,
+      trace: rtTrace.slice(-15)
+    };
+  };
   window.rtForceStart = function(){
     rtLog('FORCED from diagnostics');
     startRealtimeServices();
@@ -19535,7 +19585,7 @@
   document.addEventListener('visibilitychange', function(){
     // Call watching keeps running on a hidden tab: missing an incoming call
     // because the user switched tabs is exactly the failure being fixed here.
-    if(document.hidden){ chalStopPolling(); stopUnreadPolling(); return; }
+    if(document.hidden){ chalStopPolling('tab hidden'); stopUnreadPolling('tab hidden'); return; }
     // Deferred by a tick: visibilitychange can fire while document.hidden is
     // still true, and startRealtimeServices aborts on that flag. The result
     // was a tab that paused its polling on the way out and never resumed on
@@ -19547,6 +19597,9 @@
   });
 
   async function chalPoll(){
+    // Counting executions separately from the interval id: an interval that
+    // exists but never reaches its body looks identical to a healthy one.
+    chalPollRuns = (chalPollRuns || 0) + 1;
     const who = (typeof currentServerUsername === 'function') ? currentServerUsername() : '';
     if(!SHEET_API_URL || !who || who === 'guest') return;
     const res = await postToSheet('poll_challenges', { username: currentServerUsername() });
@@ -21169,6 +21222,53 @@
   /* ---- background loops ---- */
   async function dcCheckBackground(){
     const G = t('dcGrpLoops');
+
+    /* LIVE PROBE.
+       Six diagnostic rounds reported the same three loops without ever saying
+       WHY they were stopped, so every fix was a guess. This runs the starter
+       right now, in front of the reader, and reports the exact state before
+       and after — turning "stopped" into a cause. */
+    const before = {
+      chal: typeof chalPollId !== 'undefined' && chalPollId !== null,
+      msg:  typeof msgPollId !== 'undefined' && msgPollId !== null,
+      call: typeof callWatchId !== 'undefined' && callWatchId !== null
+    };
+    dcAdd(G, t('dcPreconditions'),
+      'api=' + (!!SHEET_API_URL) +
+      ' | hidden=' + document.hidden +
+      ' | visibility=' + document.visibilityState +
+      ' | loggedInKey=' + String(typeof loggedInKey !== 'undefined' ? loggedInKey : 'undef') +
+      ' | currentProfile=' + String(currentProfile) +
+      ' | auth=' + (typeof hasAuthenticatedSession === 'function' ? hasAuthenticatedSession() : 'n/a') +
+      ' | username=' + (typeof currentServerUsername === 'function' ? currentServerUsername() : 'n/a'),
+      'info');
+
+    if(!before.chal || !before.msg){
+      // Attempt a start and observe. If it succeeds here but not on load, the
+      // fault is in WHEN it is called; if it fails here too, the reason is in
+      // the trace below.
+      try{ if(typeof startRealtimeServices === 'function') startRealtimeServices(); }
+      catch(e){ dcAdd(G, t('dcLiveProbe'), 'THREW: ' + (e && e.message), 'bad'); }
+      await new Promise(function(r){ setTimeout(r, 900); });
+      const after = {
+        chal: typeof chalPollId !== 'undefined' && chalPollId !== null,
+        msg:  typeof msgPollId !== 'undefined' && msgPollId !== null
+      };
+      const recovered = (!before.chal && after.chal) || (!before.msg && after.msg);
+      dcAdd(G, t('dcLiveProbe'),
+        recovered ? t('dcProbeRecovered') : t('dcProbeStillDead'),
+        recovered ? 'warn' : 'bad',
+        recovered ? t('dcFixTiming') : t('dcFixSeeTrace'));
+    }
+
+    // The trace itself: every decision the starter made, in order.
+    if(typeof rtTrace !== 'undefined' && rtTrace.length){
+      dcAdd(G, t('dcStartTrace'), rtTrace.slice(-12).join('  ·  '), 'info');
+    } else {
+      // An empty trace means the starter was NEVER CALLED — a different fault
+      // entirely from one that was called and refused.
+      dcAdd(G, t('dcStartTrace'), t('dcTraceEmpty'), 'bad', t('dcFixNeverCalled'));
+    }
     const loops = [
       { key:'dcLoopChal',     on: typeof chalPollId !== 'undefined' && chalPollId !== null },
       { key:'dcLoopMsg',      on: typeof msgPollId !== 'undefined' && msgPollId !== null },
@@ -21187,6 +21287,15 @@
     }
     dcAdd(G, t('dcTabVisible'), document.hidden ? t('dcHidden') : t('dcVisible'),
       document.hidden ? 'warn' : 'ok', document.hidden ? t('dcFixHidden') : '');
+    // A poll count that never moves proves a loop is holding an id without
+    // doing work — which looks identical to "running" in a naive check.
+    if(typeof callDiag !== 'undefined'){
+      const p0 = callDiag.polls || 0;
+      await new Promise(function(r){ setTimeout(r, 2500); });
+      const p1 = callDiag.polls || 0;
+      dcAdd(G, t('dcPollMoving'), p1 > p0 ? fmt('dcPollGrew', { a: p0, b: p1 }) : fmt('dcPollFrozen', { n: p1 }),
+        p1 > p0 ? 'ok' : 'bad', p1 > p0 ? '' : t('dcFixFrozen'));
+    }
   }
 
   /* ---- Google Sheets tables ---- */
@@ -21708,8 +21817,12 @@
     // cost more than the chat itself and change nothing a learner would notice.
     msgPollId = setInterval(pollUnread, 20000);
   }
-  function stopUnreadPolling(){
-    if(msgPollId){ clearInterval(msgPollId); msgPollId = null; }
+  function stopUnreadPolling(reason){
+    if(msgPollId){
+      const src = (new Error().stack || '').split('\n')[2] || '';
+      if(typeof rtLog === 'function') rtLog('msg STOPPED by ' + (reason || src.trim().slice(0, 60)));
+      clearInterval(msgPollId); msgPollId = null;
+    }
     msgWrap.classList.add('hidden');
   }
 
