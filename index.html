@@ -940,13 +940,10 @@
   .cmdk-item .cmdk-item-label{ flex:1; }
   .cmdk-item .cmdk-item-tag{ font-size:10.5px; color:var(--ink-dim); flex:none; }
   .cmdk-empty{ padding:24px; text-align:center; color:var(--ink-dim); font-size:13px; }
-  .cmdk-launcher{
-    position:fixed; bottom:18px; inset-inline-end:18px; z-index:400;
-    display:flex; align-items:center; gap:6px; background:var(--input-bg); border:1.5px solid var(--chip-border);
-    border-radius:20px; padding:9px 14px; font-size:12px; font-weight:700; color:var(--ink-dim); cursor:pointer;
-    box-shadow:0 8px 20px rgba(0,0,0,0.25);
-  }
-  @media (max-width:767px){ .cmdk-launcher{ display:none; } } /* mobile: use bottom-of-drawer access instead of a floating button */
+  /* The floating "quick commands" pill was removed: it sat behind the
+     assistant launcher and duplicated access that already exists in two
+     places — the topbar search button and the Ctrl/Cmd+K shortcut, both
+     untouched. */
 
   /* today's mission — calm, premium "smart dashboard" hero card */
   .mission-card{
@@ -2235,6 +2232,28 @@
      reads as unsettling. The orb states — idle, listening, thinking, speaking
      — are each visually distinct, so the learner always knows what it is
      doing without reading a word. */
+  /* ---------- CONVERSATION AVATARS ---------- */
+  .nova-row{ display:flex; align-items:flex-end; gap:8px; margin-bottom:9px; }
+  .nova-row.is-nova{ justify-content:flex-start; }
+  .nova-row.is-user{ flex-direction:row-reverse; justify-content:flex-start; }
+  .nova-row-av{
+    width:30px; height:30px; border-radius:50%; flex:none; overflow:hidden;
+    display:flex; align-items:center; justify-content:center;
+    background:var(--input-bg); border:1px solid var(--chip-border);
+    font-size:12px; font-weight:800; color:var(--ink-dim);
+    /* Pinned to the bubble's last line so a long message keeps its face
+       beside where the text ends, not floating at the top. */
+    align-self:flex-end;
+  }
+  .nova-row.is-nova .nova-row-av{ border-color:rgba(139,92,246,0.45); }
+  .nova-row-av img{ width:100%; height:100%; object-fit:cover; display:block; }
+  /* The bubble no longer needs its own margin — the row owns the spacing. */
+  .nova-row .nova-msg{ margin-bottom:0; max-width:calc(100% - 44px); }
+  @media (max-width:480px){
+    .nova-row-av{ width:26px; height:26px; }
+    .nova-row .nova-msg{ max-width:calc(100% - 38px); }
+  }
+
   /* ---------- MICRO-ASSISTANCE BUBBLE ---------- */
   .ja-nudge{
     position:fixed; inset-inline-end:18px; bottom:calc(156px + env(safe-area-inset-bottom));
@@ -3534,7 +3553,6 @@
   </div>
 
   <div id="toastStack" class="toast-stack"></div>
-  <div class="cmdk-launcher" id="cmdkLauncher"><span>⌘</span><span data-i18n="cmdkLauncherLabel">أوامر سريعة</span><span style="opacity:0.6;">Ctrl+K</span></div>
 
   <div id="printReportArea" class="print-only"></div>
 
@@ -6078,7 +6096,6 @@
   const printReportArea = document.getElementById('printReportArea');
   const advancedSettingsToggle = document.getElementById('advancedSettingsToggle');
   const advancedSettingsBody = document.getElementById('advancedSettingsBody');
-  const cmdkLauncher = document.getElementById('cmdkLauncher');
   const appShell = document.getElementById('appShell');
   const appSidebar = document.getElementById('appSidebar');
   const sidebarNav = document.getElementById('sidebarNav');
@@ -7811,8 +7828,20 @@
       jaNudgeBackGo:'ما هي؟', jaNudgeCert:'لديك شهادات محفوظة — يمكنك عرضها أو تنزيلها.',
       jaNudgeCertGo:'اعرضها', jaNudgeDismiss:'لاحقًا', jaNudgeMute:'لا تُظهر مجددًا',
       jaNudgeMuted:'✓ أُوقفت الاقتراحات التلقائية. المساعد يبقى متاحًا عند فتحه.',
+      socIdentity:'أنا JASSI AI — المساعد الذكي لأكاديمية جاسي العالمية للتدريب والتطوير، ضمن منظومة INFRA ENGINE.\n\nمهمتي أن أعرف الأكاديمية وأعرفك أنت: أشرح لك أي خدمة، وأخبرك بتقدّمك ونقاط قوتك وضعفك من بياناتك المسجّلة فعلًا، وأفتح لك أي صفحة.\n\nولا أخترع رقمًا أبدًا — إن لم تكن البيانات كافية أقول ذلك بوضوح.',
+      socGreet:'أهلًا بك 👋 كيف أساعدك اليوم؟',
+      socGreetName:'أهلًا {name} 👋',
+      socGreetDue:'لديك {n} مراجعة مستحقة — أبدأ بها؟',
+      socGreetStreak:'ومواظبتك {n} أيام متتالية — أحسنت. بم أساعدك؟',
+      socHowAreYou:'بخير وجاهز 👍 والأهم: كيف حالك أنت؟ إن أردت، أخبرك بآخر تقدّمك أو أقترح خطوتك التالية.',
+      socThanks:'العفو 🌟 أنا هنا وقتما تحتاجني.',
+      socBye:'إلى اللقاء 👋 ستجدني هنا متى عدت.',
+      socCapability:'أستطيع: شرح كل خدمات الأكاديمية · إخبارك بتقدّمك ومهاراتك ونقاط ضعفك · تشخيص نمط أخطائك · اقتراح خطوتك التالية · شرح المفاهيم الرياضية والحيل الذهنية · فتح أي صفحة لك · وقراءة خطتك وحصصك ونتائج اختباراتك من أي مكان في التطبيق.\n\nجرّب: «كيف أدائي؟» أو «ليه بغلط؟» أو «أعمل إيه؟»',
+      socAreYouHuman:'لا، أنا مساعد آلي — ولن أدّعي غير ذلك.\n\nما يميّزني أني أقرأ بياناتك المسجّلة في الأكاديمية فأجيبك عنها بدقة. لكن للأمور التي تحتاج قرارًا بشريًا — أو إن كنت تمر بضيق — فمعلّمتك أو أحد في بيتك أنفع مني بكثير.',
+      socPraise:'سعيد أن ذلك نفعك 🌟 أكمل، وأنا معك.',
       jaLauncherAria:'مساعد جاسي الذكي', jaSubtitle:'مساعدك الذكي داخل الأكاديمية',
       chatRetry:'إعادة الإرسال',
+      secBackendStale:'⚠ ملف الخادم (.gs) المنشور أقدم من هذه الصفحة. إصلاحات الدخول موجودة في الخادم — انشره كـ«نشر ← نشر جديد» (لا تحديث)، ثم أعد المحاولة. وإن بقيت المشكلة، شغّل الدالة RESET_OWNER_PASSWORD_MANUALLY من محرر Apps Script.',
       secNoAdminRow:'لا يوجد أي حساب إدارة في قاعدة البيانات. افتح جدول Admin في Google Sheets — إن كان فارغًا، فأول دخول سيُنشئ الحساب.',
       secNoSuchUser:'اسم المستخدم هذا غير موجود بين حسابات الإدارة ({n} حسابًا مسجّلًا). تحقق من الاسم — قد يكون مختلفًا عمّا تتذكره.',
       secStoredNotHashed:'كلمة المرور المخزّنة نص صريح لا تجزئة — غالبًا أُدخلت يدويًا في الجدول. استخدم «نسيت كلمة مرور الإدارة؟» لتعيينها بشكل صحيح.',
@@ -9308,8 +9337,20 @@
       jaNudgeBackGo:'What is it?', jaNudgeCert:'You have saved certificates — you can view or download them.',
       jaNudgeCertGo:'Show them', jaNudgeDismiss:'Later', jaNudgeMute:'Do not show again',
       jaNudgeMuted:'✓ Automatic suggestions are off. The assistant stays available when you open it.',
+      socIdentity:'I am JASSI AI — the intelligent assistant of JASSI Global Academy for Training & Development, part of the INFRA ENGINE ecosystem.\n\nMy job is to know the academy and to know you: I explain any service, tell you your progress and your strengths and weaknesses from your actual recorded data, and open any page for you.\n\nAnd I never invent a figure — if the data is not sufficient, I say so plainly.',
+      socGreet:'Hello 👋 How can I help you today?',
+      socGreetName:'Hello {name} 👋',
+      socGreetDue:'You have {n} reviews due — shall we start there?',
+      socGreetStreak:'And your streak is {n} days — well done. How can I help?',
+      socHowAreYou:'Well and ready 👍 More to the point: how are you? If you like, I can tell you your latest progress or suggest your next step.',
+      socThanks:'You are welcome 🌟 I am here whenever you need me.',
+      socBye:'Goodbye 👋 You will find me here whenever you return.',
+      socCapability:'I can explain every academy service, tell you your progress, skills and weak points, diagnose your error pattern, suggest your next step, explain mathematical methods and mental tricks, open any page for you, and read your study plan, classes and exam results from anywhere in the app.\n\nTry: "how am I doing?", "why do I keep getting it wrong?" or "what should I do?"',
+      socAreYouHuman:'No, I am an automated assistant — and I will not pretend otherwise.\n\nWhat sets me apart is that I read your recorded data in the academy and answer from it precisely. But for anything needing a human judgement — or if you are having a hard time — your teacher or someone at home helps far more than I can.',
+      socPraise:'Glad that helped 🌟 Carry on, I am with you.',
       jaLauncherAria:'JASSI Assistant', jaSubtitle:'Your intelligent assistant inside the academy',
       chatRetry:'Retry',
+      secBackendStale:'⚠ The published Apps Script is older than this page. The sign-in fixes live in the backend — publish it as Deploy → New deployment (not Update), then try again. If it persists, run RESET_OWNER_PASSWORD_MANUALLY from the Apps Script editor.',
       secNoAdminRow:'There is no admin account in the database. Open the Admin sheet in Google Sheets — if it is empty, the first sign-in will create the account.',
       secNoSuchUser:'That username is not among the admin accounts ({n} registered). Check the spelling — it may differ from what you remember.',
       secStoredNotHashed:'The stored password is plain text rather than a hash — most likely typed directly into the sheet. Use "Forgot admin password" to set it properly.',
@@ -10643,7 +10684,22 @@
     renderShellNav('admin');
   }
   // The app's actual front door: username + password required to proceed.
+  /* Verifies the published backend matches this page. A stale Apps Script
+     deployment carries the very login bugs this page was updated to fix, so
+     discovering it through a failed sign-in wastes the owner's time. */
+  async function jaCheckBackendFresh(){
+    if(!SHEET_API_URL || !adminLoginHint) return;
+    const res = await postToSheet('admin_login_probe', { username: '', pin: '' });
+    if(res && res.ok) return;                       // current backend
+    if(res && res.error && res.error !== 'unknown_type') return;  // some other fault
+    adminLoginHint.textContent = t('secBackendStale');
+    adminLoginHint.classList.remove('hidden');
+  }
+
   function goToLoginGate(){
+    setTimeout(function(){
+      if(typeof jaCheckBackendFresh === 'function') jaCheckBackendFresh();
+    }, 300);
     // Surface any active lock immediately rather than after another failed
     // attempt — the owner should know before typing.
     if(typeof adminShowAttempts === 'function') adminShowAttempts();
@@ -11472,7 +11528,16 @@
      corresponds to a genuinely different cause with a genuinely different
      remedy — which is the whole reason the probe exists. */
   function describeAdminFailure(probe, typed){
-    if(!probe || !probe.ok) return t('adminWrongPassword');
+    // A failing probe is itself a diagnosis. admin_login_probe only exists in
+    // the current backend, so an error here means the published Apps Script
+    // is older than this page — and an old backend also carries the exact
+    // login bugs this page was updated to fix. Saying "wrong password" in
+    // that situation sends the owner hunting for the wrong problem.
+    if(!probe || !probe.ok){
+      // The router answers an unrecognised action with 'unknown_type'.
+      const missing = !probe || probe.error === 'unknown_type' || !probe.error;
+      return missing ? t('secBackendStale') : t('adminWrongPassword');
+    }
     if(probe.adminRowCount === 0) return t('secNoAdminRow');
     const loose = (probe.rows || []).filter(function(r){ return r.looseMatch; });
     if(!loose.length) return fmt('secNoSuchUser', { n: probe.adminRowCount });
@@ -17533,6 +17598,34 @@
   }
   window.addEventListener('online', jaSyncConnectivity);
   window.addEventListener('offline', jaSyncConnectivity);
+  /* Wraps a message in a row with its author's face. Without this the
+     conversation is two columns of anonymous text — and once the assistant
+     has a character, a faceless transcript makes it feel absent from its own
+     conversation. */
+  function novaRow(bubble, who){
+    const row = document.createElement('div');
+    row.className = 'nova-row ' + (who === 'user' ? 'is-user' : 'is-nova');
+    const av = document.createElement('span');
+    av.className = 'nova-row-av';
+    av.setAttribute('aria-hidden', 'true');   // the text already names the speaker
+    if(who === 'nova'){
+      av.classList.add('ja-av');
+    } else {
+      // The learner's own photo when one is synced, their initial otherwise —
+      // reusing the avatar helper so the face matches every other screen.
+      const prof = PROFILES[currentProfile];
+      if(prof && typeof setAvatarElement === 'function'){
+        try{ setAvatarElement(av, prof, 30); }
+        catch(e){ av.textContent = (profileDisplayName(currentProfile) || '?').trim().charAt(0); }
+      } else {
+        av.textContent = '?';
+      }
+    }
+    row.appendChild(av);
+    row.appendChild(bubble);
+    return row;
+  }
+
   function novaSay(text, actions){
     const el = document.createElement('div');
     el.className = 'nova-msg from-nova';
@@ -17543,7 +17636,7 @@
       btn.addEventListener('click', function(){ novaClose(); a.run(); });
       el.appendChild(btn);
     });
-    novaLog.appendChild(el);
+    novaLog.appendChild(novaRow(el, 'nova'));
     novaLog.scrollTop = novaLog.scrollHeight;
     if(novaVoiceChk.checked) novaSpeak(text);
     novaHistory.push({ role:'nova', text: text });
@@ -17553,7 +17646,7 @@
     const el = document.createElement('div');
     el.className = 'nova-msg from-user';
     el.textContent = text;
-    novaLog.appendChild(el);
+    novaLog.appendChild(novaRow(el, 'user'));
     novaLog.scrollTop = novaLog.scrollHeight;
     novaHistory.push({ role:'user', text: text });
     if(novaHistory.length > 8) novaHistory.shift();
@@ -17988,6 +18081,52 @@
       if(found && out.indexOf(canon) === -1) out += ' ' + canon;
     });
     return out;
+  }
+
+  /* ---- 1a. IDENTITY & SOCIAL ----
+     "من أنت؟" fell through every matcher and landed on the services list, so
+     the assistant answered a question about itself with a catalogue. And a
+     plain "مرحبا" got the same treatment.
+
+     These are the first things anyone types. Getting them wrong makes the
+     assistant feel like a search box with a face on it, which is the opposite
+     of what a companion should feel like. Matched BEFORE everything else,
+     because they are about the conversation rather than about the platform. */
+  const NOVA_SOCIAL = [
+    { key:'identity',
+      test:/من انت|من أنت|مين انت|مين انتي|من انتي|انت مين|اسمك ايه|ما اسمك|عرفي نفسك|عرف نفسك|who are you|your name|introduce yourself/i },
+    { key:'greeting',
+      test:/^\s*(مرحبا|مرحبًا|اهلا|أهلا|السلام عليكم|هاي|هالو|صباح الخير|مساء الخير|hi|hello|hey|salam)[\s!،.؟]*$/i },
+    { key:'howAreYou',
+      test:/كيف حالك|كيفك|عامل ايه|عاملة ايه|اخبارك|أخبارك|how are you|how r u/i },
+    { key:'thanks',
+      test:/^\s*(شكرا|شكرًا|شكراً|مشكور|مشكورة|تسلم|تسلمي|يعطيك العافية|thank you|thanks|thx)[\s!،.]*$/i },
+    { key:'bye',
+      test:/^\s*(مع السلامة|الى اللقاء|إلى اللقاء|باي|وداعا|سلام|bye|goodbye|see you)[\s!،.]*$/i },
+    { key:'capability',
+      test:/ماذا تستطيع|ايه اللي تقدري|شو بتعرفي|تقدر تعمل ايه|what can you do|your abilities/i },
+    { key:'areYouHuman',
+      test:/انت انسان|أنت إنسان|انت روبوت|انت حقيقي|انتي حقيقية|are you (human|real|a robot|an ai)|بشر/i },
+    { key:'praise',
+      test:/^\s*(ممتاز|رائع|شاطرة|حلو|جميل|أحسنت|احسنت|great|awesome|nice|well done|perfect)[\s!،.]*$/i }
+  ];
+
+  function novaSocialAnswer(text){
+    const hit = NOVA_SOCIAL.find(function(x){ return x.test.test(text); });
+    if(!hit) return null;
+
+    // The greeting is personalised from the record the assistant already
+    // holds, so even "مرحبا" gets an answer only this system could give.
+    if(hit.key === 'greeting'){
+      const f = (typeof novaProgressFacts === 'function') ? novaProgressFacts() : null;
+      const name = f && f.name ? f.name.split(' ')[0] : '';
+      const due = f ? (f.due || 0) + (f.knowledgeDue || 0) : 0;
+      let msg = name ? fmt('socGreetName', { name: name }) : t('socGreet');
+      if(due > 0) msg += ' ' + fmt('socGreetDue', { n: due });
+      else if(f && f.dayStreak >= 3) msg += ' ' + fmt('socGreetStreak', { n: f.dayStreak });
+      return msg;
+    }
+    return t('soc' + hit.key.charAt(0).toUpperCase() + hit.key.slice(1));
   }
 
   /* ---- 1b. COLLOQUIAL INTENT MATCHING ----
@@ -19282,9 +19421,15 @@
     const concept = novaExplainConcept(text);
     if(concept){ novaSay(concept); return; }
 
-    // Emotional states come before everything. A child who writes "my brother
-    // laughs at me" is not asking about a feature, and matching them to one
-    // would be worse than saying nothing.
+    // Identity and greetings come first. They are about the conversation
+    // rather than the platform, and routing "من أنت؟" into the services
+    // catalogue is what made the assistant feel like a search box.
+    const social = novaSocialAnswer(text);
+    if(social){ novaSay(social); return; }
+
+    // Emotional states next. A child who writes "my brother laughs at me" is
+    // not asking about a feature, and matching them to one would be worse
+    // than saying nothing.
     const emotional = novaEmotional(text);
     if(emotional){ novaSay(emotional); return; }
 
@@ -20742,7 +20887,7 @@
     memberPrefix: 'NX'
   };
 
-  var DIAG_BUILD = 'jassi-2026-08-17-0930-0a9b5e7610fb';
+  var DIAG_BUILD = 'jassi-2026-08-17-0941-cda963d11b4c';
   var DIAG_BUILD_AT = '2026-08-17';
   /* Capability inventory: checks that each feature EXISTS in the running
      file, not that its name appears somewhere. A stale build fails these
@@ -28810,7 +28955,6 @@
   commandPaletteOverlay.addEventListener('click', e=>{
     if(e.target === commandPaletteOverlay) closeCommandPalette();
   });
-  cmdkLauncher.addEventListener('click', openCommandPalette);
   document.addEventListener('keydown', e=>{
     if((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k'){
       e.preventDefault();
