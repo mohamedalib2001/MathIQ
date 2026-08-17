@@ -6173,6 +6173,22 @@
       }
     }catch(e){}
   }
+  /* The saved key was written on every sign-in and never read back, so the
+     app had no session restore at all. Reading it here makes loggedInKey
+     accurate from the first moment rather than only after a manual pick. */
+  function restoreSavedSession(){
+    try{
+      const key = localStorage.getItem('mm_current_session');
+      if(!key || key === 'guest') return false;
+      const last = Number(localStorage.getItem('mm_session_last_activity')) || 0;
+      // An idle session past the timeout must NOT silently resume — that is
+      // the whole point of having a timeout.
+      if(last && (Date.now() - last) > SESSION_TIMEOUT_MS) return false;
+      if(!PROFILES[key]) return false;
+      loggedInKey = key;
+      return true;
+    }catch(e){ return false; }
+  }
   function touchSessionActivity(){
     try{
       if(localStorage.getItem('mm_current_session')) localStorage.setItem('mm_session_last_activity', String(Date.now()));
@@ -11001,7 +11017,17 @@
   // A session exists only when a real profile was authenticated. 'guest' is
   // explicitly NOT an identity — it never was one.
   function hasAuthenticatedSession(){
-    return !!(loggedInKey && loggedInKey !== 'guest' && PROFILES[loggedInKey]);
+    // loggedInKey is set in exactly ONE place — selectProfileAndGoToSettings —
+    // so a session restored from storage, or one already active when the page
+    // reloads, leaves it null. Every background service gated on this then
+    // refused to start, which is precisely what the diagnostics reported:
+    // challenge and message polling stopped while call watching (which never
+    // checked) kept running.
+    //
+    // currentProfile is the real indicator of who is using the app, so the
+    // guard is anchored there and loggedInKey is treated as a hint.
+    const key = loggedInKey || currentProfile;
+    return !!(key && key !== 'guest' && PROFILES[key]);
   }
   // Called before any protected screen opens. Returns false and sends the
   // visitor back to the login screen when there is no session.
@@ -21661,6 +21687,10 @@
      Boot-time restore paths cannot be relied on to survive the declarations
      that come after them. */
   setTimeout(function(){
+    // Restore the stored key FIRST: without it loggedInKey is null and every
+    // service below refuses to start, which is exactly the fault the
+    // diagnostics kept reporting.
+    if(typeof restoreSavedSession === 'function') restoreSavedSession();
     if(typeof startRealtimeServices === 'function') startRealtimeServices();
   }, 1200);
 
