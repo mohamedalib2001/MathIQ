@@ -21359,7 +21359,7 @@
     taglineArabic: 'تعلّم · تطوّر · ارتقِ'
   };
 
-  var DIAG_BUILD = 'jassi-2026-08-17-1213-588a2bd98904';
+  var DIAG_BUILD = 'jassi-2026-08-17-1216-04b12094f582';
   var DIAG_BUILD_AT = '2026-08-17';
   /* Capability inventory: checks that each feature EXISTS in the running
      file, not that its name appears somewhere. A stale build fails these
@@ -22280,6 +22280,252 @@
     chatInput.value = '';
     await chatSendOnce(text);
   }
+
+  /* ==================== JASSI MIND LAB — ENGINE ====================
+     A shared engine, not six separate games. Every activity supplies a config
+     and a generator; scoring, adaptation, error classification and skill
+     credit are handled once here — so adding a seventh game is a config, not
+     a rewrite.
+
+     Built ON TOP of what already exists rather than beside it: opStats,
+     classifyMistake, computeLevelMastery and the cognitive profile are the
+     platform's existing source of truth, and a parallel copy would drift.
+
+     Language throughout is about PERFORMANCE IN THESE ACTIVITIES. Nothing
+     here measures intelligence, and nothing claims to. */
+
+  const ML_KEY = 'jassiMindLab';
+
+  /* Skills are named as observable performance areas. No IQ, no diagnosis. */
+  const ML_SKILLS = ['numerical','memory','attention','pattern','logic','spatial','planning','speed'];
+
+  /* Mastery bands. Reaching one requires consistent performance ACROSS
+     difficulties — not a play count, which would reward grinding over
+     learning. */
+  const ML_BANDS = [
+    { min: 90, key:'mlBandMastery' },
+    { min: 75, key:'mlBandAdvanced' },
+    { min: 60, key:'mlBandProficient' },
+    { min: 40, key:'mlBandDeveloping' },
+    { min: 0,  key:'mlBandNovice' }
+  ];
+  function mlBandFor(v){ return ML_BANDS.find(function(b){ return v >= b.min; }) || ML_BANDS[4]; }
+
+  function mlLoad(){
+    try{
+      const raw = localStorage.getItem(ML_KEY);
+      const st = raw ? JSON.parse(raw) : {};
+      // A version marker so later changes can migrate rather than discard.
+      // Losing a learner's training history to a schema change is not
+      // acceptable, so nothing here ever deletes.
+      st.schemaVersion = st.schemaVersion || 1;
+      st.profiles = st.profiles || {};
+      return st;
+    }catch(e){ return { schemaVersion: 1, profiles: {} }; }
+  }
+  function mlSave(st){ try{ localStorage.setItem(ML_KEY, JSON.stringify(st)); }catch(e){} }
+
+  function mlMine(){
+    const st = mlLoad();
+    const key = currentProfile || 'guest';
+    st.profiles[key] = st.profiles[key] || {
+      skills: {},       // skill -> { attempts, correct, sumTime, level, best }
+      sessions: [],     // completed sessions, newest last
+      records: {},      // per-game personal bests
+      streak: 0, lastDay: null
+    };
+    return { st: st, me: st.profiles[key] };
+  }
+
+  /* ---- ADAPTIVE DIFFICULTY ----
+     The rule is a target band, not a ladder. Someone answering everything
+     correctly is not being trained, and someone failing most of it is being
+     discouraged — both are wasted practice. 70–85% is where effort produces
+     learning, so the engine steers there. */
+  function mlNextLevel(level, acc, avgMs, targetMs){
+    if(acc >= 0.90 && avgMs <= targetMs) return Math.min(10, level + 1);
+    if(acc < 0.60) return Math.max(1, level - 1);
+    return level;   // inside the band: hold, and let variation do the work
+  }
+
+  /* ---- SCORING ----
+     Accuracy dominates deliberately. Weighting speed above correctness would
+     teach guessing, which is the opposite of the point. */
+  function mlScore(o){
+    const acc = o.total ? o.correct / o.total : 0;
+    const diff = Math.min(1, (o.level || 1) / 10);
+    const consistency = o.consistency === null || o.consistency === undefined ? 0.5 : o.consistency;
+    const eff = o.targetMs && o.avgMs ? Math.max(0, Math.min(1, o.targetMs / Math.max(1, o.avgMs))) : 0.5;
+    const improvement = o.improvement === null || o.improvement === undefined ? 0.5 : o.improvement;
+    return Math.round(100 * (acc * 0.45 + diff * 0.20 + consistency * 0.15 + eff * 0.10 + improvement * 0.10));
+  }
+
+  /* Consistency = how steady the response times are. A learner alternating
+     between instant and stalled has not automated the skill, even at the same
+     accuracy — so it is measured separately rather than folded into speed. */
+  function mlConsistency(times){
+    if(!times || times.length < 3) return null;
+    const mean = times.reduce(function(a,b){ return a+b; }, 0) / times.length;
+    if(mean <= 0) return null;
+    const variance = times.reduce(function(a,b){ return a + Math.pow(b-mean, 2); }, 0) / times.length;
+    const cv = Math.sqrt(variance) / mean;      // coefficient of variation
+    return Math.max(0, Math.min(1, 1 - cv));
+  }
+
+  /* ---- SKILL CREDIT ---- */
+  function mlCredit(me, skills, correct, ms){
+    (skills || []).forEach(function(sk){
+      const s = me.skills[sk] || { attempts:0, correct:0, sumTime:0, level:1, best:0 };
+      s.attempts++; if(correct) s.correct++;
+      s.sumTime += ms || 0;
+      me.skills[sk] = s;
+    });
+  }
+
+  /* A skill score is withheld until there is enough evidence — the same rule
+     the certificate uses. An encouraging number built on four attempts is
+     worse than an honest gap. */
+  const ML_MIN_ATTEMPTS = 20;
+  function mlSkillScore(me, sk){
+    const s = me.skills[sk];
+    if(!s || s.attempts < ML_MIN_ATTEMPTS) return null;
+    return Math.round((s.correct / s.attempts) * 100);
+  }
+
+  /* ---- SESSION ---- */
+  function mlStartSession(gameId, level){
+    return { gameId: gameId, level: level || 1, startedAt: Date.now(),
+             attempts: [], times: [], correct: 0, total: 0 };
+  }
+  function mlRecord(sess, o){
+    sess.total++;
+    if(o.correct) sess.correct++;
+    sess.times.push(o.ms);
+    // Error type is recorded, never a diagnosis — "observed error pattern".
+    sess.attempts.push({ correct:o.correct, ms:o.ms, level:sess.level, errorType:o.errorType || null, hints:o.hints || 0 });
+  }
+  function mlFinishSession(sess, cfg){
+    const ctx = mlMine();
+    const acc = sess.total ? sess.correct / sess.total : 0;
+    const avgMs = sess.times.length ? sess.times.reduce(function(a,b){return a+b;},0) / sess.times.length : 0;
+    const consistency = mlConsistency(sess.times);
+
+    // Improvement compares against this learner's own previous session on the
+    // same game — the only comparison that is fair and the only one shown.
+    const prev = ctx.me.sessions.filter(function(x){ return x.gameId === sess.gameId; }).slice(-1)[0];
+    const improvement = prev ? Math.max(0, Math.min(1, 0.5 + (acc - prev.accuracy))) : null;
+
+    const score = mlScore({ correct:sess.correct, total:sess.total, level:sess.level,
+      consistency:consistency, avgMs:avgMs, targetMs:cfg.targetMs, improvement:improvement });
+
+    mlCredit(ctx.me, cfg.skills, false, 0);   // ensure the skill rows exist
+    sess.attempts.forEach(function(a){ mlCredit(ctx.me, cfg.skills, a.correct, a.ms); });
+
+    const nextLevel = mlNextLevel(sess.level, acc, avgMs, cfg.targetMs);
+    const rec = ctx.me.records[sess.gameId] || { bestScore:0, bestAccuracy:0, bestLevel:1, fastestMs:null };
+    rec.bestScore = Math.max(rec.bestScore, score);
+    rec.bestAccuracy = Math.max(rec.bestAccuracy, Math.round(acc * 100));
+    rec.bestLevel = Math.max(rec.bestLevel, sess.level);
+    const fastCorrect = sess.attempts.filter(function(a){ return a.correct; }).map(function(a){ return a.ms; });
+    if(fastCorrect.length){
+      const f = Math.min.apply(null, fastCorrect);
+      rec.fastestMs = rec.fastestMs === null ? f : Math.min(rec.fastestMs, f);
+    }
+    ctx.me.records[sess.gameId] = rec;
+
+    // Streak counts DAYS trained, not sessions — repeating a game five times
+    // in one sitting is not five days of practice.
+    const today = new Date().toISOString().slice(0,10);
+    if(ctx.me.lastDay !== today){
+      const yest = new Date(Date.now() - 86400000).toISOString().slice(0,10);
+      ctx.me.streak = (ctx.me.lastDay === yest) ? (ctx.me.streak + 1) : 1;
+      ctx.me.lastDay = today;
+    }
+
+    const summary = { gameId:sess.gameId, at:Date.now(), level:sess.level, nextLevel:nextLevel,
+      accuracy:acc, avgMs:Math.round(avgMs), consistency:consistency, score:score,
+      correct:sess.correct, total:sess.total };
+    ctx.me.sessions.push(summary);
+    if(ctx.me.sessions.length > 120) ctx.me.sessions.shift();   // bounded history
+    mlSave(ctx.st);
+    return summary;
+  }
+
+  /* ---- ERROR INTELLIGENCE ----
+     Describes what was observed. Never a psychological claim. */
+  function mlClassifyArithmetic(expected, given, a, b, op){
+    if(given === null || given === undefined || given === '') return 'timeout';
+    const g = Number(given);
+    if(isNaN(g)) return 'invalid';
+    const diff = Math.abs(g - expected);
+    if(diff === 10 || diff === 100) return 'carry';         // place-value slip
+    if(op === '+' && g === a - b) return 'operation';
+    if(op === '-' && g === a + b) return 'operation';
+    if(op === '×' && g === a + b) return 'operation';
+    if(diff <= 2) return 'arithmetic';                       // near miss
+    return 'other';
+  }
+
+  /* ==================== MIND LAB — GAME REGISTRY ====================
+     Each game is a config plus a generator. The engine owns scoring,
+     adaptation and skill credit, so a new activity is an entry here rather
+     than a new subsystem. */
+  const ML_GAMES = [
+    {
+      id:'mental-sprint', nameKey:'mlG1Name', descKey:'mlG1Desc', icon:'⚡',
+      skills:['numerical','speed','attention'], targetMs:4000, rounds:10,
+      generate: function(level){
+        // Range and step count both grow with level, so difficulty is a
+        // property of the question rather than a countdown on the clock.
+        const ops = level <= 2 ? ['+'] : (level <= 4 ? ['+','-'] : (level <= 7 ? ['+','-','×'] : ['+','-','×','÷']));
+        const op = ops[Math.floor(Math.random() * ops.length)];
+        const max = [10,20,50,99,99,99,999,999,999,999][Math.min(9, level-1)];
+        let a = 2 + Math.floor(Math.random() * max), b = 2 + Math.floor(Math.random() * max);
+        if(op === '×'){ a = 2 + Math.floor(Math.random() * (level <= 6 ? 9 : 19)); b = 2 + Math.floor(Math.random() * 12); }
+        if(op === '÷'){ b = 2 + Math.floor(Math.random() * 12); a = b * (2 + Math.floor(Math.random() * 12)); }
+        if(op === '-' && b > a){ const t = a; a = b; b = t; }
+        const answer = op === '+' ? a+b : (op === '-' ? a-b : (op === '×' ? a*b : a/b));
+        return { prompt: a + ' ' + op + ' ' + b, answer: answer, a:a, b:b, op:op,
+                 hints: [ t('mlG1Hint1'), fmt('mlG1Hint2', { op: op }), fmt('mlG1Hint3', { a:a, b:b }) ],
+                 explain: fmt('mlG1Explain', { a:a, op:op, b:b, r:answer }) };
+      },
+      classify: function(q, given){ return mlClassifyArithmetic(q.answer, given, q.a, q.b, q.op); }
+    },
+    {
+      id:'number-pattern', nameKey:'mlG2Name', descKey:'mlG2Desc', icon:'🔢',
+      skills:['pattern','logic','numerical'], targetMs:9000, rounds:8,
+      generate: function(level){
+        // The rule itself gets harder, not just the numbers — an arithmetic
+        // step at level 9 would be pattern practice in name only.
+        const kinds = level <= 2 ? ['add'] : (level <= 4 ? ['add','mul'] : (level <= 7 ? ['add','mul','addmul'] : ['add','mul','addmul','alt']));
+        const kind = kinds[Math.floor(Math.random() * kinds.length)];
+        const start = 1 + Math.floor(Math.random() * 6);
+        let seq = [start], rule = '', step;
+        if(kind === 'add'){ step = 2 + Math.floor(Math.random()*7);
+          for(var i=0;i<4;i++) seq.push(seq[i] + step); rule = '+' + step; }
+        else if(kind === 'mul'){ step = 2 + Math.floor(Math.random()*2);
+          for(var j=0;j<4;j++) seq.push(seq[j] * step); rule = '×' + step; }
+        else if(kind === 'addmul'){ step = 1 + Math.floor(Math.random()*3);
+          for(var k=0;k<4;k++) seq.push(seq[k]*2 + step); rule = '×2 ' + (step>=0?'+':'') + step; }
+        else { const p = 3 + Math.floor(Math.random()*4);
+          for(var m=0;m<4;m++) seq.push(m % 2 === 0 ? seq[m] + p : seq[m] * 2);
+          rule = t('mlG2RuleAlt') + ' +' + p + ' / ×2'; }
+        const answer = seq.pop();
+        return { prompt: seq.join('  →  ') + '  →  ؟', answer: answer, rule: rule,
+                 hints: [ t('mlG2Hint1'), t('mlG2Hint2'), fmt('mlG2Hint3', { r: rule }) ],
+                 explain: fmt('mlG2Explain', { r: rule, n: answer }) };
+      },
+      classify: function(q, given){
+        if(given === null || given === '') return 'timeout';
+        const g = Number(given); if(isNaN(g)) return 'invalid';
+        // Naming WHICH way the reasoning went wrong is what makes the
+        // feedback useful rather than just "incorrect".
+        if(Math.abs(g - q.answer) <= 2) return 'calculation';
+        return 'rule';
+      }
+    }
+  ];
+  function mlGame(id){ return ML_GAMES.find(function(g){ return g.id === id; }); }
 
   /* ==================== EXECUTIVE COMMAND CENTER ====================
      Owner-only. Every figure comes from executive_overview, which returns a
