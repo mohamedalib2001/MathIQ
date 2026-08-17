@@ -1323,13 +1323,28 @@
   .dp-qr{ width:62px; height:62px; background:#fff; padding:4px; border-radius:5px; margin:8px auto 0; }
   .dp-qr img, .dp-qr canvas{ width:100% !important; height:100% !important; display:block; }
 
+  /* The crest is now the JASSI mark itself, drawn on the certificate's own
+     dark ground. The previous rule filled a gold rounded SQUARE behind it, so
+     the mark landed on a slab of gold and read as a grey smudge in the middle
+     of the document — the fault reported. A credential's emblem should sit in
+     open space, framed by a hairline, not stamped on a coloured tile. */
   .dp-crest{
-    position:relative; z-index:3; width:74px; height:74px; margin:56px auto 6px;
-    border-radius:14px; background:linear-gradient(150deg,#f0d68a,#a3801c);
+    position:relative; z-index:3; width:86px; height:86px; margin:52px auto 10px;
+    border-radius:50%;
+    background:radial-gradient(circle at 50% 42%, rgba(240,214,138,0.16), transparent 68%);
+    border:1px solid rgba(240,214,138,0.42);
+    box-shadow:0 0 0 6px rgba(240,214,138,0.05), 0 8px 26px rgba(0,0,0,0.5);
     display:flex; align-items:center; justify-content:center;
-    box-shadow:0 1px 0 rgba(255,255,255,0.5) inset, 0 6px 18px rgba(0,0,0,0.5);
+    background-repeat:no-repeat; background-position:center; background-size:62%;
   }
-  .dp-crest span{ font-weight:800; font-size:38px; color:#0a1526; }
+  /* A fine gold rule either side of the crest — the visual language of a
+     printed credential rather than an app icon. */
+  .dp-crest::before, .dp-crest::after{
+    content:''; position:absolute; top:50%; width:96px; height:1px;
+    background:linear-gradient(90deg, transparent, rgba(240,214,138,0.55));
+  }
+  .dp-crest::before{ inset-inline-end:calc(100% + 22px); }
+  .dp-crest::after{ inset-inline-start:calc(100% + 22px); transform:scaleX(-1); }
   .dp-title{ position:relative; z-index:3; font-size:48px; font-weight:800; color:#f0d68a; margin:6px 0 0; line-height:1.15; }
   .dp-title-en{ position:relative; z-index:3; font-size:10px; letter-spacing:6px; color:#d4af37; margin-top:6px; }
   .dp-tagline{ position:relative; z-index:3; font-size:14px; color:#b9c6da; margin-top:12px; }
@@ -1926,11 +1941,12 @@
 
   .sk-head{ position:relative; z-index:2; display:flex; align-items:center; justify-content:space-between; gap:24px; }
   .sk-crest{
-    width:76px; height:76px; border-radius:15px; flex:none;
+    width:76px; height:76px; border-radius:50%; flex:none;
     display:flex; align-items:center; justify-content:center;
-    background:linear-gradient(150deg,#f0d68a,#c9a94f); color:#0a0f1a;
-    font-family:'Cairo',sans-serif; font-weight:800; font-size:40px;
-    box-shadow:0 8px 26px rgba(240,214,138,0.24);
+    background:radial-gradient(circle at 50% 42%, rgba(240,214,138,0.18), transparent 70%);
+    border:1px solid rgba(240,214,138,0.42);
+    background-repeat:no-repeat; background-position:center; background-size:64%;
+    box-shadow:0 0 0 5px rgba(240,214,138,0.05);
   }
   .sk-brand{ flex:1; text-align:center; }
   .sk-brand-ar{ font-family:'Cairo',sans-serif; font-weight:800; font-size:21px; color:#f0d68a; }
@@ -2520,6 +2536,77 @@
   /* Flagged amber once the running file is more than a day old — the usual
      symptom of an upload that did not land. */
   .build-stamp.stale{ color:#F59E0B; opacity:.85; }
+
+  /* ---------- JASSI MIND LAB ----------
+     Scientific and calm, not arcade. No confetti, no neon, no reward
+     animation — the brief is explicit that mastery outranks reward, and a
+     celebratory interface teaches the opposite. */
+  .ml-hero{ text-align:center; padding:6px 0 20px; }
+  .ml-eyebrow{ font-size:10px; letter-spacing:4px; color:var(--jassi-secondary); font-weight:700; }
+  .ml-title{ font-family:'Cairo',sans-serif; font-weight:800; font-size:clamp(21px,3.2vw,30px);
+    color:var(--ink); margin-top:9px; }
+  .ml-sub{ font-size:13px; color:var(--ink-dim); margin-top:8px; line-height:1.8; }
+  .ml-section-label{ font-size:10.5px; letter-spacing:2.4px; color:var(--ink-dim);
+    font-weight:700; margin:22px 0 11px; }
+
+  .ml-today{ background:linear-gradient(160deg, rgba(108,61,255,0.13), rgba(108,61,255,0.04));
+    border:1px solid rgba(168,133,247,0.30); border-radius:15px; padding:17px; }
+  .ml-today-line{ font-size:13.5px; color:var(--ink); line-height:1.9; }
+  .ml-today-meta{ font-size:11.5px; color:var(--ink-dim); margin-top:7px; }
+
+  .ml-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(210px,1fr)); gap:12px; }
+  .ml-card{ background:var(--input-bg); border:1px solid var(--chip-border);
+    border-radius:14px; padding:16px; cursor:pointer; transition:border-color .18s, transform .18s; }
+  .ml-card:hover{ border-color:var(--jassi-secondary); transform:translateY(-2px); }
+  .ml-card:focus-visible{ outline:3px solid var(--jassi-secondary); outline-offset:2px; }
+  .ml-card-icon{ font-size:24px; }
+  .ml-card-name{ font-family:'Cairo',sans-serif; font-weight:800; font-size:15px;
+    color:var(--ink); margin-top:9px; }
+  .ml-card-desc{ font-size:11.5px; color:var(--ink-dim); margin-top:6px; line-height:1.8; }
+  /* Each card names the skills it trains — the brief's central question,
+     "what skill are we training?", answered on the card itself. */
+  .ml-card-skills{ display:flex; flex-wrap:wrap; gap:5px; margin-top:11px; }
+  .ml-chip{ font-size:9.5px; padding:3px 8px; border-radius:20px;
+    background:rgba(168,133,247,0.14); color:#c4b5fd; }
+  .ml-card-stat{ font-size:10px; color:var(--ink-dim); margin-top:9px; }
+
+  .ml-skills{ display:grid; grid-template-columns:repeat(auto-fit, minmax(160px,1fr)); gap:10px; }
+  .ml-skill{ background:var(--input-bg); border:1px solid var(--chip-border);
+    border-radius:12px; padding:12px 14px; }
+  .ml-skill-name{ font-size:12px; color:var(--ink); }
+  .ml-skill-val{ font-family:'Cairo',sans-serif; font-weight:800; font-size:21px;
+    color:var(--jassi-secondary); margin-top:4px; }
+  .ml-skill-val.none{ color:var(--ink-dim); font-size:14px; }
+  .ml-skill-bar{ height:4px; border-radius:3px; background:rgba(255,255,255,0.07);
+    margin-top:8px; overflow:hidden; }
+  .ml-skill-fill{ height:100%; background:linear-gradient(90deg,var(--jassi-primary),var(--jassi-secondary)); }
+  .ml-skill-note{ font-size:9.5px; color:var(--ink-dim); margin-top:6px; }
+
+  /* ---- play surface ---- */
+  .ml-play-top{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
+  .ml-play-name{ font-family:'Cairo',sans-serif; font-weight:800; font-size:15px; color:var(--ink); }
+  .ml-play-meta{ font-size:11px; color:var(--ink-dim); }
+  .ml-progress{ height:4px; border-radius:3px; background:var(--input-bg); margin:12px 0 0; overflow:hidden; }
+  .ml-progress-bar{ height:100%; width:0; background:linear-gradient(90deg,var(--jassi-primary),var(--jassi-secondary));
+    transition:width .3s ease; }
+  @media (prefers-reduced-motion: reduce){ .ml-progress-bar{ transition:none; } }
+
+  .ml-stage{ text-align:center; padding:34px 8px 18px; }
+  .ml-prompt{ font-family:'Cairo',sans-serif; font-weight:800;
+    font-size:clamp(28px,7vw,46px); color:var(--ink); direction:ltr; line-height:1.35; }
+  .ml-answer{ width:min(240px,80%); margin:24px auto 0; display:block; text-align:center;
+    font-size:24px; padding:14px; border-radius:12px; }
+  .ml-feedback{ min-height:58px; margin-top:16px; font-size:13px; line-height:1.9; }
+  .ml-feedback.ok{ color:#34d399; } .ml-feedback.no{ color:#fca5a5; }
+  .ml-feedback-explain{ display:block; color:var(--ink-dim); font-size:12px; margin-top:7px; }
+  .ml-actions{ display:flex; gap:8px; flex-wrap:wrap; }
+  .ml-actions button{ flex:1; min-width:110px; margin:0; }
+
+  .ml-sum-row{ display:flex; align-items:center; justify-content:space-between;
+    padding:12px 14px; border-bottom:1px solid var(--chip-border); font-size:13px; }
+  .ml-sum-row:last-child{ border-bottom:none; }
+  .ml-sum-val{ font-family:'Cairo',sans-serif; font-weight:800; color:var(--ink); }
+  .ml-sum-note{ font-size:12px; color:var(--ink-dim); line-height:1.9; padding:14px; }
 
   /* ---------- JASSI BRAND MARK ----------
      Applied as a background so any element can carry the mark without extra
@@ -4699,6 +4786,60 @@
     </div>
   </div>
 
+  <!-- ==================== JASSI MIND LAB ====================
+       The cognitive training section. Deliberately not an arcade: every
+       activity states the skills it trains, and the summary reports measured
+       performance rather than a celebration. -->
+  <div id="mindLabScreen" class="panel hidden">
+    <div class="ml-hero">
+      <div class="ml-eyebrow" data-i18n="mlEyebrow">JASSI MIND LAB</div>
+      <div class="ml-title" data-i18n="mlTitle">مختبر جاسي للعقل والذكاء</div>
+      <div class="ml-sub" data-i18n="mlSub">تدرّب بذكاء. افهم أداءك. طوّر مهاراتك.</div>
+    </div>
+
+    <div class="ml-section-label" data-i18n="mlTodayTitle">جلسة اليوم</div>
+    <div class="ml-today" id="mlToday"></div>
+
+    <div class="ml-section-label" data-i18n="mlGamesTitle">التمارين المعرفية</div>
+    <div class="ml-grid" id="mlGrid"></div>
+
+    <div class="ml-section-label" data-i18n="mlSkillsTitle">مهاراتك المقاسة</div>
+    <div class="ml-skills" id="mlSkills"></div>
+
+    <button class="secondary-btn" id="mlCloseBtn" data-i18n="closeBtn">إغلاق</button>
+  </div>
+
+  <!-- The play surface. One shell serves every activity — the engine supplies
+       the question, so a seventh game needs no new screen. -->
+  <div id="mlPlayScreen" class="panel hidden">
+    <div class="ml-play-top">
+      <span class="ml-play-name" id="mlPlayName"></span>
+      <span class="ml-play-meta" id="mlPlayMeta"></span>
+    </div>
+    <div class="ml-progress"><div class="ml-progress-bar" id="mlProgressBar"></div></div>
+
+    <div class="ml-stage">
+      <div class="ml-prompt" id="mlPrompt"></div>
+      <input type="number" inputmode="numeric" id="mlAnswer" class="ltr-input ml-answer"
+             data-i18n-placeholder="mlAnswerPlaceholder" placeholder="إجابتك">
+      <div class="ml-feedback" id="mlFeedback"></div>
+    </div>
+
+    <div class="ml-actions">
+      <button class="start-btn" id="mlSubmitBtn" data-i18n="mlSubmit">تحقّق</button>
+      <button class="secondary-btn" id="mlHintBtn" data-i18n="mlHint">💡 تلميح</button>
+      <button class="secondary-btn" id="mlQuitBtn" data-i18n="mlQuit">إنهاء</button>
+    </div>
+  </div>
+
+  <!-- Session summary: what was measured, and what to do next. -->
+  <div id="mlSummaryScreen" class="panel hidden">
+    <div class="ml-section-label" data-i18n="mlSummaryTitle">ملخّص الجلسة</div>
+    <div id="mlSummaryBody"></div>
+    <button class="start-btn" id="mlAgainBtn" data-i18n="mlAgain">▶ جلسة أخرى</button>
+    <button class="secondary-btn" id="mlBackBtn" data-i18n="mlBack">العودة للمختبر</button>
+  </div>
+
   <!-- SMART LOADER
        A blank screen during a wait tells the learner nothing, and a spinner
        tells them only "something". This names the actual step in progress and
@@ -6204,9 +6345,13 @@
     scope.querySelectorAll('.jassi-mark').forEach(function(el){
       // Small placements get the compact variant: the full mark below 24px
       // loses its tassel and spark and reads as a smudge.
+      // Credentials get the metal variant; the app gets the brand colours.
+      const gold = el.classList.contains('jassi-mark-gold') ||
+                   el.closest('#diplomaTemplate, #skillTemplate, #certTemplate, .mc-card');
       const compact = el.classList.contains('jassi-mark-sm');
       el.style.backgroundImage = 'url("' +
-        (compact ? APP_BRAND.logoMarkCompact : APP_BRAND.logoMark) + '")';
+        (gold ? APP_BRAND.logoMarkGold
+              : (compact ? APP_BRAND.logoMarkCompact : APP_BRAND.logoMark)) + '")';
     });
   }
 
@@ -6223,6 +6368,25 @@
   const exRefreshBtn = document.getElementById('exRefreshBtn');
   const exCloseBtn = document.getElementById('exCloseBtn');
   const execCenterLink = document.getElementById('execCenterLink');
+  const mindLabScreen = document.getElementById('mindLabScreen');
+  const mlToday = document.getElementById('mlToday');
+  const mlGrid = document.getElementById('mlGrid');
+  const mlSkills = document.getElementById('mlSkills');
+  const mlCloseBtn = document.getElementById('mlCloseBtn');
+  const mlPlayScreen = document.getElementById('mlPlayScreen');
+  const mlPlayName = document.getElementById('mlPlayName');
+  const mlPlayMeta = document.getElementById('mlPlayMeta');
+  const mlProgressBar = document.getElementById('mlProgressBar');
+  const mlPrompt = document.getElementById('mlPrompt');
+  const mlAnswer = document.getElementById('mlAnswer');
+  const mlFeedback = document.getElementById('mlFeedback');
+  const mlSubmitBtn = document.getElementById('mlSubmitBtn');
+  const mlHintBtn = document.getElementById('mlHintBtn');
+  const mlQuitBtn = document.getElementById('mlQuitBtn');
+  const mlSummaryScreen = document.getElementById('mlSummaryScreen');
+  const mlSummaryBody = document.getElementById('mlSummaryBody');
+  const mlAgainBtn = document.getElementById('mlAgainBtn');
+  const mlBackBtn = document.getElementById('mlBackBtn');
   const chalOutScreen = document.getElementById('chalOutScreen');
   const chalOutList = document.getElementById('chalOutList');
   const coCloseBtn = document.getElementById('coCloseBtn');
@@ -8183,6 +8347,49 @@
       exOwnerOnly:'هذه الشاشة لحساب المالك فقط.',
       bsToday:'نسخة اليوم', bsDaysOld:'عمرها {n} يومًا',
       bsCopied:'✓ نُسخ رقم النسخة.', bsCopyHint:'اضغط لنسخ رقم النسخة',
+      mlEyebrow:'JASSI MIND LAB', mlNavLabel:'مختبر العقل',
+      mlTitle:'مختبر جاسي للعقل والذكاء',
+      mlSub:'تدرّب بذكاء. افهم أداءك. طوّر مهاراتك.',
+      mlTodayTitle:'جلسة اليوم', mlGamesTitle:'التمارين المعرفية', mlSkillsTitle:'مهاراتك المقاسة',
+      mlWhyStart:'ابدأ بأول جلسة، وسأقيس مهاراتك من أدائك الفعلي.',
+      mlWhyWeak:'أقل مهاراتك قياسًا الآن: {s} ({v}%). هذا التمرين يدرّبها.',
+      mlTodayMeta:'{g} · {n} تحديات · المستوى {l}',
+      mlStartToday:'▶ ابدأ جلسة اليوم',
+      mlBest:'أفضل نتيجة {s} · أعلى مستوى {l}', mlNotStarted:'لم تبدأ بعد',
+      mlNotMeasured:'لم تُقَس بعد', mlNeedAttempts:'تحتاج {n} محاولة أخرى للقياس',
+      mlSkill_numerical:'الاستدلال العددي', mlSkill_memory:'الذاكرة العاملة',
+      mlSkill_attention:'الانتباه', mlSkill_pattern:'اكتشاف الأنماط',
+      mlSkill_logic:'الاستدلال المنطقي', mlSkill_spatial:'التصور المكاني',
+      mlSkill_planning:'التخطيط', mlSkill_speed:'سرعة المعالجة',
+      mlBandMastery:'إتقان', mlBandAdvanced:'متقدّم', mlBandProficient:'كفء',
+      mlBandDeveloping:'قيد التطوّر', mlBandNovice:'مبتدئ',
+      mlG1Name:'العدّ السريع', mlG1Desc:'حساب ذهني متدرّج يقيس الدقة وسرعة الاستدعاء.',
+      mlG1Hint1:'خذ نفسًا واقرأ العملية مرة أخرى — أي عملية هي؟',
+      mlG1Hint2:'العملية هنا {op}. طبّقها خطوة خطوة بدل الحساب دفعة واحدة.',
+      mlG1Hint3:'جزّئ الأرقام: ابدأ بالعشرات في {a} ثم الآحاد، وبعدها {b}.',
+      mlG1Explain:'{a} {op} {b} = {r}',
+      mlG2Name:'نمط الأرقام', mlG2Desc:'اكتشاف القاعدة خلف متتالية — استدلال استقرائي.',
+      mlG2Hint1:'قارن كل رقم بالذي قبله: هل يزيد بمقدار ثابت أم يتضاعف؟',
+      mlG2Hint2:'إن لم يكن الفرق ثابتًا، جرّب الضرب — أو تناوبًا بين عمليتين.',
+      mlG2Hint3:'القاعدة من نوع: {r}',
+      mlG2Explain:'القاعدة هي {r}، فالرقم التالي {n}.', mlG2RuleAlt:'متناوبة',
+      mlPlayMeta:'{n} من {total} · المستوى {l}', mlAnswerPlaceholder:'إجابتك',
+      mlSubmit:'تحقّق', mlHint:'💡 تلميح', mlQuit:'إنهاء',
+      mlRight:'✓ صحيح.', mlWrong:'✗ ليست الإجابة الصحيحة.',
+      mlErr_carry:'يبدو أنها زلة في المنازل (عشرات/مئات).',
+      mlErr_operation:'يبدو أنك طبّقت عملية أخرى.',
+      mlErr_arithmetic:'قريب جدًا — زلة حسابية بسيطة.',
+      mlErr_timeout:'لم تصل إجابة هذه المرة.',
+      mlErr_invalid:'الإجابة يجب أن تكون رقمًا.',
+      mlErr_other:'راجع الخطوات مرة أخرى.',
+      mlErr_calculation:'القاعدة صحيحة على الأرجح، لكن الحساب زلّ.',
+      mlErr_rule:'يبدو أن القاعدة قُرئت بشكل مختلف.',
+      mlSummaryTitle:'ملخّص الجلسة', mlAgain:'▶ جلسة أخرى', mlBack:'العودة للمختبر',
+      mlSumAccuracy:'الدقة', mlSumCorrect:'الإجابات الصحيحة', mlSumTime:'متوسط الوقت',
+      mlSumScore:'مؤشر الأداء', mlSumLevel:'المستوى', mlSumConsistency:'ثبات الأداء', mlSec:' ث',
+      mlNoteUp:'أداؤك في هذه الجلسة يسمح برفع المستوى — التحدي القادم أصعب قليلًا.',
+      mlNoteDown:'خفّضت المستوى قليلًا لتتدرّب في نطاق يمنحك تقدّمًا حقيقيًا، لا إحباطًا.',
+      mlNoteHold:'مستواك ثابت — أنت في النطاق الذي ينتج فيه التدريب أفضل تحسّن.',
       coTitle:'تحدياتي المُرسَلة', coNavLabel:'تحدياتي',
       coNote:'هنا كل تحدٍّ أرسلته وحالته. يمكنك سحب أي دعوة لم يُرَد عليها بعد.',
       coEmpty:'لم ترسل أي تحدٍّ بعد. افتح «أصدقائي» وتحدَّ صديقًا.',
@@ -9732,6 +9939,49 @@
       exOwnerOnly:'This screen is for the owner account only.',
       bsToday:"today's build", bsDaysOld:'{n} days old',
       bsCopied:'✓ Build stamp copied.', bsCopyHint:'Tap to copy the build stamp',
+      mlEyebrow:'JASSI MIND LAB', mlNavLabel:'Mind Lab',
+      mlTitle:'JASSI Mind Lab',
+      mlSub:'Train deliberately. Understand your performance. Build your skills.',
+      mlTodayTitle:"Today's session", mlGamesTitle:'Cognitive activities', mlSkillsTitle:'Your measured skills',
+      mlWhyStart:'Start your first session and I will measure your skills from real performance.',
+      mlWhyWeak:'Your lowest measured skill right now: {s} ({v}%). This activity trains it.',
+      mlTodayMeta:'{g} · {n} challenges · level {l}',
+      mlStartToday:"▶ Start today's session",
+      mlBest:'Best score {s} · highest level {l}', mlNotStarted:'not started yet',
+      mlNotMeasured:'not yet measured', mlNeedAttempts:'{n} more attempts needed to measure',
+      mlSkill_numerical:'Numerical reasoning', mlSkill_memory:'Working memory',
+      mlSkill_attention:'Attention', mlSkill_pattern:'Pattern recognition',
+      mlSkill_logic:'Logical reasoning', mlSkill_spatial:'Visual-spatial reasoning',
+      mlSkill_planning:'Planning', mlSkill_speed:'Processing speed',
+      mlBandMastery:'Mastery', mlBandAdvanced:'Advanced', mlBandProficient:'Proficient',
+      mlBandDeveloping:'Developing', mlBandNovice:'Novice',
+      mlG1Name:'Mental Sprint', mlG1Desc:'Graded mental arithmetic measuring accuracy and recall speed.',
+      mlG1Hint1:'Take a breath and read the operation again — which one is it?',
+      mlG1Hint2:'The operation here is {op}. Apply it step by step rather than all at once.',
+      mlG1Hint3:'Break the numbers up: start with the tens in {a}, then the units, then {b}.',
+      mlG1Explain:'{a} {op} {b} = {r}',
+      mlG2Name:'Number Pattern', mlG2Desc:'Find the rule behind a sequence — inductive reasoning.',
+      mlG2Hint1:'Compare each number with the one before: constant increase, or doubling?',
+      mlG2Hint2:'If the difference is not constant, try multiplication — or two rules alternating.',
+      mlG2Hint3:'The rule is of the form: {r}',
+      mlG2Explain:'The rule is {r}, so the next number is {n}.', mlG2RuleAlt:'alternating',
+      mlPlayMeta:'{n} of {total} · level {l}', mlAnswerPlaceholder:'your answer',
+      mlSubmit:'Check', mlHint:'💡 Hint', mlQuit:'Finish',
+      mlRight:'✓ Correct.', mlWrong:'✗ Not the right answer.',
+      mlErr_carry:'That looks like a place-value slip (tens/hundreds).',
+      mlErr_operation:'It looks like a different operation was applied.',
+      mlErr_arithmetic:'Very close — a small arithmetic slip.',
+      mlErr_timeout:'No answer came through this time.',
+      mlErr_invalid:'The answer needs to be a number.',
+      mlErr_other:'Work through the steps once more.',
+      mlErr_calculation:'The rule was probably right, but the arithmetic slipped.',
+      mlErr_rule:'The rule seems to have been read differently.',
+      mlSummaryTitle:'Session summary', mlAgain:'▶ Another session', mlBack:'Back to the lab',
+      mlSumAccuracy:'Accuracy', mlSumCorrect:'Correct answers', mlSumTime:'Average time',
+      mlSumScore:'Performance index', mlSumLevel:'Level', mlSumConsistency:'Consistency', mlSec:'s',
+      mlNoteUp:'Your performance supports a higher level — the next challenge is slightly harder.',
+      mlNoteDown:'I lowered the level so you train in a range that produces real progress rather than frustration.',
+      mlNoteHold:'Your level holds — this is the range where practice produces the best improvement.',
       coTitle:'My sent challenges', coNavLabel:'My challenges',
       coNote:'Every challenge you sent and its status. You can withdraw any invitation that has not been answered.',
       coEmpty:'You have not sent a challenge yet. Open "Friends" and challenge someone.',
@@ -15991,6 +16241,7 @@
         { icon:nxIcon('target'), label:t('spMyNavLabel'), run: ()=> openMyPlan() },
         { icon:nxIcon('calendar'), label:t('schMyNavLabel'), run: ()=> openMySchedule() },
         { icon:nxIcon('trophy'), label:t('coNavLabel'), run: ()=> openOutgoingChallenges() },
+        { icon:nxIcon('brain'), label:t('mlNavLabel'), run: ()=> openMindLab() },
         { icon:nxIcon('book'), label:t('shellNavJourney'), run: ()=>{ if(isServiceOn('knowledgeMap')) knowledgeMapOpenBtn.click(); } },
         { icon:nxIcon('puzzle'), label:t('shellNavSkills'), run: ()=>{ hideLearnerShellScreens(); mySkillsScreen.classList.remove('hidden'); renderMySkills(); renderShellNav('learner'); } },
         { icon:nxIcon('award'), label:t('shellNavAchievements'), run: ()=> myStatsLink.click() },
@@ -16259,7 +16510,10 @@
   });
   mySchedBackBtn.addEventListener('click', ()=>{
     myScheduleScreen.classList.add('hidden');
-    chalOutScreen.classList.add('hidden'); showProgramsHub();
+    chalOutScreen.classList.add('hidden');
+    mindLabScreen.classList.add('hidden');
+    mlPlayScreen.classList.add('hidden');
+    mlSummaryScreen.classList.add('hidden'); showProgramsHub();
   });
   classroomLink.addEventListener('click', ()=>{
     clJoinError.textContent = ''; clJoinCode.value = '';
@@ -16897,6 +17151,20 @@
     showProgramsHub();
   });
   examsSubmitBtn.addEventListener('click', ()=> submitExam(false));
+  mlCloseBtn.addEventListener('click', ()=>{ mindLabScreen.classList.add('hidden'); showProgramsHub(); });
+  mlSubmitBtn.addEventListener('click', mlSubmit);
+  mlHintBtn.addEventListener('click', mlHint);
+  mlAnswer.addEventListener('keydown', e=>{ if(e.key === 'Enter' && !mlSubmitBtn.disabled) mlSubmit(); });
+  mlQuitBtn.addEventListener('click', ()=>{
+    // A session abandoned early still counts what was actually answered —
+    // discarding it would lose real evidence of the learner's performance.
+    if(mlSession && mlSession.total > 0){ mlFinish(); }
+    else { hideAllScreens(); mindLabScreen.classList.remove('hidden'); mlRenderHome(); }
+  });
+  mlAgainBtn.addEventListener('click', ()=>{ if(mlGameCfg) mlStart(mlGameCfg.id); });
+  mlBackBtn.addEventListener('click', ()=>{
+    hideAllScreens(); mindLabScreen.classList.remove('hidden'); renderShellNav('learner'); mlRenderHome();
+  });
   coCloseBtn.addEventListener('click', ()=>{
     chalOutScreen.classList.add('hidden'); showProgramsHub();
   });
@@ -21403,6 +21671,10 @@
      which the render at 16px showed immediately. */
   const JASSI_MARK = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgcm9sZT0iaW1nIiBhcmlhLWxhYmVsPSJKQVNTSSI+IDxkZWZzPiA8bGluZWFyR3JhZGllbnQgaWQ9ImpWIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+IDxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iIzhCNUNGNiIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzZDM0RGRiIvPiA8L2xpbmVhckdyYWRpZW50PiA8bGluZWFyR3JhZGllbnQgaWQ9ImpWZCIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPiA8c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiM2QzNERkYiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiM0QzFEOTUiLz4gPC9saW5lYXJHcmFkaWVudD4gPC9kZWZzPiA8Y2lyY2xlIGN4PSIzMiIgY3k9IjM0IiByPSIyMyIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjRDRBRjM3IiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1kYXNoYXJyYXk9IjEwOCAzNiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiB0cmFuc2Zvcm09InJvdGF0ZSgtMjQgMzIgMzQpIi8+IDxwYXRoIGQ9Ik0zMiAxMCBMNTcgMjEgTDMyIDMyIEw3IDIxIFoiIGZpbGw9InVybCgjalYpIi8+IDxwYXRoIGQ9Ik0zMiAzMiBMNTcgMjEgTDU3IDIzIEwzMiAzNCBaIiBmaWxsPSJ1cmwoI2pWZCkiLz4gPHBhdGggZD0iTTMyIDMyIEw3IDIxIEw3IDIzIEwzMiAzNCBaIiBmaWxsPSIjNEMxRDk1Ii8+IDxwYXRoIGQ9Ik01MCAyNC41IHY5IGEyIDIgMCAwIDAgNCAwIHYtMTEiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI0Q0QUYzNyIgc3Ryb2tlLXdpZHRoPSIxLjgiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPiA8Y2lyY2xlIGN4PSI1MiIgY3k9IjM2IiByPSIyLjYiIGZpbGw9IiNENEFGMzciLz4gPHBhdGggZD0iTTM5IDM2IHYxMSBhOC41IDguNSAwIDAgMSAtOC41IDguNSBoLTEgYTguNSA4LjUgMCAwIDEgLTguNSAtOC41IiBmaWxsPSJub25lIiBzdHJva2U9IiNFREU5RkUiIHN0cm9rZS13aWR0aD0iNS40IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4gPHBhdGggZD0iTTI2LjUgMjUuNSBsMS41IDMuNiAzLjYgMS41IC0zLjYgMS41IC0xLjUgMy42IC0xLjUgLTMuNiAtMy42IC0xLjUgMy42IC0xLjUgWiIgZmlsbD0iI0Q0QUYzNyIvPiA8L3N2Zz4=';
   const JASSI_MARK_COMPACT = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgcm9sZT0iaW1nIiBhcmlhLWxhYmVsPSJKQVNTSSI+IDxkZWZzPiA8bGluZWFyR3JhZGllbnQgaWQ9ImpjIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+IDxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iIzhCNUNGNiIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzZDM0RGRiIvPiA8L2xpbmVhckdyYWRpZW50PiA8L2RlZnM+IDxjaXJjbGUgY3g9IjMyIiBjeT0iMzUiIHI9IjI1IiBmaWxsPSJub25lIiBzdHJva2U9IiNENEFGMzciIHN0cm9rZS13aWR0aD0iNCIvPiA8cGF0aCBkPSJNMzIgOCBMNjAgMjAgTDMyIDMyIEw0IDIwIFoiIGZpbGw9InVybCgjamMpIi8+IDxwYXRoIGQ9Ik0zMiAzMiBMNjAgMjAgTDYwIDI0IEwzMiAzNiBaIiBmaWxsPSIjNEMxRDk1Ii8+IDxwYXRoIGQ9Ik00MSAzMyB2MTMgYTkuNSA5LjUgMCAwIDEgLTE5IDAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI0ZGRkZGRiIgc3Ryb2tlLXdpZHRoPSI5IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4gPC9zdmc+';
+  /* Monochrome gold. Credentials use a metal palette — a purple cap on a
+     gold-and-navy certificate reads as an app icon pasted onto a document.
+     Same geometry, so it is the same mark, not a second logo. */
+  const JASSI_MARK_GOLD = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgcm9sZT0iaW1nIiBhcmlhLWxhYmVsPSJKQVNTSSI+IDxkZWZzPiA8bGluZWFyR3JhZGllbnQgaWQ9ImpnIiB4MT0iMCIgeTE9IjAiIHgyPSIwLjYiIHkyPSIxIj4gPHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjRjNERkEyIi8+PHN0b3Agb2Zmc2V0PSIwLjU1IiBzdG9wLWNvbG9yPSIjRDRBRjM3Ii8+IDxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iI0EzODAxQyIvPiA8L2xpbmVhckdyYWRpZW50PiA8L2RlZnM+IDxjaXJjbGUgY3g9IjMyIiBjeT0iMzQiIHI9IjIzIiBmaWxsPSJub25lIiBzdHJva2U9InVybCgjamcpIiBzdHJva2Utd2lkdGg9IjEuNiIgc3Ryb2tlLWRhc2hhcnJheT0iMTEyIDMyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHRyYW5zZm9ybT0icm90YXRlKC0yNCAzMiAzNCkiLz4gPHBhdGggZD0iTTMyIDEwIEw1NyAyMSBMMzIgMzIgTDcgMjEgWiIgZmlsbD0idXJsKCNqZykiLz4gPHBhdGggZD0iTTMyIDMyIEw1NyAyMSBMNTcgMjMgTDMyIDM0IFoiIGZpbGw9IiM4QTZBMTgiLz4gPHBhdGggZD0iTTMyIDMyIEw3IDIxIEw3IDIzIEwzMiAzNCBaIiBmaWxsPSIjNkU1MzEyIi8+IDxwYXRoIGQ9Ik01MCAyNC41IHY5IGEyIDIgMCAwIDAgNCAwIHYtMTEiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI0U4Q0U3MiIgc3Ryb2tlLXdpZHRoPSIxLjYiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPiA8Y2lyY2xlIGN4PSI1MiIgY3k9IjM2IiByPSIyLjQiIGZpbGw9IiNFOENFNzIiLz4gPHBhdGggZD0iTTM5IDM2IHYxMSBhOC41IDguNSAwIDAgMSAtOC41IDguNSBoLTEgYTguNSA4LjUgMCAwIDEgLTguNSAtOC41IiBmaWxsPSJub25lIiBzdHJva2U9IiNGNkU5QkUiIHN0cm9rZS13aWR0aD0iNS4yIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4gPHBhdGggZD0iTTI2LjUgMjUuNSBsMS40IDMuNCAzLjQgMS40IC0zLjQgMS40IC0xLjQgMy40IC0xLjQgLTMuNCAtMy40IC0xLjQgMy40IC0xLjQgWiIgZmlsbD0iI0YzREZBMiIvPiA8L3N2Zz4=';
 
   const APP_BRAND = {
     name:       'JASSI Academy',
@@ -21426,6 +21698,7 @@
     // one place so a future identity change is a single edit.
     logoMark: JASSI_MARK,
     logoMarkCompact: JASSI_MARK_COMPACT,
+    logoMarkGold: JASSI_MARK_GOLD,
     // The assistant badge, used on the sign-in page. 160px at 15KB base64:
     // large enough for a hero placement, small enough that it costs nothing
     // on load and survives offline like the rest of the brand assets.
@@ -21439,7 +21712,7 @@
     taglineArabic: 'تعلّم · تطوّر · ارتقِ'
   };
 
-  var DIAG_BUILD = 'jassi-2026-08-17-1238-4e45d1de34d5';
+  var DIAG_BUILD = 'jassi-2026-08-17-1306-95ab2f0cab38';
   var DIAG_BUILD_AT = '2026-08-17';
   /* Capability inventory: checks that each feature EXISTS in the running
      file, not that its name appears somewhere. A stale build fails these
@@ -21813,6 +22086,10 @@
      console and send the result — it replaces a round of back-and-forth. */
   /* Exposed so the diagnostics centre — and a support session — can assert
      the invariant without reading the DOM by hand. */
+  /* Exposed for diagnostics and support: opening the lab from the console is
+     the only way to inspect it without a full sign-in, and it changes nothing
+     about who may reach it — openMindLab still gates on requireAuth. */
+  window.openMindLab = function(){ return openMindLab(); };
   window.checkLoginIsolation = function(){
     const login = document.getElementById('usernameLogin');
     if(!login || login.classList.contains('hidden')) return { active:false };
@@ -22557,6 +22834,176 @@
     if(op === '×' && g === a + b) return 'operation';
     if(diff <= 2) return 'arithmetic';                       // near miss
     return 'other';
+  }
+
+  /* ==================== MIND LAB — INTERFACE ====================
+     One play surface for every activity: the engine supplies the question, so
+     a seventh game needs no new screen. */
+  let mlSession = null, mlGameCfg = null, mlQ = null, mlHintLevel = 0, mlQStart = 0;
+
+  function openMindLab(){
+    if(!requireAuth('mindLab')) return;
+    hideAllScreens();
+    mindLabScreen.classList.remove('hidden');
+    renderShellNav('learner');
+    mlRenderHome();
+  }
+
+  function mlRenderHome(){
+    const ctx = mlMine();
+
+    /* Today's session is chosen from the WEAKEST measured skill, not at
+       random. A random pick would train what the learner already does well
+       as often as what they do not. */
+    const scored = ML_SKILLS.map(function(sk){ return { sk: sk, v: mlSkillScore(ctx.me, sk) }; })
+                            .filter(function(x){ return x.v !== null; });
+    let pick = ML_GAMES[0], why = t('mlWhyStart');
+    if(scored.length){
+      scored.sort(function(a,b){ return a.v - b.v; });
+      const weakest = scored[0].sk;
+      const match = ML_GAMES.find(function(g){ return g.skills.indexOf(weakest) > -1; });
+      if(match){ pick = match; why = fmt('mlWhyWeak', { s: t('mlSkill_' + weakest), v: scored[0].v }); }
+    }
+    const lvl = mlLevelFor(ctx.me, pick.id);
+    mlToday.innerHTML =
+      '<div class="ml-today-line">' + why + '</div>' +
+      '<div class="ml-today-meta">' + fmt('mlTodayMeta', {
+        g: t(pick.nameKey), n: pick.rounds, l: lvl }) + '</div>' +
+      '<button class="start-btn" id="mlStartToday" style="margin-top:13px;">' + t('mlStartToday') + '</button>';
+    document.getElementById('mlStartToday').addEventListener('click', function(){ mlStart(pick.id); });
+
+    mlGrid.innerHTML = ML_GAMES.map(function(g){
+      const rec = ctx.me.records[g.id];
+      const stat = rec ? fmt('mlBest', { s: rec.bestScore, l: rec.bestLevel }) : t('mlNotStarted');
+      return '<div class="ml-card" role="button" tabindex="0" data-game="' + g.id + '">' +
+        '<div class="ml-card-icon">' + g.icon + '</div>' +
+        '<div class="ml-card-name">' + t(g.nameKey) + '</div>' +
+        '<div class="ml-card-desc">' + t(g.descKey) + '</div>' +
+        '<div class="ml-card-skills">' + g.skills.map(function(sk){
+          return '<span class="ml-chip">' + t('mlSkill_' + sk) + '</span>'; }).join('') + '</div>' +
+        '<div class="ml-card-stat">' + stat + '</div>' +
+      '</div>';
+    }).join('');
+    mlGrid.querySelectorAll('[data-game]').forEach(function(el){
+      const go = function(){ mlStart(el.dataset.game); };
+      el.addEventListener('click', go);
+      el.addEventListener('keydown', function(e){
+        if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); go(); }
+      });
+    });
+
+    // Skills with too little evidence report "not yet measured" rather than a
+    // flattering number — the same rule the certificate uses.
+    mlSkills.innerHTML = ML_SKILLS.map(function(sk){
+      const v = mlSkillScore(ctx.me, sk);
+      const s = ctx.me.skills[sk];
+      const band = v === null ? null : mlBandFor(v);
+      return '<div class="ml-skill">' +
+        '<div class="ml-skill-name">' + t('mlSkill_' + sk) + '</div>' +
+        '<div class="ml-skill-val' + (v === null ? ' none' : '') + '">' +
+          (v === null ? t('mlNotMeasured') : v + '%') + '</div>' +
+        '<div class="ml-skill-bar"><div class="ml-skill-fill" style="width:' + (v || 0) + '%"></div></div>' +
+        '<div class="ml-skill-note">' + (v === null
+          ? fmt('mlNeedAttempts', { n: ML_MIN_ATTEMPTS - ((s && s.attempts) || 0) })
+          : t(band.key)) + '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  /* The level carried forward from the last session on this game, so
+     adaptation persists across visits instead of restarting each time. */
+  function mlLevelFor(me, gameId){
+    const last = me.sessions.filter(function(x){ return x.gameId === gameId; }).slice(-1)[0];
+    return last ? (last.nextLevel || last.level || 1) : 1;
+  }
+
+  function mlStart(gameId){
+    mlGameCfg = mlGame(gameId);
+    if(!mlGameCfg) return;
+    const ctx = mlMine();
+    mlSession = mlStartSession(gameId, mlLevelFor(ctx.me, gameId));
+    hideAllScreens();
+    mlPlayScreen.classList.remove('hidden');
+    mlPlayName.textContent = t(mlGameCfg.nameKey);
+    mlNextQuestion();
+  }
+
+  function mlNextQuestion(){
+    if(mlSession.total >= mlGameCfg.rounds){ mlFinish(); return; }
+    mlQ = mlGameCfg.generate(mlSession.level);
+    mlHintLevel = 0;
+    mlQStart = Date.now();
+    mlPrompt.textContent = mlQ.prompt;
+    mlAnswer.value = '';
+    mlFeedback.textContent = '';
+    mlFeedback.className = 'ml-feedback';
+    mlPlayMeta.textContent = fmt('mlPlayMeta', {
+      n: mlSession.total + 1, total: mlGameCfg.rounds, l: mlSession.level });
+    mlProgressBar.style.width = Math.round((mlSession.total / mlGameCfg.rounds) * 100) + '%';
+    mlSubmitBtn.disabled = false;
+    mlHintBtn.disabled = false;
+    mlAnswer.focus();
+  }
+
+  function mlSubmit(){
+    if(!mlQ) return;
+    const raw = mlAnswer.value.trim();
+    const ms = Date.now() - mlQStart;
+    const correct = raw !== '' && Number(raw) === Number(mlQ.answer);
+    const errorType = correct ? null : mlGameCfg.classify(mlQ, raw === '' ? '' : raw);
+
+    mlRecord(mlSession, { correct: correct, ms: ms, errorType: errorType, hints: mlHintLevel });
+
+    /* Feedback names WHAT happened, never judges the learner. "Wrong" alone
+       teaches nothing; the observed error type and the explanation do. */
+    mlFeedback.className = 'ml-feedback ' + (correct ? 'ok' : 'no');
+    const head = correct ? t('mlRight') : t('mlWrong');
+    const detail = correct ? '' : (errorType ? ' ' + t('mlErr_' + errorType) : '');
+    mlFeedback.innerHTML = head + detail +
+      '<span class="ml-feedback-explain">' + (mlQ.explain || '') + '</span>';
+
+    mlSubmitBtn.disabled = true;
+    mlHintBtn.disabled = true;
+    // A pause long enough to read the explanation. Advancing instantly would
+    // make the feedback decorative.
+    setTimeout(mlNextQuestion, correct ? 1100 : 2600);
+  }
+
+  function mlHint(){
+    if(!mlQ || !mlQ.hints) return;
+    if(mlHintLevel >= mlQ.hints.length){ return; }
+    // Graded: each hint removes a little ambiguity, and none gives the
+    // answer. A hint that solves it replaces thinking rather than supporting it.
+    mlFeedback.className = 'ml-feedback';
+    mlFeedback.textContent = mlQ.hints[mlHintLevel];
+    mlHintLevel++;
+    if(mlHintLevel >= mlQ.hints.length) mlHintBtn.disabled = true;
+  }
+
+  function mlFinish(){
+    const sum = mlFinishSession(mlSession, mlGameCfg);
+    hideAllScreens();
+    mlSummaryScreen.classList.remove('hidden');
+    const acc = Math.round(sum.accuracy * 100);
+    const rows = [
+      [t('mlSumAccuracy'), acc + '%'],
+      [t('mlSumCorrect'), sum.correct + ' / ' + sum.total],
+      [t('mlSumTime'), (sum.avgMs / 1000).toFixed(1) + t('mlSec')],
+      [t('mlSumScore'), sum.score],
+      [t('mlSumLevel'), sum.level + (sum.nextLevel !== sum.level ? ' → ' + sum.nextLevel : '')]
+    ];
+    if(sum.consistency !== null){
+      rows.push([t('mlSumConsistency'), Math.round(sum.consistency * 100) + '%']);
+    }
+    // Says plainly why the level moved, so adaptation is explainable rather
+    // than something that happens to the learner.
+    let note = t('mlNoteHold');
+    if(sum.nextLevel > sum.level) note = t('mlNoteUp');
+    else if(sum.nextLevel < sum.level) note = t('mlNoteDown');
+
+    mlSummaryBody.innerHTML = rows.map(function(r){
+      return '<div class="ml-sum-row"><span>' + r[0] + '</span><span class="ml-sum-val">' + r[1] + '</span></div>';
+    }).join('') + '<div class="ml-sum-note">' + note + '</div>';
   }
 
   /* ==================== MIND LAB — GAME REGISTRY ====================
