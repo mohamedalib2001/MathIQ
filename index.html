@@ -3,7 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1">
-<title>NEXORA Academy — Intelligent Learning & Development</title>
+<title>JASSI Academy — Training &amp; Development</title>
+<meta name="description" content="JASSI Global Academy for Training &amp; Development — أكاديمية جاسي العالمية للتدريب والتطوير">
+<meta name="apple-mobile-web-app-title" content="JASSI">
+<meta property="og:title" content="JASSI Academy — Training &amp; Development">
+<meta property="og:site_name" content="JASSI Academy">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Tajawal:wght@400;500;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -104,7 +108,7 @@
   }
   .session-warning-actions{ display:flex; flex-direction:column; gap:8px; }
 
-  /* NEXORA boot experience — shown immediately at page load, removed the
+  /* JASSI boot experience — shown immediately at page load, removed the
      moment real initialization (profiles + learning entities + session
      check) genuinely finishes. No fake percentages, no invented steps. */
   .boot-screen{
@@ -181,7 +185,7 @@
     width:36px; height:36px; border-radius:9px; border:1.5px solid var(--chip-border); background:transparent;
     color:var(--ink); font-size:15px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex:none;
   }
-  /* NEXORA icon system — replaces decorative emoji with consistent inline SVG.
+  /* JASSI icon system — replaces decorative emoji with consistent inline SVG.
      One <svg> markup per semantic icon, sized via currentColor so it
      inherits text color automatically in any context. */
   .nx-icon{ width:1em; height:1em; display:inline-block; vertical-align:-0.12em; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
@@ -507,7 +511,7 @@
   .topbar{ position:absolute; top: clamp(10px,3vw,16px); inset-inline-start: clamp(10px,3vw,16px); display:flex; gap:8px; z-index:5; }
   /* On a narrow screen four 38px buttons plus gaps take ~176px, which is a
      large share of the width — floating them over the header meant the
-     "NEXORA Academy" line ran underneath them. Below 560px they join the
+     "JASSI Academy" line ran underneath them. Below 560px they join the
      normal flow above the title instead of overlapping it. */
   @media (max-width:560px){
     .topbar{
@@ -1093,7 +1097,7 @@
   .remember-me-label{ display:flex; align-items:center; gap:6px; font-size:12px; color:var(--ink-dim); cursor:pointer; }
   .login-welcome-desc{ text-align:center; font-size:12px; color:var(--ink-dim); margin:-6px 0 12px; }
 
-  /* ===== NEXORA split-screen login (Sprint 3 — Premium Experience) =====
+  /* ===== JASSI split-screen login (Sprint 3 — Premium Experience) =====
      Default state: display:contents makes the wrapper invisible to layout,
      so on mobile / whenever the login card is hidden, nothing changes vs
      before — zero regression risk. The split only activates via :has()
@@ -2196,7 +2200,7 @@
   .mc-stage.mc-capture .mc-back{ transform:none !important; }
   .mc-stage.mc-capture .mc-face:not(.mc-capture-target){ display:none !important; }
 
-  /* ---------- NEXORA SYNAPSE ----------
+  /* ---------- JASSI SYNAPSE ----------
      A synapse strengthens with use and fades with neglect — the same shape
      as spaced retrieval, which is why it is the mark for this service. */
   .syn-hero{
@@ -2527,7 +2531,7 @@
   .dash-row span:first-child{ color:var(--ink-dim); }
   .dash-empty{ font-size:13px; color:var(--ink-dim); text-align:center; padding:8px; }
 
-  /* ===== NEXORA skeleton system (Sprint 4) — CSS-only shimmer, follows
+  /* ===== JASSI skeleton system (Sprint 4) — CSS-only shimmer, follows
      the same border-radius/spacing tokens as real cards so the shape
      matches what replaces it. Only ever shown while a genuine async
      operation (AI/network) is pending — never a fake setTimeout delay. ===== */
@@ -2831,7 +2835,7 @@
       <circle cx="100" cy="155" r="5" class="boot-node"></circle>
     </svg>
   </div>
-  <div class="boot-brand">NEXORA Academy</div>
+  <div class="boot-brand">JASSI Academy</div>
   <div class="boot-step-text" id="bootStepText"></div>
   <div class="boot-progress-wrap"><div class="boot-progress-bar" id="bootProgressBar"></div></div>
   <div class="boot-error hidden" id="bootErrorBox">
@@ -3014,7 +3018,7 @@
     </svg>
   </div>
   <div class="login-transition-avatar hidden" id="loginTransitionAvatar" aria-hidden="true"></div>
-  <div class="boot-brand">NEXORA Academy</div>
+  <div class="boot-brand">JASSI Academy</div>
   <div class="boot-step-text" id="loginTransitionText"></div>
   <div class="boot-progress-wrap"><div class="boot-progress-bar" id="loginTransitionBar"></div></div>
 </div>
@@ -3038,7 +3042,7 @@
 
 <div class="app-shell" id="appShell">
   <aside class="app-sidebar hidden" id="appSidebar">
-    <div class="sidebar-brand">NEXORA Academy</div>
+    <div class="sidebar-brand">JASSI Academy</div>
     <nav class="sidebar-nav" id="sidebarNav"></nav>
   </aside>
   <div class="app-main">
@@ -3099,8 +3103,8 @@
   </div>
 
   <header>
-    <div class="eyebrow">NEXORA Academy</div>
-    <h1 data-i18n="title">أكاديمية نِكسورا</h1>
+    <div class="eyebrow">JASSI Academy</div>
+    <h1 data-i18n="title">أكاديمية جاسي</h1>
     <div class="brand-tagline" data-i18n="brandTagline">منصة التعلّم الذكي للحساب الذهني والأباكوس</div>
     <div class="ai-powered-badge"><span>✦</span><span data-i18n="aiPoweredBadge">مدعوم بالذكاء الاصطناعي</span></div>
     <div class="rule"></div>
@@ -3251,7 +3255,7 @@
     <button class="secondary-btn" id="parentDashboardLogoutBtn" data-i18n="logoutLinkText">🚪 تسجيل الخروج</button>
   </div>
 
-  <!-- NEXORA SYNAPSE — the cognitive mirror. Everything on this screen is
+  <!-- JASSI SYNAPSE — the cognitive mirror. Everything on this screen is
        derived from the learner's own recorded behaviour; nothing is
        estimated, and indicators stay hidden until there is enough data. -->
   <div id="synapseScreen" class="panel hidden">
@@ -3263,7 +3267,7 @@
           <circle class="syn-node syn-node-b" cx="102" cy="30" r="7"/>
         </svg>
       </div>
-      <div class="syn-title">NEXORA SYNAPSE</div>
+      <div class="syn-title">JASSI SYNAPSE</div>
       <div class="syn-sub" data-i18n="synapseSubtitle">مختبر الذكاء والذاكرة</div>
       <div class="syn-trajectory" id="synTrajectory"></div>
     </div>
@@ -3286,7 +3290,7 @@
         <div class="dp-guilloche" aria-hidden="true"></div>
         <div class="dp-arc" aria-hidden="true"></div>
         <div class="dp-brand">
-          <div class="dp-brand-name">NEXORA</div>
+          <div class="dp-brand-name">JASSI</div>
           <div class="dp-brand-sub">A C A D E M Y</div>
         </div>
         <div class="dp-serial">
@@ -3300,7 +3304,7 @@
         <div class="dp-title-en">N E X O R A &nbsp; A C A D E M Y</div>
         <div class="dp-tagline" data-i18n="dpTagline">فخر الانتماء .. مسيرة التميّز</div>
 
-        <div class="dp-attest" data-i18n="dpAttest">تشهد أكاديمية نِكسورا بأن</div>
+        <div class="dp-attest" data-i18n="dpAttest">تشهد أكاديمية جاسي بأن</div>
         <div class="dp-name" id="dpName"></div>
         <div class="dp-role" data-i18n="dpRole">عضو مسجَّل في الأكاديمية</div>
         <div class="dp-tier-pill" id="dpTier"></div>
@@ -3321,7 +3325,7 @@
           <div class="dp-seal" aria-hidden="true"><span>N</span><i data-i18n="dpSealText">OFFICIAL</i></div>
           <div class="dp-sign-block">
             <div class="dp-sign-line"></div>
-            <div class="dp-sign-name" data-i18n="dpSignName">أكاديمية نِكسورا</div>
+            <div class="dp-sign-name" data-i18n="dpSignName">أكاديمية جاسي</div>
             <div class="dp-sign-role" data-i18n="dpSignRole">الإدارة الأكاديمية</div>
           </div>
           <div class="dp-verify">
@@ -3329,7 +3333,7 @@
             <div class="dp-verify-url" id="dpVerifyUrl"></div>
           </div>
         </div>
-        <div class="dp-issuer" data-i18n="dpIssuer">أكاديمية نِكسورا — من منظومة إنفرا إنجن لتقنية المعلومات والأمن السيبراني والذكاء الاصطناعي</div>
+        <div class="dp-issuer" data-i18n="dpIssuer">أكاديمية جاسي العالمية للتدريب والتطوير — ضمن منظومة INFRA ENGINE</div>
       </div>
 
       <aside class="dp-panel">
@@ -3907,7 +3911,7 @@
           </span>
         </div>
         <div class="nova-id">
-          <div class="nova-name" id="novaTitle" data-i18n="novaName">مساعد أكاديمية نِكسورا</div>
+          <div class="nova-name" id="novaTitle" data-i18n="novaName">JASSI AI</div>
           <div class="nova-state" id="novaState"></div>
         </div>
         <button class="nova-close" id="novaCloseBtn" aria-label="إغلاق">✕</button>
@@ -3928,7 +3932,7 @@
              wrong pronunciation is worse than clean text, so the learner opts
              IN rather than being read to badly by default. -->
         <label class="nova-voice-toggle"><input type="checkbox" id="novaVoiceChk"> <span data-i18n="novaVoiceLabel">الرد بالصوت</span></label>
-        <span class="nova-badge" data-i18n="novaPoweredBy">⚡ مشغَّل بواسطة إنفرا إنجن لتقنية المعلومات</span>
+        <span class="nova-badge" data-i18n="novaPoweredBy">ضمن منظومة INFRA ENGINE</span>
         <span class="nova-disclaimer" data-i18n="novaDisclaimer">نوفا مساعد آلي — قد يخطئ، وتقدّمك الحقيقي هو ما تظهره صفحاتك.</span>
       </div>
     </div>
@@ -3956,7 +3960,7 @@
             <div class="mc-brand">
               <div class="mc-brand-mark">N</div>
               <div>
-                <div class="mc-brand-name">NEXORA</div>
+                <div class="mc-brand-name">JASSI</div>
                 <div class="mc-brand-sub">A C A D E M Y</div>
                 <div class="mc-brand-parent" data-i18n="mcParentShort">من منظومة إنفرا إنجن</div>
               </div>
@@ -4000,7 +4004,7 @@
             <div class="mc-sign-strip" id="mcSignature"></div>
             <div class="mc-label" data-i18n="mcSignLabel">توقيع العضو</div>
           </div>
-          <div class="mc-terms" data-i18n="mcTerms">هذه البطاقة ملك أكاديمية نِكسورا وتُستخدم لإثبات العضوية فقط. غير قابلة للتحويل.</div>
+          <div class="mc-terms" data-i18n="mcTerms">هذه البطاقة ملك أكاديمية جاسي وتُستخدم لإثبات العضوية فقط. غير قابلة للتحويل.</div>
         </div>
       </div>
     </div>
@@ -4278,7 +4282,7 @@
   <div class="login-split-wrapper">
     <div class="login-brand-panel" aria-hidden="true">
       <div class="login-brand-content">
-        <div class="login-brand-wordmark">NEXORA Academy</div>
+        <div class="login-brand-wordmark">JASSI Academy</div>
         <div class="login-brand-tagline" data-i18n="loginBrandTagline">منصة التعلّم الذكي</div>
         <h1 class="login-brand-headline" data-i18n="loginBrandHeadline">تعلّم أذكى.
 تطوّر أسرع.</h1>
@@ -4309,7 +4313,7 @@
   <div id="usernameLogin" class="panel">
     <div class="ai-fact-card hidden" id="aiFactCard"></div>
     <div class="mini-editor">
-      <div class="login-card-wordmark">NEXORA Academy</div>
+      <div class="login-card-wordmark">JASSI Academy</div>
       <div class="group-label" style="text-align:center;" data-i18n="loginWelcomeTitle">مرحبًا بك مجددًا</div>
       <div class="login-welcome-desc" data-i18n="loginWelcomeDesc">سجّلي الدخول إلى مساحة التعلّم الخاصة بكِ.</div>
       <div>
@@ -4339,7 +4343,7 @@
       <div class="link-line" id="goToRegisterLink" data-i18n="goToRegisterLink">ليس لديكِ حساب؟ سجّلي الآن</div>
       <div class="link-line subtle-link" id="loginWithCodeLink" data-i18n="loginWithCodeLink">تسجيل الدخول بكود عبر البريد الإلكتروني</div>
     </div>
-    <div class="security-note"><span class="security-note-icon">🛡</span><span data-i18n="securityNoteText">اتصال آمن — بياناتكِ محمية داخل أكاديمية نِكسورا</span></div>
+    <div class="security-note"><span class="security-note-icon">🛡</span><span data-i18n="securityNoteText">اتصال آمن — بياناتكِ محمية داخل أكاديمية جاسي</span></div>
     <div class="login-utility-row">
       <span class="link-line subtle-link" id="adminLink" data-i18n="adminLinkShort">إدارة الحسابات</span>
       <span class="login-utility-dot">•</span>
@@ -4347,7 +4351,7 @@
     </div>
     <div class="login-footer-links">
       <span data-i18n="footerPrivacy">الخصوصية</span> • <span data-i18n="footerTerms">الشروط</span> • <span data-i18n="footerHelp">المساعدة</span>
-      <div style="margin-top:4px;" data-i18n="footerCorporateIdentity">أكاديمية نِكسورا — ضمن منظومة INFRA ENGINE</div>
+      <div style="margin-top:4px;" data-i18n="footerCorporateIdentity">أكاديمية جاسي — ضمن منظومة INFRA ENGINE</div>
     </div>
   </div>
   </div>
@@ -4361,7 +4365,7 @@
     <div class="conn-note" data-i18n="certVerifyNote">أدخلي رقم الشهادة الظاهر عليها للتحقق من صحتها.</div>
     <div class="field-icon-wrap">
       <span class="field-icon">#</span>
-      <input type="text" id="certVerifyInput" class="ltr-input" placeholder="NEXORA-XXXXXXX-XX">
+      <input type="text" id="certVerifyInput" class="ltr-input" placeholder="JASSI-XXXXXXX-XX">
     </div>
     <button class="start-btn" id="certVerifyBtn" data-i18n="certVerifyBtn">تحقّق</button>
     <div id="certVerifyResult"></div>
@@ -4589,8 +4593,8 @@
         <!-- Vertical gold banner (top-right) -->
         <div class="cert-banner">
           <div class="cert-banner-mark"><span class="cert-mono">N</span></div>
-          <div class="cert-banner-ar" id="certBannerArEl">أكاديمية نِكسورا</div>
-          <div class="cert-banner-en">NEXORA ACADEMY</div>
+          <div class="cert-banner-ar" id="certBannerArEl">أكاديمية جاسي</div>
+          <div class="cert-banner-en">JASSI ACADEMY</div>
           <div class="cert-banner-stars">★★★★★</div>
         </div>
 
@@ -4599,7 +4603,7 @@
           <div class="cert-brand-row">
             <div class="cert-brand-mark"><span class="cert-mono">N</span></div>
             <div>
-              <div class="cert-brand-en">NEXORA</div>
+              <div class="cert-brand-en">JASSI</div>
               <div class="cert-brand-sub">A C A D E M Y</div>
             </div>
           </div>
@@ -4614,7 +4618,7 @@
           </div>
           <div class="cert-kicker" id="certKickerEl">CERTIFICATE OF COMPLETION &amp; EXCELLENCE</div>
           <div class="cert-ribbon" id="certRibbonEl">شهادة إتمام وتفوق</div>
-          <div class="cert-attest" id="certSubtitleEl">تشهد أكاديمية نِكسورا بأن</div>
+          <div class="cert-attest" id="certSubtitleEl">تشهد أكاديمية جاسي بأن</div>
 
           <div class="cert-photo-wrap">
             <svg class="cert-wreath" viewBox="0 0 200 200"><g fill="#c9a227" opacity="0.95"><ellipse cx="27.1" cy="54.4" rx="4.2" ry="7.9" transform="rotate(32.0 27.1 54.4)"/><ellipse cx="19.4" cy="69.9" rx="4.3" ry="8.2" transform="rotate(20.5 19.4 69.9)"/><ellipse cx="15.1" cy="86.5" rx="4.5" ry="8.6" transform="rotate(9.0 15.1 86.5)"/><ellipse cx="14.1" cy="103.8" rx="4.7" ry="9.0" transform="rotate(-2.5 14.1 103.8)"/><ellipse cx="16.6" cy="120.8" rx="4.9" ry="9.3" transform="rotate(-14.0 16.6 120.8)"/><ellipse cx="22.4" cy="137.0" rx="4.7" ry="9.0" transform="rotate(-25.5 22.4 137.0)"/><ellipse cx="31.3" cy="151.8" rx="4.5" ry="8.6" transform="rotate(-37.0 31.3 151.8)"/><ellipse cx="43.0" cy="164.4" rx="4.3" ry="8.2" transform="rotate(-48.5 43.0 164.4)"/><ellipse cx="57.0" cy="174.5" rx="4.2" ry="7.9" transform="rotate(-60.0 57.0 174.5)"/><path d="M27.1,54.4 A86,86 0 0 0 57.0,174.5" fill="none" stroke="#c9a227" stroke-width="1.6" opacity="0.75"/><ellipse cx="172.9" cy="54.4" rx="4.2" ry="7.9" transform="rotate(-32.0 172.9 54.4)"/><ellipse cx="180.6" cy="69.9" rx="4.3" ry="8.2" transform="rotate(-20.5 180.6 69.9)"/><ellipse cx="184.9" cy="86.5" rx="4.5" ry="8.6" transform="rotate(-9.0 184.9 86.5)"/><ellipse cx="185.9" cy="103.8" rx="4.7" ry="9.0" transform="rotate(2.5 185.9 103.8)"/><ellipse cx="183.4" cy="120.8" rx="4.9" ry="9.3" transform="rotate(14.0 183.4 120.8)"/><ellipse cx="177.6" cy="137.0" rx="4.7" ry="9.0" transform="rotate(25.5 177.6 137.0)"/><ellipse cx="168.7" cy="151.8" rx="4.5" ry="8.6" transform="rotate(37.0 168.7 151.8)"/><ellipse cx="157.0" cy="164.4" rx="4.3" ry="8.2" transform="rotate(48.5 157.0 164.4)"/><ellipse cx="143.0" cy="174.5" rx="4.2" ry="7.9" transform="rotate(60.0 143.0 174.5)"/><path d="M172.9,54.4 A86,86 0 0 1 143.0,174.5" fill="none" stroke="#c9a227" stroke-width="1.6" opacity="0.75"/></g></svg>
@@ -4629,7 +4633,7 @@
           <div class="cert-age" id="certAgeInlineEl"></div>
           <div class="cert-completed" id="certCompletedEl">قد أتم بنجاح برنامج</div>
           <div class="cert-program" id="certProgramEl"></div>
-          <div class="cert-issuer" id="certIssuerLineEl">من أكاديمية نِكسورا للتعليم والتطوير</div>
+          <div class="cert-issuer" id="certIssuerLineEl">من أكاديمية جاسي العالمية للتدريب والتطوير</div>
 
           <div class="cert-stats">
             <div class="cert-stat"><div class="cert-stat-top"><svg class="cert-ico" viewBox="0 0 24 24"><circle cx="12" cy="15" r="6"/><path d="M8.5 9.5L6 2h12l-2.5 7.5"/></svg><b id="certGradeEl">—</b></div><span id="certGradeLabelEl">التقدير النهائي</span></div>
@@ -4650,13 +4654,13 @@
           <div class="cert-sign">
             <svg class="cert-sign-mark" viewBox="0 0 200 54"><path d="M8 40 C24 8, 38 8, 44 28 S58 50, 70 26 S88 4, 96 30 S110 48, 124 22 S142 6, 150 30 C156 44, 168 42, 192 18" fill="none" stroke="#14402f" stroke-width="2.2" stroke-linecap="round"/></svg>
             <div class="cert-sign-line"></div>
-            <div class="cert-sign-name" id="certSigTitleEl">أكاديمية نِكسورا</div>
+            <div class="cert-sign-name" id="certSigTitleEl">أكاديمية جاسي</div>
             <div class="cert-sign-role" id="certSignRoleEl">المدير الأكاديمي</div>
           </div>
 
           <div class="cert-seal-wrap">
             <div class="cert-seal" id="certSealEl">
-              <div class="cert-seal-inner"><span class="cert-seal-en">NEXORA</span><span class="cert-seal-en2">ACADEMY</span><span class="cert-seal-ar">أكاديمية نِكسورا</span></div>
+              <div class="cert-seal-inner"><span class="cert-seal-en">JASSI</span><span class="cert-seal-en2">ACADEMY</span><span class="cert-seal-ar">أكاديمية جاسي</span></div>
             </div>
             <div class="cert-seal-tail cert-seal-tail-l"></div>
             <div class="cert-seal-tail cert-seal-tail-r"></div>
@@ -4665,7 +4669,7 @@
           <div class="cert-sign">
             <svg class="cert-sign-mark" viewBox="0 0 200 54"><path d="M10 36 C30 12, 46 44, 62 22 S92 6, 104 32 S128 46, 146 20 C160 6, 176 26, 192 30" fill="none" stroke="#14402f" stroke-width="2.2" stroke-linecap="round"/></svg>
             <div class="cert-sign-line"></div>
-            <div class="cert-sign-name" id="certSign2NameEl">فريق أكاديمية نِكسورا</div>
+            <div class="cert-sign-name" id="certSign2NameEl">فريق أكاديمية جاسي</div>
             <div class="cert-sign-role" id="certSign2RoleEl">الاعتماد والجودة</div>
           </div>
         </div>
@@ -4725,7 +4729,7 @@
     <button type="button" class="syn-action" id="synapseGateBtn" style="margin-bottom:14px;">
       <span class="syn-action-ic">◠</span>
       <span class="syn-action-txt">
-        <span class="syn-action-title">NEXORA SYNAPSE</span>
+        <span class="syn-action-title">JASSI SYNAPSE</span>
         <span class="syn-action-sub" id="synapseGateSub" data-i18n="synapseSubtitle">مختبر الذكاء والذاكرة</span>
       </span>
       <span style="opacity:0.6;">›</span>
@@ -5836,7 +5840,7 @@
       // Spaced repetition: every missed problem is scheduled to come back.
       // { text, ans, kind, bucket, op, box, dueAt, addedAt, seen, cleared }
       reviewQueue: [],
-      // NEXORA SYNAPSE — every field below is filled from the learner's own
+      // JASSI SYNAPSE — every field below is filled from the learner's own
       // recorded behaviour. Nothing here is estimated or invented.
       createdAt: null,             // real account creation date, from the server
       eduSystem: null, gradeStage: null, term: null,  // academic profile, used by the exams program
@@ -6249,7 +6253,7 @@
      copy-paste with zero logic changes. */
   const TRANSLATIONS = {
     ar: {
-      eyebrow:'تمرين يوميّ', title:'أكاديمية نِكسورا',
+      eyebrow:'تمرين يوميّ', title:'أكاديمية جاسي',
       brandTagline:'منصة ذكية للتعلم والتطوير — تعلّم. تطوّر. أنجز.', aiPoweredBadge:'مدعوم بالذكاء الاصطناعي',
       hubGreeting:'مرحبًا {name} 👋', hubSubtitle:'اختاري برنامجًا لتبدئي',
       programMentalMathName:'الحساب الذهني', programAbacusName:'الأباكوس',
@@ -6321,14 +6325,14 @@
       modDetailsProgress:'التقدّم: {pct}%', modDetailsLessonCount:'عدد الدروس', modDetailsAssessCount:'عدد التقييمات',
       modDetailsCompletedCount:'المكتمل', modDetailsStartBtn:'ابدئي الوحدة', modDetailsContinueBtn:'واصلي الوحدة',
       cpPrevious:'السابق', cpNext:'التالي', cpProgressOfCourse:'{done} من {total} درسًا مكتملًا في هذه الدورة',
-      bootStepInit:'جارٍ تهيئة أكاديمية نِكسورا', bootStepProfileDetail:'تم تحميل {n} من الملفات الشخصية',
+      bootStepInit:'جارٍ تهيئة أكاديمية جاسي', bootStepProfileDetail:'تم تحميل {n} من الملفات الشخصية',
       bootStepProgramsDetail:'{n} برنامج تعليمي جاهز', bootStepProgressDetail:'تمت مزامنة سجل التقدّم ({n} إنجاز)',
       bootStepPermissionsDetail:'تم تجهيز صلاحيات الحساب', bootStepWorkspaceDetail:'مساحة العمل جاهزة',
-      bootErrorTitle:'تعذّر تجهيز أكاديمية نِكسورا', bootErrorText:'لم نتمكّن من تحميل بعض بيانات المنصة.',
+      bootErrorTitle:'تعذّر تجهيز أكاديمية جاسي', bootErrorText:'لم نتمكّن من تحميل بعض بيانات المنصة.',
       bootRetryBtn:'إعادة المحاولة', bootLoginBackBtn:'العودة لتسجيل الدخول',
-      loginWelcomeTitle:'مرحبًا بك في أكاديمية نِكسورا', loginWelcomeDesc:'سجّلي الدخول للوصول إلى مساحة التعلّم الخاصة بكِ.',
+      loginWelcomeTitle:'مرحبًا بك في أكاديمية جاسي', loginWelcomeDesc:'سجّلي الدخول للوصول إلى مساحة التعلّم الخاصة بكِ.',
       pwToggleAria:'إظهار كلمة المرور', pwToggleAriaHide:'إخفاء كلمة المرور', rememberMeLabel:'تذكّرني',
-      oauthComingSoon:'قريبًا — غير متصل بعد', oauthComingSoonBadge:'قريبًا', securityNoteText:'اتصال آمن — بياناتكِ محمية داخل أكاديمية نِكسورا',
+      oauthComingSoon:'قريبًا — غير متصل بعد', oauthComingSoonBadge:'قريبًا', securityNoteText:'اتصال آمن — بياناتكِ محمية داخل أكاديمية جاسي',
       loginBrandTagline:'ضمن منظومة INFRA ENGINE', loginBrandHeadline:'تعلّم أذكى.\nتطوّر أسرع.',
       lpSyncCreateFailed:'تعذّر الحفظ على الخادم. حاولي مرة أخرى.', pbSavingLabel:'جارٍ الحفظ...',
       sendingLoginCodeLabel:'جارٍ إرسال كود الدخول إلى بريدك الإلكتروني...',
@@ -6344,10 +6348,10 @@
       sessionWarningTitle:'جلستك على وشك الانتهاء', sessionWarningText:'لم نلاحظ أي نشاط منكِ لفترة طويلة. لأمان حسابك، سيتم تسجيل خروجك تلقائيًا خلال:',
       sessionExtendBtn:'تمديد الجلسة', sessionLogoutNowBtn:'تسجيل الخروج الآن',
       topbarIdentityStatsTpl:'{badges} · {mastered}/{total} مستوى',
-      loginBrandDesc:'أكاديمية نِكسورا منصة تعليمية ذكية متخصصة في التعليم والتدريب الرقمي، تم تطويرها ضمن الرؤية التقنية لمنظومة INFRA ENGINE.',
+      loginBrandDesc:'أكاديمية جاسي منصة تعليمية ذكية متخصصة في التعليم والتدريب الرقمي، تم تطويرها ضمن الرؤية التقنية لمنظومة INFRA ENGINE.',
       forgotPasswordLink:'نسيت كلمة المرور؟', forgotPasswordMsg:'تواصلي مع معلّمتكِ أو ولي أمركِ لإعادة تعيين كلمة المرور.',
       forgotAccountTitle:'نسيت كلمة المرور أو اسم المستخدم؟', forgotPasswordSectionTitle:'نسيت كلمة المرور',
-      forgotAccountStudentText:'أكاديمية نِكسورا لا تُرسل رسائل استعادة تلقائيًا. تواصلي مع معلّمتكِ أو ولي أمركِ (صاحب/ة الحساب) — يقدر/تقدر يشوف/تشوف حسابك ويغيّر كلمة المرور من لوحة "إدارة الحسابات".',
+      forgotAccountStudentText:'أكاديمية جاسي لا تُرسل رسائل استعادة تلقائيًا. تواصلي مع معلّمتكِ أو ولي أمركِ (صاحب/ة الحساب) — يقدر/تقدر يشوف/تشوف حسابك ويغيّر كلمة المرور من لوحة "إدارة الحسابات".',
       forgotUsernameSectionTitle:'نسيت اسم المستخدم',
       forgotUsernameEmailIntro:'أدخلي بريدك الإلكتروني المسجَّل، وهنبعتلك كل أسماء المستخدمين المرتبطة بيه (لو عندك أكتر من طفل بنفس البريد، هتوصلك كلها).',
       forgotUsernameSuccessMsg:'لو البريد ده مسجَّل، وصلك بريد فيه كل أسماء المستخدمين المرتبطة بيه. راجعي بريدك (وصندوق الرسائل غير المرغوبة أيضًا).',
@@ -6376,7 +6380,7 @@
       resetPasswordFailed:'تعذّر تعيين كلمة المرور. حاولي مرة أخرى.', resetPasswordDoneMsg:'تم تعيين كلمة المرور الجديدة بنجاح!',
       resetPasswordGoToLoginBtn:'الذهاب لتسجيل الدخول',
       footerPrivacy:'الخصوصية', footerTerms:'الشروط', footerHelp:'المساعدة',
-      footerCorporateIdentity:'أكاديمية نِكسورا — ضمن منظومة INFRA ENGINE',
+      footerCorporateIdentity:'أكاديمية جاسي — ضمن منظومة INFRA ENGINE',
       shellNavProgramBuilder:'بناء البرامج', pbTitle:'🎓 بناء البرامج التعليمية', ppTitle:'📘 البرنامج التعليمي',
       pbBreadcrumbPrograms:'برامجي', pbNoPrograms:'لا توجد برامج بعد. أنشئي أول برنامج.', pbCourseCount:'{n} دورة',
       pbProgramTitlePh:'عنوان البرنامج', pbProgramDescPh:'وصف مختصر (اختياري)',
@@ -6490,16 +6494,16 @@
       birthDateLabel:'تاريخ الميلاد', photoLabel:'الصورة الشخصية',
       uploadPhoto:'رفع صورة', removePhoto:'إزالة الصورة',
       photoPrivacyNote:'تبقى الصورة على متصفحك فقط ولا تُرفع لأي خادم.',
-      certAgeLabel:'العمر', certNumLabel:'رقم الشهادة', certIssuedBy:'أكاديمية نِكسورا',
-      certRibbonLabel:'شهادة إتمام وتفوق', certSigTitle:'المدير الأكاديمي — أكاديمية نِكسورا',
+      certAgeLabel:'العمر', certNumLabel:'رقم الشهادة', certIssuedBy:'أكاديمية جاسي',
+      certRibbonLabel:'شهادة إتمام وتفوق', certSigTitle:'المدير الأكاديمي — أكاديمية جاسي',
       certKicker:'CERTIFICATE OF COMPLETION & EXCELLENCE',
-      certAttestLine:'تشهد أكاديمية نِكسورا بأن', certCompletedLine:'قد أتم بنجاح برنامج',
-      certIssuerLine:'من أكاديمية نِكسورا للتعليم والتطوير، وبتفوق وتميز في جميع أهداف البرنامج',
+      certAttestLine:'تشهد أكاديمية جاسي بأن', certCompletedLine:'قد أتم بنجاح برنامج',
+      certIssuerLine:'من أكاديمية جاسي العالمية للتدريب والتطوير، وبتفوق وتميز في جميع أهداف البرنامج',
       certGradeLabel:'التقدير النهائي', certGradeExcellent:'ممتاز', certGradeVeryGood:'جيد جدًا',
       certGradeGood:'جيد', certGradePass:'مجتاز',
       certVerifyBlockTitle:'تحقق من الشهادة', certVerifyBlockSub:'امسح الرمز للتحقق من صحة الشهادة',
       certSignLabel:'التاريخ', certSignRole:'المدير الأكاديمي', certRoleLabel:'الطالب',
-      certSign2Name:'فريق أكاديمية نِكسورا', certSign2Role:'الاعتماد والجودة', certHijriLine:'الموافق {d} هـ',
+      certSign2Name:'فريق أكاديمية جاسي', certSign2Role:'الاعتماد والجودة', certHijriLine:'الموافق {d} هـ',
       certChipStreak:'{n} متتالية', certChipPoints:'{n} نقطة', certChipAccuracy:'{n}% دقة', certChipBadges:'{n} إنجاز',
       certVerifyChecking:'جارٍ التحقق...', certVerifyRevoked:'هذه الشهادة مُلغاة.',
       certVerifyBadges:'عدد الإنجازات', certVerifyProgram:'البرنامج',
@@ -6576,10 +6580,10 @@
       profileMemberSince:'عضو منذ {d}', profileNoActivity:'لم يبدأ أي تمرين بعد.',
       synProgramsTitle:'أداؤك في كل برنامج', synProgramAttempts:'{n} تقييم',
       cogSourceLine:'مقاس من: {s}',
-      novaName:'مساعد أكاديمية نِكسورا',
-      novaPoweredBy:'⚡ مشغَّل بواسطة إنفرا إنجن لتقنية المعلومات والأمن السيبراني والذكاء الاصطناعي',
+      novaName:'JASSI AI',
+      novaPoweredBy:'ضمن منظومة INFRA ENGINE',
       novaNoKeyShort:'لا أستطيع الإجابة على الأسئلة المفتوحة حاليًا (خدمة الذكاء الاصطناعي غير مُفعَّلة على الخادم)، لكن يمكنني شرح كل خدمات الأكاديمية وفتح أي صفحة لك.',
-      kbOverviewIntro:'هذه كل خدمات أكاديمية نِكسورا:',
+      kbOverviewIntro:'هذه كل خدمات أكاديمية جاسي:',
       kbOverviewOutro:'اسألني عن أي واحدة منها بالاسم وسأشرحها لك بالتفصيل، أو قل «افتح» متبوعًا باسم الخدمة وسأفتحها مباشرة.',
       kbHowPrefix:'طريقة استخدام {s}:',
 
@@ -6667,7 +6671,7 @@
 
       emAnxious:'القلق قبل امتحان أو اختبار شعور طبيعي، ويعني أن الأمر يهمّك.\n\nما ينفع عمليًا الآن — وبهذا الترتيب:\n1) **أنهِ مراجعاتك المستحقة** — هذه أسئلة أخطأت فيها فعلًا، وهي أرجح ما ستخطئ فيه مجددًا.\n2) **ركّز على مجال واحد أضعف** — اسألني «أضعف حاجة عندي إيه؟». مجال واحد يتحسّن أنفع من خمسة تُلمَس.\n3) **لا تفتح مستوى جديدًا** الآن — الجديد يزيد التوتر ولا يفيد قبل اختبار قريب.\n\nوجلسة قصيرة اليوم وغدًا أنفع من ليلة طويلة — المذاكرة المكثّفة ليلًا تُنسى أسرع.\n\nوإن كان القلق شديدًا ويمنعك من النوم أو التركيز، أخبر أحدًا في بيتك. هذا ليس شيئًا يُحتمل وحدك.',
 
-      poWelcome:'أهلًا بك في أكاديمية نِكسورا 👋\n\nأنا مساعدك هنا: أشرح لك أي خدمة، وأفتح لك أي صفحة، وأجيبك عن تقدّمك ونقاط قوتك وضعفك.\n\nلم تبدأ التدريب بعد — اسألني «من أين أبدأ؟» وسأرشدك بخطوات محددة.',
+      poWelcome:'أهلًا بك في أكاديمية جاسي 👋\n\nأنا مساعدك هنا: أشرح لك أي خدمة، وأفتح لك أي صفحة، وأجيبك عن تقدّمك ونقاط قوتك وضعفك.\n\nلم تبدأ التدريب بعد — اسألني «من أين أبدأ؟» وسأرشدك بخطوات محددة.',
       poWelcomeBack:'أهلًا بعودتك 👋\n\nمرّ {n} يومًا منذ آخر تدريب لك. لا تقلق من انخفاض بعض النسب — الإتقان يسقط بعد ٢١ يومًا بلا تدريب، وجولة أو جولتان تعيدانه بسرعة لأن الأساس موجود عندك.\n\nاسألني «أعمل إيه؟» وسأعطيك خطوة واحدة تبدأ بها.',
       poBacklog:'أهلًا 👋\n\nعندك **{n} مراجعة مستحقة**. هذه أسئلة أخطأت فيها سابقًا وحان موعد عودتها — وإنهاؤها الآن أنفع من أي تدريب جديد، لأن تأجيلها يعني نسيان ما أتقنته فعلًا.',
       poWeak:'أهلًا 👋\n\nلاحظت أن **{op}** أضعف مجالاتك حاليًا ({m}%). إن أردت، اسألني «ليه بغلط؟» وسأشرح لك نمط خطئك بالضبط وكيف تعالجه.',
@@ -6719,7 +6723,7 @@
       kbSchoolB:'نعم، لكن بشكل غير مباشر وينبغي أن تعرف الفرق.\n\n**ما يساعد فيه مباشرة:** الحساب الذهني والجداول والعمليات الأربع — وهي أساس أي منهج رياضيات. الطفل الذي يستدعي ٧×٨ فورًا يوفّر انتباهه للمسألة نفسها بدل الحساب.\n\n**والاختبارات الدراسية** في التطبيق مصنّفة بالصف والفصل، وهي أقرب شيء للمنهج مباشرة.\n\n**ما لا يفعله:** ليس بديلًا عن المنهج ولا عن المدرسة. لا يشرح الهندسة ولا الجبر ولا المسائل اللفظية للصفوف العليا.\n\nفاعتبره **تقوية للأساس** لا منهجًا موازيًا.',
 
       kbRecogT:'هل الشهادات معتمدة رسميًا؟',
-      kbRecogB:'بصراحة: **شهادات أكاديمية نِكسورا شهادات داخلية**، تصدرها الأكاديمية وتوثّق إنجاز الطالب فيها. وهي ليست شهادة حكومية ولا معادِلة لشهادة مدرسية.\n\nما تصلح له: توثيق مستوى الطفل، وتحفيزه، وعرضها على معلّمته أو في ملفه الشخصي.\n\nما لا تصلح له: لا تُغني عن شهادة مدرسية ولا تُحتسب في مجموع.\n\nوما يميّزها أنها **قابلة للتحقق**: كل شهادة تحمل رقمًا فريدًا ورمز QR يستطيع أي أحد فحصه — فهي ليست صورة تُصمَّم بل سجل موثّق.\n\nولمعرفة إن كانت مدرسة بعينها تعترف بها، اسأل المدرسة نفسها.',
+      kbRecogB:'بصراحة: **شهادات أكاديمية جاسي شهادات داخلية**، تصدرها الأكاديمية وتوثّق إنجاز الطالب فيها. وهي ليست شهادة حكومية ولا معادِلة لشهادة مدرسية.\n\nما تصلح له: توثيق مستوى الطفل، وتحفيزه، وعرضها على معلّمته أو في ملفه الشخصي.\n\nما لا تصلح له: لا تُغني عن شهادة مدرسية ولا تُحتسب في مجموع.\n\nوما يميّزها أنها **قابلة للتحقق**: كل شهادة تحمل رقمًا فريدًا ورمز QR يستطيع أي أحد فحصه — فهي ليست صورة تُصمَّم بل سجل موثّق.\n\nولمعرفة إن كانت مدرسة بعينها تعترف بها، اسأل المدرسة نفسها.',
 
       kbSaveT:'هل يضيع ما عملته إذا أغلقت التطبيق؟',
       kbSaveB:'لا. تقدّمك يُحفظ **على جهازك أولًا** لحظة بلحظة، ثم يُزامَن مع الخادم.\n\nلذلك حتى لو انقطع الإنترنت أو أُغلق المتصفح فجأة، تجد نتائجك كما تركتها.\n\n**متى قد يبدو أن شيئًا ضاع؟**\n• إذا فتحت جهازًا جديدًا قبل اكتمال المزامنة — انتظر ثوانيَ بعد الدخول.\n• إذا استخدمت وضع التصفح الخاص، فالجهاز نفسه يمسح كل شيء عند الإغلاق.\n• إذا نزل الإتقان، فهذا ليس ضياعًا بل تحديث للحساب — اسألني «ليه نزل مستواي؟».\n\nوإن اختفى شيء فعلًا: أبلغ الإدارة، وفيها أدوات تشخيص تكشف السبب.',
@@ -6794,8 +6798,8 @@
       kbAgeT:'ما السن المناسب؟ ومن أين يبدأ الصغير؟',
       kbAgeB:'التطبيق مصمم لسن **6 إلى 15** تقريبًا.\n\n**لطفل 5–7 سنوات:** ابدأ بـ«الأباكوس» المرحلة الأولى — الخرز المرئي أسهل من الأرقام المجردة في هذا السن. و5–10 دقائق يوميًا تكفي تمامًا.\n\n**لطفل 8–10:** ابدأ بـ«الحساب الذهني» ← الجمع ← المستوى الأول، ثم أضف الأباكوس بعد أسبوعين.\n\n**لسن 11 فأكبر:** يمكن البدء بأي برنامج، ويُنصح بإضافة «التفكير المنطقي» و«الاختبارات الدراسية».\n\nوالقاعدة في كل الأعمار: جلسة قصيرة يومية أنفع من جلسة طويلة متباعدة.',
 
-      kbAboutT:'ما هي أكاديمية نِكسورا؟',
-      kbAboutB:'أكاديمية نِكسورا منصة تعليمية للحساب الذهني والأباكوس وتنمية القدرات المعرفية، مبنية على مبدأ واضح: **كل رقم يظهر لك مقاس من أدائك الحقيقي، ولا يُختلق شيء**.\n\nما يميّزها:\n• لا تقارن طفلًا بطفل\n• لا تمنح إتقانًا من جلسة واحدة\n• تسجّل نوع خطئك لا مجرد أنه خطأ\n• تعرض «—» بدل رقم حين لا تكفي البيانات\n\nوهي مشغَّلة تقنيًا بواسطة **إنفرا إنجن لتقنية المعلومات والأمن السيبراني والذكاء الاصطناعي**.',
+      kbAboutT:'ما هي أكاديمية جاسي؟',
+      kbAboutB:'أكاديمية جاسي منصة تعليمية للحساب الذهني والأباكوس وتنمية القدرات المعرفية، مبنية على مبدأ واضح: **كل رقم يظهر لك مقاس من أدائك الحقيقي، ولا يُختلق شيء**.\n\nما يميّزها:\n• لا تقارن طفلًا بطفل\n• لا تمنح إتقانًا من جلسة واحدة\n• تسجّل نوع خطئك لا مجرد أنه خطأ\n• تعرض «—» بدل رقم حين لا تكفي البيانات\n\nوهي مشغَّلة تقنيًا بواسطة **إنفرا إنجن لتقنية المعلومات والأمن السيبراني والذكاء الاصطناعي**.',
 
       kbClassPrivT:'هل تراني المعلّمة؟ وهل تُسجَّل الحصة؟',
       kbClassPrivB:'**الكاميرا:** لا تُفتح إلا بإذنك الصريح من المتصفح، ويمكنك إغلاقها في أي لحظة من زر الكاميرا. وفي الصفوف الكبيرة (16 فأكثر) كاميرات الطلاب مغلقة أصلًا.\n\n**التسجيل:** الحصص **لا تُسجَّل إطلاقًا**. الصوت والفيديو يمران مباشرة بين الأجهزة ولا يمرّان بخادمنا ولا يُحفظان في أي مكان.\n\n**ما يُحفظ فعلًا:** من حضر الحصة، ونتائج الأسئلة السريعة، وصورة السبورة في نهايتها. لا أكثر.\n\n**الميكروفون:** في الصفوف الكبيرة يكون مغلقًا افتراضيًا، وترفع يدك لتأذن لك المعلّمة بالحديث.',
@@ -6840,7 +6844,7 @@
       kbMotivB:'هذا شعور طبيعي، وله حلول عملية في التطبيق:\n\n• جرّب **تحدّي صديق** — المنافسة تغيّر الإحساس بالتمرين تمامًا.\n• جرّب **التوأم المعرفي** في سينابس: تنافس نفسك قبل أسبوع، وهذا يُظهر لك تحسّنك بوضوح.\n• قلّل المدة: 10 دقائق منتظمة أفضل من 40 دقيقة تكرهها.\n• انزل مستوى واحدًا — الصعوبة الزائدة تُطفئ الحماس أسرع من أي شيء.\n• افتح «إنجازاتي» لترى ما حققته فعلًا؛ التقدّم يكون أوضح مما نشعر به.\n\nوإن كان الإحباط مستمرًا: تحدّث مع معلّمتك أو ولي أمرك — هذا ليس فشلًا، وأحيانًا يحتاج الأمر تعديلًا في الخطة لا مزيدًا من المحاولة.',
 
       kbContactT:'التواصل مع الأكاديمية',
-      kbContactB:'للشكاوى والاقتراحات وطلبات المساعدة التي لا أستطيع حلّها:\n\n• تواصل مع إدارة أكاديمية نِكسورا مباشرة.\n• إن كنت طالبًا: أخبر معلّمتك، فلديها أدوات لمتابعة حالتك.\n• إن كنت ولي أمر: يمكنك متابعة تقدّم أبنائك من حسابك عبر «أبنائي».\n\nوأنا مساعد آلي — أعرف خدمات الأكاديمية وبياناتك المسجّلة، لكني لا أستطيع تعديل حسابك أو حل مشكلة تقنية بنفسي. للأمور التي تحتاج قرارًا بشريًا، الإدارة هي المرجع.',
+      kbContactB:'للشكاوى والاقتراحات وطلبات المساعدة التي لا أستطيع حلّها:\n\n• تواصل مع إدارة أكاديمية جاسي مباشرة.\n• إن كنت طالبًا: أخبر معلّمتك، فلديها أدوات لمتابعة حالتك.\n• إن كنت ولي أمر: يمكنك متابعة تقدّم أبنائك من حسابك عبر «أبنائي».\n\nوأنا مساعد آلي — أعرف خدمات الأكاديمية وبياناتك المسجّلة، لكني لا أستطيع تعديل حسابك أو حل مشكلة تقنية بنفسي. للأمور التي تحتاج قرارًا بشريًا، الإدارة هي المرجع.',
 
       kbMentalT:'الحساب الذهني — تدريب على الجمع والطرح والضرب والقسمة',
       kbMentalB:'تدريب يقيس دقتك وسرعتك في كل عملية حسابية على حدة.\n\nكيف تبدأ: من «البرامج» اختر «الحساب الذهني»، ثم اختر العملية والمستوى وابدأ الجولة.\n\nما يميّزه: كل إجابة خاطئة تُسجَّل بنوع الخطأ (خطأ في الخانة، أو في الإشارة، أو زلة حمل)، وتعود إليك في المراجعة تلقائيًا. ولا يُحسب لك إتقان مستوى إلا بعد أداء ثابت على مدى عدة أيام — رقم الإتقان لا يُمنح بجولة واحدة.',
@@ -6953,12 +6957,12 @@
       novaChipServices:'ما الخدمات المتاحة؟', novaChipProgress:'كيف تقدّمي؟',
       novaChipReview:'ابدئي مراجعة اليوم', novaChipOpenSynapse:'افتحي سينابس',
       dpTitle:'شهادة عضوية', dpTagline:'فخر الانتماء .. مسيرة التميّز',
-      dpAttest:'تشهد أكاديمية نِكسورا بأن', dpRole:'عضو مسجَّل في الأكاديمية',
+      dpAttest:'تشهد أكاديمية جاسي بأن', dpRole:'عضو مسجَّل في الأكاديمية',
       dpBody:'وقد أتم بنجاح مراحل التعلّم والتدريب في برامج الأكاديمية، حيث أثبت تفوّقًا في المهارات والمعرفة والتطوير المستمر.',
       dpSerialLabel:'رقم الشهادة', dpJoined:'تاريخ الانضمام',
-      dpSignName:'أكاديمية نِكسورا', dpSignRole:'الإدارة الأكاديمية', dpSealText:'OFFICIAL',
+      dpSignName:'أكاديمية جاسي', dpSignRole:'الإدارة الأكاديمية', dpSealText:'OFFICIAL',
       dpVerifyTitle:'تحقّق من الشهادة',
-      dpIssuer:'أكاديمية نِكسورا — من منظومة إنفرا إنجن لتقنية المعلومات والأمن السيبراني والذكاء الاصطناعي',
+      dpIssuer:'أكاديمية جاسي العالمية للتدريب والتطوير — ضمن منظومة INFRA ENGINE',
       dpJourneyNew:'وهو في بداية مسيرته التعليمية في الأكاديمية، وقد فُتحت له جميع البرامج ليبدأ رحلة التعلّم والتطوير.',
       dpJourneyOpening:'وقد أجاب خلال مسيرته على {n} سؤالًا في برامج الأكاديمية.',
       dpJourneyMastered:'وأتقن {m} من {total} مستوى في خريطة المعرفة.',
@@ -7141,6 +7145,23 @@
       dcRespondedIn:'استجاب خلال {n} مللي', dcNoResponse:'لا استجابة',
       dcAccount:'الحساب الحالي', dcSessionToken:'رمز الجلسة', dcAdminSession:'جلسة الإدارة',
       dcTokenAccepted:'الخادم يقبل الرمز',
+      dcGrpBuild:'التحقق من النسخة',
+      dcBuildId:'بصمة النسخة العاملة', dcBuildAge:'عمر النسخة', dcBuildDays:'{n} يومًا',
+      dcCapabilities:'الميزات الموجودة فعليًا', dcCapMissing:'ميزات مفقودة',
+      dcCapNoList:'قائمة الميزات غير موجودة — نسخة قديمة بالتأكيد',
+      dcServerBuild:'النسخة المتوقّعة على الخادم',
+      dcServerBuildUnset:'غير مضبوطة على الخادم',
+      dcServedAt:'وقت آخر تعديل للملف المخدوم', dcMinsAgo:'قبل {n} دقيقة',
+      dcFixOldBuild:'النسخة العاملة قديمة. ارفع أحدث ملف، وانتظر ٥ دقائق، ثم افتح نافذة تصفح خاص جديدة.',
+      dcFixUpload:'هذه الميزات مكتوبة في الملف الأحدث وغير موجودة عندك — أي أن الملف المرفوع ليس الأخير. تحقق من أن الرفع تم باسم index.html وأن العملية اكتملت.',
+      dcFixMismatch:'النسخة العاملة تختلف عن المنشورة على الخادم. امسح ذاكرة المتصفح أو افتح تصفحًا خاصًا.',
+      dcFixSetBuild:'اختياري: أضف EXPECTED_BUILD في Script Properties بقيمة بصمة النسخة أعلاه، ليتحقق النظام تلقائيًا من كل جهاز.',
+      dcFixCache:'الملف المخدوم قديم — المتصفح أو GitHub Pages يعرض نسخة مخزّنة. انتظر قليلًا وافتح تصفحًا خاصًا.',
+      capRtState:'أداة rtState', capStopTrace:'تتبّع سبب الإيقاف', capVisDefer:'تأجيل التبويب المخفي',
+      capRestore:'استعادة الجلسة', capNovaKb:'قاعدة معرفة المساعد', capNovaIndex:'الفهرس التلقائي',
+      capReasoning:'قواعد الاستدلال', capEmotional:'الحالات الشعورية', capServerFacts:'الوصول من أي مكان',
+      capAgeBands:'مخاطبة الأعمار', capClassroom:'الحصة المباشرة', capExams:'الاختبارات الدراسية',
+      capPlans:'الخطط الدراسية', capSchedule:'جدول الحصص', capOwner:'مركز المالك', capAiBank:'بنك المعرفة',
       dcPreconditions:'شروط التشغيل لحظة الفحص',
       dcLiveProbe:'محاولة تشغيل حيّة الآن',
       dcProbeRecovered:'نجح التشغيل عند المحاولة الآن',
@@ -7300,10 +7321,10 @@
       mcParentShort:'من منظومة إنفرا إنجن',
       mcIssuerName:'إنفرا إنجن لتقنية المعلومات',
       mcIssuerScope:'تقنية المعلومات · الأمن السيبراني · الذكاء الاصطناعي',
-      mcAuthorityAr:'أكاديمية نِكسورا للتعليم والتطوير', mcHolderLabel:'حامل البطاقة',
+      mcAuthorityAr:'أكاديمية جاسي العالمية للتدريب والتطوير', mcHolderLabel:'حامل البطاقة',
       mcVerifyTitle:'التحقق من العضوية', mcVerifySub:'امسح الرمز للتحقق من صحة هذه البطاقة.',
       mcSignLabel:'توقيع العضو',
-      mcTerms:'صادرة عن أكاديمية نِكسورا — من منظومة إنفرا إنجن لتقنية المعلومات والأمن السيبراني والذكاء الاصطناعي. تُثبت العضوية وحدها وغير قابلة للتحويل.',
+      mcTerms:'صادرة عن أكاديمية جاسي العالمية للتدريب والتطوير — ضمن منظومة INFRA ENGINE. تُثبت العضوية وحدها وغير قابلة للتحويل.',
       mcFlipBtn:'🔄 اقلب البطاقة', mcDownloadBtn:'⬇️ تنزيل PNG', mcPrintBtn:'🖨️ طباعة',
       dpNoLibrary:'لم تُحمَّل مكتبة الرسم (html2canvas). تحقّق من الاتصال أو من مانع الإعلانات، ثم أعد تحميل الصفحة.',
       mcCaptureFailed:'تعذّر إنشاء صورة البطاقة. أعد المحاولة.',
@@ -7434,7 +7455,7 @@
       gcTitle:'👥 تحدٍّ جماعي', gcSend:'أرسل الدعوات',
       gcCount:'اخترت {n} من {max}', gcMaxReached:'الحد الأقصى {n} أصدقاء في التحدي الواحد.',
       friendChallengeBtn:'🏁 تحدّيها', friendsShareAppBtn:'🔗 دعوة صديق للانضمام للأكاديمية',
-      friendsShareText:'{name} تدعوكِ للانضمام إلى أكاديمية نِكسورا — منصة تعلّم ذكية!',
+      friendsShareText:'{name} تدعوكِ للانضمام إلى أكاديمية جاسي — منصة تعلّم ذكية!',
       friendsShareCopied:'✓ تم نسخ رابط الدعوة',
       raceFullError:'هذا السباق ممتلئ بالفعل (لاعبان). جرّبي كودًا آخر أو أنشئي سباقًا جديدًا.',
       raceJoinConnError:'تعذّر الاتصال بالخادم. تأكدي من الاتصال وحاولي مرة أخرى.',
@@ -7598,7 +7619,7 @@
       trialActive:'نشطة — تبقّى {n} يوم', trialNone:'لم تبدأ بعد', trialExpired:'انتهت',
       accountDisabledTitle:'هذا الحساب معطّل حاليًا', accountDisabledBody:'تواصلي مع صاحب التطبيق لإعادة تفعيل الحساب.',
       perStudentSubNote:'حالة الاشتراك والتفعيل الآن لكل حساب على حدة — راجعيها من قائمة الطلاب في لوحة الإدارة الرئيسية.',
-      adminDashTitle:'مركز تحكّم أكاديمية نِكسورا', adminDashStudents:'المتعلّمون', adminDashTools:'الأدوات والإعدادات',
+      adminDashTitle:'مركز تحكّم أكاديمية جاسي', adminDashStudents:'المتعلّمون', adminDashTools:'الأدوات والإعدادات',
       statusExempt:'حساب عائلي (دائم)', statusDisabled:'🚫 معطّل', statusSubscribed:'مشترك حتى {date}',
       statusTrialDays:'⏳ تجربة — {n} يوم متبقٍ', statusTrialExpiredShort:'⚠️ التجربة منتهية', statusNoTrial:'لم يبدأ بعد',
       disableAccountBtn:'🚫 تعطيل', enableAccountBtn:'تفعيل',
@@ -7635,7 +7656,7 @@
        through to the (complete) `ar` block above unchanged. */
     ar_m: {
       loginWelcomeDesc:'سجّل الدخول للوصول إلى مساحة التعلّم الخاصة بك.',
-      securityNoteText:'اتصال آمن — بياناتك محمية داخل أكاديمية نِكسورا',
+      securityNoteText:'اتصال آمن — بياناتك محمية داخل أكاديمية جاسي',
       loginStepSyncing:'جارٍ مزامنة بياناتك...',
       loginStepWelcome:'مرحبًا بعودتك، {name}',
       forgotPasswordMsg:'تواصل مع معلّمك أو ولي أمرك لإعادة تعيين كلمة المرور.',
@@ -7729,7 +7750,7 @@
       pbNoPrograms:'لا توجد برامج بعد. أنشئ أول برنامج.'
     },
     en: {
-      eyebrow:'Daily practice', title:'NEXORA Academy',
+      eyebrow:'Daily practice', title:'JASSI Academy',
       brandTagline:'Intelligent Learning & Development — Learn. Grow. Perform.', aiPoweredBadge:'AI-Powered',
       hubGreeting:'Hi {name} 👋', hubSubtitle:'Choose a program to get started',
       programMentalMathName:'Mental Math', programAbacusName:'Abacus',
@@ -7801,14 +7822,14 @@
       modDetailsProgress:'Progress: {pct}%', modDetailsLessonCount:'Lessons', modDetailsAssessCount:'Assessments',
       modDetailsCompletedCount:'Completed', modDetailsStartBtn:'Start Module', modDetailsContinueBtn:'Continue Module',
       cpPrevious:'Previous', cpNext:'Next', cpProgressOfCourse:'{done} of {total} lessons complete in this course',
-      bootStepInit:'Initializing NEXORA Academy', bootStepProfileDetail:'Loaded {n} profile(s)',
+      bootStepInit:'Initializing JASSI Academy', bootStepProfileDetail:'Loaded {n} profile(s)',
       bootStepProgramsDetail:'{n} learning program(s) ready', bootStepProgressDetail:'Progress synced ({n} completion record(s))',
       bootStepPermissionsDetail:'Account permissions prepared', bootStepWorkspaceDetail:'Workspace ready',
-      bootErrorTitle:'Could not prepare NEXORA Academy', bootErrorText:'We were unable to load some platform data.',
+      bootErrorTitle:'Could not prepare JASSI Academy', bootErrorText:'We were unable to load some platform data.',
       bootRetryBtn:'Retry', bootLoginBackBtn:'Back to Login',
-      loginWelcomeTitle:'Welcome to NEXORA Academy', loginWelcomeDesc:'Sign in to access your learning space.',
+      loginWelcomeTitle:'Welcome to JASSI Academy', loginWelcomeDesc:'Sign in to access your learning space.',
       pwToggleAria:'Show password', pwToggleAriaHide:'Hide password', rememberMeLabel:'Remember me',
-      oauthComingSoon:'Coming soon — not connected yet', oauthComingSoonBadge:'Coming soon', securityNoteText:'Secure connection — your data is protected inside NEXORA Academy',
+      oauthComingSoon:'Coming soon — not connected yet', oauthComingSoonBadge:'Coming soon', securityNoteText:'Secure connection — your data is protected inside JASSI Academy',
       loginBrandTagline:'Part of the INFRA ENGINE Ecosystem', loginBrandHeadline:'Learn smarter.\nGrow faster.',
       lpSyncCreateFailed:'Could not save to the server. Please try again.', pbSavingLabel:'Saving...',
       sendingLoginCodeLabel:'Sending login code to your email...',
@@ -7824,10 +7845,10 @@
       sessionWarningTitle:'Your session is about to expire', sessionWarningText:"We haven't noticed any activity for a while. For your account's security, you'll be signed out automatically in:",
       sessionExtendBtn:'Extend session', sessionLogoutNowBtn:'Sign out now',
       topbarIdentityStatsTpl:'{badges} · {mastered}/{total} levels',
-      loginBrandDesc:'NEXORA Academy is an intelligent education platform specialized in digital education and training, developed within the technical vision of the INFRA ENGINE ecosystem.',
+      loginBrandDesc:'JASSI Academy is an intelligent education platform specialized in digital education and training, developed within the technical vision of the INFRA ENGINE ecosystem.',
       forgotPasswordLink:'Forgot password?', forgotPasswordMsg:'Contact your teacher or guardian to reset your password.',
       forgotAccountTitle:'Forgot your password or username?', forgotPasswordSectionTitle:'Forgot password',
-      forgotAccountStudentText:'NEXORA Academy does not send automatic recovery messages. Contact your teacher or guardian (the account owner) — they can look up your account and change your password from "Manage Accounts".',
+      forgotAccountStudentText:'JASSI Academy does not send automatic recovery messages. Contact your teacher or guardian (the account owner) — they can look up your account and change your password from "Manage Accounts".',
       forgotUsernameSectionTitle:'Forgot username',
       forgotUsernameEmailIntro:"Enter your registered email and we'll send all usernames linked to it (if you have more than one child on the same email, you'll get all of them).",
       forgotUsernameSuccessMsg:"If that email is on file, a message with all linked usernames was just sent. Check your inbox (and spam folder).",
@@ -7856,7 +7877,7 @@
       resetPasswordFailed:'Could not set the new password. Please try again.', resetPasswordDoneMsg:'Your new password has been set successfully!',
       resetPasswordGoToLoginBtn:'Go to login',
       footerPrivacy:'Privacy', footerTerms:'Terms', footerHelp:'Help',
-      footerCorporateIdentity:'NEXORA Academy — Part of the INFRA ENGINE Ecosystem',
+      footerCorporateIdentity:'JASSI Academy — Part of the INFRA ENGINE Ecosystem',
       shellNavProgramBuilder:'Program Builder', pbTitle:'🎓 Program Builder', ppTitle:'📘 Learning Program',
       pbBreadcrumbPrograms:'My Programs', pbNoPrograms:'No programs yet. Create your first program.', pbCourseCount:'{n} courses',
       pbProgramTitlePh:'Program title', pbProgramDescPh:'Short description (optional)',
@@ -7970,16 +7991,16 @@
       birthDateLabel:'Birth date', photoLabel:'Profile photo',
       uploadPhoto:'Upload photo', removePhoto:'Remove photo',
       photoPrivacyNote:'The photo stays only on your device and is never uploaded anywhere.',
-      certAgeLabel:'Age', certNumLabel:'Certificate No.', certIssuedBy:'NEXORA Academy',
-      certRibbonLabel:'Certificate of Completion & Excellence', certSigTitle:'Academic Director — NEXORA Academy',
+      certAgeLabel:'Age', certNumLabel:'Certificate No.', certIssuedBy:'JASSI Academy',
+      certRibbonLabel:'Certificate of Completion & Excellence', certSigTitle:'Academic Director — JASSI Academy',
       certKicker:'CERTIFICATE OF COMPLETION & EXCELLENCE',
-      certAttestLine:'NEXORA Academy hereby certifies that', certCompletedLine:'has successfully completed the program',
-      certIssuerLine:'from NEXORA Academy for Education & Development, with excellence across all program objectives',
+      certAttestLine:'JASSI Academy hereby certifies that', certCompletedLine:'has successfully completed the program',
+      certIssuerLine:'from JASSI Academy for Education & Development, with excellence across all program objectives',
       certGradeLabel:'Final grade', certGradeExcellent:'Excellent', certGradeVeryGood:'Very good',
       certGradeGood:'Good', certGradePass:'Pass',
       certVerifyBlockTitle:'Verify this certificate', certVerifyBlockSub:'Scan the code to confirm authenticity',
       certSignLabel:'Date', certSignRole:'Academic Director', certRoleLabel:'Student',
-      certSign2Name:'NEXORA Academy Team', certSign2Role:'Accreditation & Quality', certHijriLine:'Hijri: {d}',
+      certSign2Name:'JASSI Academy Team', certSign2Role:'Accreditation & Quality', certHijriLine:'Hijri: {d}',
       certChipStreak:'{n} streak', certChipPoints:'{n} points', certChipAccuracy:'{n}% accuracy', certChipBadges:'{n} achievements',
       certVerifyChecking:'Verifying...', certVerifyRevoked:'This certificate has been revoked.',
       certVerifyBadges:'Achievements', certVerifyProgram:'Program',
@@ -8056,10 +8077,10 @@
       profileMemberSince:'Member since {d}', profileNoActivity:'No practice sessions yet.',
       synProgramsTitle:'Your performance per program', synProgramAttempts:'{n} assessment(s)',
       cogSourceLine:'Measured from: {s}',
-      novaName:'NEXORA Academy Assistant',
-      novaPoweredBy:'⚡ Powered by INFRA ENGINE for IT, cybersecurity and AI',
+      novaName:'JASSI Academy Assistant',
+      novaPoweredBy:'Part of the INFRA ENGINE Ecosystem',
       novaNoKeyShort:'I cannot answer open questions right now (the AI service is not enabled on the server), but I can explain every academy service and open any page for you.',
-      kbOverviewIntro:'These are all of NEXORA Academy\'s services:',
+      kbOverviewIntro:'These are all of JASSI Academy\'s services:',
       kbOverviewOutro:'Ask me about any of them by name for the full explanation, or say "open" followed by the service name and I will take you there.',
       kbHowPrefix:'How to use {s}:',
       edNoPattern:'No clear error pattern yet — your mistakes are varied rather than concentrated. Practise more and I will be able to name it precisely.',
@@ -8147,7 +8168,7 @@
       emParentUpset:'I understand that this bothers you — it is natural to fear upsetting someone you love.\n\nWorth knowing: a guardian\'s upset is usually worry for you rather than anger at you. The two look alike and feel completely different.\n\nIf the cause was a result or a level, that is fixable in a round or two — ask me "what should I do" and I will give you one specific step.\n\nA suggestion: show them "My skills" or Synapse. Seeing the real numbers and the direction calms more than any explanation, because it shows what genuinely improved.',
       emAshamed:'There is no need to feel embarrassed — and you do not have to show anyone anything.\n\nYour level is never visible to any other learner. There is no ranking, no name board and no comparison here. Your friend knows your result only if you tell them.\n\nThe only person who can see your progress is your guardian, and only if their account is linked to yours.\n\nAnd one more thing: every low number you see is a starting point, not a verdict. Numbers here are measured to be improved, not displayed.',
       emAnxious:'Feeling anxious before an exam is normal, and it means you care.\n\nWhat actually helps, in this order: clear your due reviews, since those are questions you already got wrong and are most likely to repeat; focus on ONE weakest area — ask me which; and do not open a new level right now, because new material raises tension without helping before a near exam.\n\nA short session today and tomorrow beats one long night — crammed material is forgotten fastest.\n\nAnd if the anxiety is severe enough to affect your sleep or focus, tell someone at home. That is not something to carry alone.',
-      poWelcome:'Welcome to NEXORA Academy 👋\n\nI am your assistant here: I explain any service, open any page, and answer questions about your progress and your strengths and weaknesses.\n\nYou have not started practising yet — ask me "where do I start?" and I will guide you step by step.',
+      poWelcome:'Welcome to JASSI Academy 👋\n\nI am your assistant here: I explain any service, open any page, and answer questions about your progress and your strengths and weaknesses.\n\nYou have not started practising yet — ask me "where do I start?" and I will guide you step by step.',
       poWelcomeBack:'Welcome back 👋\n\nIt has been {n} days since your last practice. Do not worry if some percentages dropped — mastery lapses after 21 days, and a round or two restores it quickly because the foundation is still there.',
       poBacklog:'Hello 👋\n\nYou have {n} reviews due. These are questions you previously got wrong, now scheduled to return — clearing them is more valuable than any new practice, because postponing means forgetting what you already mastered.',
       poWeak:'Hello 👋\n\nI noticed that {op} is your weakest area right now ({m}%). If you like, ask me "why do I keep getting it wrong" and I will explain your exact error pattern and how to fix it.',
@@ -8157,7 +8178,7 @@
       kbSchoolT:'Does it help at school?',
       kbSchoolB:'Yes, but indirectly. It strengthens mental arithmetic, tables and the four operations — the foundation of any maths curriculum. A child who recalls 7×8 instantly spends their attention on the problem rather than the calculation. The school exams section is the closest thing to the curriculum itself.\n\nWhat it does not do: it is not a substitute for the curriculum or for school, and it does not teach geometry, algebra or upper-grade word problems. Treat it as strengthening the foundation, not a parallel syllabus.',
       kbRecogT:'Are the certificates officially recognised?',
-      kbRecogB:'Plainly: NEXORA Academy certificates are internal. They document a learner\'s achievement within the academy and are not government-issued or equivalent to a school certificate.\n\nWhat they are good for: documenting a child\'s level, motivating them, showing a teacher. What they are not: they do not replace a school certificate or count toward a grade.\n\nWhat distinguishes them is verifiability — each carries a unique id and a QR code anyone can check. Whether a specific school accepts one, ask the school.',
+      kbRecogB:'Plainly: JASSI Academy certificates are internal. They document a learner\'s achievement within the academy and are not government-issued or equivalent to a school certificate.\n\nWhat they are good for: documenting a child\'s level, motivating them, showing a teacher. What they are not: they do not replace a school certificate or count toward a grade.\n\nWhat distinguishes them is verifiability — each carries a unique id and a QR code anyone can check. Whether a specific school accepts one, ask the school.',
       kbSaveT:'Do I lose my work when I close the app?',
       kbSaveB:'No. Progress is saved on your device moment by moment, then synced to the server. Even a sudden disconnection or closed browser leaves your results intact.\n\nWhen it may LOOK lost: opening a new device before syncing finishes; using private browsing, which the device itself wipes on close; or mastery lapsing, which is a recalculation rather than a loss.',
       kbWhoTeachT:'Who teaches my child?',
@@ -8205,7 +8226,7 @@
       kbSpecialB:'Plainly: the app was not designed as a therapeutic tool, and it neither diagnoses nor treats anything. I cannot tell you whether it suits a specific child — that is their specialist\'s judgement.\n\nWhat may help: rounds are short and stoppable at any moment, there is no pressuring timer and no penalty for slowness, no comparison to other children, correction is immediate, and reduced-motion settings are respected.\n\nWhat may not: open-ended sessions can tire an easily distracted child — start with five minutes. Consult your child\'s specialist.',
       kbAgeT:'What age is it for?',
       kbAgeB:'Roughly 6 to 15.\n\nFor a 5–7 year old, start with abacus stage one — visible beads are easier than abstract numbers at that age, and 5–10 minutes daily is plenty.\nFor 8–10, start with mental math addition level one, adding the abacus after two weeks.\nFor 11 and up, any program works; logic and school exams are worth adding.\n\nAt every age: a short daily session beats a long infrequent one.',
-      kbAboutT:'What is NEXORA Academy?',
+      kbAboutT:'What is JASSI Academy?',
       kbAboutB:'A learning platform for mental arithmetic, the abacus and cognitive development, built on one principle: every number you see is measured from your real performance, and nothing is invented.\n\nIt never compares one child to another, never grants mastery from a single session, records the TYPE of your errors rather than just the fact of them, and shows "—" instead of a figure when the data is insufficient.\n\nOperated technically by INFRA ENGINE for IT, cybersecurity and AI.',
       kbClassPrivT:'Can the teacher see me? Is the class recorded?',
       kbClassPrivB:'Camera: it opens only with your explicit browser permission and you can close it at any moment. In large classes (16+) student cameras are off by default.\n\nRecording: classes are NEVER recorded. Audio and video pass directly between devices, never through our server, and are stored nowhere.\n\nWhat is saved: who attended, the poll results, and an image of the whiteboard at the end. Nothing else.',
@@ -8237,7 +8258,7 @@
       kbMotivT:'I feel bored or discouraged',
       kbMotivB:'That is normal, and there are practical answers here: challenge a friend, race your cognitive twin to see your own improvement, shorten the session to ten focused minutes, or drop one level — excess difficulty kills motivation faster than anything.\n\nIf it persists, talk to your teacher or parent. That is not failure; sometimes the plan needs adjusting rather than more effort.',
       kbContactT:'Contacting the academy',
-      kbContactB:'For anything I cannot resolve, contact NEXORA Academy directly. Students should tell their teacher; guardians can follow their children under "My children".\n\nI am an automated assistant: I know the academy\'s services and your recorded data, but I cannot change your account or fix a technical fault myself.',
+      kbContactB:'For anything I cannot resolve, contact JASSI Academy directly. Students should tell their teacher; guardians can follow their children under "My children".\n\nI am an automated assistant: I know the academy\'s services and your recorded data, but I cannot change your account or fix a technical fault myself.',
 
       kbMentalT:'Mental math — addition, subtraction, multiplication, division',
       kbMentalB:'Practice that measures your accuracy and speed per operation.\n\nStart: Programs → Mental math → choose the operation and level.\n\nWhat makes it different: every wrong answer is recorded by ERROR TYPE and returns in your spaced review. Mastery is never granted from one session — it needs steady performance across several days.',
@@ -8336,12 +8357,12 @@
       novaChipServices:'What services are available?', novaChipProgress:'How is my progress?',
       novaChipReview:'Start today\'s review', novaChipOpenSynapse:'Open Synapse',
       dpTitle:'Certificate of Membership', dpTagline:'The pride of belonging · a path of distinction',
-      dpAttest:'NEXORA Academy certifies that', dpRole:'Registered member of the academy',
+      dpAttest:'JASSI Academy certifies that', dpRole:'Registered member of the academy',
       dpBody:'has successfully progressed through the academy\'s learning and training programs, demonstrating skill, knowledge and continuous development.',
       dpSerialLabel:'Certificate no.', dpJoined:'Member since',
-      dpSignName:'NEXORA Academy', dpSignRole:'Academic Administration', dpSealText:'OFFICIAL',
+      dpSignName:'JASSI Academy', dpSignRole:'Academic Administration', dpSealText:'OFFICIAL',
       dpVerifyTitle:'Verify this certificate',
-      dpIssuer:'NEXORA Academy — part of INFRA ENGINE for information technology, cybersecurity and artificial intelligence',
+      dpIssuer:'JASSI Academy — part of INFRA ENGINE for information technology, cybersecurity and artificial intelligence',
       dpJourneyNew:'is at the start of their journey with the academy, with every program now open to begin learning and developing.',
       dpJourneyOpening:'has answered {n} questions across the academy\'s programs.',
       dpJourneyMastered:'and has mastered {m} of {total} levels on the knowledge map.',
@@ -8524,6 +8545,23 @@
       dcRespondedIn:'responded in {n} ms', dcNoResponse:'no response',
       dcAccount:'Current account', dcSessionToken:'Session token', dcAdminSession:'Admin session',
       dcTokenAccepted:'Server accepts the token',
+      dcGrpBuild:'Build verification',
+      dcBuildId:'Running build stamp', dcBuildAge:'Build age', dcBuildDays:'{n} days',
+      dcCapabilities:'Features actually present', dcCapMissing:'Missing features',
+      dcCapNoList:'Capability list absent — definitely a stale build',
+      dcServerBuild:'Build expected by the server',
+      dcServerBuildUnset:'not set on the server',
+      dcServedAt:'Served file last modified', dcMinsAgo:'{n} min ago',
+      dcFixOldBuild:'The running build is stale. Upload the newest file, wait five minutes, then open a fresh private window.',
+      dcFixUpload:'These features exist in the newest file and are absent here — the uploaded file is not the latest. Check it was uploaded as index.html and that the upload completed.',
+      dcFixMismatch:'The running build differs from the one published on the server. Clear the cache or use a private window.',
+      dcFixSetBuild:'Optional: set EXPECTED_BUILD in Script Properties to the stamp above, so every device is verified automatically.',
+      dcFixCache:'The served file is old — the browser or GitHub Pages is returning a cached copy. Wait a little and open a private window.',
+      capRtState:'rtState tool', capStopTrace:'stop-reason tracing', capVisDefer:'hidden-tab deferral',
+      capRestore:'session restore', capNovaKb:'assistant knowledge base', capNovaIndex:'automatic index',
+      capReasoning:'reasoning rules', capEmotional:'emotional states', capServerFacts:'anywhere access',
+      capAgeBands:'age-appropriate address', capClassroom:'live classroom', capExams:'school exams',
+      capPlans:'study plans', capSchedule:'class schedule', capOwner:'owner centre', capAiBank:'knowledge bank',
       dcPreconditions:'Start conditions at check time',
       dcLiveProbe:'Live start attempt now',
       dcProbeRecovered:'started successfully when attempted now',
@@ -8683,10 +8721,10 @@
       mcParentShort:'Part of INFRA ENGINE',
       mcIssuerName:'INFRA ENGINE Information Technology',
       mcIssuerScope:'Information Technology · Cybersecurity · Artificial Intelligence',
-      mcAuthorityAr:'NEXORA Academy for Learning & Development', mcHolderLabel:'CARD HOLDER',
+      mcAuthorityAr:'JASSI Academy for Learning & Development', mcHolderLabel:'CARD HOLDER',
       mcVerifyTitle:'Membership verification', mcVerifySub:'Scan the code to verify this card.',
       mcSignLabel:'Member signature',
-      mcTerms:'Issued by NEXORA Academy — part of INFRA ENGINE for information technology, cybersecurity and artificial intelligence. Evidences membership only and is non-transferable.',
+      mcTerms:'Issued by JASSI Academy — part of INFRA ENGINE for information technology, cybersecurity and artificial intelligence. Evidences membership only and is non-transferable.',
       mcFlipBtn:'🔄 Flip card', mcDownloadBtn:'⬇️ Download PNG', mcPrintBtn:'🖨️ Print',
       dpNoLibrary:'The rendering library (html2canvas) did not load. Check your connection or ad blocker, then reload the page.',
       mcCaptureFailed:'Could not render the card image. Please try again.',
@@ -8817,7 +8855,7 @@
       gcTitle:'👥 Group challenge', gcSend:'Send invitations',
       gcCount:'{n} of {max} selected', gcMaxReached:'A challenge may include at most {n} friends.',
       friendChallengeBtn:'🏁 Challenge', friendsShareAppBtn:'🔗 Invite a friend to the academy',
-      friendsShareText:'{name} is inviting you to join NEXORA Academy — a smart learning platform!',
+      friendsShareText:'{name} is inviting you to join JASSI Academy — a smart learning platform!',
       friendsShareCopied:'✓ Invite link copied',
       raceFullError:'This race is already full (two players). Try another code or create a new race.',
       raceJoinConnError:'Could not reach the server. Check your connection and try again.',
@@ -8981,7 +9019,7 @@
       trialActive:'Active — {n} days left', trialNone:'Not started yet', trialExpired:'Expired',
       accountDisabledTitle:'This account is currently disabled', accountDisabledBody:'Contact the app owner to reactivate it.',
       perStudentSubNote:'Subscription and activation are now tracked per account — check the student list in the main admin dashboard.',
-      adminDashTitle:'NEXORA Academy Command Center', adminDashStudents:'Learners', adminDashTools:'Tools & Settings',
+      adminDashTitle:'JASSI Academy Command Center', adminDashStudents:'Learners', adminDashTools:'Tools & Settings',
       statusExempt:'Family account (permanent)', statusDisabled:'🚫 Disabled', statusSubscribed:'Subscribed until {date}',
       statusTrialDays:'⏳ Trial — {n} days left', statusTrialExpiredShort:'⚠️ Trial expired', statusNoTrial:'Not started yet',
       disableAccountBtn:'🚫 Disable', enableAccountBtn:'Enable',
@@ -15463,7 +15501,7 @@
     setBtnSaving(mcDownloadBtn, false);
     if(!canvas){ showToast(t('mcCaptureFailed'), nxIcon('alertTriangle'), 'system'); return; }
     const link = document.createElement('a');
-    link.download = 'nexora-membership-card.png';
+    link.download = 'jassi-membership-card.png';
     link.href = canvas.toDataURL('image/png');
     link.click();
   });
@@ -15478,7 +15516,7 @@
     const w = window.open('', '_blank');
     if(!w){ showToast(t('mcPopupBlocked'), nxIcon('alertTriangle'), 'system'); return; }
     w.document.write(
-      '<!doctype html><html><head><title>NEXORA Membership Card</title><style>' +
+      '<!doctype html><html><head><title>JASSI Membership Card</title><style>' +
       '@page{size:auto;margin:12mm}body{margin:0;display:flex;gap:8mm;flex-wrap:wrap;' +
       'justify-content:center;align-items:flex-start;font-family:sans-serif}' +
       'img{width:85.6mm;height:53.98mm;border-radius:3mm}</style></head><body>' +
@@ -15881,7 +15919,7 @@
   }
   const OP_SYMBOL = { add:'+', sub:'−', mul:'×', div:'÷' };
 
-  /* ==================== MODULE: NEXORA SYNAPSE ====================
+  /* ==================== MODULE: JASSI SYNAPSE ====================
      A cognitive performance profile built ONLY from behaviour the learner
      actually produced inside the platform. Deliberate constraints, because
      a number shown to a child is read as a verdict about themselves:
@@ -17145,7 +17183,10 @@
       titleKey:'kbAgeT', bodyKey:'kbAgeB', route:null },
 
     /* ---- ABOUT THE ACADEMY ---- */
-    { id:'aboutUs', match:/ما هو نكسورا|نيكسورا|من انتم|مين عمل|من طور|عن الاكاديمية|about|who made|who built/i,
+    // The old name is kept in the MATCHER only, so a learner who still says
+    // "نكسورا" is understood rather than met with silence. It never appears in
+    // any answer.
+    { id:'aboutUs', match:/ما هو جاسي|جاسي|jassi|نكسورا|نيكسورا|من انتم|مين عمل|من طور|عن الاكاديمية|about|who made|who built/i,
       titleKey:'kbAboutT', bodyKey:'kbAboutB', route:null },
     { id:'privacyClass', match:/المعلمة تشوفني|حد يشوفني|الكاميرا شغالة|هل يسجل|does.*record|can.*see me/i,
       titleKey:'kbClassPrivT', bodyKey:'kbClassPrivB', route:null },
@@ -17897,7 +17938,7 @@
     }
 
     const prompt =
-      'أنت "مساعد أكاديمية نِكسورا"، مساعد تعليمي رسمي لأكاديمية نِكسورا (من منظومة إنفرا إنجن لتقنية المعلومات والأمن السيبراني والذكاء الاصطناعي).\n\n' +
+      'أنت "JASSI AI"، المساعد التعليمي الرسمي لأكاديمية جاسي العالمية للتدريب والتطوير (ضمن منظومة INFRA ENGINE).\n\n' +
       (replyLang === 'en'
         ? 'IMPORTANT: the user wrote in English — reply in English.\n\n'
         : 'مهم: المستخدم كتب بالعربية — أجب بالعربية.\n\n') +
@@ -18417,7 +18458,7 @@
   function downloadCurrentDiploma(){
     if(!dvCurrent) return;
     const link = document.createElement('a');
-    link.download = 'nexora-membership-' + dvCurrent.facts.memberId + '.png';
+    link.download = 'jassi-membership-' + dvCurrent.facts.memberId + '.png';
     link.href = dvCurrent.dataUrl;
     link.click();
   }
@@ -18427,7 +18468,7 @@
     if(!w){ showToast(t('mcPopupBlocked'), nxIcon('alertTriangle'), 'system'); return; }
     // Landscape A4: the certificate is 2:1, so portrait would shrink it to
     // half the page and every figure on the panel would be unreadable.
-    w.document.write('<!doctype html><html><head><title>NEXORA</title><style>' +
+    w.document.write('<!doctype html><html><head><title>JASSI</title><style>' +
       '@page{size:A4 landscape;margin:8mm}body{margin:0}' +
       'img{width:100%;height:auto;display:block}</style></head><body>' +
       '<img src="' + dvCurrent.dataUrl + '"></body></html>');
@@ -19008,7 +19049,7 @@
     twinOpponent = null;
   }
 
-  /* ==================== END MODULE: NEXORA SYNAPSE ==================== */
+  /* ==================== END MODULE: JASSI SYNAPSE ==================== */
 
   /* ==================== MODULE: LEARNER STATE SYNC ====================
      Everything the learning engines produce — review schedules, cognitive
@@ -19200,7 +19241,62 @@
      Owner-gated: it exposes the backend URL tail, session state and raw error
      codes — useful to whoever maintains the platform, and no business of a
      learner or a parent. */
-  var DIAG_BUILD = 'nexora-2026-08-16-diagnostics-1';
+  /* Regenerated on every delivery. Six diagnostic rounds were spent fixing a
+     file that never reached the browser, because nothing could distinguish
+     "the fix did not work" from "the fix is not installed". A stamp that
+     changes every time makes that distinction immediate. */
+  /* ==================== BRAND IDENTITY ====================
+     A single source for the platform's public name. Previously the name was
+     written literally in dozens of places, which is how a rename becomes a
+     hunt rather than an edit.
+
+     Deliberately separate from the TECHNICAL identifiers below: storage keys
+     such as nexoraSessionToken keep their names permanently, because renaming
+     them would sign every user out and discard their read markers and
+     preferences. A brand change must never cost a user their data. */
+  const APP_BRAND = {
+    name:       'JASSI Academy',
+    nameAr:     'أكاديمية جاسي',
+    fullName:   'JASSI Global Academy for Training & Development',
+    fullNameAr: 'أكاديمية جاسي العالمية للتدريب والتطوير',
+    shortName:  'JASSI',
+    tagline:    'Training & Development',
+    taglineAr:  'التدريب والتطوير',
+    ecosystem:  'Part of the INFRA ENGINE Ecosystem',
+    ecosystemAr:'ضمن منظومة INFRA ENGINE',
+    ai:         'JASSI AI',
+    aiAr:       'مساعد جاسي الذكي',
+    synapse:    'JASSI SYNAPSE',
+    synapseAr:  'جاسي سينابس',
+    // The membership prefix stays NX permanently: it is printed on issued
+    // cards and embedded in certificate verification links, so changing it
+    // would invalidate every credential already in learners' hands.
+    memberPrefix: 'NX'
+  };
+
+  var DIAG_BUILD = 'jassi-2026-08-17-0735-839a61eeeb07';
+  var DIAG_BUILD_AT = '2026-08-17';
+  /* Capability inventory: checks that each feature EXISTS in the running
+     file, not that its name appears somewhere. A stale build fails these
+     regardless of what its version string claims. */
+  var DIAG_CAPABILITIES = [
+    { key:'capRtState',    test: function(){ return typeof window.rtState === 'function'; } },
+    { key:'capStopTrace',  test: function(){ return typeof chalStopPolling === 'function' && chalStopPolling.length > 0; } },
+    { key:'capVisDefer',   test: function(){ return typeof realtimeVisibilityHook !== 'undefined'; } },
+    { key:'capRestore',    test: function(){ return typeof restoreSavedSession === 'function'; } },
+    { key:'capNovaKb',     test: function(){ return typeof NOVA_KB !== 'undefined' && NOVA_KB.length >= 50; } },
+    { key:'capNovaIndex',  test: function(){ return typeof novaIndexSearch === 'function'; } },
+    { key:'capReasoning',  test: function(){ return typeof NOVA_REASONING !== 'undefined' && NOVA_REASONING.length >= 20; } },
+    { key:'capEmotional',  test: function(){ return typeof NOVA_EMOTIONAL !== 'undefined' && NOVA_EMOTIONAL.length >= 15; } },
+    { key:'capServerFacts',test: function(){ return typeof novaServerFacts === 'function'; } },
+    { key:'capAgeBands',   test: function(){ return typeof novaAgeBand === 'function'; } },
+    { key:'capClassroom',  test: function(){ return typeof clEnterRoom === 'function'; } },
+    { key:'capExams',      test: function(){ return typeof openExams === 'function'; } },
+    { key:'capPlans',      test: function(){ return typeof openMyPlan === 'function'; } },
+    { key:'capSchedule',   test: function(){ return typeof openMySchedule === 'function'; } },
+    { key:'capOwner',      test: function(){ return typeof openOwnerCenter === 'function'; } },
+    { key:'capAiBank',     test: function(){ return typeof openAiBank === 'function'; } }
+  ];
   var diagLines = [];
 
   function diagOwnerOnly(){
@@ -21154,6 +21250,7 @@
     dcResults.classList.add('dc-running');
     setBtnSaving(dcRunAllBtn, true);
     try{
+      await dcCheckBuild();
       await dcCheckConnection();
       await dcCheckAuth();
       await dcCheckBackground();
@@ -21176,6 +21273,73 @@
       setBtnSaving(dcRunAllBtn, false);
       dcRender();
     }
+  }
+
+  /* ---- BUILD VERIFICATION ----
+     Answers the one question that blocked six diagnostic rounds: is the file
+     running in this browser the file that was delivered?
+     
+     A version string alone is not enough — it can be right while the code is
+     stale if only part of a file was replaced. So each capability is tested
+     by CALLING for it, and the report states plainly which features are
+     missing rather than only that something is wrong. */
+  async function dcCheckBuild(){
+    const G = t('dcGrpBuild');
+    dcAdd(G, t('dcBuildId'), typeof DIAG_BUILD !== 'undefined' ? DIAG_BUILD : t('dcMissing'),
+      typeof DIAG_BUILD !== 'undefined' ? 'ok' : 'bad');
+    if(typeof DIAG_BUILD_AT !== 'undefined'){
+      const built = new Date(DIAG_BUILD_AT + 'T00:00:00');
+      const days = Math.floor((Date.now() - built.getTime()) / 86400000);
+      // An old build is not automatically wrong, but combined with a failing
+      // capability below it becomes the explanation.
+      dcAdd(G, t('dcBuildAge'), fmt('dcBuildDays', { n: Math.max(0, days) }),
+        days <= 1 ? 'ok' : (days <= 7 ? 'warn' : 'bad'),
+        days <= 1 ? '' : t('dcFixOldBuild'));
+    }
+
+    if(typeof DIAG_CAPABILITIES === 'undefined'){
+      dcAdd(G, t('dcCapabilities'), t('dcCapNoList'), 'bad', t('dcFixOldBuild'));
+      return;
+    }
+    let present = 0;
+    const missing = [];
+    DIAG_CAPABILITIES.forEach(function(c){
+      let ok = false;
+      // A throw counts as absent: a capability that cannot even be tested is
+      // not usable either.
+      try{ ok = !!c.test(); }catch(e){ ok = false; }
+      if(ok) present++; else missing.push(t(c.key));
+    });
+    dcAdd(G, t('dcCapabilities'), present + '/' + DIAG_CAPABILITIES.length,
+      missing.length === 0 ? 'ok' : 'bad',
+      missing.length === 0 ? '' : t('dcFixOldBuild'));
+    if(missing.length){
+      // Naming the missing features turns "something is stale" into proof.
+      dcAdd(G, t('dcCapMissing'), missing.join(' · '), 'bad', t('dcFixUpload'));
+    }
+
+    // The server knows which build was published; a mismatch is conclusive.
+    if(SHEET_API_URL){
+      const res = await postToSheet('expected_build', {});
+      if(res && res.ok && res.build){
+        const match = res.build === DIAG_BUILD;
+        dcAdd(G, t('dcServerBuild'), res.build + (match ? ' ✓' : ' ≠ ' + DIAG_BUILD),
+          match ? 'ok' : 'bad', match ? '' : t('dcFixMismatch'));
+      } else {
+        dcAdd(G, t('dcServerBuild'), t('dcServerBuildUnset'), 'info', t('dcFixSetBuild'));
+      }
+    }
+
+    // Cache headers explain a stale file that WAS uploaded correctly.
+    try{
+      const r = await fetch(location.href, { method: 'HEAD', cache: 'no-store' });
+      const lm = r.headers.get('last-modified') || r.headers.get('date') || '';
+      if(lm){
+        const age = Math.floor((Date.now() - new Date(lm).getTime()) / 60000);
+        dcAdd(G, t('dcServedAt'), lm + ' (' + fmt('dcMinsAgo', { n: Math.max(0, age) }) + ')',
+          age < 1440 ? 'ok' : 'warn', age < 1440 ? '' : t('dcFixCache'));
+      }
+    }catch(e){ /* HEAD is blocked on some hosts; silence is correct */ }
   }
 
   /* ---- connection ---- */
@@ -24125,7 +24289,7 @@
      Single source of truth for nxIcon(name) — used everywhere instead of
      Unicode emoji. Same public API (`nxIcon('home')`) would survive an
      eventual real file split unchanged. */
-  /* ---------- NEXORA icon system: inline SVG, sized via currentColor.
+  /* ---------- JASSI icon system: inline SVG, sized via currentColor.
      Replaces decorative emoji in product chrome (sidebar/topbar/bottom
      nav/notifications/status). Educational content typed by users is
      never touched — this only covers hardcoded UI strings. ---------- */
@@ -24167,7 +24331,7 @@
   /* ==================== MODULE: SKELETON/UI-UTILITIES ====================
      Reusable loading placeholders (Sprint 4). Only ever invoked around a
      genuine pending network/AI call. */
-  /* ---------- NEXORA skeleton components: reusable HTML-string builders.
+  /* ---------- JASSI skeleton components: reusable HTML-string builders.
      Only ever invoked around a genuine pending network/AI call — never
      behind an artificial delay. ---------- */
   function nxSkeletonText(lines){
@@ -24523,10 +24687,10 @@
     let sum = 0;
     for(let i=0;i<base.length;i++) sum += base.charCodeAt(i);
     const checksum = (sum % 97).toString(36).toUpperCase().padStart(2,'0');
-    return `NEXORA-${base}-${checksum}`;
+    return `JASSI-${base}-${checksum}`;
   }
   function verifyCertChecksum(certId){
-    const m = /^NEXORA-(.+)-([0-9A-Z]{2})$/.exec((certId||'').trim().toUpperCase());
+    const m = /^JASSI-(.+)-([0-9A-Z]{2})$/.exec((certId||'').trim().toUpperCase());
     if(!m) return false;
     const base = m[1], checksum = m[2];
     let sum = 0;
@@ -27055,7 +27219,7 @@
     if(typeof loadDailyAiFact === 'function') loadDailyAiFact();
   }
 
-  /* ---------- NEXORA boot experience: real, verifiable steps only.
+  /* ---------- JASSI boot experience: real, verifiable steps only.
      Each step reports an ACTUAL count from data already loaded during
      script execution (profiles, learning-platform entities, progress
      records) — not a fake percentage. Respects prefers-reduced-motion,
