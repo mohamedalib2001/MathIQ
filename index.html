@@ -1434,6 +1434,21 @@
   .chat-msg.theirs{ align-self:flex-start; background:var(--input-bg);
     border:1px solid var(--chip-border); color:var(--ink); }
   .chat-msg .cm-who{ display:block; font-size:9.5px; opacity:.75; margin-bottom:2px; }
+  /* Delivery status. Deliberately small and low-contrast: it is confirmation,
+     not content, and should never compete with the message itself. */
+  .chat-state{ display:inline-flex; align-items:center; gap:4px; margin-inline-start:6px;
+    font-size:9.5px; opacity:.85; vertical-align:middle; }
+  .chat-state-sent{ color:#a5f3c4; }
+  .chat-state-failed{ color:#fecaca; }
+  .chat-msg.chat-pending{ opacity:.82; }
+  .chat-spin{ width:9px; height:9px; border-radius:50%; display:inline-block;
+    border:1.5px solid rgba(255,255,255,0.35); border-top-color:#fff; }
+  @media (prefers-reduced-motion: no-preference){
+    .chat-spin{ animation:chatSpin .7s linear infinite; }
+  }
+  @keyframes chatSpin{ to{ transform:rotate(360deg) } }
+  .chat-retry{ cursor:pointer; text-decoration:underline; }
+  .chat-retry:hover{ opacity:1; }
   .chat-input-row{ display:flex; gap:8px; padding:10px 12px; border-top:1px solid var(--chip-border);
     padding-bottom:calc(10px + env(safe-area-inset-bottom)); }
   .chat-input-row input{ flex:1; margin:0; }
@@ -1692,6 +1707,29 @@
     background:var(--input-bg); border:1px solid var(--chip-border); border-radius:10px; }
   .oc-audit b{ color:var(--ink); }
   .oc-audit span{ color:var(--ink-dim); font-size:10px; display:block; margin-top:2px; direction:ltr; }
+
+  /* ---------- RESTRICTED AREA HEADER ---------- */
+  .sec-header{ text-align:center; padding:4px 0 14px; }
+  .sec-shield{ width:62px; height:62px; margin:0 auto 12px; border-radius:16px;
+    display:flex; align-items:center; justify-content:center;
+    background:linear-gradient(150deg, rgba(240,214,138,0.16), rgba(240,214,138,0.05));
+    border:1.5px solid rgba(240,214,138,0.42);
+    box-shadow:0 0 0 5px rgba(240,214,138,0.06), 0 8px 24px rgba(0,0,0,0.35); }
+  .sec-shield-svg{ width:32px; height:32px; fill:none; stroke:#f0d68a; stroke-width:1.6;
+    stroke-linecap:round; stroke-linejoin:round; }
+  .sec-check{ stroke:#22c55e; stroke-width:2.2; }
+  .sec-title{ font-family:'Cairo',sans-serif; font-weight:800; font-size:20px; color:var(--ink); }
+  .sec-sub{ font-size:11.5px; color:#f0d68a; margin-top:6px; letter-spacing:0.4px; }
+  .sec-badges{ display:flex; flex-wrap:wrap; justify-content:center; gap:6px; margin-top:12px; }
+  .sec-badge{ display:inline-flex; align-items:center; gap:5px; font-size:9.5px; font-weight:600;
+    color:var(--ink-dim); background:var(--input-bg); border:1px solid var(--chip-border);
+    border-radius:20px; padding:4px 9px; }
+  .sec-dot{ width:5px; height:5px; border-radius:50%; background:#22c55e; flex:none; }
+  @media (prefers-reduced-motion: no-preference){
+    .sec-dot{ animation:secPulse 2.4s ease-in-out infinite; }
+  }
+  @keyframes secPulse{ 0%,100%{ opacity:1 } 50%{ opacity:.35 } }
+  .sec-attempts{ font-size:11px; color:#F59E0B; text-align:center; margin-top:8px; min-height:14px; }
 
   /* ---------- DIAGNOSTIC CENTRE ---------- */
   .dc-progress{ margin:12px 0 6px; }
@@ -3614,35 +3652,35 @@
       <div>
         <div class="group-label" data-i18n="eduSystemLabel">نوع التعليم</div>
         <select class="select-like" id="exSystem" style="width:100%;">
-          <option value="eg_gov">تعليم مصري حكومي</option>
-          <option value="eg_azhar">تعليم أزهري</option>
-          <option value="eg_lang">مدارس لغات</option>
-          <option value="eg_intl">تعليم دولي</option>
+          <option value="eg_gov" data-i18n="eduSys_eg_gov">تعليم مصري حكومي</option>
+          <option value="eg_azhar" data-i18n="eduSys_eg_azhar">تعليم أزهري</option>
+          <option value="eg_lang" data-i18n="eduSys_eg_lang">مدارس لغات</option>
+          <option value="eg_intl" data-i18n="eduSys_eg_intl">تعليم دولي</option>
         </select>
       </div>
       <div>
         <div class="group-label" data-i18n="gradeStageLabel">الصف الدراسي</div>
         <select class="select-like" id="exGrade" style="width:100%;">
-          <optgroup label="الابتدائي">
-            <option value="p1">الأول الابتدائي</option><option value="p2">الثاني الابتدائي</option>
-            <option value="p3">الثالث الابتدائي</option><option value="p4">الرابع الابتدائي</option>
-            <option value="p5">الخامس الابتدائي</option><option value="p6">السادس الابتدائي</option>
+          <optgroup label="الابتدائي" data-i18n-label="ogPrimary">
+            <option value="p1" data-i18n="grade_p1">الأول الابتدائي</option><option value="p2" data-i18n="grade_p2">الثاني الابتدائي</option>
+            <option value="p3" data-i18n="grade_p3">الثالث الابتدائي</option><option value="p4" data-i18n="grade_p4">الرابع الابتدائي</option>
+            <option value="p5" data-i18n="grade_p5">الخامس الابتدائي</option><option value="p6" data-i18n="grade_p6">السادس الابتدائي</option>
           </optgroup>
-          <optgroup label="الإعدادي">
-            <option value="m1">الأول الإعدادي</option><option value="m2">الثاني الإعدادي</option>
-            <option value="m3">الثالث الإعدادي</option>
+          <optgroup label="الإعدادي" data-i18n-label="ogPrep">
+            <option value="m1" data-i18n="grade_m1">الأول الإعدادي</option><option value="m2" data-i18n="grade_m2">الثاني الإعدادي</option>
+            <option value="m3" data-i18n="grade_m3">الثالث الإعدادي</option>
           </optgroup>
-          <optgroup label="الثانوي">
-            <option value="s1">الأول الثانوي</option><option value="s2">الثاني الثانوي</option>
-            <option value="s3">الثالث الثانوي</option>
+          <optgroup label="الثانوي" data-i18n-label="ogSecondary">
+            <option value="s1" data-i18n="grade_s1">الأول الثانوي</option><option value="s2" data-i18n="grade_s2">الثاني الثانوي</option>
+            <option value="s3" data-i18n="grade_s3">الثالث الثانوي</option>
           </optgroup>
         </select>
       </div>
       <div>
         <div class="group-label" data-i18n="termLabel">الفصل الدراسي</div>
         <select class="select-like" id="exTerm" style="width:100%;">
-          <option value="t1">الفصل الدراسي الأول</option>
-          <option value="t2">الفصل الدراسي الثاني</option>
+          <option value="t1" data-i18n="term_t1">الفصل الدراسي الأول</option>
+          <option value="t2" data-i18n="term_t2">الفصل الدراسي الثاني</option>
         </select>
       </div>
       <div>
@@ -3668,10 +3706,10 @@
 
     <div class="group-label" data-i18n="exLicence">حالة الحقوق</div>
     <select class="select-like" id="exLicence" style="width:100%;">
-      <option value="own">من إعدادي / إعداد الأكاديمية</option>
-      <option value="licensed">مرخّص من صاحبه بإذن</option>
-      <option value="public">منشور رسميًا للاستخدام العام</option>
-      <option value="unspecified">غير محدد</option>
+      <option value="own" data-i18n="licOwn">من إعدادي / إعداد الأكاديمية</option>
+      <option value="licensed" data-i18n="licLicensed">مرخّص من صاحبه بإذن</option>
+      <option value="public" data-i18n="licPublic">منشور رسميًا للاستخدام العام</option>
+      <option value="unspecified" data-i18n="licUnspecified">غير محدد</option>
     </select>
 
     <div class="group-label" data-i18n="exPasteLabel">الصق الأسئلة</div>
@@ -4090,7 +4128,7 @@
         <div class="sk-qr" id="skQr"></div>
       </div>
 
-      <div class="sk-title-ar">شهادة قياس مستوى المهارة</div>
+      <div class="sk-title-ar" data-i18n="skTitle">شهادة قياس مستوى المهارة</div>
       <div class="sk-title-en">S K I L L &nbsp; A S S E S S M E N T &nbsp; C E R T I F I C A T E</div>
       <div class="sk-rule"></div>
 
@@ -4132,7 +4170,7 @@
         </div>
         <div class="sk-sign">
           <div class="sk-sign-line"></div>
-          <div class="sk-sign-name">أكاديمية جاسي</div>
+          <div class="sk-sign-name" data-i18n="brandShortName">أكاديمية جاسي</div>
           <div class="sk-sign-title" id="skSignTitle">الإدارة الأكاديمية</div>
         </div>
         <div class="sk-seal"><span>J</span><i>OFFICIAL</i></div>
@@ -4462,7 +4500,25 @@
   <!-- ADMIN LOGIN GATE -->
   <div id="adminLoginGate" class="panel hidden">
     <div class="mini-editor">
-      <div class="group-label" style="text-align:center;" id="adminLoginTitle">دخول المالك</div>
+      <!-- A restricted-area header. This is the one screen where signalling
+           the security posture is part of the function: it tells an authorised
+           owner they are in the right place, and tells anyone else that
+           attempts are recorded. -->
+      <div class="sec-header">
+        <div class="sec-shield">
+          <svg viewBox="0 0 24 24" class="sec-shield-svg">
+            <path d="M12 2l8 3.5v6c0 4.7-3.3 9-8 10.5-4.7-1.5-8-5.8-8-10.5v-6L12 2z"/>
+            <path d="M9 12l2 2 4-4" class="sec-check"/>
+          </svg>
+        </div>
+        <div class="sec-title" id="adminLoginTitle">دخول المالك</div>
+        <div class="sec-sub" data-i18n="secRestricted">منطقة محظورة · دخول مصرّح فقط</div>
+        <div class="sec-badges">
+          <span class="sec-badge"><span class="sec-dot"></span><span data-i18n="secEncrypted">اتصال مشفّر</span></span>
+          <span class="sec-badge"><span class="sec-dot"></span><span data-i18n="secHashed">كلمة المرور مجزّأة</span></span>
+          <span class="sec-badge"><span class="sec-dot"></span><span data-i18n="secAudited">كل محاولة مسجّلة</span></span>
+        </div>
+      </div>
       <div class="field-icon-wrap">
         <span class="field-icon"><svg class="nx-icon" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/></svg></span>
         <input type="text" id="adminUserInput" class="ltr-input" data-i18n-placeholder="usernamePlaceholder" placeholder="username">
@@ -4471,6 +4527,7 @@
         <span class="field-icon"><svg class="nx-icon" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
         <input type="password" id="adminPinInput" class="ltr-input" data-i18n-placeholder="pinPlaceholder" placeholder="كلمة المرور">
       </div>
+      <div class="sec-attempts" id="adminAttempts"></div>
       <div class="conn-note hidden" id="adminLoginHint"></div>
       <div class="feedback wrong" id="adminLoginError" style="min-height:16px;"></div>
       <button class="start-btn" id="adminLoginBtn" data-i18n="loginConfirm">دخول</button>
@@ -4779,28 +4836,28 @@
         <div class="group-label" data-i18n="eduSystemLabel">نوع التعليم</div>
         <select class="select-like" id="editEduSystem" style="width:100%;">
           <option value="" data-i18n="eduSystemNone">— غير محدد —</option>
-          <option value="eg_gov">تعليم مصري حكومي</option>
-          <option value="eg_azhar">تعليم أزهري</option>
-          <option value="eg_lang">مدارس لغات (حكومي تجريبي)</option>
-          <option value="eg_intl">تعليم دولي (IG / American / IB)</option>
+          <option value="eg_gov" data-i18n="eduSys_eg_gov">تعليم مصري حكومي</option>
+          <option value="eg_azhar" data-i18n="eduSys_eg_azhar">تعليم أزهري</option>
+          <option value="eg_lang" data-i18n="eduSys_eg_lang">مدارس لغات (حكومي تجريبي)</option>
+          <option value="eg_intl" data-i18n="eduSys_eg_intl">تعليم دولي (IG / American / IB)</option>
         </select>
       </div>
       <div>
         <div class="group-label" data-i18n="gradeStageLabel">الصف الدراسي</div>
         <select class="select-like" id="editGradeStage" style="width:100%;">
           <option value="">— غير محدد —</option>
-          <optgroup label="الابتدائي">
-            <option value="p1">الأول الابتدائي</option><option value="p2">الثاني الابتدائي</option>
-            <option value="p3">الثالث الابتدائي</option><option value="p4">الرابع الابتدائي</option>
-            <option value="p5">الخامس الابتدائي</option><option value="p6">السادس الابتدائي</option>
+          <optgroup label="الابتدائي" data-i18n-label="ogPrimary">
+            <option value="p1" data-i18n="grade_p1">الأول الابتدائي</option><option value="p2" data-i18n="grade_p2">الثاني الابتدائي</option>
+            <option value="p3" data-i18n="grade_p3">الثالث الابتدائي</option><option value="p4" data-i18n="grade_p4">الرابع الابتدائي</option>
+            <option value="p5" data-i18n="grade_p5">الخامس الابتدائي</option><option value="p6" data-i18n="grade_p6">السادس الابتدائي</option>
           </optgroup>
-          <optgroup label="الإعدادي">
-            <option value="m1">الأول الإعدادي</option><option value="m2">الثاني الإعدادي</option>
-            <option value="m3">الثالث الإعدادي</option>
+          <optgroup label="الإعدادي" data-i18n-label="ogPrep">
+            <option value="m1" data-i18n="grade_m1">الأول الإعدادي</option><option value="m2" data-i18n="grade_m2">الثاني الإعدادي</option>
+            <option value="m3" data-i18n="grade_m3">الثالث الإعدادي</option>
           </optgroup>
-          <optgroup label="الثانوي">
-            <option value="s1">الأول الثانوي</option><option value="s2">الثاني الثانوي</option>
-            <option value="s3">الثالث الثانوي</option>
+          <optgroup label="الثانوي" data-i18n-label="ogSecondary">
+            <option value="s1" data-i18n="grade_s1">الأول الثانوي</option><option value="s2" data-i18n="grade_s2">الثاني الثانوي</option>
+            <option value="s3" data-i18n="grade_s3">الثالث الثانوي</option>
           </optgroup>
         </select>
       </div>
@@ -4808,8 +4865,8 @@
         <div class="group-label" data-i18n="termLabel">الفصل الدراسي</div>
         <select class="select-like" id="editTerm" style="width:100%;">
           <option value="">— غير محدد —</option>
-          <option value="t1">الفصل الدراسي الأول</option>
-          <option value="t2">الفصل الدراسي الثاني</option>
+          <option value="t1" data-i18n="term_t1">الفصل الدراسي الأول</option>
+          <option value="t2" data-i18n="term_t2">الفصل الدراسي الثاني</option>
         </select>
       </div>
       </div>
@@ -4966,7 +5023,7 @@
             <div class="cert-verify-text">
               <div class="cert-verify-title" id="certVerifyTitleEl">تحقق من صحة الشهادة</div>
               <div class="cert-verify-sub" id="certVerifySubEl">امسح رمز QR للتحقق</div>
-              <div class="cert-meta-id"><span class="cert-foot-lbl">رقم الشهادة</span> <span id="certNumEl"></span></div>
+              <div class="cert-meta-id"><span class="cert-foot-lbl" data-i18n="certNumLabel">رقم الشهادة</span> <span id="certNumEl"></span></div>
             </div>
           </div>
           <div class="cert-datebox">
@@ -5735,6 +5792,7 @@
   const adminLoginTitleEl = document.getElementById('adminLoginTitle');
   const adminUserInput = document.getElementById('adminUserInput');
   const adminPinInput = document.getElementById('adminPinInput');
+  const adminAttempts = document.getElementById('adminAttempts');
   const adminLoginHint = document.getElementById('adminLoginHint');
   const adminResetLink = document.getElementById('adminResetLink');
   const adminResetModal = document.getElementById('adminResetModal');
@@ -7493,6 +7551,15 @@
       dcFixServiceFlags:'خدمات معطّلة لن تظهر للطلاب. راجع «تفعيل الخدمات».',
 
       dcIntro:'كل فحص هنا يُجرى فعليًا على النظام الحيّ الآن، ولا يقرأ حالة محفوظة.',
+      ogPrimary:'الابتدائي', ogPrep:'الإعدادي', ogSecondary:'الثانوي',
+      licOwn:'من إعدادي / إعداد الأكاديمية', licLicensed:'مرخّص من صاحبه بإذن',
+      licPublic:'منشور رسميًا للاستخدام العام', licUnspecified:'غير محدد',
+      brandShortName:'أكاديمية جاسي',
+      chatRetry:'إعادة الإرسال',
+      secRestricted:'منطقة محظورة · دخول مصرّح فقط',
+      secEncrypted:'اتصال مشفّر', secHashed:'كلمة المرور مجزّأة', secAudited:'كل محاولة مسجّلة',
+      secAttemptsLeft:'⚠ متبقٍ {n} محاولات قبل الإيقاف المؤقت',
+      secLocked:'🔒 أُوقف الدخول مؤقتًا. حاول بعد {n} دقيقة.',
       dcStepOf:'({n}/{total}) {name}', dcScanDone:'✓ اكتمل الفحص في {n} ثانية',
       dcStepFailed:'فشل هذا الفحص',
       dcStepBuild:'نتحقق من النسخة والميزات…', dcStepConnection:'نختبر الاتصال بالخادم…',
@@ -8968,6 +9035,15 @@
       dcFixServiceFlags:'Disabled services will not appear for learners. Review "Service activation".',
 
       dcIntro:'Every check here probes the live system right now; none of it reports a stored status.',
+      ogPrimary:'Primary', ogPrep:'Preparatory', ogSecondary:'Secondary',
+      licOwn:'My own / academy-produced', licLicensed:'Licensed with permission',
+      licPublic:'Officially published for public use', licUnspecified:'Unspecified',
+      brandShortName:'JASSI Academy',
+      chatRetry:'Retry',
+      secRestricted:'Restricted area · authorised access only',
+      secEncrypted:'Encrypted connection', secHashed:'Password hashed', secAudited:'Attempts recorded',
+      secAttemptsLeft:'⚠ {n} attempts remaining before a temporary lock',
+      secLocked:'🔒 Sign-in temporarily locked. Try again in {n} min.',
       dcStepOf:'({n}/{total}) {name}', dcScanDone:'✓ Scan finished in {n}s',
       dcStepFailed:'this check failed',
       dcStepBuild:'Verifying the build and its features…', dcStepConnection:'Testing the server connection…',
@@ -9524,13 +9600,31 @@
     currentLang = lang;
     document.documentElement.lang = lang;
     document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+    // Reading through t() rather than TRANSLATIONS[lang] directly: t() applies
+    // the masculine variants in ar_m, and going around it meant every markup
+    // string ignored the learner's gender no matter how complete ar_m was.
     document.querySelectorAll('[data-i18n]').forEach(el=>{
       const key = el.getAttribute('data-i18n');
-      if(TRANSLATIONS[lang][key] !== undefined) el.textContent = TRANSLATIONS[lang][key];
+      const val = t(key);
+      if(val !== key) el.textContent = val;   // t() returns the key when absent
     });
     document.querySelectorAll('[data-i18n-placeholder]').forEach(el=>{
       const key = el.getAttribute('data-i18n-placeholder');
-      if(TRANSLATIONS[lang][key] !== undefined) el.placeholder = TRANSLATIONS[lang][key];
+      const val = t(key);
+      if(val !== key) el.placeholder = val;
+    });
+    // optgroup labels are ATTRIBUTES, not text nodes, so the ordinary
+    // data-i18n pass could never reach them — the grade groups stayed Arabic
+    // in the English interface.
+    document.querySelectorAll('[data-i18n-label]').forEach(el=>{
+      const key = el.getAttribute('data-i18n-label');
+      const val = t(key);
+      if(val !== key) el.label = val;
+    });
+    document.querySelectorAll('[data-i18n-title]').forEach(el=>{
+      const key = el.getAttribute('data-i18n-title');
+      const val = t(key);
+      if(val !== key){ el.title = val; el.setAttribute('aria-label', val); }
     });
     themeBtn.title = t('themeBtnTitle'); themeBtn.setAttribute('aria-label', t('themeBtnTitle'));
     soundBtn.title = t('soundTitle'); soundBtn.setAttribute('aria-label', t('soundTitle'));
@@ -10269,6 +10363,9 @@
   }
   // The app's actual front door: username + password required to proceed.
   function goToLoginGate(){
+    // Surface any active lock immediately rather than after another failed
+    // attempt — the owner should know before typing.
+    if(typeof adminShowAttempts === 'function') adminShowAttempts();
     // Every route back to the login screen passes through here — the logout
     // link, the back button, an expired session, the editor. Cleaning up in
     // logSessionLogout() alone left five of those paths showing the previous
@@ -11027,14 +11124,63 @@
     // hand and adding a hide() to each is how one gets missed, and a single
     // missed path leaves the user staring at a frozen loader — worse than
     // showing no loader at all.
+    // The screen is ALWAYS dismissed here. My previous guard checked whether
+    // the login gate was still visible — but a successful sign-in hides that
+    // gate, so the condition was false exactly when the screen most needed
+    // closing, and it hung forever on the one path that mattered.
     try{ await runAdminLogin(); }
+    catch(e){
+      // An unexpected throw must surface, not vanish behind a stuck loader.
+      adminLoginError.textContent = t('loginErrorMsg');
+    }
     finally{
-      if(typeof hideLoginTransition === 'function' &&
-         !adminLoginGateEl.classList.contains('hidden')) hideLoginTransition();
+      if(typeof hideLoginTransition === 'function') hideLoginTransition();
       adminLoginBtn.disabled = false;
     }
   });
+  /* Failed attempts are counted and throttled locally. This does not replace
+     server-side protection, but it stops the most common attack a school
+     device faces: someone sitting at an unattended browser trying passwords
+     by hand. The counter survives a reload, or clearing it would be trivial. */
+  const ADMIN_MAX_ATTEMPTS = 5;
+  const ADMIN_LOCK_MS = 5 * 60 * 1000;
+  function adminAttemptState(){
+    try{
+      const raw = localStorage.getItem('mm_admin_attempts');
+      if(!raw) return { n: 0, until: 0 };
+      const st = JSON.parse(raw);
+      // A lock that has expired is cleared rather than held forever.
+      if(st.until && Date.now() > st.until) return { n: 0, until: 0 };
+      return { n: Number(st.n) || 0, until: Number(st.until) || 0 };
+    }catch(e){ return { n: 0, until: 0 }; }
+  }
+  function adminAttemptSave(st){
+    try{ localStorage.setItem('mm_admin_attempts', JSON.stringify(st)); }catch(e){}
+  }
+  function adminAttemptClear(){
+    try{ localStorage.removeItem('mm_admin_attempts'); }catch(e){}
+    if(adminAttempts) adminAttempts.textContent = '';
+  }
+  function adminShowAttempts(){
+    const st = adminAttemptState();
+    if(!adminAttempts) return;
+    if(st.until > Date.now()){
+      adminAttempts.textContent = fmt('secLocked', {
+        n: Math.ceil((st.until - Date.now()) / 60000) });
+    } else if(st.n > 0){
+      adminAttempts.textContent = fmt('secAttemptsLeft', { n: ADMIN_MAX_ATTEMPTS - st.n });
+    } else {
+      adminAttempts.textContent = '';
+    }
+  }
+
   async function runAdminLogin(){
+    const st = adminAttemptState();
+    if(st.until > Date.now()){
+      adminLoginError.textContent = fmt('secLocked', {
+        n: Math.ceil((st.until - Date.now()) / 60000) });
+      return;
+    }
     const username = adminUserInput.value.trim();
     const password = adminPinInput.value;
     if(!username || !password){ adminLoginError.textContent = t('enterBothFields'); return; }
@@ -11055,6 +11201,7 @@
       if(loginRes && loginRes.ok && loginRes.admin){
         ADMIN = { username: loginRes.admin.username, pin: hash, name: loginRes.admin.name || username, role: loginRes.admin.role || 'owner' };
         saveAdminToStorage();
+        adminAttemptClear();   // a correct password resets the counter
         // Identity is confirmed only now — show it, and name the remaining
         // work rather than leaving a bar moving against nothing.
         showLoginTransitionIdentity({
@@ -11083,6 +11230,10 @@
       if(existsRes && existsRes.ok && existsRes.exists){
         hideLoginTransition();
         adminLoginBtn.disabled = false;
+        const cur = adminAttemptState();
+        const next = { n: cur.n + 1, until: (cur.n + 1) >= ADMIN_MAX_ATTEMPTS ? Date.now() + ADMIN_LOCK_MS : 0 };
+        adminAttemptSave(next);
+        adminShowAttempts();
         adminLoginError.textContent = t('adminWrongPassword');
         adminResetLink.classList.remove('hidden');
         return;
@@ -20138,7 +20289,7 @@
     memberPrefix: 'NX'
   };
 
-  var DIAG_BUILD = 'jassi-2026-08-17-0817-a5ab97345b1d';
+  var DIAG_BUILD = 'jassi-2026-08-17-0838-d6ecab1206f2';
   var DIAG_BUILD_AT = '2026-08-17';
   /* Capability inventory: checks that each feature EXISTS in the running
      file, not that its name appears somewhere. A stale build fails these
@@ -20941,6 +21092,15 @@
       if(chatRendered.has(m.id)) return;
       chatRendered.add(m.id);
       const mine = String(m.from).toLowerCase() === me;
+      // Remove the optimistic placeholder this confirmed message replaces, or
+      // the sender sees their own text twice.
+      if(mine){
+        chatLog.querySelectorAll('.chat-pending').forEach(function(ph){
+          if(ph.textContent.replace(/[✓↻\s]/g, '') === String(m.text || '').replace(/\s/g, '')){
+            ph.remove();
+          }
+        });
+      }
       chatLog.appendChild(buildChatBubble(m, mine));
     });
     chatLog.scrollTop = chatLog.scrollHeight;
@@ -20974,15 +21134,81 @@
     row.appendChild(bub);
     return row;
   }
+  /* OPTIMISTIC SEND.
+     
+     The message used to vanish from the input and appear nowhere until the
+     server replied — on a slow connection that is several seconds of the
+     sender wondering whether anything happened, so they type it again.
+     
+     Now the bubble appears instantly in a "sending" state and settles to
+     "sent" when the server confirms. A failure marks the bubble rather than
+     discarding it, and offers a retry that reuses the same text: losing what
+     someone wrote because a request failed is the worst outcome of all. */
+  let chatPendingSeq = 0;
+  const chatPending = new Map();
+
+  function chatRenderPending(id, text, state){
+    let el = document.getElementById(id);
+    if(!el){
+      el = document.createElement('div');
+      el.id = id;
+      // Matches the existing message classes exactly, so a pending bubble is
+      // visually identical to a delivered one apart from its status mark.
+      el.className = 'chat-msg mine chat-pending';
+      chatLog.appendChild(el);
+    }
+    // textContent for the body, built separately from the status mark: user
+    // text must never be parsed as HTML.
+    el.textContent = text;
+    const mark = document.createElement('span');
+    mark.className = 'chat-state chat-state-' + state;
+    mark.innerHTML =
+        (state === 'sending' ? '<span class="chat-spin"></span>' :
+         state === 'sent'    ? '✓' :
+                               '<span class="chat-retry" role="button" tabindex="0">↻ ' + t('chatRetry') + '</span>');
+    el.appendChild(mark);
+    if(state === 'failed'){
+      const r = el.querySelector('.chat-retry');
+      if(r) r.addEventListener('click', function(){
+        // Retry reuses the SAME pending id, so a successful resend replaces
+        // the failed bubble instead of adding a second one.
+        const pend = chatPending.get(id);
+        if(pend) chatSendOnce(pend.text, id);
+      });
+    }
+    chatLog.scrollTop = chatLog.scrollHeight;
+    return el;
+  }
+
+  async function chatSendOnce(text, existingId){
+    const id = existingId || ('chat_pending_' + (++chatPendingSeq));
+    chatPending.set(id, { text: text });
+    chatRenderPending(id, text, 'sending');
+
+    const res = await postToSheet('send_chat', {
+      roomId: chatRoom, fromUser: currentServerUsername(), text: text
+    });
+
+    if(!res || !res.ok){
+      chatRenderPending(id, text, 'failed');
+      showToast(describeSyncFailure(res, 'chatSendFailed'), nxIcon('alertTriangle'), 'system');
+      return false;
+    }
+    chatRenderPending(id, text, 'sent');
+    chatPending.delete(id);
+    // The confirmed message arrives with the next poll; the placeholder is
+    // removed there so the two never appear side by side.
+    const el = document.getElementById(id);
+    if(el) el.dataset.confirmed = '1';
+    chatPollNow();
+    return true;
+  }
+
   async function sendChatMessage(){
     const text = chatInput.value.trim();
     if(!text || !chatRoom) return;
     chatInput.value = '';
-    const res = await postToSheet('send_chat', {
-      roomId: chatRoom, fromUser: currentServerUsername(), text: text
-    });
-    if(!res || !res.ok){ showToast(t('chatSendFailed'), nxIcon('alertTriangle'), 'system'); return; }
-    chatPollNow();
+    await chatSendOnce(text);
   }
 
   /* ---------- GROUP CHALLENGE ---------- */
