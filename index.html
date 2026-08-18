@@ -11502,6 +11502,13 @@
           e.stopPropagation();
           p.disabled = !p.disabled;
           saveProfilesToStorage();
+          // Written centrally as well. A suspension held only in this browser
+          // was undone by the learner clearing their own cache, and never
+          // reached the device they actually used.
+          if(SHEET_API_URL){
+            postToSheet('set_account_access', Object.assign(abCreds(), {
+              username: p.username || key, disabled: p.disabled }));
+          }
           renderProfiles();
         });
       }
@@ -11526,6 +11533,13 @@
           const until = new Date(); until.setDate(until.getDate() + days);
           p.subscriptionUntil = until.toISOString();
           saveProfilesToStorage();
+          // Persist it centrally too, or the grant lives on this device only —
+          // which is how a paid subscription vanished on the learner's own
+          // phone while the admin's screen showed it applied.
+          if(SHEET_API_URL){
+            postToSheet('set_account_access', Object.assign(abCreds(), {
+              username: p.username || key, subscriptionUntil: p.subscriptionUntil }));
+          }
           renderProfiles();
         });
       }
@@ -13588,6 +13602,14 @@
 
   // Per-student access status. Returns one of:
   // 'exempt' | 'disabled' | 'subscribed' | { state:'trial', daysLeft } | 'trial_expired' | 'no_trial'
+  /* Refreshed from the server before the gate is consulted, so a suspension
+     applied on another device takes effect here rather than on the next cache
+     clear. Failure is silent and falls back to the local copy: a network
+     problem must not lock out a legitimate learner. */
+  async function refreshAccessState(key){
+    try{ await applyAccountAccess(key); }catch(e){}
+    return getStudentAccessState(key);
+  }
   function getStudentAccessState(key){
     const p = PROFILES[key];
     if(!p) return 'no_trial';
@@ -22709,8 +22731,42 @@
       sessionLog: prof.sessionLog || [],
       recentMistakes: prof.recentMistakes || [],
       certificatesIssued: prof.certificatesIssued || [],
-      dailyGoal: prof.dailyGoal || null
+      dailyGoal: prof.dailyGoal || null,
+      // Learner-owned and portable. gender drives Arabic grammatical forms
+      // across the whole interface, so losing it on a new device addressed the
+      // learner in the wrong gender everywhere until they set it again.
+      gender: prof.gender || null,
+      notificationHistory: prof.notificationHistory || []
+      // NOTE: disabled / subscriptionUntil / trialStart are deliberately NOT
+      // here. This payload is written BY the learner's browser, so including
+      // them would let a stale local copy overwrite a suspension an admin had
+      // just applied. They are server-authoritative and flow one way only,
+      // through applyAccountAccess() below.
     };
+  }
+
+  /* Access control, read FROM the server and applied locally. Never sent back.
+     Before this, `disabled` and `subscriptionUntil` existed only in the
+     browser: an admin could suspend an account and the learner could undo it
+     by clearing their cache, and a paid subscription disappeared on any second
+     device. Access a user can erase for themselves is not access control. */
+  async function applyAccountAccess(key){
+    const prof = PROFILES[key];
+    if(!prof || !SHEET_API_URL) return false;
+    const uname = prof.username || key;
+    if(!uname || uname === 'guest') return false;
+    let res = null;
+    try{ res = await postToSheet('get_account_access', { username: uname }); }
+    catch(e){ return false; }
+    if(!res || !res.ok || !res.found) return false;
+    // The server's answer wins outright. A merge would reintroduce the very
+    // problem this fixes.
+    prof.disabled = res.disabled === true;
+    prof.subscriptionUntil = res.subscriptionUntil || null;
+    if(res.trialStart) prof.trialStart = res.trialStart;
+    if(res.gender && !prof.gender) prof.gender = res.gender;
+    saveProfilesToStorage();
+    return true;
   }
   // Merge rule: the side with more recorded practice wins per field, so
   // opening the app on a second device can never erase work done on the first.
@@ -22915,7 +22971,7 @@
     taglineArabic: 'تعلّم · تطوّر · ارتقِ'
   };
 
-  var DIAG_BUILD = 'jasmin-2026-08-18-1414-e42a28b6f46d';
+  var DIAG_BUILD = 'jasmin-2026-08-18-1429-737404b1c47a';
   var DIAG_BUILD_AT = '2026-08-17';
   /* Capability inventory: checks that each feature EXISTS in the running
      file, not that its name appears somewhere. A stale build fails these
@@ -25062,7 +25118,13 @@
     abRender();
     abRenderInsights();
   }
-  function abCreds(){ return { requesterUsername: ADMIN.username, requesterPin: ADMIN.pin }; }
+  // Guarded: these credentials are read from click handlers that can fire on a
+  // screen where no admin is signed in, and ADMIN.username would throw there —
+  // taking the whole handler down with it.
+  function abCreds(){
+    return { requesterUsername: (ADMIN && ADMIN.username) || '',
+             requesterPin: (ADMIN && ADMIN.pin) || '' };
+  }
 
   /* Identity and capability answers, from the JASMIN AI conduct document.
      These are the questions asked most on a first visit, and they are the ones
