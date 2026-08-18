@@ -1948,20 +1948,20 @@
   .sk-sheet{
     position:relative; width:1500px; min-height:1060px; padding:44px 54px 34px;
     box-sizing:border-box; overflow:hidden;
-    background:linear-gradient(150deg,#fdfbf5 0%,#f7f3e8 52%,#fbf8f0 100%);
-    font-family:'IBM Plex Sans Arabic','Tajawal',sans-serif; color:#2b2a25;
+    background:var(--sk-bg);
+    font-family:'IBM Plex Sans Arabic','Tajawal',sans-serif; color:var(--sk-ink);
   }
   /* Double gold rule, the printed-document convention. */
   .sk-frame{
-    position:absolute; inset:16px; border:2.5px solid #c9a94f;
+    position:absolute; inset:16px; border:2.5px solid var(--sk-accent);
     border-radius:3px; pointer-events:none;
   }
   .sk-frame::after{
     content:''; position:absolute; inset:7px;
-    border:1px solid rgba(201,169,79,0.55); border-radius:2px;
+    border:1px solid var(--sk-accent-a55); border-radius:2px;
   }
   .sk-corner{ position:absolute; width:58px; height:58px; pointer-events:none; }
-  .sk-corner::before, .sk-corner::after{ content:''; position:absolute; background:#b8912f; }
+  .sk-corner::before, .sk-corner::after{ content:''; position:absolute; background:var(--sk-accent-2); }
   .sk-corner::before{ width:100%; height:2px; } .sk-corner::after{ width:2px; height:100%; }
   .sk-tl{ top:28px; left:28px; } .sk-tr{ top:28px; right:28px; }
   .sk-bl{ bottom:28px; left:28px; } .sk-br{ bottom:28px; right:28px; }
@@ -1971,13 +1971,13 @@
   .sk-head{ position:relative; z-index:2; display:flex; align-items:center; justify-content:space-between; gap:24px; }
   .sk-crest{
     width:76px; height:76px; border-radius:50%; flex:none;
-    background:radial-gradient(circle at 50% 40%, rgba(201,169,79,0.20), transparent 70%);
-    border:1px solid rgba(184,145,47,0.55);
+    background:radial-gradient(circle at 50% 40%, var(--sk-accent-a20), transparent 70%);
+    border:1px solid var(--sk-accent-a55);
     background-repeat:no-repeat; background-position:center; background-size:64%;
   }
   .sk-brand{ flex:1; text-align:center; }
-  .sk-brand-ar{ font-family:'Cairo',sans-serif; font-weight:800; font-size:23px; color:#8a6a18; }
-  .sk-brand-en{ font-size:10px; letter-spacing:3.2px; color:#7a746a; margin-top:6px; }
+  .sk-brand-ar{ font-family:'Cairo',sans-serif; font-weight:800; font-size:23px; color:var(--sk-accent-ink); }
+  .sk-brand-en{ font-size:10px; letter-spacing:3.2px; color:var(--sk-muted); margin-top:6px; }
   .sk-qr{ width:76px; height:76px; flex:none; background:#fff; border-radius:6px;
     padding:4px; box-sizing:border-box; border:1px solid rgba(0,0,0,0.10); }
   .sk-qr img, .sk-qr canvas{ width:100% !important; height:100% !important; display:block; }
@@ -1985,112 +1985,251 @@
   .sk-title-ar{
     position:relative; z-index:2; text-align:center; margin-top:20px;
     font-family:'Cairo',sans-serif; font-weight:800; font-size:44px; line-height:1.2;
-    color:#1d2a44;
+    color:var(--sk-heading);
   }
   .sk-title-en{ position:relative; z-index:2; text-align:center; margin-top:6px;
-    font-size:11px; letter-spacing:4.5px; color:#8a8478; }
+    font-size:11px; letter-spacing:4.5px; color:var(--sk-faint); }
   .sk-rule{ position:relative; z-index:2; height:1px; margin:16px auto 0; width:56%;
-    background:linear-gradient(90deg,transparent,#c9a94f,transparent); }
+    background:linear-gradient(90deg,transparent,var(--sk-accent),transparent); }
 
   .sk-identity{ position:relative; z-index:2; display:flex; align-items:center;
     justify-content:center; gap:26px; margin-top:20px; }
   .sk-photo{
     width:118px; height:118px; border-radius:50%; flex:none; overflow:hidden;
     display:flex; align-items:center; justify-content:center;
-    background:#efe9db; border:3px solid #c9a94f;
-    box-shadow:0 0 0 5px rgba(201,169,79,0.14);
-    font-family:'Cairo',sans-serif; font-weight:800; font-size:46px; color:#8a6a18;
+    background:var(--sk-panel-2); border:3px solid var(--sk-accent);
+    box-shadow:0 0 0 5px var(--sk-accent-a14);
+    font-family:'Cairo',sans-serif; font-weight:800; font-size:46px; color:var(--sk-accent-ink);
   }
   /* !important because html2canvas re-computes sizing during capture and an
      unconstrained img collapses the circle in the exported file. */
   .sk-photo img{ width:100% !important; height:100% !important; object-fit:cover; display:block; }
   .sk-identity-text{ text-align:center; }
-  .sk-attest{ font-size:15px; color:#5c574d; }
+  .sk-attest{ font-size:15px; color:var(--sk-body); }
   .sk-name{
     margin-top:8px; font-family:'Cairo',sans-serif; font-weight:800;
-    font-size:42px; color:#16223a;
+    font-size:42px; color:var(--sk-heading-strong);
   }
-  .sk-meta{ margin-top:7px; font-size:13px; color:#7a746a; }
+  .sk-meta{ margin-top:7px; font-size:13px; color:var(--sk-muted); }
 
   .sk-verdict{
     position:relative; z-index:2; margin:20px auto 0; width:400px; text-align:center;
     padding:15px 16px; border-radius:8px;
-    background:linear-gradient(160deg, rgba(201,169,79,0.14), rgba(201,169,79,0.05));
-    border:1.5px solid #c9a94f;
+    background:linear-gradient(160deg, var(--sk-accent-a14), var(--sk-accent-a05));
+    border:1.5px solid var(--sk-accent);
   }
-  .sk-verdict-label{ font-size:12px; color:#6b6559; letter-spacing:0.8px; }
+  .sk-verdict-label{ font-size:12px; color:var(--sk-muted); letter-spacing:0.8px; }
   .sk-verdict-score{ font-family:'Cairo',sans-serif; font-weight:800; font-size:56px;
-    line-height:1.05; color:#8a6a18; margin-top:2px; }
-  .sk-verdict-band{ font-family:'Cairo',sans-serif; font-weight:800; font-size:20px; color:#16223a; }
-  .sk-stars{ margin-top:6px; font-size:18px; letter-spacing:5px; color:#c9a94f; }
+    line-height:1.05; color:var(--sk-accent-ink); margin-top:2px; }
+  .sk-verdict-band{ font-family:'Cairo',sans-serif; font-weight:800; font-size:20px; color:var(--sk-heading-strong); }
+  .sk-stars{ margin-top:6px; font-size:18px; letter-spacing:5px; color:var(--sk-accent); }
 
   .sk-section-title{ font-family:'Cairo',sans-serif; font-weight:800; font-size:14px;
-    color:#8a6a18; margin-bottom:10px; text-align:center; }
+    color:var(--sk-accent-ink); margin-bottom:10px; text-align:center; }
   /* A ruled table, the convention for assessed results on paper. */
   .sk-grid{ position:relative; z-index:2; display:grid; grid-template-columns:repeat(4,1fr);
-    gap:0; margin-top:20px; border:1px solid #d8cfb4; }
-  .sk-cell{ padding:11px 10px; text-align:center; border:1px solid #e4dcc6; background:rgba(255,255,255,0.55); }
-  .sk-cell-name{ font-size:12.5px; color:#3d3a33; font-weight:600; }
-  .sk-cell-score{ font-family:'Cairo',sans-serif; font-weight:800; font-size:24px; margin-top:4px; color:#8a6a18; }
-  .sk-cell-score.unmeasured{ color:#a49d8d; font-size:19px; }
-  .sk-cell-bar{ height:4px; border-radius:2px; background:#e8e1cd; margin-top:7px; overflow:hidden; }
-  .sk-cell-fill{ height:100%; background:linear-gradient(90deg,#c9a94f,#8a6a18); }
-  .sk-cell-n{ font-size:9.5px; color:#8b8577; margin-top:5px; }
+    gap:0; margin-top:20px; border:1px solid var(--sk-line-2); }
+  .sk-cell{ padding:11px 10px; text-align:center; border:1px solid var(--sk-line); background:var(--sk-panel); }
+  .sk-cell-name{ font-size:12.5px; color:var(--sk-ink); font-weight:600; }
+  .sk-cell-score{ font-family:'Cairo',sans-serif; font-weight:800; font-size:24px; margin-top:4px; color:var(--sk-accent-ink); }
+  .sk-cell-score.unmeasured{ color:var(--sk-faint); font-size:19px; }
+  .sk-cell-bar{ height:4px; border-radius:2px; background:var(--sk-track); margin-top:7px; overflow:hidden; }
+  .sk-cell-fill{ height:100%; background:linear-gradient(90deg,var(--sk-accent),var(--sk-accent-ink)); }
+  .sk-cell-n{ font-size:9.5px; color:var(--sk-faint); margin-top:5px; }
 
   .sk-prog-wrap{ position:relative; z-index:2; margin-top:18px; }
   .sk-prog{ display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
   .sk-prog-cell{ display:flex; align-items:center; gap:8px; padding:9px 11px;
-    background:rgba(255,255,255,0.6); border:1px solid #e4dcc6; border-radius:5px; }
+    background:var(--sk-panel); border:1px solid var(--sk-line); border-radius:5px; }
   .sk-prog-icon{ font-size:15px; flex:none; }
   .sk-prog-body{ flex:1; min-width:0; }
-  .sk-prog-name{ font-size:12px; color:#2f2c26; font-weight:600;
+  .sk-prog-name{ font-size:12px; color:var(--sk-ink); font-weight:600;
     overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .sk-prog-meta{ font-size:9.5px; color:#87816f; margin-top:2px; }
-  .sk-prog-pct{ font-family:'Cairo',sans-serif; font-weight:800; font-size:15px; color:#8a6a18; flex:none; }
-  .sk-prog-none{ grid-column:1/-1; text-align:center; font-size:12px; color:#87816f; padding:11px; }
+  .sk-prog-meta{ font-size:9.5px; color:var(--sk-faint); margin-top:2px; }
+  .sk-prog-pct{ font-family:'Cairo',sans-serif; font-weight:800; font-size:15px; color:var(--sk-accent-ink); flex:none; }
+  .sk-prog-none{ grid-column:1/-1; text-align:center; font-size:12px; color:var(--sk-faint); padding:11px; }
 
   .sk-cog-wrap{ position:relative; z-index:2; margin-top:18px; }
   .sk-cog{ display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
-  .sk-cog-cell{ background:rgba(255,255,255,0.6); border:1px solid #e4dcc6;
+  .sk-cog-cell{ background:var(--sk-panel); border:1px solid var(--sk-line);
     border-radius:5px; padding:9px 8px; text-align:center; }
-  .sk-cog-label{ font-size:10.5px; color:#6b6559; }
-  .sk-cog-val{ font-family:'Cairo',sans-serif; font-weight:800; font-size:18px; color:#1d2a44; margin-top:2px; }
+  .sk-cog-label{ font-size:10.5px; color:var(--sk-muted); }
+  .sk-cog-val{ font-family:'Cairo',sans-serif; font-weight:800; font-size:18px; color:var(--sk-heading); margin-top:2px; }
 
   .sk-basis{ position:relative; z-index:2; margin-top:18px; text-align:center;
-    font-size:12px; color:#6b6559; line-height:1.85; }
+    font-size:12px; color:var(--sk-muted); line-height:1.85; }
   /* An explicit caution when the evidence base is thin — a provisional
      reading must never be mistaken for a final one. */
   .sk-caution{ position:relative; z-index:2; margin:11px auto 0; max-width:900px;
     padding:9px 15px; border-radius:5px; text-align:center; font-size:12px; line-height:1.75;
-    background:rgba(180,120,20,0.09); border:1px solid rgba(180,120,20,0.34); color:#7a5510;
+    background:var(--sk-warn-bg); border:1px solid var(--sk-warn-line); color:var(--sk-warn-ink);
   }
 
   /* ---- signatures ---- */
   .sk-signs{ position:relative; z-index:2; display:flex; align-items:flex-end;
     justify-content:space-between; gap:30px; margin-top:26px; padding:0 40px; }
   .sk-sign-col{ text-align:center; flex:1; }
-  .sk-sign-rule{ height:1px; background:#8a8478; margin-bottom:7px; }
-  .sk-sign-role{ font-family:'Cairo',sans-serif; font-weight:800; font-size:14px; color:#1d2a44; }
-  .sk-sign-sub{ font-size:10px; color:#87816f; margin-top:2px; letter-spacing:0.5px; }
+  .sk-sign-rule{ height:1px; background:var(--sk-faint); margin-bottom:7px; }
+  .sk-sign-role{ font-family:'Cairo',sans-serif; font-weight:800; font-size:14px; color:var(--sk-heading); }
+  .sk-sign-sub{ font-size:10px; color:var(--sk-faint); margin-top:2px; letter-spacing:0.5px; }
   .sk-seal-mid{ flex:none; }
   .sk-seal-ring{
     width:86px; height:86px; border-radius:50%;
-    border:2px solid #c9a94f; background-repeat:no-repeat;
+    border:2px solid var(--sk-accent); background-repeat:no-repeat;
     background-position:center; background-size:56%;
-    box-shadow:0 0 0 4px rgba(201,169,79,0.13);
+    box-shadow:0 0 0 4px var(--sk-accent-a14);
   }
 
   .sk-foot{ position:relative; z-index:2; display:flex; align-items:center;
     justify-content:space-between; gap:20px; margin-top:20px;
-    border-top:1px solid #ded5bc; padding-top:12px; }
+    border-top:1px solid var(--sk-line-2); padding-top:12px; }
   .sk-verify{ text-align:start; max-width:520px; }
-  .sk-verify-label{ font-size:10.5px; color:#87816f; }
-  .sk-verify-url{ font-family:'Courier New',monospace; font-size:10px; color:#5c574d;
+  .sk-verify-label{ font-size:10.5px; color:var(--sk-faint); }
+  .sk-verify-url{ font-family:'Courier New',monospace; font-size:10px; color:var(--sk-body);
     direction:ltr; margin-top:3px; word-break:break-all; }
   .sk-sign{ display:none; }   /* superseded by the signature block above */
   .sk-seal{ display:none; }
   .sk-issuer{ position:relative; z-index:2; text-align:center; margin-top:9px;
-    font-size:10px; color:#87816f; }
+    font-size:10px; color:var(--sk-faint); }
+
+
+  /* ==================== CERTIFICATE THEMES (§26) ====================
+     Seven finishes over ONE layout. Each is a swap of the token block below
+     and nothing else — no duplicated rules, so a change to spacing or a new
+     section reaches every theme at once and none of them can drift.
+
+     Ivory is the default deliberately. It is the only finish that prints
+     without flooding a page with ink, and a certificate that survives being
+     printed is worth more than one that only looks good on a screen. The dark
+     finishes are offered for sharing on screen, where they read as premium.
+
+     --sk-qr-plate stays light in every theme: a QR needs a light quiet zone
+     and high contrast to scan. Styling it to match a dark theme would make a
+     handsome code that no phone can read, which defeats the whole point. */
+  .sk-sheet{
+    --sk-bg:linear-gradient(150deg,#fdfbf5 0%,#f7f3e8 52%,#fbf8f0 100%);
+    --sk-ink:#2b2a25;        --sk-body:#5c574d;
+    --sk-heading:#1d2a44;    --sk-heading-strong:#16223a;
+    /* Darkened from #87816f: the caption sat at 3.76:1 on ivory, under the
+       4.5 AA threshold for text this small. It is the line that states the
+       evidence base, so it is the last thing that should be hard to read. */
+    --sk-muted:#6b6559;      --sk-faint:#6e6858;
+    --sk-accent:#c9a94f;     --sk-accent-2:#b8912f;   --sk-accent-ink:#8a6a18;
+    --sk-accent-a05:rgba(201,169,79,0.05);
+    --sk-accent-a14:rgba(201,169,79,0.14);
+    --sk-accent-a20:rgba(201,169,79,0.20);
+    --sk-accent-a55:rgba(201,169,79,0.55);
+    --sk-panel:rgba(255,255,255,0.58);  --sk-panel-2:#efe9db;
+    --sk-track:#e8e1cd;
+    --sk-line:#e4dcc6;       --sk-line-2:#d8cfb4;
+    --sk-warn-bg:rgba(180,120,20,0.09); --sk-warn-line:rgba(180,120,20,0.34); --sk-warn-ink:#7a5510;
+    --sk-qr-plate:#ffffff;   --sk-qr-dark:#0a0f1a;
+  }
+
+  /* ---- Royal Gold — deep navy leather with struck gold ---- */
+  .sk-sheet.sk-theme-gold{
+    --sk-bg:linear-gradient(150deg,#111a2f 0%,#070c18 55%,#0d1526 100%);
+    --sk-ink:#e8e4d8;        --sk-body:#c3bda9;
+    --sk-heading:#f4edd8;    --sk-heading-strong:#fdf8e6;
+    --sk-muted:#a79f88;      --sk-faint:#8b8471;
+    --sk-accent:#d4af37;     --sk-accent-2:#f0d98a;   --sk-accent-ink:#f0d98a;
+    --sk-accent-a05:rgba(212,175,55,0.06);
+    --sk-accent-a14:rgba(212,175,55,0.15);
+    --sk-accent-a20:rgba(212,175,55,0.22);
+    --sk-accent-a55:rgba(212,175,55,0.50);
+    --sk-panel:rgba(255,255,255,0.045); --sk-panel-2:#1d2743;
+    --sk-track:rgba(212,175,55,0.16);
+    --sk-line:rgba(212,175,55,0.24);    --sk-line-2:rgba(212,175,55,0.42);
+    --sk-warn-bg:rgba(240,180,60,0.12); --sk-warn-line:rgba(240,180,60,0.40); --sk-warn-ink:#f0cf8a;
+  }
+
+  /* ---- Cyber Cyan — instrument-panel blue ---- */
+  .sk-sheet.sk-theme-cyan{
+    --sk-bg:linear-gradient(150deg,#061420 0%,#02070f 55%,#04101c 100%);
+    --sk-ink:#d8ecf4;        --sk-body:#a8c6d4;
+    --sk-heading:#e6f8ff;    --sk-heading-strong:#ffffff;
+    --sk-muted:#8fadba;      --sk-faint:#6f8b98;
+    --sk-accent:#06b6d4;     --sk-accent-2:#67e8f9;   --sk-accent-ink:#67e8f9;
+    --sk-accent-a05:rgba(6,182,212,0.07);
+    --sk-accent-a14:rgba(6,182,212,0.16);
+    --sk-accent-a20:rgba(6,182,212,0.24);
+    --sk-accent-a55:rgba(6,182,212,0.52);
+    --sk-panel:rgba(255,255,255,0.05);  --sk-panel-2:#0d2436;
+    --sk-track:rgba(6,182,212,0.18);
+    --sk-line:rgba(6,182,212,0.24);     --sk-line-2:rgba(6,182,212,0.44);
+    --sk-warn-bg:rgba(240,180,60,0.12); --sk-warn-line:rgba(240,180,60,0.38); --sk-warn-ink:#f2d18d;
+  }
+
+  /* ---- Obsidian Purple — the platform's own identity ---- */
+  .sk-sheet.sk-theme-obsidian{
+    --sk-bg:linear-gradient(150deg,#120c22 0%,#050308 55%,#0e0a1c 100%);
+    --sk-ink:#e6dcf7;        --sk-body:#bcb0d4;
+    --sk-heading:#f3ebff;    --sk-heading-strong:#ffffff;
+    --sk-muted:#9d92b4;      --sk-faint:#7e7495;
+    --sk-accent:#a855f7;     --sk-accent-2:#e9d5ff;   --sk-accent-ink:#d8b4fe;
+    --sk-accent-a05:rgba(168,85,247,0.07);
+    --sk-accent-a14:rgba(168,85,247,0.17);
+    --sk-accent-a20:rgba(168,85,247,0.25);
+    --sk-accent-a55:rgba(168,85,247,0.52);
+    --sk-panel:rgba(255,255,255,0.05);  --sk-panel-2:#241a3d;
+    --sk-track:rgba(168,85,247,0.20);
+    --sk-line:rgba(168,85,247,0.25);    --sk-line-2:rgba(168,85,247,0.45);
+    --sk-warn-bg:rgba(240,180,60,0.12); --sk-warn-line:rgba(240,180,60,0.38); --sk-warn-ink:#f2d18d;
+  }
+
+  /* ---- Emerald Heritage — bottle green and old gold ---- */
+  .sk-sheet.sk-theme-emerald{
+    --sk-bg:linear-gradient(150deg,#08201a 0%,#03100c 55%,#061b15 100%);
+    --sk-ink:#dcefe4;        --sk-body:#aecbbb;
+    --sk-heading:#eefaf2;    --sk-heading-strong:#ffffff;
+    --sk-muted:#93b3a1;      --sk-faint:#749282;
+    --sk-accent:#c8a951;     --sk-accent-2:#f2e0a6;   --sk-accent-ink:#ecd48f;
+    --sk-accent-a05:rgba(200,169,81,0.07);
+    --sk-accent-a14:rgba(200,169,81,0.16);
+    --sk-accent-a20:rgba(200,169,81,0.24);
+    --sk-accent-a55:rgba(200,169,81,0.52);
+    --sk-panel:rgba(255,255,255,0.05);  --sk-panel-2:#0e3227;
+    --sk-track:rgba(200,169,81,0.18);
+    --sk-line:rgba(200,169,81,0.24);    --sk-line-2:rgba(200,169,81,0.44);
+    --sk-warn-bg:rgba(240,180,60,0.12); --sk-warn-line:rgba(240,180,60,0.38); --sk-warn-ink:#f2d18d;
+  }
+
+  /* ---- Platinum Noir — graphite and cool silver, no gold at all ---- */
+  .sk-sheet.sk-theme-platinum{
+    --sk-bg:linear-gradient(150deg,#1a1c20 0%,#0a0b0d 55%,#141619 100%);
+    --sk-ink:#e6e8ec;        --sk-body:#bdc2ca;
+    --sk-heading:#f6f7f9;    --sk-heading-strong:#ffffff;
+    --sk-muted:#9aa1ab;      --sk-faint:#7b828c;
+    --sk-accent:#c7ccd4;     --sk-accent-2:#eef1f5;   --sk-accent-ink:#dfe4ea;
+    --sk-accent-a05:rgba(199,204,212,0.06);
+    --sk-accent-a14:rgba(199,204,212,0.14);
+    --sk-accent-a20:rgba(199,204,212,0.22);
+    --sk-accent-a55:rgba(199,204,212,0.48);
+    --sk-panel:rgba(255,255,255,0.05);  --sk-panel-2:#2a2d33;
+    --sk-track:rgba(199,204,212,0.18);
+    --sk-line:rgba(199,204,212,0.22);   --sk-line-2:rgba(199,204,212,0.40);
+    --sk-warn-bg:rgba(240,180,60,0.12); --sk-warn-line:rgba(240,180,60,0.38); --sk-warn-ink:#f2d18d;
+  }
+
+  /* ---- Crimson Royale — oxblood and antique gold ---- */
+  .sk-sheet.sk-theme-crimson{
+    --sk-bg:linear-gradient(150deg,#25090f 0%,#120407 55%,#1e070c 100%);
+    --sk-ink:#f2dcdf;        --sk-body:#cfaeb4;
+    --sk-heading:#fceaec;    --sk-heading-strong:#ffffff;
+    --sk-muted:#b4919a;      --sk-faint:#95737c;
+    --sk-accent:#c9a227;     --sk-accent-2:#f4dd94;   --sk-accent-ink:#efd89a;
+    --sk-accent-a05:rgba(201,162,39,0.07);
+    --sk-accent-a14:rgba(201,162,39,0.16);
+    --sk-accent-a20:rgba(201,162,39,0.24);
+    --sk-accent-a55:rgba(201,162,39,0.52);
+    --sk-panel:rgba(255,255,255,0.05);  --sk-panel-2:#3a1017;
+    --sk-track:rgba(201,162,39,0.18);
+    --sk-line:rgba(201,162,39,0.24);    --sk-line-2:rgba(201,162,39,0.44);
+    --sk-warn-bg:rgba(240,180,60,0.12); --sk-warn-line:rgba(240,180,60,0.38); --sk-warn-ink:#f2d18d;
+  }
+
+  /* The QR plate never inherits a theme — it must stay scannable. */
+  .sk-qr{ background:var(--sk-qr-plate) !important; }
 
   #skillViewer{ position:fixed; inset:0; z-index:980; display:flex; align-items:center;
     justify-content:center; background:rgba(4,7,14,0.9); padding:16px; }
@@ -2100,8 +2239,43 @@
   .sv-title{ font-family:'Cairo',sans-serif; font-weight:800; font-size:15px; color:var(--ink); }
   .sv-body{ flex:1; overflow:auto; }
   .sv-body img{ width:100%; border-radius:10px; display:block; }
-  .sv-actions{ display:flex; gap:8px; margin-top:12px; }
-  .sv-actions button{ flex:1; margin:0; }
+  .sv-actions{ display:flex; gap:8px; margin-top:12px; flex-wrap:wrap; }
+  .sv-actions button{ flex:1; margin:0; min-width:130px; }
+  /* ---- finish picker ---- */
+  .sv-themes{ display:flex; gap:9px; flex-wrap:wrap; align-items:center;
+    margin-bottom:11px; padding-bottom:10px; border-bottom:1px solid var(--input-border); }
+  .sv-swatch{
+    width:34px; height:34px; border-radius:9px; cursor:pointer; flex:none; padding:0;
+    border:2px solid transparent; box-shadow:0 2px 8px rgba(0,0,0,0.32);
+    position:relative; transition:transform .15s ease, border-color .15s ease;
+  }
+  .sv-swatch:hover{ transform:translateY(-2px); }
+  .sv-swatch[aria-checked="true"]{ border-color:var(--yellow); }
+  /* The tick is drawn on the swatch itself so the active finish is readable
+     without colour vision — a border alone is not enough. */
+  .sv-swatch[aria-checked="true"]::after{
+    content:'✓'; position:absolute; inset:0; display:flex; align-items:center;
+    justify-content:center; font-size:15px; font-weight:800; color:#fff;
+    text-shadow:0 1px 3px rgba(0,0,0,0.85);
+  }
+  .sv-swatch:focus-visible{ outline:3px solid #a78bfa; outline-offset:2px; }
+  .sv-theme-name{ font-size:11.5px; color:var(--ink-dim); margin-inline-start:2px; }
+  /* ---- verification block ---- */
+  .sv-verify{ margin-top:11px; padding:10px 12px; border-radius:9px;
+    background:rgba(148,163,184,0.08); border:1px solid var(--input-border); }
+  .sv-verify-row{ display:flex; align-items:center; gap:8px; margin-bottom:6px; }
+  .sv-verify-row:last-of-type{ margin-bottom:0; }
+  .sv-verify-label{ font-size:10.5px; color:var(--ink-dim); flex:none; min-width:74px; }
+  .sv-verify-id, .sv-verify-url{
+    flex:1; min-width:0; direction:ltr; text-align:left; font-family:'Courier New',monospace;
+    font-size:11px; color:var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+  .sv-mini-btn{ flex:none; font-size:10.5px; padding:4px 10px; border-radius:7px; cursor:pointer;
+    background:rgba(139,92,246,0.16); color:var(--ink); border:1px solid rgba(139,92,246,0.35); }
+  .sv-mini-btn:hover{ background:rgba(139,92,246,0.26); }
+  .sv-verify-state{ font-size:10.5px; margin-top:7px; color:var(--ink-dim); line-height:1.7; }
+  .sv-verify-state.ok{ color:#34D399; }
+  .sv-verify-state.warn{ color:#F59E0B; }
 
   /* ---------- MESSAGES INBOX ---------- */
   .msg-row{ display:flex; align-items:center; gap:9px; padding:9px 10px; border-radius:11px;
@@ -4826,10 +5000,27 @@
         <div class="sv-title" id="skvTitle">شهادة قياس مستوى المهارة</div>
         <button class="chat-close" id="skvCloseBtn" aria-label="إغلاق">✕</button>
       </div>
+      <!-- Finish picker. Swatches rather than words: the choice is visual, and
+           a row of colour names in two languages says less than the colours. -->
+      <div class="sv-themes" id="skvThemes" role="radiogroup" aria-label="نمط الشهادة"></div>
       <div class="sv-body"><img id="skvImg" alt=""></div>
+      <div class="sv-verify" id="skvVerify">
+        <div class="sv-verify-row">
+          <span class="sv-verify-label" id="skvIdLabel">رقم الشهادة</span>
+          <code class="sv-verify-id" id="skvCertId">—</code>
+          <button class="sv-mini-btn" id="skvCopyIdBtn" data-i18n="skCopyId">نسخ</button>
+        </div>
+        <div class="sv-verify-row">
+          <span class="sv-verify-label" id="skvLinkLabel">رابط التحقق</span>
+          <code class="sv-verify-url" id="skvVerifyUrl">—</code>
+          <button class="sv-mini-btn" id="skvCopyLinkBtn" data-i18n="skCopyLink">نسخ</button>
+        </div>
+        <div class="sv-verify-state" id="skvRegState"></div>
+      </div>
       <div class="sv-actions">
         <button class="start-btn" id="skvDownloadBtn" data-i18n="skDownload">⬇️ تنزيل الشهادة</button>
         <button class="secondary-btn" id="skvPrintBtn" data-i18n="skPrint">🖨 طباعة</button>
+        <button class="secondary-btn" id="skvShareBtn" data-i18n="skShare">↗ مشاركة</button>
       </div>
     </div>
   </div>
@@ -6606,6 +6797,15 @@
   const skVerdictLabel = document.getElementById('skVerdictLabel');
   const skIssuer = document.getElementById('skIssuer');
   const skillViewer = document.getElementById('skillViewer');
+  const skvThemes = document.getElementById('skvThemes');
+  const skvCertId = document.getElementById('skvCertId');
+  const skvVerifyUrl = document.getElementById('skvVerifyUrl');
+  const skvIdLabel = document.getElementById('skvIdLabel');
+  const skvLinkLabel = document.getElementById('skvLinkLabel');
+  const skvRegState = document.getElementById('skvRegState');
+  const skvCopyIdBtn = document.getElementById('skvCopyIdBtn');
+  const skvCopyLinkBtn = document.getElementById('skvCopyLinkBtn');
+  const skvShareBtn = document.getElementById('skvShareBtn');
   const skvImg = document.getElementById('skvImg');
   const skvCloseBtn = document.getElementById('skvCloseBtn');
   const skvDownloadBtn = document.getElementById('skvDownloadBtn');
@@ -8343,7 +8543,17 @@
       skVerifyLabel:'تحقّق من الشهادة', skSignTitle:'الإدارة الأكاديمية',
       skIssuer:'أكاديمية جاسمين العالمية للتدريب والتطوير — ضمن منظومة INFRA ENGINE · كل الأرقام في هذه الشهادة مقاسة من أداء فعلي مسجّل',
       skIosHint:'إن لم يبدأ التنزيل تلقائيًا، اضغط مطوّلًا على الشهادة واختر «حفظ الصورة».',
-      skDownload:'⬇️ تنزيل الشهادة', skPrint:'🖨 طباعة',
+      skDownload:'⬇️ تنزيل الشهادة', skPrint:'🖨 طباعة', skShare:'↗ مشاركة',
+      skThemeIvory:'العاجي الكلاسيكي', skThemeGold:'الذهبي الملكي', skThemeEmerald:'الزمرّدي العريق',
+      skThemeCrimson:'العنّابي الملكي', skThemeObsidian:'الأرجواني الفاحم', skThemeCyan:'السماوي التقني',
+      skThemePlatinum:'البلاتيني الداكن',
+      skCertIdLabel:'رقم الشهادة', skVerifyLinkLabel:'رابط التحقق',
+      skCopyId:'نسخ', skCopyLink:'نسخ', skCopied:'✓ نُسخ',
+      skRegOk:'✓ مُسجَّلة على الخادم — رمز الاستجابة السريعة قابل للتحقق من أي جهاز.',
+      skRegOffline:'⚠ لم تُسجَّل بعد على الخادم. الشهادة صحيحة كصورة، لكن مسح الرمز لن يُظهر نتيجة حتى تتم المزامنة.',
+      skRegFailed:'⚠ تعذّر تسجيل الشهادة على الخادم. الرمز لن يتحقق حتى تُعاد المحاولة مع اتصال سليم.',
+      skRegRevoked:'⛔ هذه الشهادة مُلغاة. لا يُعتدّ بها ولن يُثبتها التحقق.',
+      skShareText:'شهادة قياس مستوى المهارة — {name} · أكاديمية جاسمين',
       skStepMeasure:'نقيس مهاراتك من سجلّك…', skStepRender:'نُعدّ الشهادة…',
       skFailed:'تعذّر إعداد الشهادة. أعد المحاولة.',
       dpTitle:'شهادة عضوية', dpTagline:'فخر الانتماء .. مسيرة التميّز',
@@ -9988,7 +10198,17 @@
       skVerifyLabel:'Verify this certificate', skSignTitle:'Academic Administration',
       skIssuer:'JASMIN Global Academy for Training & Development — Part of the INFRA ENGINE Ecosystem · Every figure on this certificate is measured from recorded performance',
       skIosHint:'If the download does not start, press and hold the certificate and choose "Save Image".',
-      skDownload:'⬇️ Download', skPrint:'🖨 Print',
+      skDownload:'⬇️ Download', skPrint:'🖨 Print', skShare:'↗ Share',
+      skThemeIvory:'Classic Ivory', skThemeGold:'Royal Gold', skThemeEmerald:'Emerald Heritage',
+      skThemeCrimson:'Crimson Royale', skThemeObsidian:'Obsidian Purple', skThemeCyan:'Cyber Cyan',
+      skThemePlatinum:'Platinum Noir',
+      skCertIdLabel:'Certificate ID', skVerifyLinkLabel:'Verification link',
+      skCopyId:'Copy', skCopyLink:'Copy', skCopied:'✓ Copied',
+      skRegOk:'✓ Registered on the server — the QR code verifies from any device.',
+      skRegOffline:'⚠ Not registered yet. The certificate is valid as an image, but scanning the code will return nothing until it syncs.',
+      skRegFailed:'⚠ Could not register this certificate. The code will not verify until this is retried on a working connection.',
+      skRegRevoked:'⛔ This certificate has been revoked. It does not stand, and verification will not confirm it.',
+      skShareText:'Skill Assessment Certificate — {name} · JASMIN Academy',
       skStepMeasure:'Measuring your skills from your record…', skStepRender:'Preparing the certificate…',
       skFailed:'Could not prepare the certificate. Please try again.',
       dpTitle:'Certificate of Membership', dpTagline:'The pride of belonging · a path of distinction',
@@ -17601,6 +17821,137 @@
     chalOutScreen.classList.add('hidden'); showProgramsHub();
   });
   skvCloseBtn.addEventListener('click', ()=> skillViewer.classList.add('hidden'));
+
+  /* ==================== CERTIFICATE FINISHES & VERIFICATION ====================
+     Seven finishes over one layout. The swatch order runs light -> dark on
+     purpose: Ivory is first and is the default, because it is the only finish
+     that prints without saturating a page, and a certificate that survives
+     printing is worth more than one that only looks right on a screen. */
+  const SK_THEMES = [
+    { id:'',          key:'skThemeIvory',    a:'#fbf8f0', b:'#c9a94f' },
+    { id:'gold',      key:'skThemeGold',     a:'#0d1526', b:'#d4af37' },
+    { id:'emerald',   key:'skThemeEmerald',  a:'#06231b', b:'#c8a951' },
+    { id:'crimson',   key:'skThemeCrimson',  a:'#1e070c', b:'#c9a227' },
+    { id:'obsidian',  key:'skThemeObsidian', a:'#0e0a1c', b:'#a855f7' },
+    { id:'cyan',      key:'skThemeCyan',     a:'#04101c', b:'#06b6d4' },
+    { id:'platinum',  key:'skThemePlatinum', a:'#141619', b:'#c7ccd4' }
+  ];
+  const SK_THEME_STORE = 'jassiSkillCertTheme';
+  let skTheme = '';
+  try{
+    const saved = localStorage.getItem(SK_THEME_STORE);
+    // Validated against the catalogue rather than trusted: a stale or edited
+    // value would otherwise put an unknown class on the sheet and silently
+    // render an unstyled certificate.
+    if(saved !== null && SK_THEMES.some(function(t2){ return t2.id === saved; })) skTheme = saved;
+  }catch(e){}
+
+  function skApplyTheme(){
+    if(!skSheet) return;
+    SK_THEMES.forEach(function(t2){ if(t2.id) skSheet.classList.remove('sk-theme-' + t2.id); });
+    if(skTheme) skSheet.classList.add('sk-theme-' + skTheme);
+  }
+
+  function skRenderThemePicker(){
+    if(!skvThemes) return;
+    skvThemes.innerHTML = '';
+    SK_THEMES.forEach(function(t2){
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'sv-swatch';
+      b.setAttribute('role', 'radio');
+      b.setAttribute('aria-checked', String(t2.id === skTheme));
+      b.title = t(t2.key);
+      b.setAttribute('aria-label', t(t2.key));
+      b.style.background = 'linear-gradient(135deg,' + t2.a + ' 0 55%,' + t2.b + ' 55% 100%)';
+      b.addEventListener('click', function(){ skSetTheme(t2.id); });
+      skvThemes.appendChild(b);
+    });
+    const label = document.createElement('span');
+    label.className = 'sv-theme-name';
+    const cur = SK_THEMES.filter(function(t2){ return t2.id === skTheme; })[0];
+    label.textContent = cur ? t(cur.key) : '';
+    skvThemes.appendChild(label);
+  }
+
+  /* Changing the finish re-rasterises. The viewer shows a PNG, so restyling
+     the hidden template alone would leave the picture unchanged — the exact
+     kind of control that appears to do nothing. */
+  async function skSetTheme(id){
+    if(id === skTheme) return;
+    skTheme = id;
+    try{ localStorage.setItem(SK_THEME_STORE, id); }catch(e){}
+    skApplyTheme();
+    skRenderThemePicker();
+    if(!skvCurrent) return;
+    skvImg.style.opacity = '0.45';
+    const rebuilt = await buildSkillImage();
+    skvImg.style.opacity = '';
+    if(rebuilt){ skvImg.src = rebuilt.dataUrl; skvCurrent = rebuilt; }
+  }
+
+  /* ---- verification panel ---- */
+  function skVerifyUrlFor(a){
+    return CERT_VERIFY_BASE_URL + '?verifyCert=' + encodeURIComponent(a.certId || '');
+  }
+  function skFillVerifyPanel(a, reg){
+    if(skvCertId) skvCertId.textContent = a.certId || '—';
+    if(skvVerifyUrl) skvVerifyUrl.textContent = a.certId ? skVerifyUrlFor(a) : '—';
+    if(skvIdLabel) skvIdLabel.textContent = t('skCertIdLabel');
+    if(skvLinkLabel) skvLinkLabel.textContent = t('skVerifyLinkLabel');
+    if(!skvRegState) return;
+    // Three genuinely different states, said plainly. A certificate whose ID
+    // was never recorded on the server cannot be verified by anyone scanning
+    // it, and printing it without saying so hands out a promise that fails.
+    if(reg === 'registered'){
+      skvRegState.className = 'sv-verify-state ok';
+      skvRegState.textContent = t('skRegOk');
+    } else if(reg === 'offline'){
+      skvRegState.className = 'sv-verify-state warn';
+      skvRegState.textContent = t('skRegOffline');
+    } else if(reg === 'revoked'){
+      skvRegState.className = 'sv-verify-state warn';
+      skvRegState.textContent = t('skRegRevoked');
+    } else {
+      skvRegState.className = 'sv-verify-state warn';
+      skvRegState.textContent = t('skRegFailed');
+    }
+  }
+  function skCopy(text, btn){
+    if(!text || text === '—') return;
+    const done = function(){
+      const was = btn.textContent;
+      btn.textContent = t('skCopied');
+      setTimeout(function(){ btn.textContent = was; }, 1400);
+    };
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(done).catch(function(){});
+    } else {
+      // Older mobile browsers have no async clipboard; without this path the
+      // button is decorative on exactly the devices most likely to share.
+      const ta = document.createElement('textarea');
+      ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      try{ document.execCommand('copy'); done(); }catch(e){}
+      document.body.removeChild(ta);
+    }
+  }
+  if(skvCopyIdBtn) skvCopyIdBtn.addEventListener('click', function(){
+    skCopy(skvCertId ? skvCertId.textContent : '', skvCopyIdBtn); });
+  if(skvCopyLinkBtn) skvCopyLinkBtn.addEventListener('click', function(){
+    skCopy(skvVerifyUrl ? skvVerifyUrl.textContent : '', skvCopyLinkBtn); });
+  if(skvShareBtn) skvShareBtn.addEventListener('click', async function(){
+    if(!skvCurrent) return;
+    const a = skvCurrent.assessment;
+    const url = a.certId ? skVerifyUrlFor(a) : CERT_VERIFY_BASE_URL;
+    const text = fmt('skShareText', { name: a.name });
+    if(navigator.share){
+      try{ await navigator.share({ title: t('skTitle'), text: text, url: url }); return; }
+      catch(e){ /* dismissed, or unsupported for this payload — fall through */ }
+    }
+    skCopy(text + ' ' + url, skvShareBtn);
+  });
+  /* ==================== END FINISHES & VERIFICATION ==================== */
   skillViewer.addEventListener('click', function(ev){ if(ev.target === skillViewer) skillViewer.classList.add('hidden'); });
   skvDownloadBtn.addEventListener('click', ()=>{
     if(!skvCurrent) return;
@@ -19040,6 +19391,16 @@
       age: f.age,
       grade: f.grade,
       issuedAt: new Date(),
+      // A stable ID per learner per day. Deriving it from the calendar day
+      // rather than the clock means re-opening the certificate on the same day
+      // returns the SAME credential instead of minting a new number every time
+      // the screen is opened — and switching finishes does not silently issue
+      // a different certificate. It carries the same checksum as every other
+      // credential, so the verifier validates it without a special case.
+      certId: (function(){
+        const day = new Date(); day.setHours(0, 0, 0, 0);
+        return generateCertId('SK' + String(prof.username || currentProfile), day.getTime());
+      })(),
       skills: skills,
       measuredCount: measured.length,
       totalSkills: skills.length,
@@ -19169,7 +19530,11 @@
     skVerifyLabel.textContent = t('skVerifyLabel');
     skSignTitle.textContent = t('skSignTitle');
     skVerdictLabel.textContent = t('skVerdictLabel');
-    const url = CERT_VERIFY_BASE_URL + '?verifyMember=' + encodeURIComponent(a.memberId);
+    // ?verifyCert= is the ONLY parameter the verification screen answers.
+    // This QR used to encode ?verifyMember=, which nothing handled: scanning
+    // it opened the app as if from a bookmark and verified nothing. The
+    // certificate was carrying a promise the system could not keep.
+    const url = CERT_VERIFY_BASE_URL + '?verifyCert=' + encodeURIComponent(a.certId || '');
     skVerifyUrl.textContent = url.replace(/^https?:\/\//, '');
     skIssuer.textContent = t('skIssuer');
 
@@ -19189,13 +19554,17 @@
     }
     const a = skAssess();
     if(!a) return null;
+    skApplyTheme();     // before fill: the capture reads computed colours
     skFillTemplate(a);
     // Let fonts and the QR settle before rasterising: capturing too early
     // produces a certificate with missing glyphs.
     await new Promise(function(r){ setTimeout(r, 260); });
     if(typeof html2canvas !== 'function') return null;
+    // null lets the sheet's own themed background paint through. A fixed
+    // colour here would frame every dark finish in the wrong shade and give
+    // the ivory finish a black border.
     const canvas = await html2canvas(skSheet, {
-      backgroundColor: '#070b14', scale: 2, useCORS: true, logging: false,
+      backgroundColor: null, scale: 2, useCORS: true, logging: false,
       width: 1500, windowWidth: 1500
     });
     return { dataUrl: canvas.toDataURL('image/png'), assessment: a };
@@ -19213,7 +19582,27 @@
     if(!res){ showToast(t('skFailed'), nxIcon('alertTriangle'), 'system'); return; }
     skvImg.src = res.dataUrl;
     skvCurrent = res;
+    skRenderThemePicker();
+    // Shown before the round trip so the panel is never blank, then corrected
+    // by the real answer. Registration is what makes the printed QR mean
+    // something; until it succeeds the certificate is a picture.
+    skFillVerifyPanel(res.assessment, 'offline');
     skillViewer.classList.remove('hidden');
+    if(SHEET_API_URL){
+      const a = res.assessment;
+      const reg = await postToSheet('register_skill_certificate', {
+        certId: a.certId,
+        username: a.username || currentServerUsername() || '',
+        name: a.name,
+        score: a.overall === null ? 0 : a.overall,
+        accuracy: a.accuracy === null ? 0 : a.accuracy,
+        band: a.band ? t(a.band.key) : ''
+      });
+      // A revoked credential must say so rather than quietly claim to be fine.
+      if(reg && reg.ok && reg.status === 'REVOKED') skFillVerifyPanel(a, 'revoked');
+      else if(reg && reg.ok && reg.registered) skFillVerifyPanel(a, 'registered');
+      else skFillVerifyPanel(a, 'failed');
+    }
   }
   let skvCurrent = null;
   /* ==================== END MODULE: SKILL ASSESSMENT ==================== */
@@ -22152,7 +22541,7 @@
     taglineArabic: 'تعلّم · تطوّر · ارتقِ'
   };
 
-  var DIAG_BUILD = 'jasmin-2026-08-18-1253-cfd455baf968';
+  var DIAG_BUILD = 'jasmin-2026-08-18-1310-13520918fc52';
   var DIAG_BUILD_AT = '2026-08-17';
   /* Capability inventory: checks that each feature EXISTS in the running
      file, not that its name appears somewhere. A stale build fails these
@@ -31596,7 +31985,10 @@
      code or opening a shared verification link, not to use the app. */
   function checkForCertVerifyLink(){
     const params = new URLSearchParams(location.search);
-    const certId = params.get('verifyCert');
+    // ?verifyMember= is accepted as well: diplomas already printed and handed
+    // out encode it, and those sheets cannot be recalled. Honouring it here
+    // costs one line and keeps every credential already in circulation alive.
+    const certId = params.get('verifyCert') || params.get('verifyMember');
     if(!certId) return false;
     bootScreen.remove();
     certVerifyScreen.classList.remove('hidden');
