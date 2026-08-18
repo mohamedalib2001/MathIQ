@@ -78,10 +78,23 @@
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
 
   /* Forgot password/username — honest-guidance modal, no fake self-service flow. */
-  #forgotAccountModal{
+  /* Every dialog built on .forgot-account-card is an overlay. Listing them
+     together rather than styling one and trusting the next author to notice:
+     #loginCodeModal, #adminResetModal, #certIssuedModal and
+     #guardianUnlockModal each had the card but no overlay rule, so removing
+     .hidden dropped them into normal flow near the top of <body> — above the
+     sign-in screen and off the visible area. The link looked dead. It was
+     firing correctly and revealing a dialog nobody could see. */
+  #forgotAccountModal,
+  #loginCodeModal,
+  #adminResetModal,
+  #certIssuedModal,
+  #guardianUnlockModal{
     position:fixed; inset:0; z-index:19500; display:flex; align-items:center; justify-content:center;
     background:rgba(11,18,32,0.55); backdrop-filter:blur(3px); padding:20px;
   }
+  /* No .hidden guard is needed here: .hidden already carries display:none
+     !important, which outranks the display:flex above regardless of order. */
   .forgot-account-card{
     position:relative; background:var(--bg); border:1.5px solid var(--input-border); border-radius:18px;
     box-shadow:var(--card-shadow); max-width:380px; width:100%; padding:26px 22px; max-height:85vh; overflow-y:auto;
@@ -12698,6 +12711,13 @@
     setBtnSaving(adminCodeLink, true);
     const res = await postToSheet('request_admin_code', { username });
     setBtnSaving(adminCodeLink, false);
+    // The account exists but carries no address. Opening the code step here
+    // would sit the owner in front of an input waiting for a message that was
+    // never sent — the precise failure this branch exists to end.
+    if(res && res.error === 'no_email_on_file'){
+      adminLoginError.textContent = t('loginCodeNoEmail');
+      return;
+    }
     if(!res || !res.ok){
       adminLoginError.textContent = describeSyncFailure(res, 'adminCodeFailed');
       return;
@@ -22132,7 +22152,7 @@
     taglineArabic: 'تعلّم · تطوّر · ارتقِ'
   };
 
-  var DIAG_BUILD = 'jasmin-2026-08-18-1242-e8b3eb93fee5';
+  var DIAG_BUILD = 'jasmin-2026-08-18-1253-cfd455baf968';
   var DIAG_BUILD_AT = '2026-08-17';
   /* Capability inventory: checks that each feature EXISTS in the running
      file, not that its name appears somewhere. A stale build fails these
