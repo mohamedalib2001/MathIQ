@@ -8889,6 +8889,8 @@
       emailCodeExpired:'انتهت صلاحية الكود. اطلب كودًا جديدًا.',
       emailCodeUsed:'هذا الكود استُخدم بالفعل. اطلب كودًا جديدًا.',
       adminCodeLink:'تسجيل الدخول بكود عبر البريد',
+      adminCodeQuota:'⛔ بلغ البريد حدّه اليومي للإرسال، فلن يصل أي كود قبل تجدّد الحدّ خلال 24 ساعة. استخدم كلمة المرور، أو أعد ضبطها من محرّر Apps Script عبر الدالة resetOwnerPassword.',
+      adminCodeSendFailed:'⚠ تعذّر إرسال الكود. راجع صفحة MailLog في قاعدة البيانات لمعرفة السبب المسجَّل.',
       adminCodeNeedUser:'اكتب اسم المستخدم أولًا.',
       adminCodeNeedCode:'أدخل الكود المرسل إلى بريدك.',
       adminCodeSentTo:'إن كان الحساب «{u}» مسجّلًا ببريد، فقد أُرسل إليه كود من ست خانات. صالح 10 دقائق ولمرة واحدة.',
@@ -10544,6 +10546,8 @@
       emailCodeExpired:'This code has expired. Request a new one.',
       emailCodeUsed:'This code has already been used. Request a new one.',
       adminCodeLink:'Sign in with an emailed code',
+      adminCodeQuota:'⛔ The mailbox has hit its daily send limit, so no code can arrive until it resets within 24 hours. Use the password, or reset it from the Apps Script editor with resetOwnerPassword.',
+      adminCodeSendFailed:'⚠ The code could not be sent. Check the MailLog sheet for the recorded reason.',
       adminCodeNeedUser:'Enter the username first.',
       adminCodeNeedCode:'Enter the code sent to your email.',
       adminCodeSentTo:'If the account "{u}" has an email on file, a six-digit code has been sent to it. Valid for 10 minutes, single use.',
@@ -12927,7 +12931,11 @@
     e.preventDefault();
     const username = adminUserInput.value.trim();
     if(!username){ adminLoginError.textContent = t('adminCodeNeedUser'); return; }
-    adminLoginError.textContent = '';
+    // The previous line here blanked adminLoginError, which wiped the specific
+    // diagnosis the failed sign-in had just written — the owner clicked this
+    // link straight afterwards and the one message that named the cause
+    // vanished before it could be read. It is left in place and only replaced
+    // if this request itself fails.
     setBtnSaving(adminCodeLink, true);
     const res = await postToSheet('request_admin_code', { username });
     setBtnSaving(adminCodeLink, false);
@@ -12938,10 +12946,22 @@
       adminLoginError.textContent = t('loginCodeNoEmail');
       return;
     }
+    // Gmail refuses further sends once the daily allowance is spent. Nothing
+    // the owner does on this screen can change that, so saying "try again"
+    // wastes their time — the honest answer names the wait and the way round.
+    if(res && res.error === 'mail_quota'){
+      adminLoginError.textContent = t('adminCodeQuota');
+      return;
+    }
+    if(res && res.error === 'mail_failed'){
+      adminLoginError.textContent = t('adminCodeSendFailed');
+      return;
+    }
     if(!res || !res.ok){
       adminLoginError.textContent = describeSyncFailure(res, 'adminCodeFailed');
       return;
     }
+    adminLoginError.textContent = '';
     // The reply is identical whether or not the account exists, so the wording
     // must not promise delivery it cannot confirm.
     adminCodeSent.textContent = fmt('adminCodeSentTo', { u: username });
@@ -13337,6 +13357,16 @@
     // sent — the exact failure this screen used to hide.
     if(res && res.error === 'no_email_on_file'){
       loginCodeStep1Error.textContent = t('loginCodeNoEmail');
+      return;
+    }
+    // Advancing to the code step here would sit the learner in front of an
+    // input waiting on a message Gmail has already refused to send.
+    if(res && res.error === 'mail_quota'){
+      loginCodeStep1Error.textContent = t('adminCodeQuota');
+      return;
+    }
+    if(res && res.error === 'mail_failed'){
+      loginCodeStep1Error.textContent = t('adminCodeSendFailed');
       return;
     }
     // Otherwise a generic success, so a stranger cannot discover which
@@ -22541,7 +22571,7 @@
     taglineArabic: 'تعلّم · تطوّر · ارتقِ'
   };
 
-  var DIAG_BUILD = 'jasmin-2026-08-18-1310-13520918fc52';
+  var DIAG_BUILD = 'jasmin-2026-08-18-1317-c2a8e9cfadbe';
   var DIAG_BUILD_AT = '2026-08-17';
   /* Capability inventory: checks that each feature EXISTS in the running
      file, not that its name appears somewhere. A stale build fails these
