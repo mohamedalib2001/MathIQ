@@ -8524,6 +8524,8 @@
       novaMemLearned:'تمام، هفتكرها 👍 ({p}) — تقدر تلغيها في أي وقت.',
       novaMemForgetAction:'انسَ تفضيلاتي',
       novaMemForgotten:'اتمسحت خلاص. مش فاكر أي تفضيلات دلوقتي.',
+      novaToolDenied:'الإجراء ده مش متاح لحسابك.',
+      novaToolFailed:'حاولت أنفّذ الطلب ومنفّذش. مش هقول تم وهو ما حصلش.',
       novaOfflineOnly:'أحتاج اتصالًا بالخادم للإجابة على هذا. لكن يمكنني فتح الصفحات لكِ بدون إنترنت.',
       sessionNeedsSignIn:'لحفظ تقدّمك على الخادم، سجّلي الخروج ثم الدخول مرة واحدة. بياناتك محفوظة على هذا الجهاز ولن تضيع.',
       sessionExpired:'انتهت جلستك لأسباب أمنية. سجّلي الدخول مرة أخرى للمتابعة.',
@@ -10198,6 +10200,8 @@
       novaMemLearned:'Noted, I will remember that 👍 ({p}) — you can undo it any time.',
       novaMemForgetAction:'Forget my preferences',
       novaMemForgotten:'Cleared. I am not holding any preferences now.',
+      novaToolDenied:'That action is not available to your account.',
+      novaToolFailed:'I tried to run that and it did not go through. I will not say it worked when it did not.',
       novaOfflineOnly:'I need a server connection for that. I can still open pages for you offline.',
       sessionNeedsSignIn:'To save your progress to the server, sign out and back in once. Your data is safe on this device and will not be lost.',
       sessionExpired:'Your session has ended for security. Please sign in again to continue.',
@@ -20641,8 +20645,35 @@
     { re:/أباكوس|abacus|سوروبان/i,                    key:'bucketAbacus',        run:()=> { hideLearnerShellScreens(); settingsEl.classList.add('hidden'); abacusTrainerEl.classList.remove('hidden'); switchAbacusMode('free'); } },
     { re:/تدريب|تمرين|ابدأ|practice|start/i,          key:'startBtn',            run:()=> { hideLearnerShellScreens(); settingsEl.classList.remove('hidden'); } }
   ];
+  /* NOVA_ROUTES stays as the MATCHER — it holds the phrasing patterns. What
+     changed is what happens on a match: execution now goes through the tool
+     registry, so a navigation request is subject to the same permission and
+     truthfulness checks as anything else, instead of calling a function
+     directly and assuming it worked. */
+  const NOVA_ROUTE_TOOL = {
+    synapseNavLabel:'open_synapse', memberCardNavLabel:'open_membership_card',
+    shellNavPrograms:'open_programs', shellNavSkills:'open_skills',
+    shellNavAchievements:'open_achievements', shellNavFriends:'open_friends',
+    reviewCtaTitle:'start_review', bucketAbacus:'open_abacus',
+    startBtn:'start_practice', skNavLabel:'open_skill_certificate'
+  };
   function novaMatchRoute(text){
-    return NOVA_ROUTES.find(r => r.re.test(text)) || null;
+    const hit = NOVA_ROUTES.find(r => r.re.test(text)) || null;
+    if(!hit) return null;
+    const toolName = NOVA_ROUTE_TOOL[hit.key];
+    if(!toolName) return hit;                 // no contract yet: behave as before
+    return {
+      re: hit.re, key: hit.key, tool: toolName,
+      run: function(){
+        const res = novaToolRun(toolName);
+        // Refusal is reported, not swallowed. Silently doing nothing is how a
+        // permission check becomes indistinguishable from a broken button.
+        if(!res.ok && typeof novaSay === 'function'){
+          novaSay(res.error === 'permission_denied' ? t('novaToolDenied') : t('novaToolFailed'));
+        }
+        return res;
+      }
+    };
   }
 
   /* ---------- CAPABILITY 3: ANSWER FROM THE REAL RECORD ----------
@@ -21190,7 +21221,14 @@
     }, 20000);
     let bankContext = '';
     try{
-      const bank = await postToSheet('ai_retrieve', { query: text, lang: currentLang, limit: 4 });
+      // The asker's identity travels WITH the query. Without it the audience
+      // filter has nothing to filter on and every document is effectively
+      // public — the gate exists on the server, but only this makes it bite.
+      const bank = await postToSheet('ai_retrieve', {
+        query: text, lang: currentLang, limit: 4,
+        role: novaAskerRole(),
+        collection: novaRouteDecision(text).collection || ''
+      });
       if(bank && bank.ok && bank.passages.length){
         bankContext = '\n\nمعلومات موثّقة من نظام الأكاديمية (استخدمها كمصدر أساسي):\n' +
           bank.passages.map(function(p){ return '- ' + p.topic + ': ' + p.answer; }).join('\n');
@@ -21200,6 +21238,176 @@
     // Server data fetched here, not when a screen opens — the assistant must
     // answer about a study plan or timetable from anywhere in the app.
     const sv = await novaServerFacts();
+  /* ==================== TOOL REGISTRY ====================
+     Every action the assistant can take, declared with a contract instead of
+     being a bare function it happens to be able to reach.
+
+     The registry exists for one reason: an assistant that can DO things needs
+     a place where "who may do this", "does it change anything", and "what
+     happens when it fails" are stated once and enforced once. Scattering those
+     checks through call sites is how a learner ends up running something meant
+     for a teacher, and how an assistant ends up saying "تم" for an action that
+     silently failed.
+
+     Contract fields (§21 of the specification):
+       name                 stable identifier
+       collection           where its documentation lives
+       description          what it does, in one line
+       allowed_roles        [] means anyone signed in
+       side_effect          'none' reads, 'navigate' moves, 'write' changes data
+       confirmation_required a write the person must approve first
+       failure_behavior     what the assistant does when the run fails
+       run(args)            returns { ok, ... } — NEVER a bare true */
+  const NOVA_TOOLS = [
+    { name:'open_synapse', collection:'22_TOOLS', description:'يفتح مختبر سينابس المعرفي.',
+      allowed_roles:[], side_effect:'navigate', confirmation_required:false,
+      failure_behavior:'explain', labelKey:'synapseNavLabel',
+      run:function(){ openSynapse(); return { ok:true }; } },
+    { name:'open_membership_card', collection:'22_TOOLS', description:'يعرض بطاقة العضوية.',
+      allowed_roles:[], side_effect:'navigate', confirmation_required:false,
+      failure_behavior:'explain', labelKey:'memberCardNavLabel',
+      run:function(){ openMembershipCard(); return { ok:true }; } },
+    { name:'open_programs', collection:'22_TOOLS', description:'يفتح قائمة البرامج.',
+      allowed_roles:[], side_effect:'navigate', confirmation_required:false,
+      failure_behavior:'explain', labelKey:'shellNavPrograms',
+      run:function(){ showProgramsHub(); return { ok:true }; } },
+    { name:'open_skills', collection:'22_TOOLS', description:'يعرض مهارات المتعلّم.',
+      allowed_roles:[], side_effect:'navigate', confirmation_required:false,
+      failure_behavior:'explain', labelKey:'shellNavSkills',
+      run:function(){ renderMySkills(); return { ok:true }; } },
+    { name:'open_achievements', collection:'22_TOOLS', description:'يعرض الإنجازات والإحصاءات.',
+      allowed_roles:[], side_effect:'navigate', confirmation_required:false,
+      failure_behavior:'explain', labelKey:'shellNavAchievements',
+      run:function(){ renderMyStats(); return { ok:true }; } },
+    { name:'open_friends', collection:'22_TOOLS', description:'يفتح قائمة الأصدقاء.',
+      allowed_roles:[], side_effect:'navigate', confirmation_required:false,
+      failure_behavior:'explain', labelKey:'shellNavFriends',
+      run:function(){ renderFriends(); return { ok:true }; } },
+    { name:'start_review', collection:'22_TOOLS', description:'يبدأ جلسة مراجعة متباعدة.',
+      allowed_roles:[], side_effect:'navigate', confirmation_required:false,
+      failure_behavior:'explain', labelKey:'reviewCtaTitle',
+      run:function(){ startReviewSession(); return { ok:true }; } },
+    { name:'open_abacus', collection:'22_TOOLS', description:'يفتح مدرّب الأباكوس.',
+      allowed_roles:[], side_effect:'navigate', confirmation_required:false,
+      failure_behavior:'explain', labelKey:'bucketAbacus',
+      run:function(){ hideLearnerShellScreens(); settingsEl.classList.add('hidden');
+                      abacusTrainerEl.classList.remove('hidden'); switchAbacusMode('free');
+                      return { ok:true }; } },
+    { name:'start_practice', collection:'22_TOOLS', description:'يفتح شاشة بدء التمرين.',
+      allowed_roles:[], side_effect:'navigate', confirmation_required:false,
+      failure_behavior:'explain', labelKey:'startBtn',
+      run:function(){ hideLearnerShellScreens(); settingsEl.classList.remove('hidden');
+                      return { ok:true }; } },
+    { name:'open_skill_certificate', collection:'22_TOOLS', description:'يصدر شهادة قياس المستوى.',
+      allowed_roles:[], side_effect:'navigate', confirmation_required:false,
+      failure_behavior:'explain', labelKey:'skNavLabel',
+      run:function(){ openSkillCertificate(); return { ok:true }; } },
+    { name:'forget_preferences', collection:'23_MEMORY',
+      description:'يمسح التفضيلات المحفوظة عن هذا المستخدم.',
+      allowed_roles:[], side_effect:'write', confirmation_required:true,
+      failure_behavior:'explain', labelKey:'novaMemForgetAction',
+      run:function(){ novaMemForget(); return { ok:true }; } }
+  ];
+
+  function novaToolByName(name){
+    return NOVA_TOOLS.find(function(x){ return x.name === name; }) || null;
+  }
+  function novaToolAllowed(tool, role){
+    if(!tool) return false;
+    if(!tool.allowed_roles || !tool.allowed_roles.length) return true;
+    return tool.allowed_roles.indexOf(String(role || 'learner').toLowerCase()) > -1;
+  }
+
+  /* The ONE place a tool is executed.
+     Returns a result object; it never returns a bare true, and it never
+     reports success for a run that threw. The specification's rule — "if the
+     tool did not run, it is forbidden to say تم" — is only enforceable if
+     there is a single door, and this is it. */
+  function novaToolRun(name, opts){
+    const o = opts || {};
+    const tool = novaToolByName(name);
+    if(!tool) return { ok:false, error:'unknown_tool', name:name };
+
+    const role = novaAskerRole();
+    if(!novaToolAllowed(tool, role)) return { ok:false, error:'permission_denied', name:name, role:role };
+
+    // A write the person must approve. Skipping this because the assistant is
+    // confident is exactly the case the rule exists for.
+    if(tool.confirmation_required && !o.confirmed){
+      return { ok:false, error:'confirmation_required', name:name, tool:tool };
+    }
+    try{
+      const res = tool.run(o.args || {});
+      // A tool that returns nothing has not reported success — treat the
+      // absence of a result as a failure rather than assuming it worked.
+      if(!res || res.ok !== true) return { ok:false, error:'tool_failed', name:name, result:res || null };
+      return Object.assign({ ok:true, name:name, side_effect:tool.side_effect }, res);
+    }catch(e){
+      return { ok:false, error:'tool_threw', name:name, message: e && e.message };
+    }
+  }
+  /* ==================== END TOOL REGISTRY ==================== */
+
+  /* ==================== KNOWLEDGE ROUTER ====================
+     Decides WHERE an answer should come from before any answer is produced.
+     The routing already happened, but it was implicit — spread across the
+     order of if-blocks in novaHandle — so it could not be inspected, tested
+     or explained. Naming the decision is what turns it from behaviour into
+     something that can be shown to be right or wrong.
+
+     Source order, highest first (a lower source must never override a higher):
+       1 LIVE_DATA  the learner's own record — the only truth about them
+       2 ACADEMY    official platform knowledge in the bank
+       3 MODEL      general knowledge
+       4 WEB        anything that changes faster than a deployment */
+  function novaAskerRole(){
+    try{
+      if(typeof ADMIN !== 'undefined' && ADMIN && ADMIN.role) return String(ADMIN.role);
+      if(typeof iAmAGuardian === 'function' && iAmAGuardian()) return 'parent';
+      if(typeof lpCurrentRole === 'function'){
+        const r = lpCurrentRole();
+        if(r) return String(r);
+      }
+    }catch(e){}
+    return 'learner';
+  }
+
+  /* IMPORTANT: every pattern below is written in NORMALISED form, because
+     novaRouteDecision matches against novaNormalise(text), which folds
+     أ إ آ -> ا, ة -> ه and ى -> ي. Nine patterns here were originally written
+     the way the words are spelled — "مشكلة", "أخبار", "شهادة" — and could
+     therefore never match anything, because the text they were tested against
+     no longer contained those letters. The test caught it; reading would not
+     have. */
+  const NOVA_ROUTER_RULES = [
+    { type:'USER_DATA',   source:'LIVE_DATA', collection:'',
+      test:/انا خلصت|وصلت لفين|تقدمي|درجاتي|نتيجتي|مستواي|شهادتي|اشتراكي|كام درس|my progress|my score|my level|how far/i },
+    { type:'CURRENT_INFO',source:'WEB',       collection:'',
+      test:/اخبار|النهارده|الطقس|سعر|اسعار|الدولار|مبارا[هة]|اليوم ايه|news|weather|today|latest|price/i },
+    { type:'IDENTITY',    source:'ACADEMY',   collection:'01_IDENTITY',
+      test:/انت مين|مين انت|اسمك ايه|انت انسان|بتعرف تعمل ايه|قدراتك|who are you|your name|what can you do/i },
+    { type:'SUPPORT',     source:'ACADEMY',   collection:'14_SUPPORT',
+      test:/مش شغال|مشكل[هة]|عطل|خط[أا]|مش بيفتح|بطيء|not working|broken|error|cannot open/i },
+    { type:'POLICY',      source:'ACADEMY',   collection:'21_POLICIES',
+      test:/شروط|سياس[هة]|اشتراك|الغاء|سعر الاشتراك|شهاد[هة] ازاي|policy|terms|subscription|refund/i },
+    { type:'PLATFORM',    source:'ACADEMY',   collection:'12_PLATFORM',
+      test:/ازاي|فين|كيف استخدم|الصفح[هة]|الزرار|how do i|where is/i },
+    { type:'LEARNING',    source:'MODEL',     collection:'',
+      test:/اشرح|وضح|علمني|يعني ايه|ما هو|ما هي|explain|teach me|what is/i }
+  ];
+
+  /* Returns the decision rather than acting on it, so it can be logged, shown
+     in diagnostics, and asserted in tests. */
+  function novaRouteDecision(text){
+    const q = (typeof novaNormalise === 'function') ? novaNormalise(text) : String(text);
+    const hit = NOVA_ROUTER_RULES.find(function(r){ return r.test.test(q); });
+    if(hit) return { type: hit.type, source: hit.source, collection: hit.collection };
+    // Unmatched goes to the model, not to a refusal: a question this router
+    // does not recognise is a question the model can very often still answer,
+    // and refusing it would be the "artificial limits" failure exactly.
+    return { type:'GENERAL', source:'MODEL', collection:'' };
+  }
+
   /* ==================== LAYER 7 — MEMORY ENGINE ====================
      The one layer of the architecture with nothing behind it: the assistant
      re-learned the same person every session. Someone who says "أنا بحب الشرح
@@ -22707,7 +22915,7 @@
     taglineArabic: 'تعلّم · تطوّر · ارتقِ'
   };
 
-  var DIAG_BUILD = 'jasmin-2026-08-18-1353-d1cdc64e36b7';
+  var DIAG_BUILD = 'jasmin-2026-08-18-1406-5da067e3d92a';
   var DIAG_BUILD_AT = '2026-08-17';
   /* Capability inventory: checks that each feature EXISTS in the running
      file, not that its name appears somewhere. A stale build fails these
