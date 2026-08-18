@@ -8515,6 +8515,15 @@
       novaRateLimited:'وصلتِ للحد الأقصى من الأسئلة هذه الساعة. جرّبي بعد قليل.',
       novaNoNetwork:'لا يوجد اتصال بالخادم الآن. يمكنني فتح الصفحات وعرض تقدّمك بدون إنترنت.',
       novaFailed:'لم أصل لخدمة الذكاء الاصطناعي الآن — لكن هذا لا يمنعني من مساعدتك. أستطيع شرح كل خدمات الأكاديمية، وإخبارك بتقدّمك ونقاط قوتك وضعفك، وفتح أي صفحة لك. جرّب أن تسألني: «ما الخدمات المتاحة؟» أو «كيف أدائي؟» أو «أعمل إيه؟».',
+      novaMemExamples:'يفضّل الشرح بالأمثلة.',
+      novaMemBrief:'يفضّل الإجابات القصيرة والمباشرة.',
+      novaMemDetail:'يفضّل الشرح المفصّل.',
+      novaMemMsa:'يفضّل العربية الفصحى.',
+      novaMemEnglish:'يفضّل الإجابة بالإنجليزية.',
+      novaMemSteps:'يفضّل الخطوات المرقّمة.',
+      novaMemLearned:'تمام، هفتكرها 👍 ({p}) — تقدر تلغيها في أي وقت.',
+      novaMemForgetAction:'انسَ تفضيلاتي',
+      novaMemForgotten:'اتمسحت خلاص. مش فاكر أي تفضيلات دلوقتي.',
       novaOfflineOnly:'أحتاج اتصالًا بالخادم للإجابة على هذا. لكن يمكنني فتح الصفحات لكِ بدون إنترنت.',
       sessionNeedsSignIn:'لحفظ تقدّمك على الخادم، سجّلي الخروج ثم الدخول مرة واحدة. بياناتك محفوظة على هذا الجهاز ولن تضيع.',
       sessionExpired:'انتهت جلستك لأسباب أمنية. سجّلي الدخول مرة أخرى للمتابعة.',
@@ -8847,6 +8856,8 @@
       secStoredWhitespace:'اسم المستخدم المخزّن يحوي مسافة زائدة في الجدول. افتح جدول Admin واحذف المسافة من بداية الاسم أو نهايته، ثم أعد المحاولة.',
       secCaseDiffers:'الحساب موجود لكن صيغة الاسم المخزّن تختلف عمّا كتبته (الطول {n}). استخدم «نسيت كلمة مرور الإدارة؟» — سيُصحّح ذلك تلقائيًا.',
       pdTabPrograms:'البرامج', pdTabNav:'القائمة والمزامنة',
+      ndNeedsProfile:'لا يمكن فحصه من هذا الحساب — يحتاج ملف متعلّم فيه النظام والصف والفصل. افحصه من حساب متعلّم.',
+      ndNeedsGuardian:'لا يمكن فحصه من هذا الحساب — يظهر لأولياء الأمور المرتبطين بأبناء فقط. افحصه من حساب وليّ أمر.',
       ndRun:'▶ افحص القائمة والمزامنة',
       ndProgress:'({i}/{total}) {name}…',
       ndChkScreen:'وجود الشاشة', ndChkHandler:'كود الفتح', ndChkNav:'الوصول من القائمة',
@@ -8872,6 +8883,10 @@
       pdSt_ok:'سليم', pdSt_warn:'تحذير', pdSt_bad:'فاشل', pdSt_idle:'—',
       pdChkExists:'وجود البرنامج', pdChkContent:'المحتوى', pdChkQuestions:'الأسئلة',
       pdChkEnrolment:'التسجيلات', pdChkVisible:'الظهور للمتعلّم',
+      pdChkDuplicates:'التكرار',
+      pdDupPublished:'⛔ {n} برامج منشورة بالعنوان نفسه — المتعلّم يسجّل في واحد ولا يظهر تقدّمه في الآخر',
+      pdDupArchived:'{n} نسخة مؤرشفة بالعنوان نفسه — لا تؤثّر على المتعلّم، لكنها تُربك قائمة منشئ البرامج',
+      pdNoDuplicates:'نسخة واحدة، بلا تكرار',
       pdPublishedAs:'منشور — المعرّف {id}', pdNotPublished:'غير منشور — شغّل بذرة البرنامج من منشئ البرامج',
       pdLevels:'محرّك مدمج · {n} مستوى', pdNoEngine:'محرّك المستويات غير محمّل',
       pdEngineContent:'محتوى مولَّد آليًا — لا يحتاج دروسًا مخزّنة',
@@ -9039,6 +9054,9 @@
       diagSecure:'البروتوكول', diagReachable:'استجابة الخادم', diagRespondedIn:'استجاب خلال {ms} مللي',
       diagSignalQueue:'طابور إشارات المكالمات', diagNewActions:'النقاط الجديدة',
       diagChalPoll:'استطلاع التحديات', diagCallWatch:'مراقبة المكالمات', diagMsgPoll:'استطلاع الرسائل',
+      diagStoppedHidden:'متوقفة مؤقتًا — التبويب غير ظاهر (سلوك مقصود، تستأنف عند العودة)',
+      diagStoppedGuest:'متوقفة — حساب ضيف، لا استطلاع بلا تسجيل دخول',
+      diagLoopTrace:'سبب التوقف (سجل المشغّل)',
       diagPollCount:'عدد الاستطلاعات', diagLastError:'آخر خطأ',
       diagMediaApi:'واجهة الكاميرا والميكروفون', diagRtcApi:'واجهة WebRTC', diagMicPerm:'إذن الميكروفون',
       diagRoom:'غرفة الاتصال', diagSignalWrite:'كتابة الإشارة', diagSeq:'تم — رقم {n}',
@@ -10171,6 +10189,15 @@
       novaRateLimited:'You have reached this hour\'s question limit. Please try again shortly.',
       novaNoNetwork:'No server connection right now. I can still open pages and show your progress offline.',
       novaFailed:'I could not reach an answer just now. Please try again shortly.',
+      novaMemExamples:'prefers explanations with examples.',
+      novaMemBrief:'prefers short, direct answers.',
+      novaMemDetail:'prefers detailed explanations.',
+      novaMemMsa:'prefers Modern Standard Arabic.',
+      novaMemEnglish:'prefers replies in English.',
+      novaMemSteps:'prefers numbered steps.',
+      novaMemLearned:'Noted, I will remember that 👍 ({p}) — you can undo it any time.',
+      novaMemForgetAction:'Forget my preferences',
+      novaMemForgotten:'Cleared. I am not holding any preferences now.',
       novaOfflineOnly:'I need a server connection for that. I can still open pages for you offline.',
       sessionNeedsSignIn:'To save your progress to the server, sign out and back in once. Your data is safe on this device and will not be lost.',
       sessionExpired:'Your session has ended for security. Please sign in again to continue.',
@@ -10504,6 +10531,8 @@
       secStoredWhitespace:'The stored username contains stray whitespace in the sheet. Open the Admin sheet, remove the space from the start or end of the name, and try again.',
       secCaseDiffers:'The account exists but the stored username differs in form from what you typed (length {n}). Use "Forgot admin password" — that will correct it automatically.',
       pdTabPrograms:'Programs', pdTabNav:'Navigation & sync',
+      ndNeedsProfile:'Cannot be tested from this account — it needs a learner profile with system, grade and term. Check it from a learner account.',
+      ndNeedsGuardian:'Cannot be tested from this account — it is for guardians linked to children. Check it from a guardian account.',
       ndRun:'▶ Check navigation & sync',
       ndProgress:'({i}/{total}) {name}…',
       ndChkScreen:'Screen exists', ndChkHandler:'Open handler', ndChkNav:'Reachable from menu',
@@ -10529,6 +10558,10 @@
       pdSt_ok:'healthy', pdSt_warn:'warning', pdSt_bad:'failing', pdSt_idle:'—',
       pdChkExists:'Program exists', pdChkContent:'Content', pdChkQuestions:'Questions',
       pdChkEnrolment:'Enrolments', pdChkVisible:'Visible to learners',
+      pdChkDuplicates:'Duplicates',
+      pdDupPublished:'⛔ {n} published programs share this title — a learner enrols in one and their progress is invisible from the other',
+      pdDupArchived:'{n} archived copies share this title — harmless to learners, but they clutter the builder list',
+      pdNoDuplicates:'single copy, no duplicates',
       pdPublishedAs:'published — id {id}', pdNotPublished:'not published — run its seed from the program builder',
       pdLevels:'built-in engine · {n} levels', pdNoEngine:'the level engine is not loaded',
       pdEngineContent:'generated content — no stored lessons needed',
@@ -10696,6 +10729,9 @@
       diagSecure:'Protocol', diagReachable:'Backend response', diagRespondedIn:'Responded in {ms} ms',
       diagSignalQueue:'Call signal queue', diagNewActions:'Newest endpoints',
       diagChalPoll:'Challenge polling', diagCallWatch:'Call watcher', diagMsgPoll:'Message polling',
+      diagStoppedHidden:'paused — tab is not visible (by design, resumes on return)',
+      diagStoppedGuest:'stopped — guest account, no polling without a sign-in',
+      diagLoopTrace:'why it stopped (starter log)',
       diagPollCount:'Poll count', diagLastError:'Last error',
       diagMediaApi:'Camera/mic API', diagRtcApi:'WebRTC API', diagMicPerm:'Microphone permission',
       diagRoom:'Call room', diagSignalWrite:'Signal write', diagSeq:'ok — seq {n}',
@@ -21012,6 +21048,22 @@
        The learner's exact words are still what reach the model and history. */
     const q = (typeof novaNormalise === 'function') ? novaNormalise(text) : text;
 
+    /* A stated preference is learned here, before any routing, so it applies
+       from the very next reply — including replies that never reach the model.
+       It is announced rather than absorbed: a person should never discover
+       later that an assistant has been keeping notes they did not agree to,
+       and the notice is also how they learn they can undo it. */
+    const learned = (typeof novaMemLearn === 'function') ? novaMemLearn(text) : null;
+    if(learned){
+      const rule = NOVA_MEM_RULES.find(function(r){ return r.id === learned; });
+      if(rule) novaSay(fmt('novaMemLearned', { p: t(rule.key) }), [
+        { label: t('novaMemForgetAction'), run: function(){
+            novaMemForget();
+            novaSay(t('novaMemForgotten'));
+          } }
+      ]);
+    }
+
     // 1. A navigation request is handled locally: instant, and offline-safe.
     const route = novaMatchRoute(text);
     const wantsNav = /افتح|اذهب|روح|شغّل|ابدأ|open|go to|show me/i.test(text);
@@ -21148,6 +21200,89 @@
     // Server data fetched here, not when a screen opens — the assistant must
     // answer about a study plan or timetable from anywhere in the app.
     const sv = await novaServerFacts();
+  /* ==================== LAYER 7 — MEMORY ENGINE ====================
+     The one layer of the architecture with nothing behind it: the assistant
+     re-learned the same person every session. Someone who says "أنا بحب الشرح
+     بالأمثلة" had to say it again tomorrow, which is the single clearest way
+     an assistant signals that nobody is really listening.
+
+     Deliberately NARROW. It stores stated PREFERENCES — how to talk to this
+     person — and nothing else. It does not store what they asked, what they
+     got wrong, or anything about their health, family or circumstances, none
+     of which the assistant needs in order to explain a fraction well.
+
+     Per learner, on the device, under the learner's own key: this is a
+     convenience, not a record, and it must never become a second unreviewed
+     copy of a child's file. Cleared with the account. */
+  const NOVA_MEM_KEY = 'jassiNovaMemory';
+  const NOVA_MEM_MAX = 6;
+
+  // Each rule needs an explicit statement, not a guess. Inferring "prefers
+  // short answers" because someone typed a short question would produce a
+  // profile the person never agreed to and cannot see a reason for.
+  const NOVA_MEM_RULES = [
+    { id:'examples', test:/بحب الشرح بالأمثلة|بالامثله|بالأمثلة|اشرح بمثال|مثال احسن|examples help|with examples/i,
+      key:'novaMemExamples' },
+    { id:'brief',    test:/اختصر معايا|اختصر دايما|مش بحب الكلام الكتير|بحب الاجابات القصيره|keep it short|be brief/i,
+      key:'novaMemBrief' },
+    { id:'detail',   test:/بحب التفاصيل|فصّلي دايما|فصلي دايما|اشرح بالتفصيل دايما|explain in detail|more detail/i,
+      key:'novaMemDetail' },
+    { id:'msa',      test:/اتكلم فصحى|بالفصحى دايما|كلمني بالفصحى|speak (in )?msa|classical arabic/i,
+      key:'novaMemMsa' },
+    { id:'english',  test:/كلمني انجليزي|بالانجليزي دايما|answer in english|reply in english/i,
+      key:'novaMemEnglish' },
+    { id:'steps',    test:/عايز خطوات|خطوه بخطوه|خطوة بخطوة|step by step|numbered steps/i,
+      key:'novaMemSteps' }
+  ];
+
+  function novaMemLoad(){
+    try{
+      const all = JSON.parse(localStorage.getItem(NOVA_MEM_KEY) || '{}');
+      const mine = all[currentProfile];
+      return Array.isArray(mine) ? mine.slice(0, NOVA_MEM_MAX) : [];
+    }catch(e){ return []; }
+  }
+  function novaMemSave(list){
+    try{
+      const all = JSON.parse(localStorage.getItem(NOVA_MEM_KEY) || '{}');
+      all[currentProfile] = list.slice(0, NOVA_MEM_MAX);
+      localStorage.setItem(NOVA_MEM_KEY, JSON.stringify(all));
+    }catch(e){ /* a full or blocked store must not break the conversation */ }
+  }
+  /* Returns the id when something NEW was learned, so the caller can say so.
+     Storing a preference silently is how a person discovers months later that
+     an assistant has been keeping notes on them. */
+  function novaMemLearn(text){
+    if(!currentProfile || currentProfile === 'guest') return null;
+    const hit = NOVA_MEM_RULES.find(function(r){ return r.test.test(text); });
+    if(!hit) return null;
+    const list = novaMemLoad();
+    if(list.indexOf(hit.id) > -1) return null;          // already known
+    // Mutually exclusive pairs: keeping both would send the model two
+    // contradictory instructions and the newer one is the real intent.
+    const opposites = { brief:'detail', detail:'brief', msa:'english', english:'msa' };
+    const drop = opposites[hit.id];
+    const next = list.filter(function(id){ return id !== drop; });
+    next.unshift(hit.id);
+    novaMemSave(next);
+    return hit.id;
+  }
+  function novaMemForPrompt(){
+    const list = novaMemLoad();
+    if(!list.length) return '';
+    const lines = list.map(function(id){
+      const r = NOVA_MEM_RULES.find(function(x){ return x.id === id; });
+      return r ? '- ' + t(r.key) : '';
+    }).filter(Boolean);
+    return lines.length
+      ? '\nتفضيلات قالها هذا المستخدم صراحةً (احترمها ما لم يطلب غير ذلك في هذه الرسالة):\n' + lines.join('\n') + '\n'
+      : '';
+  }
+  function novaMemForget(){
+    novaMemSave([]);
+  }
+  /* ==================== END MEMORY ENGINE ==================== */
+
     const context = f ? novaFactsForPrompt(f, sv) : '';
     const recent = novaHistory.slice(-4).map(h => (h.role === 'user' ? 'الطالب: ' : 'JASMIN AI: ') + h.text).join('\n');
     // The manner is documented as explicitly as the facts. An assistant that
@@ -21211,6 +21346,7 @@
       '- إن لم تعرف، قل ذلك بوضوح — الاعتراف بعدم المعرفة أفضل من إجابة تبدو واثقة وهي خاطئة.\n' +
       '- لا تَعِد بشيء لا يفعله التطبيق.\n' +
       (context ? ('\nبيانات هذا المستخدم (حقيقية ومسجَّلة — لا تتجاوزها ولا تخترع غيرها):\n' + context + '\n') : '') +
+      novaMemForPrompt() +
       bankContext +
       (recent ? ('\nآخر الحوار:\n' + recent + '\n') : '') +
       '\nسؤال الطالب: ' + text;
@@ -22571,7 +22707,7 @@
     taglineArabic: 'تعلّم · تطوّر · ارتقِ'
   };
 
-  var DIAG_BUILD = 'jasmin-2026-08-18-1317-c2a8e9cfadbe';
+  var DIAG_BUILD = 'jasmin-2026-08-18-1353-d1cdc64e36b7';
   var DIAG_BUILD_AT = '2026-08-17';
   /* Capability inventory: checks that each feature EXISTS in the running
      file, not that its name appears somewhere. A stale build fails these
@@ -22679,14 +22815,47 @@
     const chalOn = (typeof chalPollId !== 'undefined') && chalPollId !== null;
     const callOn = (typeof callDiag !== 'undefined') && callDiag.watchStarted;
     const msgOn  = (typeof msgPollId !== 'undefined') && msgPollId !== null;
-    diagAdd(t('diagGrpLoops'), t('diagChalPoll'), chalOn ? t('diagRunning2') : t('diagStopped'), chalOn ? 'ok' : 'bad');
+    /* A stopped poll is only a fault when it should have been running.
+       The app stops challenge and message polling deliberately on a hidden
+       tab, and never starts either for a guest — so reporting "stopped" as a
+       failure in those states accuses the app of the behaviour it was
+       designed to have. This report is itself run right after a tab switch,
+       which is precisely when the deliberate stop is in force. */
+    const hiddenNow = document.visibilityState === 'hidden' || document.hidden;
+    const who = (typeof currentServerUsername === 'function') ? currentServerUsername() : '';
+    const guest = !who || who === 'guest';
+    const byDesign = hiddenNow || guest;
+    const loopLevel = function(on, whenBad){
+      if(on) return 'ok';
+      return byDesign ? 'info' : whenBad;
+    };
+    const loopText = function(on){
+      if(on) return t('diagRunning2');
+      if(guest) return t('diagStoppedGuest');
+      if(hiddenNow) return t('diagStoppedHidden');
+      return t('diagStopped');
+    };
+    diagAdd(t('diagGrpLoops'), t('diagChalPoll'), loopText(chalOn), loopLevel(chalOn, 'bad'));
     diagAdd(t('diagGrpLoops'), t('diagCallWatch'), callOn ? t('diagRunning2') : t('diagStopped'), callOn ? 'ok' : 'bad');
-    diagAdd(t('diagGrpLoops'), t('diagMsgPoll'), msgOn ? t('diagRunning2') : t('diagStopped'), msgOn ? 'ok' : 'warn');
+    diagAdd(t('diagGrpLoops'), t('diagMsgPoll'), loopText(msgOn), loopLevel(msgOn, 'warn'));
     if(typeof callDiag !== 'undefined'){
       diagAdd(t('diagGrpLoops'), t('diagPollCount'), callDiag.polls, callDiag.polls > 0 ? 'ok' : 'warn');
       if(callDiag.lastError) diagAdd(t('diagGrpLoops'), t('diagLastError'), callDiag.lastError, 'bad');
     }
-    if(!chalOn || !callOn) fatal = fatal || t('diagVerdictLoopsDead');
+    /* The starter and the stopper have recorded their reasons all along —
+       rtLog names the exact caller that halted a loop — but the trace lived
+       only in the console, so six reports said "stopped" and none said why.
+       Printing the last lines HERE is the difference between a symptom and a
+       cause, and costs nothing when everything is running. */
+    if(!chalOn || !msgOn || !callOn){
+      let lines = [];
+      try{ lines = (typeof rtTrace === 'function' ? rtTrace() : rtTrace) || []; }catch(e){ lines = []; }
+      diagAdd(t('diagGrpLoops'), t('diagLoopTrace'),
+        lines.length ? lines.slice(-6).join('  |  ') : t('dcTraceEmpty'),
+        lines.length ? 'info' : 'warn');
+    }
+    // A deliberate pause is not a dead loop, so it must not drive the verdict.
+    if((!chalOn && !byDesign) || !callOn) fatal = fatal || t('diagVerdictLoopsDead');
 
     /* ---- 5. Media devices ---- */
     const hasMedia = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
@@ -24031,9 +24200,21 @@
      CALLED, not assumed. */
   const ND_DESTS = [
     { id:'programs',    icon:'🏠', labelKey:'shellNavPrograms',  fn:'showProgramsHub',          screen:null },
-    { id:'synapse',     icon:'🌀', labelKey:'synNavLabel',       fn:'openSynapse',              screen:'synapseScreen' },
-    { id:'membership',  icon:'🎫', labelKey:'mcNavLabel',        fn:'openMembershipCard',       screen:null },
-    { id:'exams',       icon:'📋', labelKey:'examsNavLabel',     fn:'openExams',                screen:'examsScreen',      action:'list_exams' },
+    { id:'synapse',     icon:'🌀', labelKey:'synapseNavLabel',   fn:'openSynapse',              screen:'synapseScreen' },
+    { id:'membership',  icon:'🎫', labelKey:'memberCardNavLabel',fn:'openMembershipCard',       screen:null },
+    { id:'exams',       icon:'📋', labelKey:'examsNavLabel',     fn:'openExams',                screen:'examsScreen',      action:'list_exams',
+      // list_exams needs the learner's system/grade/term, exactly as
+      // openExams sends them. Probing with only a username produced
+      // 'profile_incomplete' — the endpoint answering a malformed request,
+      // reported as though the endpoint were unhealthy.
+      payload: function(){
+        const p = PROFILES[currentProfile] || {};
+        return { system: p.eduSystem, grade: p.gradeStage, term: p.term, subject: '' };
+      },
+      needs: function(){
+        const p = PROFILES[currentProfile] || {};
+        return (p.eduSystem && p.gradeStage && p.term) ? null : 'ndNeedsProfile';
+      } },
     { id:'skillCert',   icon:'🏅', labelKey:'skNavLabel',        fn:'openSkillCertificate',     screen:'skillTemplate' },
     { id:'plan',        icon:'🎯', labelKey:'spMyNavLabel',      fn:'openMyPlan',               screen:'myPlanScreen',     action:'my_plans' },
     { id:'schedule',    icon:'🗓', labelKey:'schMyNavLabel',     fn:'openMySchedule',           screen:'myScheduleScreen', action:'my_schedule' },
@@ -24043,16 +24224,31 @@
     { id:'skills',      icon:'🧩', labelKey:'shellNavSkills',    fn:'renderMySkills',           screen:'mySkillsScreen' },
     { id:'achievements',icon:'🏆', labelKey:'shellNavAchievements', fn:null,                    screen:null },
     { id:'friends',     icon:'👥', labelKey:'friendsNavLabel',   fn:'renderFriends',            screen:'friendsScreen',    action:'list_friends' },
-    { id:'children',    icon:'👨‍👩‍👧', labelKey:'guardianNavLabel', fn:null,                    screen:null, action:'get_my_children' },
+    { id:'children',    icon:'👨‍👩‍👧', labelKey:'myChildrenNavLabel', fn:null,                 screen:null, action:'get_my_children',
+      // The parameter is guardianUsername, not username. Sending the wrong
+      // key returned 'guardian_required' — a correct complaint about the
+      // probe, not a fault in the destination.
+      payload: function(){ return { guardianUsername: currentServerUsername() }; },
+      // iAmAGuardian() is the app's OWN test, the one that decides whether the
+      // sidebar shows this entry at all — so the probe and the menu can never
+      // disagree about who this destination is for.
+      needs: function(){
+        return (typeof iAmAGuardian === 'function' && !iAmAGuardian())
+          ? 'ndNeedsGuardian' : null;
+      } },
     { id:'account',     icon:'⚙️', labelKey:'shellNavAccount',   fn:null,                       screen:'profileEditor' }
   ];
 
   function ndLabel(d){
     const v = t(d.labelKey);
-    // A missing translation key would otherwise show as the key itself, which
-    // is a finding in its own right rather than something to paper over.
+    // Falling back to the id hid a real defect twice over: the report printed
+    // "[synapse] synapse" instead of a name, AND the sidebar check below
+    // compares this string to the rendered button text, so a wrong key could
+    // never match and quietly reported the entry as unreachable.
     return v === d.labelKey ? d.id : v;
   }
+  // Reported separately so a broken key is visible rather than absorbed.
+  function ndLabelResolves(d){ return t(d.labelKey) !== d.labelKey; }
 
   /* Screen and handler checks are synchronous; the sync check is not, so the
      whole run is async and each destination is awaited in turn. */
@@ -24103,12 +24299,23 @@
 
     // 4. THE SYNC CHECK — the endpoint is called for real.
     if(d.action){
+      // Some endpoints cannot be exercised from THIS account — an owner has no
+      // learner profile and is not a guardian. Saying so is the truthful
+      // result; calling anyway and reporting the refusal as a warning made a
+      // correctly-guarded endpoint look broken.
+      const blocked = typeof d.needs === 'function' ? d.needs() : null;
       if(!SHEET_API_URL){
         checks.push({ label: t('ndChkSync'), level: 'warn', detail: t('ndNoApi') });
+      } else if(blocked){
+        checks.push({ label: t('ndChkSync'), level: 'idle', detail: t(blocked) });
       } else {
         const started = Date.now();
         let res = null;
-        try{ res = await postToSheet(d.action, { username: currentServerUsername() }); }
+        // The real screen's payload, not a generic one: a probe that sends the
+        // wrong parameters tests nothing except its own guesswork.
+        let body = { username: currentServerUsername() };
+        try{ if(typeof d.payload === 'function') body = d.payload(); }catch(e){}
+        try{ res = await postToSheet(d.action, body); }
         catch(e){ res = null; }
         const ms = Date.now() - started;
         if(!res){
@@ -24215,9 +24422,33 @@
   function pdFindPublished(p){
     if(p.kind !== 'seeded') return null;
     try{
-      return lpLoad(LP_KEYS.PROGRAMS).find(function(x){
-        return String(x.title || '').indexOf(p.seed) > -1;
-      }) || null;
+      const all = lpLoad(LP_KEYS.PROGRAMS);
+      // The learner list is filtered to status 'published' (renderRealProgramCards).
+      // This did not filter at all and took the FIRST title match, so with the
+      // seeder having been run several times it kept landing on an ARCHIVED
+      // empty shell and reporting nine healthy programs as broken. The panel's
+      // whole promise is to read what the learner reads; not applying the
+      // learner's own filter broke that promise and produced nine false alarms.
+      const published = all.filter(function(x){
+        return x.status === 'published' && String(x.title || '').indexOf(p.seed) > -1;
+      });
+      if(!published.length) return null;
+      // Duplicate published titles are possible too. Prefer the one that
+      // actually carries lessons rather than whichever happens to sort first —
+      // picking an empty twin would recreate the same false alarm.
+      let best = published[0], bestN = -1;
+      published.forEach(function(x){
+        let n = 0;
+        try{ n = (typeof lpGetLessonsForProgram === 'function') ? lpGetLessonsForProgram(x.id).length : 0; }
+        catch(e){ n = 0; }
+        if(n > bestN){ bestN = n; best = x; }
+      });
+      // Carried so the checks can report clutter without searching again.
+      best.__pdPublishedTwins = published.length;
+      best.__pdArchivedTwins = all.filter(function(x){
+        return x.status !== 'published' && String(x.title || '').indexOf(p.seed) > -1;
+      }).length;
+      return best;
     }catch(e){ return null; }
   }
 
@@ -24281,6 +24512,19 @@
           return n ? { level:'ok', detail: fmt('pdEnrolled', { n: n }) }
                    : { level:'warn', detail: t('pdNoEnrolments') };
         }catch(e){ return { level:'bad', detail: t('pdReadFailed') }; }
+      } },
+    { key:'pdChkDuplicates', run: function(p, pub){
+        if(p.kind === 'engine') return { level:'ok', detail: t('pdEngineContent') };
+        if(!pub) return { level:'idle', detail: t('pdSkipped') };
+        const pubN = pub.__pdPublishedTwins || 1;
+        const arcN = pub.__pdArchivedTwins || 0;
+        // Two live programs with the same title is a genuine fault: learners
+        // enrol in one and their progress is invisible from the other.
+        if(pubN > 1) return { level:'bad', detail: fmt('pdDupPublished', { n: pubN }) };
+        // Archived twins are harmless to learners but they are why this panel
+        // used to misreport, and they make the builder list hard to work in.
+        if(arcN > 0) return { level:'warn', detail: fmt('pdDupArchived', { n: arcN }) };
+        return { level:'ok', detail: t('pdNoDuplicates') };
       } },
     { key:'pdChkVisible', run: function(p){
         // A program that exists but is switched off is invisible to learners —
@@ -24612,6 +24856,29 @@
   }
   function abCreds(){ return { requesterUsername: ADMIN.username, requesterPin: ADMIN.pin }; }
 
+  /* Identity and capability answers, from the JASMIN AI conduct document.
+     These are the questions asked most on a first visit, and they are the ones
+     that look worst when the model is unreachable — an assistant that cannot
+     say who it is has no credibility for anything after that. Kept in the bank
+     so they resolve locally, instantly, and identically every time. */
+  const JASMIN_IDENTITY_KB = [
+    { topic:'هوية المساعد', question:'إنت مين؟ مين أنت؟ اسمك إيه؟',
+      answer:'أنا JASMIN AI (جاسمين AI) — المساعد الذكي بتاع أكاديمية جاسمين. أقدر أساعدك في المذاكرة، شرح الدروس، حل المسائل، استخدام المنصة، وكمان أي موضوع عام تحب تتكلم فيه.',
+      keywords:'مين انت انت مين اسمك ايه من انت who are you your name جاسمين jasmin ai المساعد' },
+    { topic:'هوية المساعد', question:'إنت إنسان؟ إنت روبوت؟',
+      answer:'لأ، أنا مش إنسان — أنا JASMIN AI، مساعد ذكي. بس اتكلم معايا عادي زي ما تتكلم مع أي حد، وأنا هفهمك.',
+      keywords:'انت انسان بني ادم روبوت بوت حقيقي are you human robot bot real' },
+    { topic:'قدرات المساعد', question:'بتعرف تعمل إيه؟ إيه اللي تقدر تساعدني فيه؟',
+      answer:'أقدر أشرحلك الدروس وأبسّطها، أحل معاك المسائل خطوة بخطوة، أعملك اختبارات وتمارين، أرتّبلك خطة مذاكرة، أساعدك تستخدم المنصة وتلاقي أي حاجة فيها، وأتكلم معاك في أي موضوع عام — من البرمجة للفضاء للطبخ. وكمان أترجم، ألخّص، وأساعدك تكتب.',
+      keywords:'بتعرف تعمل ايه قدراتك تقدر تساعدني بتعمل ايه امكانياتك what can you do capabilities help' },
+    { topic:'قدرات المساعد', question:'تعرف أخبار النهاردة؟ عندك معلومات حديثة؟',
+      answer:'أيوه — لما السؤال محتاج معلومة حالية زي الأخبار أو الأسعار أو الطقس، بدوّر على النت وأجيبلك المصادر مع الإجابة عشان تقدر تتأكد بنفسك. لو النت مش متاح وقتها، هقولك إن المعلومة محتاجة تحقّق بدل ما أقول حاجة من عندي.',
+      keywords:'اخبار النهارده معلومات حديثة انترنت نت اسعار طقس اخر الاخبار news today internet current latest live' },
+    { topic:'حدود المساعد', question:'تقدر تعمل أي حاجة؟ فيه حاجات مش بتعملها؟',
+      answer:'فيه حاجات مش بعملها عن قصد: مش بخترع معلومة أنا مش متأكد منها، ومش بقول إني عملت حاجة إلا لو عملتها فعلًا، ومش بعرض بيانات حد تاني. وفي المواضيع الطبية أو القانونية بديك معلومة عامة وبقولك ترجع لمختص، لأن دي حاجات ملهاش لزمة تتاخد من مساعد ذكي.',
+      keywords:'تقدر تعمل اي حاجة حدود مش بتعمل حدودك limits cannot restrictions' }
+  ];
+
   // Pushes the SAME documentation Nova answers from into the bank, so the
   // model and the offline path never disagree about how a service works.
   async function abSeed(){
@@ -24625,6 +24892,11 @@
         keywords: k.match.source.replace(/[\\/\\\\^$*+?.()|\[\]{}]/g, ' ').replace(/\|/g, ' '),
         lang: 'both', weight: 3
       };
+    });
+    // Weight 5: an identity question must beat a topic entry that happens to
+    // share a word with it, or "إنت مين" retrieves a lesson about pronouns.
+    JASMIN_IDENTITY_KB.forEach(function(e){
+      entries.push(Object.assign({ lang:'both', weight: 5 }, e));
     });
     setBtnSaving(abSeedBtn, true);
     const res = await postToSheet('ai_seed_bank', Object.assign(abCreds(), { entries: entries }));
