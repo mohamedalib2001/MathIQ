@@ -8495,6 +8495,7 @@
       ldmRoundtripLost:'⛔ كُتِب الصف لكن تعذّرت قراءته مجددًا — مشكلة حقيقية في المزامنة.',
       ldmRoundtripFail:'تعذّر تنفيذ الاختبار',
       ldmHeader:'{n} صفحة مكتشَفة في قاعدة البيانات', ldmRefresh:'🔄 تحديث الخريطة',
+      ldmKpiSchema:'صفحات ناقصة الأعمدة', ldmSchemaWarn:'⚠ أعمدة متوقَّعة مفقودة: {cols}',
       ldmKpiDupes:'هويات مكرَّرة', ldmDupeWarn:'⛔ {n} هوية مكرَّرة — نفس المعرّف في أكثر من صف.',
       ldmKpiSheets:'صفحة', ldmKpiWithData:'بها بيانات', ldmKpiLabelled:'معروفة الغرض', ldmKpiRows:'إجمالي السجلات',
       ldmRows:'{n} سجل', ldmCols:'{n} عمود',
@@ -10504,6 +10505,7 @@
       ldmRoundtripLost:'⛔ The row was written but could not be read back — a real sync problem.',
       ldmRoundtripFail:'Could not run the test',
       ldmHeader:'{n} sheets discovered in the database', ldmRefresh:'🔄 Refresh the map',
+      ldmKpiSchema:'sheets with missing columns', ldmSchemaWarn:'⚠ Expected columns missing: {cols}',
       ldmKpiDupes:'duplicate identities', ldmDupeWarn:'⛔ {n} duplicate identity — same key on more than one row.',
       ldmKpiSheets:'sheets', ldmKpiWithData:'with data', ldmKpiLabelled:'known purpose', ldmKpiRows:'total records',
       ldmRows:'{n} rows', ldmCols:'{n} cols',
@@ -12892,7 +12894,7 @@
      Apps Script deployment is older than the page, and every server-side fix
      — the tolerant username lookup, the login-code mailer, the password
      repair — is simply absent. */
-  const EXPECTED_GS_BUILD = 'gs-2026-08-19-1408-b733e253';
+  const EXPECTED_GS_BUILD = 'gs-2026-08-19-1419-8f0fe840';
 
   async function jaCheckBackendFresh(){
     if(!SHEET_API_URL || !adminLoginHint) return;
@@ -13918,6 +13920,10 @@
     // sheet nobody checked must never be silently folded into "zero found".
     const dupeSheets = sheets.filter(function(s){ return s.duplicateKeys > 0; });
     const dupeTotal = dupeSheets.reduce(function(s, x){ return s + x.duplicateKeys; }, 0);
+    // Same principle for schema: only sheets with a KNOWN expected schema
+    // (schema !== null) can fail one — an unregistered sheet is not "valid",
+    // it is simply not checked, and must never be counted either way.
+    const schemaBroken = sheets.filter(function(s){ return s.schema && !s.schema.valid; });
 
     ldmHeaderTitle.innerHTML = '<span class="ldm-live-dot"></span>' +
       fmt('ldmHeader', { n: sheets.length });
@@ -13928,27 +13934,36 @@
       ldmKpi(exNum(totalRows), t('ldmKpiRows')) +
       // Shown only when it has something to say — a permanent "0 duplicates"
       // card would just be decoration on every normal day.
-      (dupeTotal ? ldmKpi(dupeTotal, t('ldmKpiDupes'), 'bad') : '');
+      (dupeTotal ? ldmKpi(dupeTotal, t('ldmKpiDupes'), 'bad') : '') +
+      (schemaBroken.length ? ldmKpi(schemaBroken.length, t('ldmKpiSchema'), 'bad') : '');
 
     /* Sort priority: a genuine duplicate identity is a real data-integrity
        problem — the SAME person or record silently split into two rows — and
        outranks even an unlabelled sheet, which is merely undocumented, not
-       broken. Sheets nobody has explained yet surface next, then by size. */
+       broken. A missing expected column ranks with duplicates: the code
+       reading that sheet will misalign silently, which is exactly what a
+       "we caught it before it bit you" tool exists to surface first. Sheets
+       nobody has explained yet come next, then by size. */
     const sorted = sheets.slice().sort(function(a, b){
-      const ad = a.duplicateKeys > 0, bd = b.duplicateKeys > 0;
-      if(ad !== bd) return ad ? -1 : 1;
+      const aBad = (a.duplicateKeys > 0) || (a.schema && !a.schema.valid);
+      const bBad = (b.duplicateKeys > 0) || (b.schema && !b.schema.valid);
+      if(aBad !== bBad) return aBad ? -1 : 1;
       if(!!a.purpose !== !!b.purpose) return a.purpose ? 1 : -1;
       return b.rows - a.rows;
     });
     ldmGrid.innerHTML = sorted.map(function(s){
       const hasDupes = s.duplicateKeys > 0;
-      const dotClass = hasDupes ? 'dupe' : (!s.purpose ? 'unlabelled' : (s.rows > 0 ? 'has-data' : 'empty'));
-      return '<div class="ldm-card' + (hasDupes ? ' ldm-card-alert' : '') + '">' +
+      const hasSchemaIssue = !!(s.schema && !s.schema.valid);
+      const isAlert = hasDupes || hasSchemaIssue;
+      const dotClass = isAlert ? 'dupe' : (!s.purpose ? 'unlabelled' : (s.rows > 0 ? 'has-data' : 'empty'));
+      return '<div class="ldm-card' + (isAlert ? ' ldm-card-alert' : '') + '">' +
         '<div class="ldm-card-top"><span class="ldm-status-dot ' + dotClass + '"></span>' +
         '<span class="ldm-card-name">' + exEsc(s.sheet) + '</span></div>' +
         '<div class="ldm-card-purpose">' + (s.purpose ? exEsc(s.purpose) : t('ldmUnlabelled')) + '</div>' +
         (hasDupes ? '<div class="ldm-card-dupewarn">' +
           fmt('ldmDupeWarn', { n: s.duplicateKeys }) + '</div>' : '') +
+        (hasSchemaIssue ? '<div class="ldm-card-dupewarn">' +
+          fmt('ldmSchemaWarn', { cols: s.schema.missing.join('، ') }) + '</div>' : '') +
         '<div class="ldm-card-meta"><span>' + fmt('ldmRows', { n: exNum(s.rows) }) + '</span>' +
         '<span>' + fmt('ldmCols', { n: s.cols }) + '</span></div></div>';
     }).join('');
@@ -24898,7 +24913,7 @@
     taglineArabic: 'تعلّم · تطوّر · ارتقِ'
   };
 
-  var DIAG_BUILD = 'jasmin-2026-08-19-1408-52944bfcb369';
+  var DIAG_BUILD = 'jasmin-2026-08-19-1419-45375a554990';
   var DIAG_BUILD_AT = '2026-08-17';
   /* Capability probes.
      These used to be `typeof X === 'function'` — a check that the code was
