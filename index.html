@@ -1255,6 +1255,18 @@
   .admin-tool-tile:hover{ border-color:var(--yellow); }
   .admin-tool-tile:active{ transform:scale(0.97); }
   .admin-tool-tile .tile-icon{ font-size:22px; }
+  /* Tool group headers — a real hierarchy over the same tiles, not a new
+     component per tile. Collapsed groups start hidden via the .hidden class
+     already used everywhere else, so no new show/hide mechanism is needed. */
+  .atg{ margin-bottom:6px; }
+  .atg-head{ display:flex; align-items:center; justify-content:space-between;
+    padding:9px 12px; cursor:pointer; border-radius:10px; margin-bottom:8px;
+    background:rgba(255,255,255,0.03); }
+  .atg-head:hover{ background:rgba(255,255,255,0.06); }
+  .atg-head:focus-visible{ outline:2px solid var(--yellow); outline-offset:-2px; }
+  .atg-title{ font-size:12.5px; font-weight:800; color:var(--ink); }
+  .atg-caret{ font-size:11px; color:var(--ink-dim); transition:transform .18s ease; }
+  .atg[data-open="0"] .atg-caret{ transform:rotate(-90deg); }
   .player-badge{ display:flex; align-items:center; justify-content:center; gap:8px; font-family:'Cairo', sans-serif; font-size:14px; font-weight:700; color:var(--ink-dim); margin-bottom:4px; }
   .player-badge .avatar-sm{ font-size:18px; display:inline-flex; align-items:center; }
   .player-badge .avatar-sm img{ width:22px; height:22px; border-radius:50%; object-fit:cover; }
@@ -4361,32 +4373,74 @@
     <div class="profile-cards" id="profileCardsWrap"></div>
     <button class="challenge-btn" id="challengeBtn" data-i18n="challengeBtn">🏆 تحدي بين طالبتين</button>
     <div class="group-label" data-i18n="adminDashTools">الأدوات والإعدادات</div>
-    <div class="admin-tools-grid">
-      <div class="admin-tool-tile" id="dashboardLink"><span class="tile-icon">📊</span><span data-i18n="dashboardLink">لوحة جميع الطلاب</span></div>
-      <div class="admin-tool-tile" id="programBuilderLink"><span class="tile-icon">🎓</span><span data-i18n="programBuilderLink">بناء البرامج التعليمية</span></div>
-      <div class="admin-tool-tile" id="addTeacherLink"><span class="tile-icon">➕</span><span data-i18n="addTeacherLink">إضافة حساب معلم</span></div>
-      <div class="admin-tool-tile" id="teachersListLink"><span class="tile-icon">👥</span><span data-i18n="teachersListLink">المعلّمون</span></div>
-      <!-- Owner-only: hidden entirely for controller and assistant roles,
-           because a tile that appears and then refuses is worse than absent. -->
-      <div class="admin-tool-tile hidden" id="ownerCenterLink"><span class="tile-icon">👑</span><span data-i18n="ocTitle">مركز تحكّم المالك</span></div>
-      <div class="admin-tool-tile hidden" id="pdLink"><span class="tile-icon">🩺</span><span data-i18n="pdTitle">تشخيص البرامج</span></div>
-      <div class="admin-tool-tile hidden" id="execCenterLink"><span class="tile-icon">📊</span><span data-i18n="exTitle">مركز القيادة التنفيذي</span></div>
-      <div class="admin-tool-tile" id="aiBankLink"><span class="tile-icon">🧠</span><span data-i18n="abTitle">بنك معرفة الذكاء الاصطناعي</span></div>
-      <div class="admin-tool-tile" id="scheduleLink"><span class="tile-icon">🗓</span><span data-i18n="schTitle">جدول الحصص</span></div>
-      <div class="admin-tool-tile" id="reportsLink"><span class="tile-icon">📋</span><span data-i18n="repTitle">تقارير الحصص</span></div>
-      <div class="admin-tool-tile" id="classroomLink"><span class="tile-icon">🏫</span><span data-i18n="clStartTitle">حصة مباشرة</span></div>
-      <div class="admin-tool-tile" id="planAssignLink"><span class="tile-icon">🎯</span><span data-i18n="spAssignTitle">إسناد خطة لتلميذ</span></div>
-      <div class="admin-tool-tile" id="diagCenterLink"><span class="tile-icon">🛠️</span><span data-i18n="dcTitle">أدوات تشخيص الأخطاء وإصلاحها</span></div>
-      <!-- These three keep their original tiles AND appear inside the centre.
-           Removing them broke their existing listeners, and a diagnostics tool
-           that breaks the tools it gathers defeats its own purpose. -->
-      <div class="admin-tool-tile" id="diagLink"><span class="tile-icon">🩺</span><span data-i18n="diagTitle">تشخيص النظام</span></div>
-      <div class="admin-tool-tile" id="guardianAuditLink"><span class="tile-icon">🔍</span><span data-i18n="guardianAuditLink">فحص حسابات أولياء الأمور</span></div>
-      <div class="admin-tool-tile" id="mailDiagLink"><span class="tile-icon">✉️</span><span data-i18n="mailDiagLink">تشخيص إرسال البريد</span></div>
-      <div class="admin-tool-tile" id="examImportLink"><span class="tile-icon">📥</span><span data-i18n="exImportLink">إدخال اختبار دراسي</span></div>
-      <div class="admin-tool-tile" id="connectionLink"><span class="tile-icon">🔗</span><span data-i18n="connectionLink">ربط جوجل شيت</span></div>
-      <div class="admin-tool-tile" id="subscriptionLink"><span class="tile-icon">💳</span><span data-i18n="subscriptionLink">الاشتراك والتفعيل</span></div>
-      <div class="admin-tool-tile" id="serviceActivationLink"><span class="tile-icon">🧩</span><span data-i18n="serviceActivationLink">تفعيل الخدمات</span></div>
+    <!-- ====================================================
+         The screenshot this responds to is a single flat list of nineteen
+         equally-weighted tiles — exactly the "Tools Directory" failure the
+         request names directly. No id, class, icon or data-i18n below has
+         changed: every existing click handler is untouched. What changed is
+         only the grouping, following the request's own stated priority
+         order (system leadership and daily academic work stay open; the
+         advanced/maintenance tools — diagnostics, connections, activation —
+         collapse, since they are exactly what that order ranks last). ==== -->
+    <div class="atg" data-open="1">
+      <div class="atg-head" role="button" tabindex="0" data-atg-toggle="ops">
+        <span class="atg-title" data-i18n="atgOps">📚 العمليات اليومية</span>
+        <span class="atg-caret">▾</span>
+      </div>
+      <div class="admin-tools-grid" id="atgOps">
+        <div class="admin-tool-tile" id="dashboardLink"><span class="tile-icon">📊</span><span data-i18n="dashboardLink">لوحة جميع الطلاب</span></div>
+        <div class="admin-tool-tile" id="programBuilderLink"><span class="tile-icon">🎓</span><span data-i18n="programBuilderLink">بناء البرامج التعليمية</span></div>
+        <div class="admin-tool-tile" id="addTeacherLink"><span class="tile-icon">➕</span><span data-i18n="addTeacherLink">إضافة حساب معلم</span></div>
+        <div class="admin-tool-tile" id="teachersListLink"><span class="tile-icon">👥</span><span data-i18n="teachersListLink">المعلّمون</span></div>
+        <div class="admin-tool-tile" id="scheduleLink"><span class="tile-icon">🗓</span><span data-i18n="schTitle">جدول الحصص</span></div>
+        <div class="admin-tool-tile" id="reportsLink"><span class="tile-icon">📋</span><span data-i18n="repTitle">تقارير الحصص</span></div>
+        <div class="admin-tool-tile" id="classroomLink"><span class="tile-icon">🏫</span><span data-i18n="clStartTitle">حصة مباشرة</span></div>
+        <div class="admin-tool-tile" id="planAssignLink"><span class="tile-icon">🎯</span><span data-i18n="spAssignTitle">إسناد خطة لتلميذ</span></div>
+        <div class="admin-tool-tile" id="examImportLink"><span class="tile-icon">📥</span><span data-i18n="exImportLink">إدخال اختبار دراسي</span></div>
+      </div>
+    </div>
+
+    <div class="atg" data-open="1">
+      <div class="atg-head" role="button" tabindex="0" data-atg-toggle="lead">
+        <span class="atg-title" data-i18n="atgLead">🧭 القيادة والذكاء الاصطناعي</span>
+        <span class="atg-caret">▾</span>
+      </div>
+      <div class="admin-tools-grid" id="atgLead">
+        <!-- Owner-only: hidden entirely for controller and assistant roles,
+             because a tile that appears and then refuses is worse than absent. -->
+        <div class="admin-tool-tile hidden" id="ownerCenterLink"><span class="tile-icon">👑</span><span data-i18n="ocTitle">مركز تحكّم المالك</span></div>
+        <div class="admin-tool-tile hidden" id="execCenterLink"><span class="tile-icon">📊</span><span data-i18n="exTitle">مركز القيادة التنفيذي</span></div>
+        <div class="admin-tool-tile hidden" id="pdLink"><span class="tile-icon">🩺</span><span data-i18n="pdTitle">تشخيص البرامج</span></div>
+        <div class="admin-tool-tile" id="aiBankLink"><span class="tile-icon">🧠</span><span data-i18n="abTitle">بنك معرفة الذكاء الاصطناعي</span></div>
+      </div>
+    </div>
+
+    <div class="atg" data-open="0">
+      <div class="atg-head" role="button" tabindex="0" data-atg-toggle="data">
+        <span class="atg-title" data-i18n="atgData">🔗 البيانات والاشتراكات</span>
+        <span class="atg-caret">▾</span>
+      </div>
+      <div class="admin-tools-grid hidden" id="atgData">
+        <div class="admin-tool-tile" id="connectionLink"><span class="tile-icon">🔗</span><span data-i18n="connectionLink">ربط جوجل شيت</span></div>
+        <div class="admin-tool-tile" id="subscriptionLink"><span class="tile-icon">💳</span><span data-i18n="subscriptionLink">الاشتراك والتفعيل</span></div>
+        <div class="admin-tool-tile" id="serviceActivationLink"><span class="tile-icon">🧩</span><span data-i18n="serviceActivationLink">تفعيل الخدمات</span></div>
+      </div>
+    </div>
+
+    <div class="atg" data-open="0">
+      <div class="atg-head" role="button" tabindex="0" data-atg-toggle="diag">
+        <span class="atg-title" data-i18n="atgDiag">🛠️ التشخيص والصيانة</span>
+        <span class="atg-caret">▾</span>
+      </div>
+      <div class="admin-tools-grid hidden" id="atgDiag">
+        <div class="admin-tool-tile" id="diagCenterLink"><span class="tile-icon">🛠️</span><span data-i18n="dcTitle">أدوات تشخيص الأخطاء وإصلاحها</span></div>
+        <!-- These three keep their original tiles AND appear inside the centre.
+             Removing them broke their existing listeners, and a diagnostics tool
+             that breaks the tools it gathers defeats its own purpose. -->
+        <div class="admin-tool-tile" id="diagLink"><span class="tile-icon">🩺</span><span data-i18n="diagTitle">تشخيص النظام</span></div>
+        <div class="admin-tool-tile" id="guardianAuditLink"><span class="tile-icon">🔍</span><span data-i18n="guardianAuditLink">فحص حسابات أولياء الأمور</span></div>
+        <div class="admin-tool-tile" id="mailDiagLink"><span class="tile-icon">✉️</span><span data-i18n="mailDiagLink">تشخيص إرسال البريد</span></div>
+      </div>
     </div>
     <div class="link-line subtle-link" id="backToLoginLink" data-i18n="backToLoginLink">🔒 رجوع لتسجيل الدخول</div>
   </div>
@@ -5783,6 +5837,11 @@
         <input type="text" id="adminOtpInput" class="ltr-input" inputmode="numeric"
                maxlength="6" autocomplete="one-time-code" placeholder="- - - - - -">
         <button class="start-btn" id="adminOtpVerify" data-i18n="secVerifyBtn" style="margin-top:8px">تأكيد الدخول</button>
+        <!-- The one way in when mail cannot deliver a code at all — a quota
+             the owner cannot fix from this screen, or an address that is
+             simply wrong. Hidden until it is actually relevant, so it never
+             competes with the normal path on an ordinary sign-in. -->
+        <div class="link-line subtle-link hidden" id="secEmergencyLink" style="margin-top:10px">🔑 استخدم رمز طوارئ بدلًا من ذلك</div>
       </div>
       <div class="sec-warn">
         <div class="sec-warn-t" id="secWarnTitle"></div>
@@ -7235,6 +7294,7 @@
   const adminOtpInput = document.getElementById('adminOtpInput');
   const adminOtpVerify = document.getElementById('adminOtpVerify');
   const secWarnTitle = document.getElementById('secWarnTitle');
+  const secEmergencyLink = document.getElementById('secEmergencyLink');
   const secWarnBody = document.getElementById('secWarnBody');
   const adminPinInput = document.getElementById('adminPinInput');
   const adminCodeLink = document.getElementById('adminCodeLink');
@@ -9434,6 +9494,12 @@
       secWarnBody:'هذه الصفحة مخصّصة لمالك الأكاديمية وحده. كل محاولة دخول تُسجَّل بوقتها وجهازها، والمحاولات المتكررة توقف الحساب مؤقتًا. إن لم تكن المالك فأنت في المكان الخطأ — وليس هنا ما يخصّك.',
       secFPassword:'كلمة المرور', secFEmail:'كود على البريد', secFSms:'كود على الجوال',
       secFWhats:'كود واتساب', secFPhone:'مطابقة رقم الجوال',
+      secOtpSending:'بنبعت الكود…',
+      secMailQuota:'⛔ تعذّر إرسال الكود — حصة البريد اليومي انتهت. استخدم رمز طوارئ بدلًا من ذلك.',
+      secNoEmailOnFile:'⛔ لا يوجد بريد إلكتروني مسجَّل لهذا الحساب. استخدم رمز طوارئ أو راجع محرّر Apps Script.',
+      secMailFailed:'⛔ تعذّر إرسال الكود. استخدم رمز طوارئ بدلًا من ذلك.',
+      secEmergencyHint:'اكتب رمز الطوارئ (بالصيغة XXXX-XXXX) الذي أصدرته سابقًا من «حسابي».',
+      secEmergencyWrong:'الرمز غير صحيح أو استُخدم من قبل.',
       secOtpSent:'أرسلنا كود تحقق. اكتبه لإتمام الدخول.',
       secOtpSentTo:'أرسلنا كود تحقق إلى {e}. اكتبه لإتمام الدخول.',
       secOtpTooShort:'اكتب الكود كاملًا.',
@@ -9961,6 +10027,8 @@
       trialActive:'نشطة — تبقّى {n} يوم', trialNone:'لم تبدأ بعد', trialExpired:'انتهت',
       accountDisabledTitle:'هذا الحساب معطّل حاليًا', accountDisabledBody:'تواصلي مع صاحب التطبيق لإعادة تفعيل الحساب.',
       perStudentSubNote:'حالة الاشتراك والتفعيل الآن لكل حساب على حدة — راجعيها من قائمة الطلاب في لوحة الإدارة الرئيسية.',
+      atgOps:'📚 العمليات اليومية', atgLead:'🧭 القيادة والذكاء الاصطناعي',
+      atgData:'🔗 البيانات والاشتراكات', atgDiag:'🛠️ التشخيص والصيانة',
       adminDashTitle:'مركز تحكّم أكاديمية جاسمين', adminDashStudents:'المتعلّمون', adminDashTools:'الأدوات والإعدادات',
       statusExempt:'حساب عائلي (دائم)', statusDisabled:'🚫 معطّل', statusSubscribed:'مشترك حتى {date}',
       statusTrialDays:'⏳ تجربة — {n} يوم متبقٍ', statusTrialExpiredShort:'⚠️ التجربة منتهية', statusNoTrial:'لم يبدأ بعد',
@@ -11326,6 +11394,12 @@
       secWarnBody:'This page is for the academy owner alone. Every attempt is recorded with its time and device, and repeated attempts suspend the account. If you are not the owner you are in the wrong place — there is nothing here for you.',
       secFPassword:'Password', secFEmail:'Email code', secFSms:'SMS code',
       secFWhats:'WhatsApp code', secFPhone:'Phone match',
+      secOtpSending:'Sending the code…',
+      secMailQuota:'⛔ Could not send the code — the daily mail quota is exhausted. Use an emergency code instead.',
+      secNoEmailOnFile:'⛔ No email address is on file for this account. Use an emergency code or check the Apps Script editor.',
+      secMailFailed:'⛔ Could not send the code. Use an emergency code instead.',
+      secEmergencyHint:'Enter the emergency code (format XXXX-XXXX) you generated earlier from "My Account".',
+      secEmergencyWrong:'That code is wrong or has already been used.',
       secOtpSent:'A verification code has been sent. Enter it to finish signing in.',
       secOtpSentTo:'A verification code was sent to {e}. Enter it to finish signing in.',
       secOtpTooShort:'Enter the full code.',
@@ -11853,6 +11927,8 @@
       trialActive:'Active — {n} days left', trialNone:'Not started yet', trialExpired:'Expired',
       accountDisabledTitle:'This account is currently disabled', accountDisabledBody:'Contact the app owner to reactivate it.',
       perStudentSubNote:'Subscription and activation are now tracked per account — check the student list in the main admin dashboard.',
+      atgOps:'📚 Daily Operations', atgLead:'🧭 Leadership & AI',
+      atgData:'🔗 Data & Subscriptions', atgDiag:'🛠️ Diagnostics & Maintenance',
       adminDashTitle:'JASMIN Academy Command Center', adminDashStudents:'Learners', adminDashTools:'Tools & Settings',
       statusExempt:'Family account (permanent)', statusDisabled:'🚫 Disabled', statusSubscribed:'Subscribed until {date}',
       statusTrialDays:'⏳ Trial — {n} days left', statusTrialExpiredShort:'⚠️ Trial expired', statusNoTrial:'Not started yet',
@@ -14267,24 +14343,66 @@
   async function secBeginChallenge(res){
     adminPendingUser = res.username;
     adminOtpBox.classList.remove('hidden');
-    adminOtpHint.textContent = res.emailHint
-      ? fmt('secOtpSentTo', { e: res.emailHint })
-      : t('secOtpSent');
+    if(secEmergencyLink) secEmergencyLink.classList.add('hidden');
+    adminOtpHint.textContent = t('secOtpSending');
     adminOtpInput.value = '';
     adminOtpInput.focus();
-    // The code is only sent now — not while the password was still unproven.
-    try{ await postToSheet('request_admin_code', { username: adminPendingUser }); }catch(e){}
+
+    /* The code is only requested now — not while the password was still
+       unproven. Its result used to be discarded outright: whatever the
+       server answered, the hint above unconditionally said "a code was
+       sent". The backend already detects an exhausted daily mail quota and
+       reports it correctly — the failure here was purely that nobody on the
+       client ever looked at what it said, so the owner was left staring at
+       an input waiting on mail that had already been refused, with the
+       screen actively telling them otherwise. */
+    let sendRes = null;
+    try{ sendRes = await postToSheet('request_admin_code', { username: adminPendingUser }); }
+    catch(e){ sendRes = null; }
+
+    if(sendRes && sendRes.ok){
+      adminOtpHint.textContent = res.emailHint
+        ? fmt('secOtpSentTo', { e: res.emailHint })
+        : t('secOtpSent');
+      return;
+    }
+    // A real, named failure — not silence dressed up as success.
+    const why = sendRes && sendRes.error;
+    adminOtpHint.textContent =
+      why === 'mail_quota' ? t('secMailQuota') :
+      why === 'no_email_on_file' ? t('secNoEmailOnFile') :
+      t('secMailFailed');
+    if(secEmergencyLink) secEmergencyLink.classList.remove('hidden');
   }
+
+  /* Emergency-code sign-in. The one path that does not depend on mail at
+     all: a single-use code the owner generated in advance from "حساب
+     المالك", verified entirely server-side by handleEmergencyLogin_ — which
+     already existed and was already tested, and until now had no button
+     anywhere that could reach it. */
+  if(secEmergencyLink) secEmergencyLink.addEventListener('click', function(){
+    adminOtpHint.textContent = t('secEmergencyHint');
+    adminOtpInput.value = '';
+    adminOtpInput.placeholder = 'XXXX-XXXX';
+    adminOtpInput.maxLength = 9;
+    secEmergencyLink.classList.add('hidden');
+    adminOtpVerify.dataset.mode = 'emergency';
+    adminOtpInput.focus();
+  });
 
   if(adminOtpVerify) adminOtpVerify.addEventListener('click', async function(){
     const code = (adminOtpInput.value || '').trim();
     if(code.length < 4){ adminLoginError.textContent = t('secOtpTooShort'); return; }
+    const emergency = adminOtpVerify.dataset.mode === 'emergency';
     setBtnSaving(adminOtpVerify, true);
-    const res = await postToSheet('verify_admin_code',
-      { username: adminPendingUser, code: code });
+    const res = await postToSheet(emergency ? 'emergency_login' : 'verify_admin_code',
+      emergency ? { username: adminPendingUser, code: code }
+                : { username: adminPendingUser, code: code });
     setBtnSaving(adminOtpVerify, false);
     if(!res || !res.ok){
-      adminLoginError.textContent = describeSyncFailure(res, 'secOtpWrong');
+      adminLoginError.textContent = emergency
+        ? describeSyncFailure(res, 'secEmergencyWrong')
+        : describeSyncFailure(res, 'secOtpWrong');
       return;
     }
     adminOtpBox.classList.add('hidden');
@@ -24658,7 +24776,7 @@
     taglineArabic: 'تعلّم · تطوّر · ارتقِ'
   };
 
-  var DIAG_BUILD = 'jasmin-2026-08-19-1025-85fa7cd3dc37';
+  var DIAG_BUILD = 'jasmin-2026-08-19-1045-bc2550a1d53c';
   var DIAG_BUILD_AT = '2026-08-17';
   /* Capability probes.
      These used to be `typeof X === 'function'` — a check that the code was
@@ -35561,6 +35679,24 @@
   // accessibility: make non-<button> clickable text elements keyboard-navigable
   // (covers elements present at page load; dynamically-injected small chips
   // added later remain mouse/touch — a reasonable scope boundary)
+  /* Tool group collapse. A group's OWN grid element is toggled, not a
+     fixed sibling-index guess — so a tile added or removed from a group
+     later cannot silently break the fold. */
+  document.querySelectorAll('.atg-head').forEach(function(head){
+    const groupId = head.getAttribute('data-atg-toggle');
+    const grid = document.getElementById('atg' + groupId.charAt(0).toUpperCase() + groupId.slice(1));
+    const wrap = head.closest('.atg');
+    const go = function(){
+      const open = wrap.getAttribute('data-open') === '1';
+      wrap.setAttribute('data-open', open ? '0' : '1');
+      if(grid) grid.classList.toggle('hidden', open);
+    };
+    head.addEventListener('click', go);
+    head.addEventListener('keydown', function(e){
+      if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); go(); }
+    });
+  });
+
   document.querySelectorAll('.quit-link, .switch-player, .logout-text-link, .abacus-mode-tab, .link-line').forEach(el=>{
     if(el.tagName === 'BUTTON' || el.tagName === 'A') return;
     if(!el.hasAttribute('tabindex')) el.setAttribute('tabindex', '0');
