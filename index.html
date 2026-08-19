@@ -3001,6 +3001,9 @@
   .pd-name{ flex:1; min-width:0; font-size:13.5px; font-weight:700; color:var(--ink);
     overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .pd-badge{ font-size:9.5px; font-weight:800; padding:3px 9px; border-radius:20px; flex:none; }
+  .pd-recheck{ flex:none; border:none; background:transparent; cursor:pointer;
+    font-size:13px; opacity:0.55; padding:2px 4px; border-radius:6px; }
+  .pd-recheck:hover{ opacity:1; background:rgba(255,255,255,0.06); }
   .pd-badge.ok{ background:rgba(16,185,129,0.15); color:#34d399; }
   .pd-badge.warn{ background:rgba(245,158,11,0.15); color:#fbbf24; }
   .pd-badge.bad{ background:rgba(239,68,68,0.15); color:#fca5a5; }
@@ -3039,6 +3042,11 @@
   /* ---------- LIVE DATA MAP ---------- */
   .ldm-header{ display:flex; align-items:center; justify-content:space-between;
     gap:10px; margin-bottom:10px; }
+  .ldm-header-actions{ display:flex; gap:6px; }
+  .ldm-roundtrip{ font-size:11px; line-height:1.85; padding:9px 12px; border-radius:10px;
+    margin-bottom:12px; border:1px solid var(--chip-border); background:var(--input-bg); }
+  .ldm-roundtrip.ok{ border-color:rgba(52,211,153,0.35); color:#34d399; }
+  .ldm-roundtrip.bad{ border-color:rgba(239,68,68,0.35); color:#fca5a5; }
   .ldm-header-title{ font-size:13px; font-weight:800; color:var(--ink);
     display:flex; align-items:center; gap:8px; }
   .ldm-live-dot{ width:8px; height:8px; border-radius:50%; background:#34d399; flex:none; }
@@ -3062,6 +3070,11 @@
   .ldm-status-dot.has-data{ background:#34d399; }
   .ldm-status-dot.empty{ background:#64748b; }
   .ldm-status-dot.unlabelled{ background:#f59e0b; }
+  .ldm-status-dot.dupe{ background:#ef4444; }
+  .ldm-card-alert{ border-color:rgba(239,68,68,0.4); background:rgba(239,68,68,0.05); }
+  .ldm-card-dupewarn{ font-size:10px; color:#fca5a5; font-weight:700; margin-bottom:6px; }
+  .ldm-kpi-bad{ border-color:rgba(239,68,68,0.4); }
+  .ldm-kpi-bad .ldm-kpi-val{ color:#fca5a5; }
   .ldm-card-purpose{ font-size:10.5px; color:var(--ink-dim); margin-bottom:6px;
     min-height:14px; line-height:1.5; }
   .ldm-card-meta{ display:flex; gap:10px; font-size:10px; color:var(--ink-dim); }
@@ -6149,8 +6162,19 @@
     <div id="ldmSection" class="hidden" style="margin-top:18px">
       <div class="ldm-header">
         <div class="ldm-header-title" id="ldmHeaderTitle"></div>
-        <button class="secondary-btn" id="ldmRefreshBtn"></button>
+        <div class="ldm-header-actions">
+          <button class="secondary-btn" id="ldmRoundtripBtn"></button>
+          <button class="secondary-btn" id="ldmRefreshBtn"></button>
+        </div>
       </div>
+      <!-- Reuses handleDiagRoundtrip_ — already built, already proven earlier
+           in this project — rather than a second write/read-back check
+           invented for this screen alone. What was missing was only a button
+           HERE: the general System Diagnostics tool already called this same
+           action, but the map built specifically for the connected
+           spreadsheet had no way to prove data actually arrives without
+           leaving it for a different screen. -->
+      <div id="ldmRoundtripOut" class="ldm-roundtrip hidden"></div>
       <div class="ldm-kpis" id="ldmKpis"></div>
       <div class="ldm-grid" id="ldmGrid"></div>
     </div>
@@ -8465,7 +8489,13 @@
       certIssuedShareBtn:'مشاركة', certIssuedVerifyBtn:'فتح صفحة التحقق',
       certGenerating:'جارٍ التحضير...',
       ldmLoading:'جارٍ اكتشاف الصفحات…', ldmFailed:'تعذّر تحميل خريطة البيانات.',
+      ldmRoundtripBtn:'🔬 اختبر الكتابة والقراءة الآن',
+      ldmRoundtripRunning:'جارٍ الكتابة… ثم القراءة من جديد للتأكد…',
+      ldmRoundtripOk:'✅ الكتابة والقراءة نجحتا فعليًا — كتابة {w}ms · قراءة {r}ms · إجمالي {t}ms.',
+      ldmRoundtripLost:'⛔ كُتِب الصف لكن تعذّرت قراءته مجددًا — مشكلة حقيقية في المزامنة.',
+      ldmRoundtripFail:'تعذّر تنفيذ الاختبار',
       ldmHeader:'{n} صفحة مكتشَفة في قاعدة البيانات', ldmRefresh:'🔄 تحديث الخريطة',
+      ldmKpiDupes:'هويات مكرَّرة', ldmDupeWarn:'⛔ {n} هوية مكرَّرة — نفس المعرّف في أكثر من صف.',
       ldmKpiSheets:'صفحة', ldmKpiWithData:'بها بيانات', ldmKpiLabelled:'معروفة الغرض', ldmKpiRows:'إجمالي السجلات',
       ldmRows:'{n} سجل', ldmCols:'{n} عمود',
       ldmUnlabelled:'صفحة غير موثَّقة بعد — تحتاج مراجعة، وليست بالضرورة خطأ.',
@@ -9454,6 +9484,7 @@
       pdPatternsTitle:'📊 أنماط مشتركة — قبل التفاصيل',
       pdPatternLine:'{n} برامج تشترك في: {label}',
       pdNoEnrolmentsNew:'لا تسجيلات بعد — طبيعي، البرنامج عمره {n} يوم فقط.',
+      pdRecheckOne:'أعد فحص هذا البرنامج فقط', pdRecheckedOne:'{name}: {score}/100 — تحديث فوري بلا مسح الباقي.',
       pdSummary:'{total} برنامجًا · {bad} فاشل · {warn} تحذير · {ok} سليم',
       pdRunFirst:'شغّل الفحص أولًا.', pdCopied:'✓ نُسخ التقرير — أرسله كما هو.',
       pdSt_untested:'لم يُختبَر', pdUntestedCount:'{n} لم يُختبَر',
@@ -9494,6 +9525,10 @@
       secWarnBody:'هذه الصفحة مخصّصة لمالك الأكاديمية وحده. كل محاولة دخول تُسجَّل بوقتها وجهازها، والمحاولات المتكررة توقف الحساب مؤقتًا. إن لم تكن المالك فأنت في المكان الخطأ — وليس هنا ما يخصّك.',
       secFPassword:'كلمة المرور', secFEmail:'كود على البريد', secFSms:'كود على الجوال',
       secFWhats:'كود واتساب', secFPhone:'مطابقة رقم الجوال',
+      secPhoneAsk:'اكتب رقم جوالك المسجَّل ({p}) لإتمام الدخول.',
+      secPhoneAskBare:'اكتب رقم جوالك المسجَّل لإتمام الدخول.',
+      secPhoneWrong:'رقم الجوال غير مطابق.',
+      secMethodUnavailable:'⛔ طريقة الدخول المفعَّلة (كود واتساب/جوال) تحتاج خدمة خارجية غير مُفعَّلة بعد. فعّل «كلمة المرور» أو «كود على البريد» أو «مطابقة رقم الجوال» بدلًا منها من صفحة Login methods.',
       secOtpSending:'بنبعت الكود…',
       secMailQuota:'⛔ تعذّر إرسال الكود — حصة البريد اليومي انتهت. استخدم رمز طوارئ بدلًا من ذلك.',
       secNoEmailOnFile:'⛔ لا يوجد بريد إلكتروني مسجَّل لهذا الحساب. استخدم رمز طوارئ أو راجع محرّر Apps Script.',
@@ -9530,6 +9565,8 @@
       dcGrpSocial:'الأصدقاء والتحديات والدردشة', dcGrpMedia:'الصوت والكاميرا',
       dcGrpDocs:'الشهادات والبطاقة', dcGrpLearner:'بيانات المتعلّم',
       dcGrpIntegrity:'سلامة الواجهة',
+      dcSheetsAccess:'الوصول لجوجل شيت', dcUnknown:'غير معروف', dcOk:'سليم',
+      dcSheetsFail:'تعذّر فتح الجدول', dcFixSheetId:'تحقّق من SHEET_ID في الخادم أو من صلاحية الوصول للملف.',
       dcProtocol:'البروتوكول', dcOnline:'الشبكة', dcApiUrl:'رابط الخادم', dcServer:'استجابة الخادم',
       dcRespondedIn:'استجاب خلال {n} مللي', dcNoResponse:'لا استجابة',
       dcAccount:'الحساب الحالي', dcSessionToken:'رمز الجلسة', dcAdminSession:'جلسة الإدارة',
@@ -10461,7 +10498,13 @@
       certIssuedShareBtn:'Share', certIssuedVerifyBtn:'Open verification page',
       certGenerating:'Preparing...',
       ldmLoading:'Discovering sheets…', ldmFailed:'Could not load the data map.',
+      ldmRoundtripBtn:'🔬 Test write & read now',
+      ldmRoundtripRunning:'Writing… then reading it back to confirm…',
+      ldmRoundtripOk:'✅ Write and read both actually succeeded — write {w}ms · read {r}ms · total {t}ms.',
+      ldmRoundtripLost:'⛔ The row was written but could not be read back — a real sync problem.',
+      ldmRoundtripFail:'Could not run the test',
       ldmHeader:'{n} sheets discovered in the database', ldmRefresh:'🔄 Refresh the map',
+      ldmKpiDupes:'duplicate identities', ldmDupeWarn:'⛔ {n} duplicate identity — same key on more than one row.',
       ldmKpiSheets:'sheets', ldmKpiWithData:'with data', ldmKpiLabelled:'known purpose', ldmKpiRows:'total records',
       ldmRows:'{n} rows', ldmCols:'{n} cols',
       ldmUnlabelled:'Not documented yet — worth a look, not necessarily an error.',
@@ -11354,6 +11397,7 @@
       pdPatternsTitle:'📊 Shared patterns — before the detail',
       pdPatternLine:'{n} programs share: {label}',
       pdNoEnrolmentsNew:'No enrolments yet — normal, the program is only {n} day(s) old.',
+      pdRecheckOne:'Recheck this program only', pdRecheckedOne:'{name}: {score}/100 — updated instantly, without rescanning the rest.',
       pdSummary:'{total} programs · {bad} failing · {warn} warning · {ok} healthy',
       pdRunFirst:'Run the check first.', pdCopied:'✓ Report copied — send it as is.',
       pdSt_untested:'not tested', pdUntestedCount:'{n} not tested',
@@ -11394,6 +11438,10 @@
       secWarnBody:'This page is for the academy owner alone. Every attempt is recorded with its time and device, and repeated attempts suspend the account. If you are not the owner you are in the wrong place — there is nothing here for you.',
       secFPassword:'Password', secFEmail:'Email code', secFSms:'SMS code',
       secFWhats:'WhatsApp code', secFPhone:'Phone match',
+      secPhoneAsk:'Enter your registered phone number ({p}) to finish signing in.',
+      secPhoneAskBare:'Enter your registered phone number to finish signing in.',
+      secPhoneWrong:'That phone number does not match.',
+      secMethodUnavailable:'⛔ The active sign-in method (WhatsApp/SMS code) needs an external service not yet configured. Enable "password", "email code" or "phone matching" instead from the Login methods sheet.',
       secOtpSending:'Sending the code…',
       secMailQuota:'⛔ Could not send the code — the daily mail quota is exhausted. Use an emergency code instead.',
       secNoEmailOnFile:'⛔ No email address is on file for this account. Use an emergency code or check the Apps Script editor.',
@@ -11430,6 +11478,8 @@
       dcGrpSocial:'Friends, challenges & chat', dcGrpMedia:'Audio & camera',
       dcGrpDocs:'Certificates & card', dcGrpLearner:'Learner data',
       dcGrpIntegrity:'Interface integrity',
+      dcSheetsAccess:'Google Sheets access', dcUnknown:'Unknown', dcOk:'OK',
+      dcSheetsFail:'Could not open the spreadsheet', dcFixSheetId:'Check SHEET_ID in the backend, or the file access permission.',
       dcProtocol:'Protocol', dcOnline:'Network', dcApiUrl:'Server URL', dcServer:'Server response',
       dcRespondedIn:'responded in {n} ms', dcNoResponse:'no response',
       dcAccount:'Current account', dcSessionToken:'Session token', dcAdminSession:'Admin session',
@@ -12842,7 +12892,7 @@
      Apps Script deployment is older than the page, and every server-side fix
      — the tolerant username lookup, the login-code mailer, the password
      repair — is simply absent. */
-  const EXPECTED_GS_BUILD = 'gs-2026-08-19-1056-1e9fd074';
+  const EXPECTED_GS_BUILD = 'gs-2026-08-19-1408-b733e253';
 
   async function jaCheckBackendFresh(){
     if(!SHEET_API_URL || !adminLoginHint) return;
@@ -13864,6 +13914,10 @@
     const withData = sheets.filter(function(s){ return s.rows > 0; }).length;
     const labelled = sheets.filter(function(s){ return s.purpose; }).length;
     const totalRows = sheets.reduce(function(s, x){ return s + x.rows; }, 0);
+    // Only sheets actually checked (duplicateKeys !== null) count here — a
+    // sheet nobody checked must never be silently folded into "zero found".
+    const dupeSheets = sheets.filter(function(s){ return s.duplicateKeys > 0; });
+    const dupeTotal = dupeSheets.reduce(function(s, x){ return s + x.duplicateKeys; }, 0);
 
     ldmHeaderTitle.innerHTML = '<span class="ldm-live-dot"></span>' +
       fmt('ldmHeader', { n: sheets.length });
@@ -13871,30 +13925,66 @@
       ldmKpi(sheets.length, t('ldmKpiSheets')) +
       ldmKpi(withData, t('ldmKpiWithData')) +
       ldmKpi(labelled, t('ldmKpiLabelled')) +
-      ldmKpi(exNum(totalRows), t('ldmKpiRows'));
+      ldmKpi(exNum(totalRows), t('ldmKpiRows')) +
+      // Shown only when it has something to say — a permanent "0 duplicates"
+      // card would just be decoration on every normal day.
+      (dupeTotal ? ldmKpi(dupeTotal, t('ldmKpiDupes'), 'bad') : '');
 
-    // Sheets nobody has explained yet surface first — the "review required"
-    // state the spec asks for, not hidden and not falsely marked healthy.
+    /* Sort priority: a genuine duplicate identity is a real data-integrity
+       problem — the SAME person or record silently split into two rows — and
+       outranks even an unlabelled sheet, which is merely undocumented, not
+       broken. Sheets nobody has explained yet surface next, then by size. */
     const sorted = sheets.slice().sort(function(a, b){
+      const ad = a.duplicateKeys > 0, bd = b.duplicateKeys > 0;
+      if(ad !== bd) return ad ? -1 : 1;
       if(!!a.purpose !== !!b.purpose) return a.purpose ? 1 : -1;
       return b.rows - a.rows;
     });
     ldmGrid.innerHTML = sorted.map(function(s){
-      const dotClass = !s.purpose ? 'unlabelled' : (s.rows > 0 ? 'has-data' : 'empty');
-      return '<div class="ldm-card">' +
+      const hasDupes = s.duplicateKeys > 0;
+      const dotClass = hasDupes ? 'dupe' : (!s.purpose ? 'unlabelled' : (s.rows > 0 ? 'has-data' : 'empty'));
+      return '<div class="ldm-card' + (hasDupes ? ' ldm-card-alert' : '') + '">' +
         '<div class="ldm-card-top"><span class="ldm-status-dot ' + dotClass + '"></span>' +
         '<span class="ldm-card-name">' + exEsc(s.sheet) + '</span></div>' +
         '<div class="ldm-card-purpose">' + (s.purpose ? exEsc(s.purpose) : t('ldmUnlabelled')) + '</div>' +
+        (hasDupes ? '<div class="ldm-card-dupewarn">' +
+          fmt('ldmDupeWarn', { n: s.duplicateKeys }) + '</div>' : '') +
         '<div class="ldm-card-meta"><span>' + fmt('ldmRows', { n: exNum(s.rows) }) + '</span>' +
         '<span>' + fmt('ldmCols', { n: s.cols }) + '</span></div></div>';
     }).join('');
   }
-  function ldmKpi(val, label){
-    return '<div class="ldm-kpi"><div class="ldm-kpi-val">' + val + '</div>' +
+  function ldmKpi(val, label, tone){
+    return '<div class="ldm-kpi' + (tone ? ' ldm-kpi-' + tone : '') + '">' +
+      '<div class="ldm-kpi-val">' + val + '</div>' +
       '<div class="ldm-kpi-label">' + label + '</div></div>';
   }
   ldmRefreshBtn.textContent = t('ldmRefresh');
   ldmRefreshBtn.addEventListener('click', ldmLoad);
+
+  const ldmRoundtripBtn = document.getElementById('ldmRoundtripBtn');
+  const ldmRoundtripOut = document.getElementById('ldmRoundtripOut');
+  if(ldmRoundtripBtn) ldmRoundtripBtn.textContent = t('ldmRoundtripBtn');
+  if(ldmRoundtripBtn) ldmRoundtripBtn.addEventListener('click', async function(){
+    setBtnSaving(ldmRoundtripBtn, true);
+    ldmRoundtripOut.className = 'ldm-roundtrip';
+    ldmRoundtripOut.classList.remove('hidden');
+    ldmRoundtripOut.textContent = t('ldmRoundtripRunning');
+    // diag_roundtrip already exists and is already exercised by the general
+    // System Diagnostics tool; called here as-is so this screen can prove
+    // "data actually arrives" without sending the owner to a different one.
+    const rt = await postToSheetRaw('diag_roundtrip', abCreds());
+    setBtnSaving(ldmRoundtripBtn, false);
+    if(rt && rt.ok && rt.verified){
+      ldmRoundtripOut.className = 'ldm-roundtrip ok';
+      ldmRoundtripOut.textContent = fmt('ldmRoundtripOk', { w: rt.writeMs, r: rt.readMs, t: rt.totalMs });
+    } else if(rt && rt.error === 'roundtrip_failed'){
+      ldmRoundtripOut.className = 'ldm-roundtrip bad';
+      ldmRoundtripOut.textContent = t('ldmRoundtripLost');
+    } else {
+      ldmRoundtripOut.className = 'ldm-roundtrip bad';
+      ldmRoundtripOut.textContent = describeSyncFailure(rt, 'ldmRoundtripFail');
+    }
+  });
 
   /* ---------- login / logout (lightweight, PIN-based) ---------- */
   function requireLogin(key, onSuccess){
@@ -14344,18 +14434,43 @@
     adminPendingUser = res.username;
     adminOtpBox.classList.remove('hidden');
     if(secEmergencyLink) secEmergencyLink.classList.add('hidden');
-    adminOtpHint.textContent = t('secOtpSending');
     adminOtpInput.value = '';
+    adminOtpVerify.dataset.mode = '';
+
+    /* Which channel the CHALLENGE actually uses — the server decides this
+       now, not the client. Before this, ANY active method (including ones
+       switched on directly in the sheet, bypassing this app's own toggle
+       guard) fell through to the same hard-coded email request regardless
+       of what the owner had chosen — so choosing "phone number matching"
+       still tried, and failed, to email a code, and the owner watched a
+       quota-exhaustion message for a channel they never asked to use. */
+    const method = res.challengeMethod || 'email_otp';
+
+    if(method === 'phone_match'){
+      adminOtpVerify.dataset.mode = 'phone';
+      adminOtpInput.type = 'tel'; adminOtpInput.maxLength = 20;
+      adminOtpInput.placeholder = '+9665XXXXXXXX';
+      adminOtpHint.textContent = res.phoneHint
+        ? fmt('secPhoneAsk', { p: res.phoneHint })
+        : t('secPhoneAskBare');
+      adminOtpInput.focus();
+      return;
+    }
+
+    if(method === 'unavailable'){
+      // Honest, not silent: a method turned on in the sheet with no real
+      // mechanism behind it must say so, never quietly borrow email's channel.
+      adminOtpHint.textContent = t('secMethodUnavailable');
+      if(secEmergencyLink) secEmergencyLink.classList.remove('hidden');
+      return;
+    }
+
+    // method === 'email_otp' — the original path, unchanged.
+    adminOtpInput.type = 'text'; adminOtpInput.maxLength = 6;
+    adminOtpInput.placeholder = '- - - - - -';
+    adminOtpHint.textContent = t('secOtpSending');
     adminOtpInput.focus();
 
-    /* The code is only requested now — not while the password was still
-       unproven. Its result used to be discarded outright: whatever the
-       server answered, the hint above unconditionally said "a code was
-       sent". The backend already detects an exhausted daily mail quota and
-       reports it correctly — the failure here was purely that nobody on the
-       client ever looked at what it said, so the owner was left staring at
-       an input waiting on mail that had already been refused, with the
-       screen actively telling them otherwise. */
     let sendRes = null;
     try{ sendRes = await postToSheet('request_admin_code', { username: adminPendingUser }); }
     catch(e){ sendRes = null; }
@@ -14366,7 +14481,6 @@
         : t('secOtpSent');
       return;
     }
-    // A real, named failure — not silence dressed up as success.
     const why = sendRes && sendRes.error;
     adminOtpHint.textContent =
       why === 'mail_quota' ? t('secMailQuota') :
@@ -14392,17 +14506,25 @@
 
   if(adminOtpVerify) adminOtpVerify.addEventListener('click', async function(){
     const code = (adminOtpInput.value || '').trim();
-    if(code.length < 4){ adminLoginError.textContent = t('secOtpTooShort'); return; }
-    const emergency = adminOtpVerify.dataset.mode === 'emergency';
+    const mode = adminOtpVerify.dataset.mode;
+    // Phone numbers legitimately run long with a country code; only the
+    // numeric-code paths need the short minimum.
+    const minLen = mode === 'phone' ? 6 : 4;
+    if(code.length < minLen){ adminLoginError.textContent = t('secOtpTooShort'); return; }
     setBtnSaving(adminOtpVerify, true);
-    const res = await postToSheet(emergency ? 'emergency_login' : 'verify_admin_code',
-      emergency ? { username: adminPendingUser, code: code }
-                : { username: adminPendingUser, code: code });
+    const action = mode === 'emergency' ? 'emergency_login'
+                 : mode === 'phone'     ? 'verify_phone_match'
+                 : 'verify_admin_code';
+    const payload = mode === 'phone'
+      ? { username: adminPendingUser, phone: code }
+      : { username: adminPendingUser, code: code };
+    const res = await postToSheet(action, payload);
     setBtnSaving(adminOtpVerify, false);
     if(!res || !res.ok){
-      adminLoginError.textContent = emergency
-        ? describeSyncFailure(res, 'secEmergencyWrong')
-        : describeSyncFailure(res, 'secOtpWrong');
+      adminLoginError.textContent =
+        mode === 'emergency' ? describeSyncFailure(res, 'secEmergencyWrong') :
+        mode === 'phone'     ? describeSyncFailure(res, 'secPhoneWrong') :
+        describeSyncFailure(res, 'secOtpWrong');
       return;
     }
     adminOtpBox.classList.add('hidden');
@@ -24776,7 +24898,7 @@
     taglineArabic: 'تعلّم · تطوّر · ارتقِ'
   };
 
-  var DIAG_BUILD = 'jasmin-2026-08-19-1058-77ced29e971b';
+  var DIAG_BUILD = 'jasmin-2026-08-19-1408-52944bfcb369';
   var DIAG_BUILD_AT = '2026-08-17';
   /* Capability probes.
      These used to be `typeof X === 'function'` — a check that the code was
@@ -26378,6 +26500,85 @@
       });
   }
 
+  // The exact markup for one card, used both by the full render and by a
+  // single-program recheck — one definition, so the two can never drift into
+  // showing a card two different ways depending on which path built it.
+  function pdCardHtml(r){
+    return '<div class="pd-card" id="pdCard_' + r.id + '">' +
+      '<div class="pd-head" role="button" tabindex="0" data-toggle="' + r.id + '">' +
+        '<span class="pd-icon">' + r.icon + '</span>' +
+        '<span class="pd-name">' + r.name + '</span>' +
+        '<span class="pd-score ' + r.band + '">' + r.score + '</span>' +
+        '<span class="pd-badge ' + r.status + '">' + t('pdSt_' + r.status) + '</span>' +
+        '<button class="pd-recheck" type="button" data-recheck="' + r.id + '" ' +
+          'title="' + t('pdRecheckOne') + '">🔄</button>' +
+      '</div>' +
+      '<div class="pd-body hidden" id="pdBody_' + r.id + '">' +
+        r.checks.map(function(c){
+          return '<div class="pd-check">' +
+            '<span class="pd-dot ' + c.level + '"></span>' +
+            '<span class="pd-check-label">' + c.label + '</span>' +
+            '<span class="pd-check-detail">' + c.detail + '</span></div>';
+        }).join('') +
+      '</div></div>';
+  }
+
+  // The two listeners any card needs — fold-toggle and single-recheck —
+  // attached to exactly one card element, so re-binding after an in-place
+  // swap costs nothing and cannot accidentally double-bind the whole list.
+  function bindPdCard(card){
+    if(!card) return;
+    const head = card.querySelector('[data-toggle]');
+    if(head){
+      const go = function(){
+        const body = document.getElementById('pdBody_' + head.dataset.toggle);
+        if(body) body.classList.toggle('hidden');
+      };
+      head.addEventListener('click', go);
+      head.addEventListener('keydown', function(e){
+        if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); go(); }
+      });
+    }
+    const recheck = card.querySelector('[data-recheck]');
+    if(recheck) recheck.addEventListener('click', function(e){
+      e.stopPropagation();      // must not also toggle the card open/closed
+      const id = recheck.dataset.recheck;
+      const prog = PD_PROGRAMS.filter(function(p){ return p.id === id; })[0];
+      if(!prog) return;
+      const fresh = pdRunProgram(prog);
+      /* Re-checks ONE program without re-running the other ten. Requested
+         directly and buildable safely right now, unlike a full
+         program-builder link: PD_PROGRAMS and the program-builder's own list
+         are two separate identity systems never unified, so a "open this
+         program's real page" button would have meant guessing at a mapping
+         between them rather than measuring one. This stays inside the system
+         already proven correct. */
+      if(Array.isArray(pdRows)){
+        const idx = pdRows.findIndex(function(x){ return x.id === id; });
+        if(idx > -1) pdRows[idx] = fresh;
+      }
+      const wasOpen = !document.getElementById('pdBody_' + id).classList.contains('hidden');
+      /* Setting .outerHTML on a node created by document.createElement does
+         nothing useful — that only works on a node already attached to the
+         page, since it replaces the node within ITS OWN parent. Building the
+         real element requires a container to parse the markup into first.
+         Caught by actually running this, not by re-reading it: the previous
+         version silently failed to swap anything. */
+      const temp = document.createElement('div');
+      temp.innerHTML = pdCardHtml(fresh);
+      const newCard = temp.firstElementChild;
+      card.replaceWith(newCard);
+      const swapped = document.getElementById('pdCard_' + id);
+      if(wasOpen){
+        const body = document.getElementById('pdBody_' + id);
+        if(body) body.classList.remove('hidden');
+      }
+      bindPdCard(swapped);
+      showToast(fmt('pdRecheckedOne', { name: fresh.name, score: fresh.score }),
+        nxIcon('check'), 'system');
+    });
+  }
+
   function pdRender(rows){
     const bad = rows.filter(function(r){ return r.status === 'bad'; }).length;
     const warn = rows.filter(function(r){ return r.status === 'warn'; }).length;
@@ -26415,33 +26616,45 @@
     const order = { bad:0, warn:1, untested:2, ok:3 };
     const sorted = rows.slice().sort(function(a,b){ return order[a.status] - order[b.status]; });
 
-    html += sorted.map(function(r){
-      return '<div class="pd-card">' +
-        '<div class="pd-head" role="button" tabindex="0" data-toggle="' + r.id + '">' +
-          '<span class="pd-icon">' + r.icon + '</span>' +
-          '<span class="pd-name">' + r.name + '</span>' +
-          '<span class="pd-score ' + r.band + '">' + r.score + '</span>' +
-          '<span class="pd-badge ' + r.status + '">' + t('pdSt_' + r.status) + '</span>' +
-        '</div>' +
-        '<div class="pd-body hidden" id="pdBody_' + r.id + '">' +
-          r.checks.map(function(c){
-            return '<div class="pd-check">' +
-              '<span class="pd-dot ' + c.level + '"></span>' +
-              '<span class="pd-check-label">' + c.label + '</span>' +
-              '<span class="pd-check-detail">' + c.detail + '</span></div>';
-          }).join('') +
-        '</div></div>';
-    }).join('');
+    html += sorted.map(pdCardHtml).join('');
     pdList.innerHTML = html;
+    pdList.querySelectorAll('.pd-card').forEach(bindPdCard);
 
-    pdList.querySelectorAll('[data-toggle]').forEach(function(el){
-      const go = function(){
-        const body = document.getElementById('pdBody_' + el.dataset.toggle);
-        if(body) body.classList.toggle('hidden');
-      };
-      el.addEventListener('click', go);
-      el.addEventListener('keydown', function(e){
-        if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); go(); }
+    /* Re-checks ONE program without re-running the other ten. Requested
+       directly ("افتح صفحة البرنامج واضغط فحص" — no scan of everything else)
+       and buildable safely right now, unlike a full program-builder link:
+       PD_PROGRAMS and the program-builder's own list are two separate
+       identity systems that were never unified, and forcing a "open this
+       program's real page" button through would have meant guessing at a
+       mapping between them rather than measuring one. This stays inside the
+       system that is actually proven correct. */
+    pdList.querySelectorAll('[data-recheck]').forEach(function(btn){
+      btn.addEventListener('click', function(e){
+        e.stopPropagation();      // must not also toggle the card open/closed
+        const id = btn.dataset.recheck;
+        const prog = PD_PROGRAMS.filter(function(p){ return p.id === id; })[0];
+        if(!prog) return;
+        btn.textContent = '…';
+        const fresh = pdRunProgram(prog);
+        // Patched into the SAME array pdRunBtn's handler already produced, so
+        // "افحص كل البرامج" afterwards reflects this recheck instead of
+        // silently reverting it on the next full render.
+        if(Array.isArray(pdRows)){
+          const idx = pdRows.findIndex(function(x){ return x.id === id; });
+          if(idx > -1) pdRows[idx] = fresh;
+        }
+        const card = document.getElementById('pdCard_' + id);
+        if(card){
+          const wasOpen = !document.getElementById('pdBody_' + id).classList.contains('hidden');
+          card.outerHTML = pdCardHtml(fresh);
+          if(wasOpen){
+            const body = document.getElementById('pdBody_' + id);
+            if(body) body.classList.remove('hidden');
+          }
+          bindPdCard(document.getElementById('pdCard_' + id));
+        }
+        showToast(fmt('pdRecheckedOne', { name: fresh.name, score: fresh.score }),
+          nxIcon('check'), 'system');
       });
     });
     /* Every card starts collapsed now, including failing ones. Auto-opening
@@ -29837,10 +30050,22 @@
     const ms = Date.now() - t0;
     if(!res){
       dcAdd(G, t('dcServer'), t('dcNoResponse'), 'bad', t('dcFixDeploy'));
+      // The script did not even answer, so whether it can reach the
+      // spreadsheet is unknown — reporting anything else here would be a
+      // guess dressed up as a measurement.
+      dcAdd(G, t('dcSheetsAccess'), t('dcUnknown'), 'warn');
     } else {
       // A slow response is not a failure, but it explains a sluggish app.
       dcAdd(G, t('dcServer'), fmt('dcRespondedIn', { n: ms }),
         ms < 4000 ? 'ok' : 'warn', ms < 4000 ? '' : t('dcFixSlow'));
+      /* "The script answered" and "the script can reach the spreadsheet" are
+         different facts — a script can run fine while the spreadsheet ID is
+         wrong or access was revoked. Reported separately, because folding
+         them into one green dot hides exactly the case worth knowing about. */
+      dcAdd(G, t('dcSheetsAccess'),
+        res.spreadsheetAccess ? t('dcOk') : (res.spreadsheetError || t('dcSheetsFail')),
+        res.spreadsheetAccess ? 'ok' : 'bad',
+        res.spreadsheetAccess ? '' : t('dcFixSheetId'));
     }
   }
 
