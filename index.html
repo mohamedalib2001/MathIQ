@@ -8744,6 +8744,9 @@
       slStepBuild:'نبني جلسة المراجعة…',
       novaNoKey:'خدمة الذكاء الاصطناعي غير مُفعَّلة على الخادم بعد. أستطيع مساعدتك في فتح الصفحات وعرض تقدّمك، أما الأسئلة المفتوحة فتحتاج تفعيل المفتاح من لوحة الإدارة.',
       novaRateLimited:'وصلتِ للحد الأقصى من الأسئلة هذه الساعة. جرّبي بعد قليل.',
+      novaModelRetired:'نموذج الذكاء المستخدم اتقفل من Google. المالك يقدر يصلحها في ثانية: يضيف خاصية اسمها AI_MODEL في Script Properties بالاسم الجديد.',
+      novaKeyInvalid:'مفتاح Gemini غير صالح — راجعه في صفحة «Gemini API key».',
+      novaModelQuota:'حصة النموذج خلصت لهذا المفتاح. جرّب بعدين أو ارفع الحصة من Google Cloud.',
       novaNoNetwork:'لا يوجد اتصال بالخادم الآن. يمكنني فتح الصفحات وعرض تقدّمك بدون إنترنت.',
       novaFailed:'لم أصل لخدمة الذكاء الاصطناعي الآن — لكن هذا لا يمنعني من مساعدتك. أستطيع شرح كل خدمات الأكاديمية، وإخبارك بتقدّمك ونقاط قوتك وضعفك، وفتح أي صفحة لك. جرّب أن تسألني: «ما الخدمات المتاحة؟» أو «كيف أدائي؟» أو «أعمل إيه؟».',
       novaMemExamples:'يفضّل الشرح بالأمثلة.',
@@ -10608,6 +10611,9 @@
       slStepBuild:'Building the review session…',
       novaNoKey:'The AI service is not enabled on the server yet. I can still open pages and show your progress; open questions need the key configured in the admin panel.',
       novaRateLimited:'You have reached this hour\'s question limit. Please try again shortly.',
+      novaModelRetired:'The AI model in use has been retired by Google. The owner can fix this in seconds: add a Script Property named AI_MODEL with the new model name.',
+      novaKeyInvalid:'The Gemini API key is not valid — check the "Gemini API key" sheet.',
+      novaModelQuota:'The model quota for this key is exhausted. Try later or raise it in Google Cloud.',
       novaNoNetwork:'No server connection right now. I can still open pages and show your progress offline.',
       novaFailed:'I could not reach an answer just now. Please try again shortly.',
       novaMemExamples:'prefers explanations with examples.',
@@ -22938,6 +22944,9 @@
       else if(why === 'no_backend' || why === 'network') msg = t('novaNoNetwork');
       // Named separately: each has a different fix, and 'connection failed'
       // would send the owner looking in the wrong place for both.
+      else if(why === 'ai_model_retired') msg = t('novaModelRetired');
+      else if(why === 'ai_key_invalid') msg = t('novaKeyInvalid');
+      else if(why === 'ai_quota') msg = t('novaModelQuota');
       else if(why === 'browser_key_rejected') msg = t('novaBrowserKeyRejected');
       else if(why === 'browser_fallback_off') msg = t('novaFallbackOff');
       // The question it could not answer is the single most useful thing to
@@ -24299,7 +24308,7 @@
     taglineArabic: 'تعلّم · تطوّر · ارتقِ'
   };
 
-  var DIAG_BUILD = 'jasmin-2026-08-19-0727-11ce99e48e9b';
+  var DIAG_BUILD = 'jasmin-2026-08-19-0737-2ae00e9f9569';
   var DIAG_BUILD_AT = '2026-08-17';
   /* Capability probes.
      These used to be `typeof X === 'function'` — a check that the code was
