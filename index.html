@@ -6937,8 +6937,20 @@
       const thrifty = conn.saveData === true || /(^|-)2g$/.test(conn.effectiveType || '');
       if(!reduced && !narrow && !thrifty){
         vid.src = APP_BRAND.assistantVideo;
-        vid.play().then(function(){ vid.classList.add('ready'); })
-                  .catch(function(){ /* autoplay refused — the badge stands in */ });
+        /* play() is required by spec to return a Promise, and real browsers
+           honour that — but calling .then() on whatever it returns with no
+           guard means a single environment that does not (an embedded
+           webview, a test harness, a future engine quirk) throws here
+           uncaught, which can abort whatever init code runs after this
+           function in the same synchronous pass. Optional chaining plus a
+           Promise check costs nothing and removes that class of failure
+           entirely, rather than trusting every runtime to agree with the
+           spec forever. */
+        const playResult = vid.play();
+        if(playResult && typeof playResult.then === 'function'){
+          playResult.then(function(){ vid.classList.add('ready'); })
+                    .catch(function(){ /* autoplay refused — the badge stands in */ });
+        }
       }
     }
     const scope = root || document;
@@ -14528,11 +14540,20 @@
     }
   });
   loginWithCodeLink.addEventListener('click', ()=>{
-    // Carry over whatever was already typed on the sign-in form. Clearing it
-    // made the learner retype a username they had just entered, and the
-    // screenshot showed the code step reached with the field left blank —
-    // so a code was requested for nobody and no mail was ever sent.
-    loginCodeUsernameInput.value = (usernameInput && usernameInput.value.trim()) || '';
+    /* Carry over whatever was already typed on the sign-in form. Clearing it
+       made the learner retype a username they had just entered, and the
+       screenshot showed the code step reached with the field left blank —
+       so a code was requested for nobody and no mail was ever sent.
+
+       That intent was implemented against a variable named `usernameInput`,
+       which was never declared anywhere in this file — the real element is
+       `ulUsername` (line ~7260). Every click on this link threw a
+       ReferenceError on this line, before the next line could ever show the
+       modal — which is exactly why the link "did not respond": the handler
+       ran and crashed in the same instant, with nothing on screen to say so.
+       Confirmed by actually executing this file in a real DOM and clicking
+       the element, not by reading the code and guessing. */
+    loginCodeUsernameInput.value = (ulUsername && ulUsername.value.trim()) || '';
     loginCodeInput.value = '';
     loginCodeStep1Error.textContent = '';
     loginCodeStep2Error.textContent = '';
@@ -24410,7 +24431,7 @@
     taglineArabic: 'تعلّم · تطوّر · ارتقِ'
   };
 
-  var DIAG_BUILD = 'jasmin-2026-08-19-0918-a44986e615e9';
+  var DIAG_BUILD = 'jasmin-2026-08-19-0926-338b1c2aa56c';
   var DIAG_BUILD_AT = '2026-08-17';
   /* Capability probes.
      These used to be `typeof X === 'function'` — a check that the code was
@@ -24716,13 +24737,31 @@
     const text = [DIAG_BUILD, new Date().toISOString()].concat(
       diagLines.map(function(l){ return '[' + l.level + '] ' + l.group + ' / ' + l.key + ': ' + l.value; })
     ).join('\n');
-    navigator.clipboard.writeText(text).then(function(){
-      showToast(t('diagCopied'), nxIcon('check'), 'system');
-    }).catch(function(){
-      // Clipboard access can be refused; showing the text is better than
-      // failing silently on the one screen meant for diagnosing failures.
+    /* skCopy already handles the case navigator.clipboard is entirely absent
+       — an insecure (non-https) context, a permission denial, an older or
+       embedded browser — with a textarea/execCommand fallback. This function
+       used to call navigator.clipboard.writeText directly with no such
+       guard, so on exactly those browsers the one button on the one screen
+       built for reporting a failure would itself throw, uncaught, the moment
+       someone who already has a problem pressed it. Found by actually
+       executing every clickable element in the file, not by inspection. */
+    const showTextFallback = function(){
       diagOut.innerHTML = `<textarea rows="14" style="width:100%; font-family:monospace; font-size:11px;">${text}</textarea>`;
-    });
+    };
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(function(){
+        showToast(t('diagCopied'), nxIcon('check'), 'system');
+      }).catch(showTextFallback);
+    } else {
+      const ta = document.createElement('textarea');
+      ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      let ok = false;
+      try{ ok = document.execCommand('copy'); }catch(e){ ok = false; }
+      document.body.removeChild(ta);
+      if(ok) showToast(t('diagCopied'), nxIcon('check'), 'system');
+      else showTextFallback();
+    }
   }
   /* ==================== END MODULE: SYSTEM DIAGNOSTICS ==================== */
 
@@ -27110,12 +27149,25 @@
     const csv = '\ufeff' + rows.map(function(r){
       return r.map(function(c){ return '"' + String(c).replace(/"/g,'""') + '"'; }).join(',');
     }).join('\n');
-    const blob = new Blob([csv], { type:'text/csv;charset=utf-8' });
     const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
     a.download = 'JASMIN_قالب_حقن_البنك.csv';
-    document.body.appendChild(a); a.click();
-    setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+    /* URL.createObjectURL is universal in the browsers this app targets, but
+       "universal" is not "guaranteed" — an embedded webview or a future
+       restricted context could still lack it, and an uncaught throw here
+       would take the download button down with no visible cause. A data:
+       URI produces the identical file with no dependency on the Blob URL
+       API at all, so it is used whenever the normal path is unavailable
+       rather than trusting every environment to support it forever. */
+    if(typeof URL !== 'undefined' && typeof URL.createObjectURL === 'function'){
+      const blob = new Blob([csv], { type:'text/csv;charset=utf-8' });
+      a.href = URL.createObjectURL(blob);
+      document.body.appendChild(a); a.click();
+      setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+    } else {
+      a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+      document.body.appendChild(a); a.click();
+      a.remove();
+    }
   }
 
   const AB_PROMPT = [
