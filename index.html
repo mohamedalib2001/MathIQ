@@ -6175,6 +6175,7 @@
            spreadsheet had no way to prove data actually arrives without
            leaving it for a different screen. -->
       <div id="ldmRoundtripOut" class="ldm-roundtrip hidden"></div>
+      <div id="ldmOrphansOut" class="ldm-roundtrip hidden"></div>
       <div class="ldm-kpis" id="ldmKpis"></div>
       <div class="ldm-grid" id="ldmGrid"></div>
     </div>
@@ -8493,6 +8494,8 @@
       ldmRoundtripRunning:'جارٍ الكتابة… ثم القراءة من جديد للتأكد…',
       ldmRoundtripOk:'✅ الكتابة والقراءة نجحتا فعليًا — كتابة {w}ms · قراءة {r}ms · إجمالي {t}ms.',
       ldmRoundtripLost:'⛔ كُتِب الصف لكن تعذّرت قراءته مجددًا — مشكلة حقيقية في المزامنة.',
+      ldmOrphansFound:'⛔ {n} مرجعًا يتيمًا — يشير إلى سجلّ لم يعد موجودًا.',
+      ldmOrphanLine:'{child} → {parent}: {n} صفًا',
       ldmRoundtripFail:'تعذّر تنفيذ الاختبار',
       ldmHeader:'{n} صفحة مكتشَفة في قاعدة البيانات', ldmRefresh:'🔄 تحديث الخريطة',
       ldmKpiSchema:'صفحات ناقصة الأعمدة', ldmSchemaWarn:'⚠ أعمدة متوقَّعة مفقودة: {cols}',
@@ -10503,6 +10506,8 @@
       ldmRoundtripRunning:'Writing… then reading it back to confirm…',
       ldmRoundtripOk:'✅ Write and read both actually succeeded — write {w}ms · read {r}ms · total {t}ms.',
       ldmRoundtripLost:'⛔ The row was written but could not be read back — a real sync problem.',
+      ldmOrphansFound:'⛔ {n} orphaned reference(s) — pointing at a record that no longer exists.',
+      ldmOrphanLine:'{child} → {parent}: {n} row(s)',
       ldmRoundtripFail:'Could not run the test',
       ldmHeader:'{n} sheets discovered in the database', ldmRefresh:'🔄 Refresh the map',
       ldmKpiSchema:'sheets with missing columns', ldmSchemaWarn:'⚠ Expected columns missing: {cols}',
@@ -12894,7 +12899,7 @@
      Apps Script deployment is older than the page, and every server-side fix
      — the tolerant username lookup, the login-code mailer, the password
      repair — is simply absent. */
-  const EXPECTED_GS_BUILD = 'gs-2026-08-19-1419-8f0fe840';
+  const EXPECTED_GS_BUILD = 'gs-2026-08-19-1431-07becc14';
 
   async function jaCheckBackendFresh(){
     if(!SHEET_API_URL || !adminLoginHint) return;
@@ -13905,6 +13910,9 @@
     if(!SHEET_API_URL) return;
     ldmSection.classList.remove('hidden');
     ldmHeaderTitle.innerHTML = '<span class="ldm-live-dot"></span>' + t('ldmLoading');
+    // Run alongside the census, not after it — an owner should not wait
+    // twice for two facts that can both be gathered while they wait once.
+    const orphanPromise = postToSheetRaw('diag_orphans', abCreds()).catch(function(){ return null; });
     let res = null;
     try{ res = await postToSheetRaw('diag_sheet_census', abCreds()); }catch(e){ res = null; }
     if(!res || !res.ok){
@@ -13967,6 +13975,25 @@
         '<div class="ldm-card-meta"><span>' + fmt('ldmRows', { n: exNum(s.rows) }) + '</span>' +
         '<span>' + fmt('ldmCols', { n: s.cols }) + '</span></div></div>';
     }).join('');
+
+    /* Orphaned references — fetched alongside the census above, rendered
+       once both are in. Every relationship checked here was read out of the
+       actual handler functions (handleGetMyChildren_, handleCreatePlan_,
+       handleClassroomState_...), not guessed from column names, so a hit
+       here means a real function will really fail to find the row it looks
+       up — not a coincidence of naming. */
+    const orphanRes = await orphanPromise;
+    if(orphanRes && orphanRes.ok && Array.isArray(orphanRes.orphanGroups) && orphanRes.orphanGroups.length){
+      const totalOrphans = orphanRes.orphanGroups.reduce(function(s, g){ return s + g.count; }, 0);
+      ldmOrphansOut.className = 'ldm-roundtrip bad';
+      ldmOrphansOut.classList.remove('hidden');
+      ldmOrphansOut.innerHTML = fmt('ldmOrphansFound', { n: totalOrphans }) + '<br>' +
+        orphanRes.orphanGroups.map(function(g){
+          return '• ' + fmt('ldmOrphanLine', { child: exEsc(g.childSheet), parent: exEsc(g.parentSheet), n: g.count });
+        }).join('<br>');
+    } else {
+      ldmOrphansOut.classList.add('hidden');
+    }
   }
   function ldmKpi(val, label, tone){
     return '<div class="ldm-kpi' + (tone ? ' ldm-kpi-' + tone : '') + '">' +
@@ -13978,6 +14005,7 @@
 
   const ldmRoundtripBtn = document.getElementById('ldmRoundtripBtn');
   const ldmRoundtripOut = document.getElementById('ldmRoundtripOut');
+  const ldmOrphansOut = document.getElementById('ldmOrphansOut');
   if(ldmRoundtripBtn) ldmRoundtripBtn.textContent = t('ldmRoundtripBtn');
   if(ldmRoundtripBtn) ldmRoundtripBtn.addEventListener('click', async function(){
     setBtnSaving(ldmRoundtripBtn, true);
@@ -17925,13 +17953,27 @@
     ppProgram = program;
     programsHubEl.classList.add('hidden');
     programPlayerEl.classList.remove('hidden');
-    // Sprint 11: enrollment is a data record (for Progress + future Analytics),
-    // NOT access control — creating/syncing it never blocks the learner from
-    // using the program, even if the backend call fails or is slow.
-    lpEnrollLearner(currentProfile, program.id);
+    /* Sprint 11: enrollment is a data record (for Progress + future Analytics),
+       NOT access control — creating/syncing it never blocks the learner from
+       using the program, even if the backend call fails or is slow.
+
+       This used to write the LOCAL profile key (currentProfile) directly as
+       the enrollment's learner identity — not the real server username. Every
+       profile added without an explicit username falls back to a key like
+       "custom_1786470641468", and that key is never the same value as the
+       account's actual registered username. Confirmed by reading the live
+       spreadsheet: every one of 40 real Enrollments rows was written under a
+       "custom_..." key with no matching row in Users at all — orphaned from
+       the moment they were created, invisible to any report that joins
+       enrollments back to real accounts. currentServerUsername() already
+       exists and already resolves exactly this — prof.username if the
+       account has one, the local key only as the last resort — and is used
+       everywhere else in this file except here. */
+    const enrollUsername = currentServerUsername();
+    lpEnrollLearner(enrollUsername, program.id);
     if(SHEET_API_URL){
-      lpRefreshEnrollmentsForLearner(currentProfile);
-      lpRefreshProgressForLearner(currentProfile).then(changed=>{
+      lpRefreshEnrollmentsForLearner(enrollUsername);
+      lpRefreshProgressForLearner(enrollUsername).then(changed=>{
         if(changed && !programPlayerEl.classList.contains('hidden')) renderProgramPlayer();
       });
     }
@@ -24913,7 +24955,7 @@
     taglineArabic: 'تعلّم · تطوّر · ارتقِ'
   };
 
-  var DIAG_BUILD = 'jasmin-2026-08-19-1419-45375a554990';
+  var DIAG_BUILD = 'jasmin-2026-08-19-1431-75b3403481b0';
   var DIAG_BUILD_AT = '2026-08-17';
   /* Capability probes.
      These used to be `typeof X === 'function'` — a check that the code was
