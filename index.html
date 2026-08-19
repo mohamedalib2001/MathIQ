@@ -6070,10 +6070,23 @@
         <div class="group-label" data-i18n="eduSystemLabel">نوع التعليم</div>
         <select class="select-like" id="editEduSystem" style="width:100%;">
           <option value="" data-i18n="eduSystemNone">— غير محدد —</option>
-          <option value="eg_gov" data-i18n="eduSys_eg_gov">تعليم مصري حكومي</option>
-          <option value="eg_azhar" data-i18n="eduSys_eg_azhar">تعليم أزهري</option>
-          <option value="eg_lang" data-i18n="eduSys_eg_lang">مدارس لغات (حكومي تجريبي)</option>
-          <option value="eg_intl" data-i18n="eduSys_eg_intl">تعليم دولي (IG / American / IB)</option>
+          <optgroup label="مراحل ما قبل الجامعي" data-i18n-label="ogPreUni">
+            <option value="eg_gov" data-i18n="eduSys_eg_gov">تعليم مصري حكومي</option>
+            <option value="eg_azhar" data-i18n="eduSys_eg_azhar">تعليم أزهري</option>
+            <option value="eg_lang" data-i18n="eduSys_eg_lang">مدارس لغات (حكومي تجريبي)</option>
+            <option value="eg_intl" data-i18n="eduSys_eg_intl">تعليم دولي (IG / American / IB)</option>
+          </optgroup>
+          <!-- The four options above assume a K-12 learner with a grade and a
+               term — which excluded every account that is not one: an adult
+               who trains here alongside running the academy, a university
+               student, anyone whose schooling is simply finished. Those
+               people had no honest answer to give and were left sitting on
+               "unspecified" forever, which reads as an unanswered question
+               rather than the true, complete answer it actually is. -->
+          <optgroup label="خارج مراحل ما قبل الجامعي" data-i18n-label="ogPostUni">
+            <option value="higher_ed" data-i18n="eduSys_higher_ed">تعليم جامعي / دراسات عليا</option>
+            <option value="completed" data-i18n="eduSys_completed">أتممت تعليمي (خريج)</option>
+          </optgroup>
         </select>
       </div>
       <div>
@@ -9051,6 +9064,10 @@
       oaUnlinked:'اتفكّ الربط ✓',
       oaLinkMissing:'الحساب المربوط «{u}» مش موجود في قاعدة البيانات — يمكن اتحذف. فكّ الربط وأعده.',
       rsOwner:'المالك',
+      pubStillWaiting:'لسه بنحاول — أحيانًا أول طلب على الخادم بياخد وقت أطول شوية.',
+      pubTimedOut:'الاتصال بياخد وقت طويل أوي. جرّب تاني.',
+      pubRetry:'🔄 أعد المحاولة',
+      pubBackendStale:'الصفحة دي جزء من تحديث جديد — الخادم لسه ما اتحدّثش عشان يعرضها. كلّم مالك الأكاديمية يراجع النشر.',
       pubLoading:'بنحمّل الملف…', pubNeedPasscode:'الملف ده محمي برقم سري',
       pubOpen:'افتح', pubNotFound:'الرابط ده مش شغال أو الملف بقى خاص.',
       pubNotAllowed:'الملف ده متشارك مع أصدقاء محددين بس.',
@@ -9253,7 +9270,7 @@
       jaLauncherAria:'مساعد جاسمين الذكي', jaSubtitle:'مساعدك الذكي داخل الأكاديمية',
       chatRetry:'إعادة الإرسال',
       secBackendOld:'⚠ ملف الخادم المنشور أقدم من هذه الصفحة.\nالمنشور: {has}\nالمطلوب: {want}\nافتح Apps Script ← نشر ← «نشر جديد» (لا تحديث).',
-      secBackendStale:'⚠ ملف الخادم (.gs) المنشور أقدم من هذه الصفحة. إصلاحات الدخول موجودة في الخادم — انشره كـ«نشر ← نشر جديد» (لا تحديث)، ثم أعد المحاولة. وإن بقيت المشكلة، شغّل الدالة RESET_OWNER_PASSWORD_MANUALLY من محرر Apps Script.',
+      secBackendStale:'⚠ ملف الخادم (.gs) المنشور أقدم من هذه الصفحة. إصلاحات الدخول موجودة في الخادم — انشره كـ«نشر ← نشر جديد» (لا تحديث)، ثم أعد المحاولة. وإن بقيت المشكلة، شغّل الدالة resetOwnerPassword من محرّر Apps Script (عدّل الاسم وكلمة المرور أعلاها أولًا).',
       secNoAdminRow:'لا يوجد أي حساب إدارة في قاعدة البيانات. افتح جدول Admin في Google Sheets — إن كان فارغًا، فأول دخول سيُنشئ الحساب.',
       secNoSuchUser:'اسم المستخدم هذا غير موجود بين حسابات الإدارة ({n} حسابًا مسجّلًا). تحقق من الاسم — قد يكون مختلفًا عمّا تتذكره.',
       secStoredNotHashed:'كلمة المرور المخزّنة نص صريح لا تجزئة — غالبًا أُدخلت يدويًا في الجدول. استخدم «نسيت كلمة مرور الإدارة؟» لتعيينها بشكل صحيح.',
@@ -9520,6 +9537,9 @@
       gradeStageLabel:'الصف الدراسي', termLabel:'الفصل الدراسي',
       eduSys_eg_gov:'تعليم مصري حكومي', eduSys_eg_azhar:'تعليم أزهري',
       eduSys_eg_lang:'مدارس لغات', eduSys_eg_intl:'تعليم دولي',
+      eduSys_higher_ed:'تعليم جامعي / دراسات عليا', eduSys_completed:'أتممت تعليمي (خريج)',
+      ogPreUni:'مراحل ما قبل الجامعي', ogPostUni:'خارج مراحل ما قبل الجامعي',
+      examsNotK12:'قسم الاختبارات مُعدّ لمراحل ما قبل الجامعي فقط — طبقًا لنوع التعليم في حسابك، هذا القسم غير مخصّص لك.',
       grade_p1:'الأول الابتدائي', grade_p2:'الثاني الابتدائي', grade_p3:'الثالث الابتدائي',
       grade_p4:'الرابع الابتدائي', grade_p5:'الخامس الابتدائي', grade_p6:'السادس الابتدائي',
       grade_m1:'الأول الإعدادي', grade_m2:'الثاني الإعدادي', grade_m3:'الثالث الإعدادي',
@@ -10921,6 +10941,10 @@
       oaUnlinked:'Unlinked ✓',
       oaLinkMissing:'The linked account "{u}" no longer exists in the database — it may have been deleted. Unlink and link again.',
       rsOwner:'Owner',
+      pubStillWaiting:'Still trying — the first request to the server sometimes takes a little longer.',
+      pubTimedOut:'This is taking too long. Try again.',
+      pubRetry:'🔄 Retry',
+      pubBackendStale:'This page is part of a recent update — the server has not been redeployed to serve it yet. Ask the academy owner to check the deployment.',
       pubLoading:'Loading the profile…', pubNeedPasscode:'This profile is protected by a passcode',
       pubOpen:'Open', pubNotFound:'This link is not active, or the profile is now private.',
       pubNotAllowed:'This profile is shared with specific friends only.',
@@ -11123,7 +11147,7 @@
       jaLauncherAria:'JASMIN Assistant', jaSubtitle:'Your intelligent assistant inside the academy',
       chatRetry:'Retry',
       secBackendOld:'⚠ The published Apps Script is older than this page.\nDeployed: {has}\nExpected: {want}\nOpen Apps Script > Deploy > New deployment (not Update).',
-      secBackendStale:'⚠ The published Apps Script is older than this page. The sign-in fixes live in the backend — publish it as Deploy → New deployment (not Update), then try again. If it persists, run RESET_OWNER_PASSWORD_MANUALLY from the Apps Script editor.',
+      secBackendStale:'⚠ The published Apps Script is older than this page. The sign-in fixes live in the backend — publish it as Deploy → New deployment (not Update), then try again. If it persists, run resetOwnerPassword from the Apps Script editor (edit the username and password at the top of it first).',
       secNoAdminRow:'There is no admin account in the database. Open the Admin sheet in Google Sheets — if it is empty, the first sign-in will create the account.',
       secNoSuchUser:'That username is not among the admin accounts ({n} registered). Check the spelling — it may differ from what you remember.',
       secStoredNotHashed:'The stored password is plain text rather than a hash — most likely typed directly into the sheet. Use "Forgot admin password" to set it properly.',
@@ -11390,6 +11414,9 @@
       gradeStageLabel:'Grade', termLabel:'Term',
       eduSys_eg_gov:'Egyptian national', eduSys_eg_azhar:'Al-Azhar',
       eduSys_eg_lang:'Language schools', eduSys_eg_intl:'International',
+      eduSys_higher_ed:'University / postgraduate', eduSys_completed:'Completed my education (graduate)',
+      ogPreUni:'Pre-university stages', ogPostUni:'Beyond pre-university',
+      examsNotK12:'The exams section is built for pre-university stages — based on your account\'s education type, this section does not apply to you.',
       grade_p1:'Primary 1', grade_p2:'Primary 2', grade_p3:'Primary 3',
       grade_p4:'Primary 4', grade_p5:'Primary 5', grade_p6:'Primary 6',
       grade_m1:'Prep 1', grade_m2:'Prep 2', grade_m3:'Prep 3',
@@ -12301,15 +12328,37 @@
       });
       /* Pulled at the same point, for the same reason: a store that is only
          ever written is not a sync — it is a backup nobody restores from.
-         Each is independent so one failing does not block the others. */
-      mlSyncDown().catch(function(){});
-      applyAccountAccess(key).catch(function(){});
-      syncPrefsDown().catch(function(){});
+         Apps Script does not run one user's concurrent requests in parallel,
+         so four separate reads here did not overlap — they queued, one after
+         another, and stacked directly in front of whatever the learner opened
+         next (a real login was measured taking 14+ seconds at this point).
+         One bundled request replaces all four; each function still owns its
+         own merge logic exactly as before, it is only handed the answer
+         instead of fetching it. A stale backend without the bundle endpoint
+         falls back to the original four calls, so nothing regresses for
+         someone who has not yet redeployed. */
+      const uname2 = (PROFILES[key] && PROFILES[key].username) || key;
+      postToSheetRaw('get_session_bundle', { username: uname2 }).then(function(bundle){
+        if(bundle && bundle.ok){
+          mlSyncDown(bundle.mindlab);
+          applyAccountAccess(key, bundle.accountAccess);
+          syncPrefsDown(bundle.prefs);
+          loadServiceFlagsFromServer(bundle.serviceFlags);
+        } else {
+          mlSyncDown().catch(function(){});
+          applyAccountAccess(key).catch(function(){});
+          syncPrefsDown().catch(function(){});
+          loadServiceFlagsFromServer().catch(function(){});
+        }
+      }).catch(function(){
+        mlSyncDown().catch(function(){});
+        applyAccountAccess(key).catch(function(){});
+        syncPrefsDown().catch(function(){});
+        loadServiceFlagsFromServer().catch(function(){});
+      });
       // Account facts pushed without waiting for anyone to open the editor.
       syncAccountRowUp(key);
     }
-    // Module switches are academy-wide, so they load regardless of who signed in.
-    if(SHEET_API_URL) loadServiceFlagsFromServer().catch(function(){});
     showProgramsHub();
   }
 
@@ -12343,6 +12392,16 @@
     memberCardScreen.classList.add('hidden');
     knowledgeReviewScreen.classList.add('hidden');
     parentDashboardScreenEl.classList.add('hidden');
+    /* Three screens the sidebar can open that this sweep never cleared:
+       My Schedule, Mind Lab and the Challenge board. Each has its own id and
+       its own JS variable of the same name — not an alias of anything already
+       in this list — so navigating away from any of them left it sitting
+       exactly where it was, stacked underneath whatever screen opened next.
+       "حصصي القادمة" staying visible under the Programs hub after switching
+       tabs is this gap, not a rendering fault. */
+    myScheduleScreen.classList.add('hidden');
+    mindLabScreen.classList.add('hidden');
+    chalOutScreen.classList.add('hidden');
   }
   function hideTeacherShellScreens(){
     // Same principle as hideLearnerShellScreens(), for the teacher role's
@@ -12596,7 +12655,7 @@
      Apps Script deployment is older than the page, and every server-side fix
      — the tolerant username lookup, the login-code mailer, the password
      repair — is simply absent. */
-  const EXPECTED_GS_BUILD = 'gs-2026-08-18-0901-d744e9be';
+  const EXPECTED_GS_BUILD = 'gs-2026-08-19-0915-74152107';
 
   async function jaCheckBackendFresh(){
     if(!SHEET_API_URL || !adminLoginHint) return;
@@ -13230,12 +13289,14 @@
       postToSheet('save_prefs', { username: uname, prefs: JSON.stringify(prefs) });
     }, 2000);
   }
-  async function syncPrefsDown(){
+  async function syncPrefsDown(preFetched){
     if(!SHEET_API_URL) return false;
     const uname = (typeof currentServerUsername === 'function') ? currentServerUsername() : null;
     if(!uname) return false;
-    let res = null;
-    try{ res = await postToSheetRaw('get_prefs', { username: uname }); }catch(e){ return false; }
+    let res = preFetched || null;
+    if(!res){
+      try{ res = await postToSheetRaw('get_prefs', { username: uname }); }catch(e){ return false; }
+    }
     if(!res || !res.ok || !res.found || !res.prefs) return false;
     let prefs = null;
     try{ prefs = JSON.parse(res.prefs); }catch(e){ return false; }
@@ -14848,10 +14909,12 @@
       return !!(res && res.ok);
     }catch(e){ return false; }
   }
-  async function loadServiceFlagsFromServer(){
+  async function loadServiceFlagsFromServer(preFetched){
     if(!SHEET_API_URL) return false;
-    let res = null;
-    try{ res = await postToSheet('get_service_flags', {}); }catch(e){ return false; }
+    let res = preFetched || null;
+    if(!res){
+      try{ res = await postToSheet('get_service_flags', {}); }catch(e){ return false; }
+    }
     if(!res || !res.ok || !res.flags) return false;
     // The server decides. Merging would let a stale local copy re-enable a
     // module the owner had just switched off for everyone.
@@ -20666,12 +20729,28 @@
   function skFillTemplate(a){
     skName.textContent = a.name;
 
+    /* Each of these mixes scripts in a way plain concatenation cannot render
+       safely: the member ID is Latin letters and digits joined by hyphens
+       ("NX-0260-620-621"), the age string is a Western-Arabic number inside
+       Arabic text ("42 سنة"), and the localised date is Arabic-Indic digits
+       and slashes. Set as plain text inside an RTL paragraph, the browser's
+       bidi algorithm treats the digits, hyphens and Latin letters as weak or
+       foreign runs and is free to reorder them against their neighbours —
+       which is exactly the scrambled line reported: fragments swapping
+       places depending on what sat next to them, not a translation error.
+
+       <bdi> is the element built for precisely this: it isolates a run of
+       text so its internal order is fixed and the runs beside it cannot pull
+       characters out of it. Each token gets one, and only the meta line
+       switches from textContent to innerHTML — the tokens themselves are
+       still escaped, so nothing here changes what can be injected. */
+    const bit = function(s){ return '<bdi>' + exEsc(s) + '</bdi>'; };
     const bits = [];
-    if(a.memberId) bits.push(a.memberId);
-    if(a.age) bits.push(fmt('skAgeYears', { n: a.age }));
-    if(a.grade) bits.push(a.grade);
-    bits.push(a.issuedAt.toLocaleDateString(currentLang === 'ar' ? 'ar-EG' : 'en-US'));
-    skMeta.textContent = bits.join('  ·  ');
+    if(a.memberId) bits.push(bit(a.memberId));
+    if(a.age) bits.push(bit(fmt('skAgeYears', { n: a.age })));
+    if(a.grade) bits.push(bit(a.grade));
+    bits.push(bit(a.issuedAt.toLocaleDateString(currentLang === 'ar' ? 'ar-EG' : 'en-US')));
+    skMeta.innerHTML = bits.join('  ·  ');
     // The attestation follows the HOLDER's gender, as on every other document.
     skAttest.textContent = a.isFemale ? t('skAttestF') : t('skAttest');
 
@@ -24108,14 +24187,16 @@
      browser: an admin could suspend an account and the learner could undo it
      by clearing their cache, and a paid subscription disappeared on any second
      device. Access a user can erase for themselves is not access control. */
-  async function applyAccountAccess(key){
+  async function applyAccountAccess(key, preFetched){
     const prof = PROFILES[key];
     if(!prof || !SHEET_API_URL) return false;
     const uname = prof.username || key;
     if(!uname || uname === 'guest') return false;
-    let res = null;
-    try{ res = await postToSheet('get_account_access', { username: uname }); }
-    catch(e){ return false; }
+    let res = preFetched || null;
+    if(!res){
+      try{ res = await postToSheet('get_account_access', { username: uname }); }
+      catch(e){ return false; }
+    }
     if(!res || !res.ok || !res.found) return false;
     // The server's answer wins outright. A merge would reintroduce the very
     // problem this fixes.
@@ -24329,7 +24410,7 @@
     taglineArabic: 'تعلّم · تطوّر · ارتقِ'
   };
 
-  var DIAG_BUILD = 'jasmin-2026-08-19-0811-37f1434fc30a';
+  var DIAG_BUILD = 'jasmin-2026-08-19-0918-a44986e615e9';
   var DIAG_BUILD_AT = '2026-08-17';
   /* Capability probes.
      These used to be `typeof X === 'function'` — a check that the code was
@@ -25474,12 +25555,14 @@
   /* Pulled at sign-in. Merge rule: the side with more recorded sessions wins
      per learner, so opening on a second device cannot erase work done on the
      first — the same rule LearnerState already uses. */
-  async function mlSyncDown(){
+  async function mlSyncDown(preFetched){
     if(!SHEET_API_URL) return false;
     const uname = currentServerUsername();
     if(!uname) return false;
-    let res = null;
-    try{ res = await postToSheet('get_mindlab', { username: uname }); }catch(e){ return false; }
+    let res = preFetched || null;
+    if(!res){
+      try{ res = await postToSheet('get_mindlab', { username: uname }); }catch(e){ return false; }
+    }
     if(!res || !res.ok || !res.found || !res.state) return false;
     let remote = null;
     try{ remote = JSON.parse(res.state); }catch(e){ return false; }
@@ -28495,18 +28578,64 @@
   /* The page a shared link opens. Runs BEFORE any sign-in, so it must never
      assume a session — a visitor holding the link is usually a parent or a
      friend who has no account here at all. */
+  /* The visitor holding this link is very often someone with no account at
+     all — a parent, a friend — and the old version of this screen sat on a
+     single static sentence for as long as postToSheetRaw's own 45-second
+     ceiling allowed, with nothing on screen to say whether it was working or
+     dead. A public page that goes silent for that long reads as broken
+     regardless of whether it eventually resolves, so this owns its own,
+     shorter wait: a visible spinner from the first frame, an honest note once
+     it is taking longer than a normal request should, and a retry button
+     that appears rather than leaving the visitor stuck watching one sentence
+     with no way to act. */
+  const SP_TIMEOUT_MS = 12000;
+
+  function spLoadingHtml(){
+    return '<div style="width:34px;height:34px;margin:0 auto 16px;border-radius:50%;' +
+      'border:3px solid rgba(201,162,39,0.22);border-top-color:#C9A227;' +
+      'animation:spSpin 0.85s linear infinite"></div>' +
+      '<div>' + t('pubLoading') + '</div>' +
+      '<div id="spSlowNote" style="font-size:11px;color:#A5A8B0;margin-top:12px;min-height:16px"></div>' +
+      '<style>@keyframes spSpin{to{transform:rotate(360deg)}}</style>';
+  }
+
   async function openSharedProfilePage(token, passcode){
     document.body.innerHTML =
       '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;' +
       'background:#090A0D;color:#F5F5F5;font-family:\'IBM Plex Sans Arabic\',sans-serif;padding:20px">' +
       '<div id="spCard" style="max-width:420px;width:100%;text-align:center">' +
-      t('pubLoading') + '</div></div>';
+      spLoadingHtml() + '</div></div>';
     const card = document.getElementById('spCard');
+
+    // Named so it is visibly still alive rather than a frozen sentence — the
+    // same honesty the rest of the app already gives a slow request.
+    const slowTimer = setTimeout(function(){
+      const note = document.getElementById('spSlowNote');
+      if(note) note.textContent = t('pubStillWaiting');
+    }, 5000);
+
     let res = null;
     try{
-      res = await postToSheetRaw('view_shared_profile',
-        { token: token, passcode: passcode || '', viewer: currentServerUsername() || '' });
+      res = await Promise.race([
+        postToSheetRaw('view_shared_profile',
+          { token: token, passcode: passcode || '', viewer: currentServerUsername() || '' }),
+        new Promise(function(resolve){ setTimeout(function(){ resolve(undefined); }, SP_TIMEOUT_MS); })
+      ]);
     }catch(e){ res = null; }
+    clearTimeout(slowTimer);
+
+    // undefined means OUR race timed out first — distinct from null, which
+    // means the request itself finished and genuinely found nothing. Only the
+    // first case gets a retry button; the second is a real, final answer.
+    if(res === undefined){
+      card.innerHTML = '<div style="font-size:14px;margin-bottom:14px">' + t('pubTimedOut') + '</div>' +
+        '<button id="spRetryBtn" style="padding:10px 22px;border-radius:10px;border:none;' +
+        'background:#C9A227;color:#1a1206;font-weight:800;cursor:pointer">' + t('pubRetry') + '</button>';
+      document.getElementById('spRetryBtn').addEventListener('click', function(){
+        openSharedProfilePage(token, passcode);
+      });
+      return;
+    }
 
     if(res && res.error === 'passcode_required'){
       card.innerHTML = '<div style="font-size:15px;margin-bottom:12px">🔒 ' + t('pubNeedPasscode') + '</div>';
@@ -28522,8 +28651,15 @@
       return;
     }
     if(!res || !res.ok){
-      card.innerHTML = '<div style="font-size:15px">' +
-        (res && res.error === 'not_allowed' ? t('pubNotAllowed') : t('pubNotFound')) + '</div>';
+      /* unknown_type means the SERVER never heard of this request at all —
+         the backend running has not been redeployed with this feature yet.
+         That is a completely different situation from "this link is dead",
+         and telling the visitor their link is broken when the truth is the
+         deployment is behind sends the owner chasing the wrong problem. */
+      const msg = res && res.error === 'unknown_type' ? t('pubBackendStale')
+                : res && res.error === 'not_allowed' ? t('pubNotAllowed')
+                : t('pubNotFound');
+      card.innerHTML = '<div style="font-size:15px">' + msg + '</div>';
       return;
     }
     const stat = function(v, labelKey){
@@ -30449,14 +30585,27 @@
     examTimerId = setInterval(tick, 1000);
   }
 
+  // The four systems the exam bank actually covers grade-by-grade. Anyone
+  // whose eduSystem is set to something else (a university student, a
+  // graduate) will never have a grade/term to give, and that is a complete,
+  // honest answer — not a form left half-filled.
+  const EXAM_K12_SYSTEMS = ['eg_gov', 'eg_azhar', 'eg_lang', 'eg_intl'];
+  function examIsK12(prof){
+    return !!(prof && EXAM_K12_SYSTEMS.indexOf(prof.eduSystem) > -1);
+  }
   function examProfileComplete(prof){
     return !!(prof && prof.eduSystem && prof.gradeStage && prof.term);
   }
   function examMissingFields(prof){
     const missing = [];
     if(!prof || !prof.eduSystem)  missing.push(t('eduSystemLabel'));
-    if(!prof || !prof.gradeStage) missing.push(t('gradeStageLabel'));
-    if(!prof || !prof.term)       missing.push(t('termLabel'));
+    // Grade and term are only ever "missing" for someone the exam bank could
+    // actually serve. Listing them for a graduate would be asking them to
+    // supply an answer that does not exist.
+    if(examIsK12(prof)){
+      if(!prof || !prof.gradeStage) missing.push(t('gradeStageLabel'));
+      if(!prof || !prof.term)       missing.push(t('termLabel'));
+    }
     return missing;
   }
 
@@ -30469,7 +30618,16 @@
     examsRunner.classList.add('hidden');
 
     // The gate the request asked for, worded as an instruction rather than a
-    // refusal — it names exactly which fields are missing.
+    // refusal — it names exactly which fields are missing. A profile that has
+    // explicitly said "university" or "graduate" gets a DIFFERENT message: not
+    // a call to fill in fields it will never have, but a plain statement that
+    // this section is not built for that account.
+    if(prof && prof.eduSystem && !examIsK12(prof)){
+      examsBrowse.classList.add('hidden');
+      examsGate.classList.remove('hidden');
+      examsGateMsg.innerHTML = t('examsNotK12');
+      return;
+    }
     if(!examProfileComplete(prof)){
       examsBrowse.classList.add('hidden');
       examsGate.classList.remove('hidden');
