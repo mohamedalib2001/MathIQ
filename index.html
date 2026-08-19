@@ -8888,6 +8888,7 @@
       abChkForeignChars:'حروف غير عربية في الكلمات المفتاحية — تسرّب من بيانات النموذج، راجع الصف.',
       abChkKwCommas:'الكلمات المفتاحية فيها فواصل — لازم مسافات فقط',
       abChkKwSentence:'الكلمات المفتاحية تبدو جملة شرح لا كلمات بحث',
+      abChkFoldedFixed:'اتصلحت تلقائيًا للبحث (كانت بهمزة/تاء مربوطة): {w}',
       abChkFolded:'كلمات لن يجدها البحث (همزة/تاء مربوطة): {w}',
       abChkWeight:'الوزن «{v}» خارج النطاق 1-5', abChkDupe:'سؤال مكرر مع صف {n}',
       abChkSummary:'سليمة: {ok} · بها أخطاء: {bad}',
@@ -8906,6 +8907,7 @@
       abAnswerIt:'أجب عنه', abAdded:'✓ أُضيفت للبنك.', abNeedAnswer:'اكتب الإجابة أولًا.',
       abSeeded:'✓ أُضيف {a} وحُدِّث {u} من وثائق الخدمات.',
       abRefreshed:'✓ حُدِّثت {n} حقيقة تلقائية من بيانات النظام.',
+      syncQueued:'اتحفظت على جهازك وهتتبعت للخادم لوحدها لما النت يرجع — مش محتاج تعيد المحاولة.',
       abFailed:'تعذّر تنفيذ العملية — تحقق من نشر ملف الخادم.',
       schTitle:'جدول الحصص', schMyTitle:'🗓 حصصي القادمة', schMyNavLabel:'حصصي',
       schNewTitle:'جدولة حصة', schWhen:'الموعد', schDuration:'المدة',
@@ -10756,6 +10758,7 @@
       abChkForeignChars:'Non-Arabic characters in the keywords — a training-data leak, review this row.',
       abChkKwCommas:'keywords contain commas — spaces only',
       abChkKwSentence:'keywords look like a sentence, not search terms',
+      abChkFoldedFixed:'Auto-corrected for search (had hamza/taa marbuta): {w}',
       abChkFolded:'keywords the search can never match (hamza/taa marbuta): {w}',
       abChkWeight:'weight "{v}" outside 1-5', abChkDupe:'question duplicates row {n}',
       abChkSummary:'valid: {ok} · with errors: {bad}',
@@ -10774,6 +10777,7 @@
       abAnswerIt:'Answer it', abAdded:'✓ Added to the bank.', abNeedAnswer:'Write the answer first.',
       abSeeded:'✓ {a} added and {u} updated from the service documentation.',
       abRefreshed:'✓ {n} automatic facts refreshed from live data.',
+      syncQueued:'Saved on your device and will send itself once the connection returns — no need to retry.',
       abFailed:'The action failed — check that the backend is deployed.',
       schTitle:'Class schedule', schMyTitle:'🗓 My upcoming classes', schMyNavLabel:'My classes',
       schNewTitle:'Schedule a class', schWhen:'When', schDuration:'Duration',
@@ -13365,9 +13369,17 @@
     if(OUTBOX_NEVER.indexOf(type) > -1) return postToSheetRaw(type, payload);
     let res = null;
     try{ res = await postToSheetRaw(type, payload); }catch(e){ res = null; }
-    // null means timeout or network failure — the only case worth retrying.
-    // A structured rejection from the server is a real answer, not a loss.
-    if(res === null){ outboxAdd(type, payload); return null; }
+    /* null means timeout or network failure — the only case worth retrying.
+       This used to just return null here, and every call site treated that
+       identically to a real failure: "تعذّر تنفيذ العملية — تحقّق من نشر ملف
+       الخادم" — telling the owner their deployment was broken at the exact
+       moment their data was safely written to disk and would arrive on its
+       own. A queued write is not a failure; it is success deferred, and it
+       needs to say so. */
+    if(res === null){
+      outboxAdd(type, payload);
+      return { ok:false, queued:true, error:'queued_offline' };
+    }
     return res;
   }
 
@@ -13438,6 +13450,9 @@
   // (result.message) — instead of one generic "connection failed" string
   // that hides which of those it actually was.
   function describeSyncFailure(result, fallbackKey){
+    // A queued write is reported as what it is — saved, pending delivery —
+    // never as the generic failure text, regardless of which screen asks.
+    if(result && result.queued) return t('syncQueued');
     if(result === null) return `${t(fallbackKey)} (${t('lpSyncTimeoutHint')})`;
     if(result && result.message) return `${t(fallbackKey)} (${result.message})`;
     return t(fallbackKey);
@@ -18339,7 +18354,10 @@
     // its good rows in, rather than being rejected whole.
     const res = await postToSheet('ai_seed_bank', Object.assign(abCreds(), { entries: abParsedRows }));
     setBtnSaving(abImportBtn, false);
-    if(!res || !res.ok){ showToast(t('abFailed'), nxIcon('alertTriangle'), 'system'); return; }
+    if(!res || !res.ok){
+      showToast(describeSyncFailure(res, 'abFailed'), nxIcon(res && res.queued ? 'clock' : 'alertTriangle'), 'system');
+      return;
+    }
     showToast(fmt('abSeeded', { a: res.added, u: res.updated }), nxIcon('check'), 'system');
     abCheckReport.classList.add('hidden');
     abImportBtn.classList.add('hidden');
@@ -18351,7 +18369,10 @@
     setBtnSaving(abInsightBtn, true);
     const res = await postToSheet('build_insights', abCreds());
     setBtnSaving(abInsightBtn, false);
-    if(!res || !res.ok){ showToast(t('abFailed'), nxIcon('alertTriangle'), 'system'); return; }
+    if(!res || !res.ok){
+      showToast(describeSyncFailure(res, 'abFailed'), nxIcon(res && res.queued ? 'clock' : 'alertTriangle'), 'system');
+      return;
+    }
     showToast(fmt('abInsightsBuilt', { n: res.insights, o: res.observations }), nxIcon('check'), 'system');
     abRenderInsights();
     abRender();
@@ -24308,7 +24329,7 @@
     taglineArabic: 'تعلّم · تطوّر · ارتقِ'
   };
 
-  var DIAG_BUILD = 'jasmin-2026-08-19-0737-2ae00e9f9569';
+  var DIAG_BUILD = 'jasmin-2026-08-19-0811-37f1434fc30a';
   var DIAG_BUILD_AT = '2026-08-17';
   /* Capability probes.
      These used to be `typeof X === 'function'` — a check that the code was
@@ -26840,6 +26861,12 @@
   // The search engine folds these before matching, so a keyword containing one
   // can never be found. The commonest silent defect in AI-written files.
   const AB_FOLDED = 'أإآىة';
+  // Same mapping normArabic_ applies server-side, so a keyword corrected here
+  // is corrected the way retrieval will actually see it — not a guess at it.
+  const AB_FOLD_MAP = { 'أ':'ا','إ':'ا','آ':'ا','ى':'ي','ة':'ه' };
+  function abFold(word){
+    return word.split('').map(function(ch){ return AB_FOLD_MAP[ch] || ch; }).join('');
+  }
   const AB_ALIASES = {
     'الفئة':'collection','المجموعة':'collection','التصنيف':'collection',
     'الموضوع':'topic','السؤال':'question','السؤال_أو_الموقف':'question',
@@ -26923,7 +26950,18 @@
       const folded = (rec.keywords || '').split(/\s+/).filter(function(w){
         return w && w.split('').some(function(ch){ return AB_FOLDED.indexOf(ch) > -1; });
       });
-      if(folded.length) warnings.push(L + fmt('abChkFolded', { w: folded.slice(0,4).join(' ') }));
+      /* Auto-corrected rather than merely flagged. This warned for 16 rows in
+         a real upload and left the owner to edit the spreadsheet by hand for
+         each one — the exact manual fix already proven safe on an earlier
+         file. Doing it here means the fix travels with the file instead of
+         depending on someone remembering to make it. The original spelling is
+         kept alongside the folded one so the sheet stays readable to a human
+         editing it later; only the machine-matched form is added. */
+      if(folded.length){
+        const extra = folded.map(abFold).filter(function(f, idx){ return f !== folded[idx]; });
+        if(extra.length) rec.keywords = (rec.keywords + ' ' + extra.join(' ')).trim();
+        warnings.push(L + fmt('abChkFoldedFixed', { w: folded.slice(0,4).join(' ') }));
+      }
       const w = Number(rec.weight);
       if(rec.weight && (!isFinite(w) || w < 1 || w > 5)) warnings.push(L + fmt('abChkWeight', { v: rec.weight }));
       const key = rec.question.replace(/\s+/g, ' ');
@@ -27052,7 +27090,10 @@
     setBtnSaving(abSeedBtn, true);
     const res = await postToSheet('ai_seed_bank', Object.assign(abCreds(), { entries: entries }));
     setBtnSaving(abSeedBtn, false);
-    if(!res || !res.ok){ showToast(t('abFailed'), nxIcon('alertTriangle'), 'system'); return; }
+    if(!res || !res.ok){
+      showToast(describeSyncFailure(res, 'abFailed'), nxIcon(res && res.queued ? 'clock' : 'alertTriangle'), 'system');
+      return;
+    }
     showToast(fmt('abSeeded', { a: res.added, u: res.updated }), nxIcon('check'), 'system');
     abRender();
   }
@@ -27060,7 +27101,10 @@
     setBtnSaving(abRefreshBtn, true);
     const res = await postToSheet('ai_refresh_bank', abCreds());
     setBtnSaving(abRefreshBtn, false);
-    if(!res || !res.ok){ showToast(t('abFailed'), nxIcon('alertTriangle'), 'system'); return; }
+    if(!res || !res.ok){
+      showToast(describeSyncFailure(res, 'abFailed'), nxIcon(res && res.queued ? 'clock' : 'alertTriangle'), 'system');
+      return;
+    }
     showToast(fmt('abRefreshed', { n: res.generated }), nxIcon('check'), 'system');
     abRender();
   }
@@ -27072,7 +27116,10 @@
       answer: abAnswer.value.trim(), keywords: abKeywords.value.trim(), weight: 3
     }));
     setBtnSaving(abAddBtn, false);
-    if(!res || !res.ok){ showToast(t('abFailed'), nxIcon('alertTriangle'), 'system'); return; }
+    if(!res || !res.ok){
+      showToast(describeSyncFailure(res, 'abFailed'), nxIcon(res && res.queued ? 'clock' : 'alertTriangle'), 'system');
+      return;
+    }
     abTopic.value = ''; abQuestion.value = ''; abAnswer.value = ''; abKeywords.value = '';
     showToast(t('abAdded'), nxIcon('check'), 'system');
     abRender();
@@ -28247,7 +28294,7 @@
       const n = Math.max(0, Math.floor(Number(v) || 0));
       const res = await postToSheet('set_ai_budget', Object.assign(abCreds(), { budget: n }));
       if(res && res.ok){ showToast(t('exUsageSaved'), nxIcon('check'), 'system'); ocRenderIntel(); }
-      else showToast(t('abFailed'), nxIcon('alertTriangle'), 'system');
+      else showToast(describeSyncFailure(res, 'abFailed'), nxIcon(res && res.queued ? 'clock' : 'alertTriangle'), 'system');
     });
   }
 
@@ -28667,8 +28714,8 @@
       if(res && res.error === 'recovery_same'){
         showToast(t('oaRecoverySame'), nxIcon('alertTriangle'), 'system'); return;
       }
-      showToast(res && res.ok ? t('oaSaved') : t('abFailed'),
-                nxIcon(res && res.ok ? 'check' : 'alertTriangle'), 'system');
+      showToast(res && res.ok ? t('oaSaved') : describeSyncFailure(res, 'abFailed'),
+                nxIcon(res && res.ok ? 'check' : (res && res.queued ? 'clock' : 'alertTriangle')), 'system');
       if(res && res.ok) ocRenderAccount();
     });
 
@@ -28678,8 +28725,8 @@
       if(url === null) return;
       postToSheet('save_owner_profile', Object.assign(abCreds(), { photoURL: url }))
         .then(function(res){
-          showToast(res && res.ok ? t('oaSaved') : t('abFailed'),
-                    nxIcon(res && res.ok ? 'check' : 'alertTriangle'), 'system');
+          showToast(res && res.ok ? t('oaSaved') : describeSyncFailure(res, 'abFailed'),
+                    nxIcon(res && res.ok ? 'check' : (res && res.queued ? 'clock' : 'alertTriangle')), 'system');
           if(res && res.ok) ocRenderAccount();
         });
     });
@@ -33805,7 +33852,7 @@
         // with different fixes for the learner.
         raceLobbyError.textContent =
           res && res.error === 'race_full' ? t('raceFullError')
-          : res === null ? t('raceJoinConnError')
+          : (res === null || (res && res.queued)) ? t('raceJoinConnError')
           : t('raceCodeInvalid');
         return;
       }
