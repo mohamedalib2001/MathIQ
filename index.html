@@ -659,6 +659,7 @@
   }
   .start-btn:active{ transform:scale(0.99); }
   .hidden{ display:none !important; }
+  @keyframes spSpin{ to{ transform:rotate(360deg); } }
   /* ==================== ROLE SWITCHER ====================
      A quiet pill, not a menu. The owner is already signed in; this changes
      which face of the app they are looking at, so it should feel like turning
@@ -2999,8 +3000,60 @@
   .pd-dot{ width:7px; height:7px; border-radius:50%; flex:none; margin-top:5px; }
   .pd-dot.ok{ background:#10b981 } .pd-dot.warn{ background:#f59e0b }
   .pd-dot.bad{ background:#ef4444 } .pd-dot.idle{ background:#64748b }
+  .pd-badge.untested{ background:rgba(148,163,184,0.12); color:var(--ink-dim); }
+  .pd-dot.untested{ background:#64748b }
   .pd-check-label{ flex:none; color:var(--ink); font-weight:600; min-width:118px; }
   .pd-check-detail{ flex:1; color:var(--ink-dim); line-height:1.75; }
+  .pd-score{ flex:none; font-size:11px; font-weight:800; width:30px; height:30px;
+    border-radius:50%; display:flex; align-items:center; justify-content:center; }
+  .pd-score.healthy{ background:rgba(16,185,129,0.15); color:#34d399; }
+  .pd-score.attention{ background:rgba(245,158,11,0.15); color:#fbbf24; }
+  .pd-score.critical{ background:rgba(239,68,68,0.15); color:#fca5a5; }
+  .pd-overall{ display:flex; align-items:center; gap:14px; padding:16px 18px;
+    border-radius:14px; margin-bottom:14px; border:1px solid var(--chip-border); }
+  .pd-overall.healthy{ background:rgba(16,185,129,0.08); border-color:rgba(16,185,129,0.3); }
+  .pd-overall.attention{ background:rgba(245,158,11,0.08); border-color:rgba(245,158,11,0.3); }
+  .pd-overall.critical{ background:rgba(239,68,68,0.08); border-color:rgba(239,68,68,0.3); }
+  .pd-overall-score{ font-size:32px; font-weight:800; color:var(--ink); flex:none; }
+  .pd-overall-score span{ font-size:14px; font-weight:600; color:var(--ink-dim); }
+  .pd-overall-label{ font-size:13.5px; font-weight:700; color:var(--ink); }
+  .pd-patterns{ background:var(--input-bg); border:1px solid var(--chip-border);
+    border-radius:12px; padding:12px 14px; margin-bottom:14px; }
+  .pd-patterns-title{ font-size:12px; font-weight:800; color:var(--ink); margin-bottom:8px; }
+  .pd-pattern{ display:flex; align-items:center; gap:9px; font-size:12px;
+    color:var(--ink-dim); padding:5px 0; line-height:1.7; }
+  .pd-pattern .pd-dot{ margin-top:0; }
+
+  /* ---------- LIVE DATA MAP ---------- */
+  .ldm-header{ display:flex; align-items:center; justify-content:space-between;
+    gap:10px; margin-bottom:10px; }
+  .ldm-header-title{ font-size:13px; font-weight:800; color:var(--ink);
+    display:flex; align-items:center; gap:8px; }
+  .ldm-live-dot{ width:8px; height:8px; border-radius:50%; background:#34d399; flex:none; }
+  @media (prefers-reduced-motion: no-preference){
+    .ldm-live-dot{ animation:ldmBreathe 3.2s ease-in-out infinite; }
+    @keyframes ldmBreathe{ 0%,100%{ opacity:1; box-shadow:0 0 0 0 rgba(52,211,153,0.5) }
+      50%{ opacity:0.55; box-shadow:0 0 0 5px rgba(52,211,153,0) } }
+  }
+  .ldm-kpis{ display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:12px; }
+  .ldm-kpi{ background:var(--input-bg); border:1px solid var(--chip-border);
+    border-radius:10px; padding:9px 8px; text-align:center; }
+  .ldm-kpi-val{ font-size:17px; font-weight:800; color:var(--ink); }
+  .ldm-kpi-label{ font-size:9.5px; color:var(--ink-dim); margin-top:2px; }
+  .ldm-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:9px; }
+  .ldm-card{ background:var(--input-bg); border:1px solid var(--chip-border);
+    border-radius:11px; padding:11px 12px; }
+  .ldm-card-top{ display:flex; align-items:center; gap:7px; margin-bottom:6px; }
+  .ldm-card-name{ font-size:12px; font-weight:700; color:var(--ink); flex:1; min-width:0;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .ldm-status-dot{ width:7px; height:7px; border-radius:50%; flex:none; }
+  .ldm-status-dot.has-data{ background:#34d399; }
+  .ldm-status-dot.empty{ background:#64748b; }
+  .ldm-status-dot.unlabelled{ background:#f59e0b; }
+  .ldm-card-purpose{ font-size:10.5px; color:var(--ink-dim); margin-bottom:6px;
+    min-height:14px; line-height:1.5; }
+  .ldm-card-meta{ display:flex; gap:10px; font-size:10px; color:var(--ink-dim); }
+  @media (max-width:900px){ .ldm-kpis{ grid-template-columns:repeat(2,1fr); } }
 
   /* ---------- JASMIN BRAND MARK ----------
      Applied as a background so any element can carry the mark without extra
@@ -6026,6 +6079,22 @@
       <button class="start-btn" id="testConnBtn" data-i18n="testConnection">اختبار الاتصال</button>
       <button class="secondary-btn" id="closeConnBtn" data-i18n="closeBtn">إغلاق</button>
     </div>
+
+    <!-- ==================== LIVE DATA MAP ====================
+         Real discovery, not a decorated status light: every sheet the
+         connected spreadsheet actually contains, fetched fresh each time this
+         renders — not a fixed list of names someone once typed in. Filled in
+         once the connection test succeeds; empty and quiet before that,
+         because a map of a database nobody has connected to yet is not
+         useful, it is decorative. -->
+    <div id="ldmSection" class="hidden" style="margin-top:18px">
+      <div class="ldm-header">
+        <div class="ldm-header-title" id="ldmHeaderTitle"></div>
+        <button class="secondary-btn" id="ldmRefreshBtn"></button>
+      </div>
+      <div class="ldm-kpis" id="ldmKpis"></div>
+      <div class="ldm-grid" id="ldmGrid"></div>
+    </div>
   </div>
 
   <!-- PROFILE MINI EDITOR (add/edit) -->
@@ -8335,6 +8404,11 @@
       certIssuedTitle:'✓ تم إصدار الشهادة بنجاح', certIssuedDownloadBtn:'تنزيل PDF',
       certIssuedShareBtn:'مشاركة', certIssuedVerifyBtn:'فتح صفحة التحقق',
       certGenerating:'جارٍ التحضير...',
+      ldmLoading:'جارٍ اكتشاف الصفحات…', ldmFailed:'تعذّر تحميل خريطة البيانات.',
+      ldmHeader:'{n} صفحة مكتشَفة في قاعدة البيانات', ldmRefresh:'🔄 تحديث الخريطة',
+      ldmKpiSheets:'صفحة', ldmKpiWithData:'بها بيانات', ldmKpiLabelled:'معروفة الغرض', ldmKpiRows:'إجمالي السجلات',
+      ldmRows:'{n} سجل', ldmCols:'{n} عمود',
+      ldmUnlabelled:'صفحة غير موثَّقة بعد — تحتاج مراجعة، وليست بالضرورة خطأ.',
       connectionLink:'🔗 ربط جوجل شيت', connectionTitle:'ربط جوجل شيت',
       connectionNote:'الصق رابط "Web app" الذي حصلت عليه بعد نشر كود Apps Script في جدولك، ثم اختبر الاتصال.',
       sheetUrlPlaceholder:'https://script.google.com/macros/s/.../exec',
@@ -9305,14 +9379,24 @@
       ndNoApi:'لا يوجد رابط خادم مضبوط',
       ndSyncOk:'{a} — استجاب خلال {ms} مللي · {n} سجلًا',
       ndSyncRefused:'{a} — استجاب لكنه رفض الطلب ({e})',
+      ndSyncNoReplyReason:'{a} — لا استجابة: {r}',
+      ndReasonTimeout:'انتهت مهلة الاتصال (٤٥ ثانية) — الخادم لم يردّ في الوقت المسموح، غالبًا بطء أو تعليق في التنفيذ.',
+      ndReasonNetwork:'خطأ شبكة — المتصفح لم يستطع إتمام الطلب إطلاقًا (اتصال، DNS، أو حجب).',
+      ndReasonInvalid:'رد غير صالح — الخادم أعاد شيئًا ليس JSON صحيحًا، غالبًا صفحة خطأ من Apps Script.',
+      ndReasonHttp:'رمز HTTP غير ناجح',
       ndSyncNoReply:'{a} — لا استجابة من الخادم إطلاقًا',
       ndSyncLocal:'تعمل من البيانات المحلية — لا تحتاج مزامنة',
       pdTitle:'🩺 تشخيص البرامج',
       pdNote:'فحص حيّ لكل برنامج من نفس المصادر التي يقرأها المتعلّم — فنجاح الفحص يعني أن البرنامج يعمل فعلًا.',
       pdRun:'▶ افحص كل البرامج', pdCopy:'📋 نسخ التقرير',
       pdIdle:'اضغط «افحص» لبدء الفحص.', pdRunning:'جارٍ الفحص…',
+      pdBand_healthy:'سليمة', pdBand_attention:'تحتاج متابعة', pdBand_critical:'حرجة',
+      pdPatternsTitle:'📊 أنماط مشتركة — قبل التفاصيل',
+      pdPatternLine:'{n} برامج تشترك في: {label}',
+      pdNoEnrolmentsNew:'لا تسجيلات بعد — طبيعي، البرنامج عمره {n} يوم فقط.',
       pdSummary:'{total} برنامجًا · {bad} فاشل · {warn} تحذير · {ok} سليم',
       pdRunFirst:'شغّل الفحص أولًا.', pdCopied:'✓ نُسخ التقرير — أرسله كما هو.',
+      pdSt_untested:'لم يُختبَر', pdUntestedCount:'{n} لم يُختبَر',
       pdSt_ok:'سليم', pdSt_warn:'تحذير', pdSt_bad:'فاشل', pdSt_idle:'—',
       pdChkExists:'وجود البرنامج', pdChkContent:'المحتوى', pdChkQuestions:'الأسئلة',
       pdChkEnrolment:'التسجيلات', pdChkVisible:'الظهور للمتعلّم',
@@ -10308,6 +10392,11 @@
       certIssuedTitle:'✓ Certificate issued successfully', certIssuedDownloadBtn:'Download PDF',
       certIssuedShareBtn:'Share', certIssuedVerifyBtn:'Open verification page',
       certGenerating:'Preparing...',
+      ldmLoading:'Discovering sheets…', ldmFailed:'Could not load the data map.',
+      ldmHeader:'{n} sheets discovered in the database', ldmRefresh:'🔄 Refresh the map',
+      ldmKpiSheets:'sheets', ldmKpiWithData:'with data', ldmKpiLabelled:'known purpose', ldmKpiRows:'total records',
+      ldmRows:'{n} rows', ldmCols:'{n} cols',
+      ldmUnlabelled:'Not documented yet — worth a look, not necessarily an error.',
       connectionLink:'🔗 Connect Google Sheet', connectionTitle:'Connect Google Sheet',
       connectionNote:'Paste the "Web app" URL you got after deploying the Apps Script code in your sheet, then test the connection.',
       sheetUrlPlaceholder:'https://script.google.com/macros/s/.../exec',
@@ -11182,14 +11271,24 @@
       ndNoApi:'no backend URL configured',
       ndSyncOk:'{a} — replied in {ms}ms · {n} records',
       ndSyncRefused:'{a} — replied but refused the request ({e})',
+      ndSyncNoReplyReason:'{a} — no reply: {r}',
+      ndReasonTimeout:'Connection timed out (45s) — the server did not reply in time, usually a slow or hung execution.',
+      ndReasonNetwork:'Network error — the browser could not complete the request at all (connectivity, DNS, or a block).',
+      ndReasonInvalid:'Invalid response — the server returned something that was not valid JSON, usually an Apps Script error page.',
+      ndReasonHttp:'non-success HTTP status',
       ndSyncNoReply:'{a} — no reply from the server at all',
       ndSyncLocal:'runs from local data — no sync needed',
       pdTitle:'🩺 Program diagnostics',
       pdNote:'A live check of each program against the same sources the learner reads — so a pass means the program genuinely works.',
       pdRun:'▶ Check all programs', pdCopy:'📋 Copy report',
       pdIdle:'Press Check to begin.', pdRunning:'Checking…',
+      pdBand_healthy:'Healthy', pdBand_attention:'Needs attention', pdBand_critical:'Critical',
+      pdPatternsTitle:'📊 Shared patterns — before the detail',
+      pdPatternLine:'{n} programs share: {label}',
+      pdNoEnrolmentsNew:'No enrolments yet — normal, the program is only {n} day(s) old.',
       pdSummary:'{total} programs · {bad} failing · {warn} warning · {ok} healthy',
       pdRunFirst:'Run the check first.', pdCopied:'✓ Report copied — send it as is.',
+      pdSt_untested:'not tested', pdUntestedCount:'{n} not tested',
       pdSt_ok:'healthy', pdSt_warn:'warning', pdSt_bad:'failing', pdSt_idle:'—',
       pdChkExists:'Program exists', pdChkContent:'Content', pdChkQuestions:'Questions',
       pdChkEnrolment:'Enrolments', pdChkVisible:'Visible to learners',
@@ -13366,7 +13465,7 @@
 
   // Auth is excluded on purpose: replaying it later is wrong, not helpful.
   const OUTBOX_NEVER = ['login', 'logout', 'login_with_code', 'validate_session',
-                        'admin_login', 'admin_login_probe', 'verify_admin_code'];
+                        'admin_login', 'admin_login_probe', 'verify_admin_code', 'teacher_login'];
 
   function outboxLoad(){
     try{
@@ -13472,8 +13571,22 @@
   }
   /* ==================== END DURABLE WRITE OUTBOX ==================== */
 
+  /* Every distinct way a request can fail — a genuine network error, a
+   45-second timeout, a response that came back but was not valid JSON — used
+   to collapse into the same bare `null`. That is an honest description of
+   WHAT was observed (nothing usable came back) but says nothing about WHY,
+   which is exactly why a diagnostic screen built to find the real cause of a
+   failure could only ever report "no response from the server at all" for
+   every one of these genuinely different situations.
+
+   lastFetchFailureReason_ is set immediately before each null resolution,
+   read-only side information for whichever screen wants to explain a failure
+   more precisely. Every existing caller is unaffected: the return value is
+   still bare null in every failure case, exactly as before. */
+  let lastFetchFailureReason_ = null;
+
   function postToSheetRaw(type, payload){
-    if(!SHEET_API_URL) return Promise.resolve(null);
+    if(!SHEET_API_URL){ lastFetchFailureReason_ = 'NO_BACKEND_URL'; return Promise.resolve(null); }
     // A genuine timeout — without this, a slow/hung request (Apps Script
     // cold-start, network hiccup) leaves whatever button triggered it
     // stuck on its "saving..." state forever, since nothing ever resolves
@@ -13483,12 +13596,21 @@
     // Apps Script cold start on a script this size can legitimately take
     // longer than 20s on its very first call after being idle.
     const REQUEST_TIMEOUT_MS = 45000;
-    const timeoutPromise = new Promise(resolve => setTimeout(()=> resolve(null), REQUEST_TIMEOUT_MS));
+    const timeoutPromise = new Promise(resolve => setTimeout(()=>{
+      lastFetchFailureReason_ = 'TIMEOUT';
+      resolve(null);
+    }, REQUEST_TIMEOUT_MS));
     const fetchPromise = fetch(SHEET_API_URL, {
         method:'POST',
         body: JSON.stringify({ type, sessionToken: SESSION_TOKEN, ...payload })
       })
-      .then(r=>r.json())
+      .then(function(r){
+        if(!r.ok) lastFetchFailureReason_ = 'HTTP_' + r.status;
+        return r.json().catch(function(){
+          lastFetchFailureReason_ = 'INVALID_RESPONSE';
+          throw new Error('invalid json');
+        });
+      })
       .then(res=>{
         // Only a token that was REJECTED ends the session. Having no token
         // at all is not an expiry — it is simply a device that has not signed
@@ -13514,9 +13636,21 @@
         }
         return res;
       })
-      .catch(()=>null);
-    return Promise.race([fetchPromise, timeoutPromise]);
+      .catch(function(e){
+        // Anything that reaches here without already setting a more specific
+        // reason above is a genuine network-level failure: DNS, a blocked
+        // request, a dropped connection, CORS — the browser refused to
+        // complete the request at all.
+        if(lastFetchFailureReason_ !== 'INVALID_RESPONSE') lastFetchFailureReason_ = 'NETWORK_ERROR';
+        return null;
+      });
+    return Promise.race([fetchPromise, timeoutPromise]).then(function(res){
+      if(res !== null) lastFetchFailureReason_ = null;   // a real answer clears any stale reason
+      return res;
+    });
   }
+  window.lastFetchFailureReason = function(){ return lastFetchFailureReason_; };
+  window.postToSheetRaw = postToSheetRaw;   // used by the diagnostics screen's own tooling
   // Turns a failed postToSheet() result into a message that actually
   // distinguishes WHY it failed — a client-side timeout/network drop
   // (result === null) vs a real, specific rejection the server sent back
@@ -13596,6 +13730,9 @@
     setConnStatus(SHEET_API_URL ? 'ok' : 'idle');
     profilesEl.classList.add('hidden');
     connectionEl.classList.remove('hidden');
+    // Loaded when the panel is actually opened, not at page load — a map
+    // nobody is looking at yet is a wasted request every single visit.
+    if(SHEET_API_URL) ldmLoad();
   });
   closeConnBtn.addEventListener('click', ()=>{
     connectionEl.classList.add('hidden');
@@ -13611,11 +13748,77 @@
         SHEET_API_URL = url;
         try{ localStorage.setItem('mm_sheet_api_url', url); }catch(e){}
         setConnStatus('ok');
+        ldmLoad();
       } else {
         setConnStatus('fail');
       }
     }).catch(()=> setConnStatus('fail'));
   });
+
+  /* ==================== LIVE DATA MAP ====================
+     A real, current inventory of the connected spreadsheet — every sheet it
+     actually contains, fetched fresh, not a fixed list someone typed in once
+     and forgot to update. "Connected" (the test above) and "mapped" (this)
+     are kept as two different facts on purpose: a backend can answer while a
+     specific sheet is missing, renamed, or simply new, and collapsing those
+     into one green dot would hide exactly the situation worth knowing about.
+
+     Deliberately calm: an empty sheet is shown grey, not red — many sheets
+     (ErrorLog, OwnerAudit) are meant to be empty most of the time, and
+     colouring "no rows" as a failure would train the owner to ignore the
+     colour entirely. */
+  const ldmGrid = document.getElementById('ldmGrid');
+  const ldmKpis = document.getElementById('ldmKpis');
+  const ldmSection = document.getElementById('ldmSection');
+  const ldmHeaderTitle = document.getElementById('ldmHeaderTitle');
+  const ldmRefreshBtn = document.getElementById('ldmRefreshBtn');
+
+  async function ldmLoad(){
+    if(!SHEET_API_URL) return;
+    ldmSection.classList.remove('hidden');
+    ldmHeaderTitle.innerHTML = '<span class="ldm-live-dot"></span>' + t('ldmLoading');
+    let res = null;
+    try{ res = await postToSheetRaw('diag_sheet_census', abCreds()); }catch(e){ res = null; }
+    if(!res || !res.ok){
+      ldmHeaderTitle.textContent = t('ldmFailed');
+      ldmKpis.innerHTML = ''; ldmGrid.innerHTML = '';
+      return;
+    }
+    const sheets = res.sheets || [];
+    const withData = sheets.filter(function(s){ return s.rows > 0; }).length;
+    const labelled = sheets.filter(function(s){ return s.purpose; }).length;
+    const totalRows = sheets.reduce(function(s, x){ return s + x.rows; }, 0);
+
+    ldmHeaderTitle.innerHTML = '<span class="ldm-live-dot"></span>' +
+      fmt('ldmHeader', { n: sheets.length });
+    ldmKpis.innerHTML =
+      ldmKpi(sheets.length, t('ldmKpiSheets')) +
+      ldmKpi(withData, t('ldmKpiWithData')) +
+      ldmKpi(labelled, t('ldmKpiLabelled')) +
+      ldmKpi(exNum(totalRows), t('ldmKpiRows'));
+
+    // Sheets nobody has explained yet surface first — the "review required"
+    // state the spec asks for, not hidden and not falsely marked healthy.
+    const sorted = sheets.slice().sort(function(a, b){
+      if(!!a.purpose !== !!b.purpose) return a.purpose ? 1 : -1;
+      return b.rows - a.rows;
+    });
+    ldmGrid.innerHTML = sorted.map(function(s){
+      const dotClass = !s.purpose ? 'unlabelled' : (s.rows > 0 ? 'has-data' : 'empty');
+      return '<div class="ldm-card">' +
+        '<div class="ldm-card-top"><span class="ldm-status-dot ' + dotClass + '"></span>' +
+        '<span class="ldm-card-name">' + exEsc(s.sheet) + '</span></div>' +
+        '<div class="ldm-card-purpose">' + (s.purpose ? exEsc(s.purpose) : t('ldmUnlabelled')) + '</div>' +
+        '<div class="ldm-card-meta"><span>' + fmt('ldmRows', { n: exNum(s.rows) }) + '</span>' +
+        '<span>' + fmt('ldmCols', { n: s.cols }) + '</span></div></div>';
+    }).join('');
+  }
+  function ldmKpi(val, label){
+    return '<div class="ldm-kpi"><div class="ldm-kpi-val">' + val + '</div>' +
+      '<div class="ldm-kpi-label">' + label + '</div></div>';
+  }
+  ldmRefreshBtn.textContent = t('ldmRefresh');
+  ldmRefreshBtn.addEventListener('click', ldmLoad);
 
   /* ---------- login / logout (lightweight, PIN-based) ---------- */
   function requireLogin(key, onSuccess){
@@ -14384,11 +14587,32 @@
     }
 
     // 1) Teacher account — sees every student.
-    const teacherKey = findTeacherByUsername(username);
+    let teacherKey = findTeacherByUsername(username);
+    let teacherVerified = false;
     if(teacherKey){
       const hash = await computePasswordHash(teacherKey, password);
+      teacherVerified = (hash === TEACHERS[teacherKey].pin);
+    } else if(SHEET_API_URL){
+      /* The local cache missing this username is not the same as the account
+         not existing — it is the normal state on any device other than the
+         one that created it, and treating it as "not a teacher" here is
+         exactly the bug that made teacher accounts unusable outside the
+         admin's own browser. Verified on the server instead, the same way a
+         student on a new device already is. */
+      const hash = await computePasswordHash(username, password);
+      let res = null;
+      try{ res = await postToSheet('teacher_login', { username, pin: hash }); }catch(e){ res = null; }
+      if(res && res.ok){
+        teacherKey = res.username;
+        teacherVerified = true;
+        // Cached from here on, so the next sign-in on this same device is
+        // instant and works offline — exactly like every other role.
+        TEACHERS[teacherKey] = { pin: hash, name: res.name || teacherKey };
+        saveTeachersToStorage();
+      }
+    }
+    if(teacherKey && teacherVerified){
       setLoginLoading(false);
-      if(hash !== TEACHERS[teacherKey].pin){ hideLoginTransition(); ulError.textContent = t('loginErrorMsg'); return; }
       ulError.textContent = '';
       updateLoginTransitionStep(t('loginStepPreparing'), 80);
       dashboardOpenedBy = 'teacher';
@@ -14400,6 +14624,9 @@
       renderShellNav('teacher');
       hideLoginTransition();
       return;
+    }
+    if(teacherKey && !teacherVerified){
+      setLoginLoading(false); hideLoginTransition(); ulError.textContent = t('loginErrorMsg'); return;
     }
 
     // 2) Student account — normal practice flow.
@@ -24431,7 +24658,7 @@
     taglineArabic: 'تعلّم · تطوّر · ارتقِ'
   };
 
-  var DIAG_BUILD = 'jasmin-2026-08-19-0926-338b1c2aa56c';
+  var DIAG_BUILD = 'jasmin-2026-08-19-1025-85fa7cd3dc37';
   var DIAG_BUILD_AT = '2026-08-17';
   /* Capability probes.
      These used to be `typeof X === 'function'` — a check that the code was
@@ -26004,21 +26231,78 @@
     pdList.innerHTML = '';
   }
 
+  /* Groups findings by shared underlying cause across every program, instead
+     of repeating the same paragraph once per program. Nine failing programs
+     that are ALL "published with no lessons" and ALL "duplicated" is one
+     fact stated twice, not nine separate problems — and reading it nine
+     times in a row is exactly the wall of near-identical text this rebuild
+     was asked to remove. This does not replace the per-program detail, which
+     stays available in each card; it is read BEFORE that detail so the owner
+     knows the shape of the problem in one glance. */
+  function pdPatterns(rows){
+    const byCheck = {};
+    rows.forEach(function(r){
+      r.checks.forEach(function(c){
+        if(c.level !== 'bad' && c.level !== 'warn') return;
+        const k = c.key;
+        byCheck[k] = byCheck[k] || { key:k, label:c.label, level:c.level, programs: [] };
+        // The worse of the two levels wins if programs disagree on severity
+        // for the same check — a pattern is only as mild as its worst case.
+        if(c.level === 'bad') byCheck[k].level = 'bad';
+        byCheck[k].programs.push(r.name);
+      });
+    });
+    return Object.keys(byCheck).map(function(k){ return byCheck[k]; })
+      .filter(function(p){ return p.programs.length >= 2; })   // a pattern needs at least two
+      .sort(function(a, b){
+        if(a.level !== b.level) return a.level === 'bad' ? -1 : 1;
+        return b.programs.length - a.programs.length;
+      });
+  }
+
   function pdRender(rows){
     const bad = rows.filter(function(r){ return r.status === 'bad'; }).length;
     const warn = rows.filter(function(r){ return r.status === 'warn'; }).length;
+    // A module the scan could not actually exercise is neither a pass nor a
+    // failure — it is unverified, and folding it into "healthy" is exactly
+    // the miscount this was built to stop: an owner reading "15 healthy"
+    // should never be quietly including modules that were never checked.
+    const untested = rows.filter(function(r){ return r.status === 'untested'; }).length;
     pdSummary.textContent = fmt('pdSummary', {
-      total: rows.length, bad: bad, warn: warn, ok: rows.length - bad - warn });
+      total: rows.length, bad: bad, warn: warn, ok: rows.length - bad - warn - untested
+    }) + (untested ? ' · ' + fmt('pdUntestedCount', { n: untested }) : '');
+
+    // Overall Health Score: the average of every program's own score. Shown
+    // once, at the top, so "is the academy okay" has a single answer before
+    // anyone opens a single card.
+    const overall = rows.length
+      ? Math.round(rows.reduce(function(s, r){ return s + r.score; }, 0) / rows.length) : 0;
+    const overallBand = pdBand(overall);
+    let html = '<div class="pd-overall ' + overallBand + '">' +
+      '<div class="pd-overall-score">' + overall + '<span>/100</span></div>' +
+      '<div class="pd-overall-label">' + t('pdBand_' + overallBand) + '</div></div>';
+
+    // The pattern summary — the actual fix for the wall of repeated text.
+    const patterns = pdPatterns(rows);
+    if(patterns.length){
+      html += '<div class="pd-patterns"><div class="pd-patterns-title">' + t('pdPatternsTitle') + '</div>' +
+        patterns.map(function(p){
+          return '<div class="pd-pattern ' + p.level + '">' +
+            '<span class="pd-dot ' + p.level + '"></span>' +
+            '<span>' + fmt('pdPatternLine', { n: p.programs.length, label: p.label }) + '</span></div>';
+        }).join('') + '</div>';
+    }
 
     // Failing programs first: a list in fixed order buries what needs action.
-    const order = { bad:0, warn:1, ok:2 };
+    const order = { bad:0, warn:1, untested:2, ok:3 };
     const sorted = rows.slice().sort(function(a,b){ return order[a.status] - order[b.status]; });
 
-    pdList.innerHTML = sorted.map(function(r){
+    html += sorted.map(function(r){
       return '<div class="pd-card">' +
         '<div class="pd-head" role="button" tabindex="0" data-toggle="' + r.id + '">' +
           '<span class="pd-icon">' + r.icon + '</span>' +
           '<span class="pd-name">' + r.name + '</span>' +
+          '<span class="pd-score ' + r.band + '">' + r.score + '</span>' +
           '<span class="pd-badge ' + r.status + '">' + t('pdSt_' + r.status) + '</span>' +
         '</div>' +
         '<div class="pd-body hidden" id="pdBody_' + r.id + '">' +
@@ -26030,6 +26314,7 @@
           }).join('') +
         '</div></div>';
     }).join('');
+    pdList.innerHTML = html;
 
     pdList.querySelectorAll('[data-toggle]').forEach(function(el){
       const go = function(){
@@ -26041,12 +26326,11 @@
         if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); go(); }
       });
     });
-    // A failing program is opened already — the owner should not have to hunt
-    // for the detail that explains the red badge.
-    sorted.filter(function(r){ return r.status === 'bad'; }).forEach(function(r){
-      const b = document.getElementById('pdBody_' + r.id);
-      if(b) b.classList.remove('hidden');
-    });
+    /* Every card starts collapsed now, including failing ones. Auto-opening
+       every "bad" card was exactly what produced the endless scroll in the
+       screenshot that prompted this — nine cards forced open at once, each
+       repeating text the pattern summary above already stated once. The
+       owner expands whichever program they actually want the detail on. */
   }
 
   /* ==================== NAVIGATION DIAGNOSTICS (OWNER) ====================
@@ -26167,7 +26451,7 @@
       if(!SHEET_API_URL){
         checks.push({ label: t('ndChkSync'), level: 'warn', detail: t('ndNoApi') });
       } else if(blocked){
-        checks.push({ label: t('ndChkSync'), level: 'idle', detail: t(blocked) });
+        checks.push({ label: t('ndChkSync'), level: 'untested', detail: t(blocked) });
       } else {
         const started = Date.now();
         let res = null;
@@ -26179,7 +26463,21 @@
         catch(e){ res = null; }
         const ms = Date.now() - started;
         if(!res){
-          checks.push({ label: t('ndChkSync'), level: 'bad', detail: fmt('ndSyncNoReply', { a: d.action }) });
+          /* The generic "no reply at all" is now the LAST resort, not the
+             only message this path can produce — the reason recorded during
+             the actual failed call (a timeout, a network error, an invalid
+             response) is surfaced by name, matching what a genuine root-cause
+             diagnosis needs instead of one sentence covering every cause. */
+          const reason = (typeof lastFetchFailureReason === 'function') ? lastFetchFailureReason() : null;
+          const reasonKey = reason === 'TIMEOUT' ? 'ndReasonTimeout'
+                           : reason === 'NETWORK_ERROR' ? 'ndReasonNetwork'
+                           : reason === 'INVALID_RESPONSE' ? 'ndReasonInvalid'
+                           : (reason && reason.indexOf('HTTP_') === 0) ? 'ndReasonHttp'
+                           : null;
+          const detail = reasonKey
+            ? fmt('ndSyncNoReplyReason', { a: d.action, r: t(reasonKey) + (reason && reasonKey === 'ndReasonHttp' ? ' (' + reason.slice(5) + ')' : '') })
+            : fmt('ndSyncNoReply', { a: d.action });
+          checks.push({ label: t('ndChkSync'), level: 'bad', detail: detail });
         } else if(!res.ok){
           // A refusal is a real answer: the sheet responded, the request was
           // rejected. That is a permissions or payload issue, not an outage.
@@ -26197,7 +26495,13 @@
     }
 
     const status = checks.some(function(c){ return c.level === 'bad'; }) ? 'bad'
-                 : (checks.some(function(c){ return c.level === 'warn'; }) ? 'warn' : 'ok');
+                 : checks.some(function(c){ return c.level === 'warn'; }) ? 'warn'
+                 // A module with nothing bad or warned, but at least one check
+                 // that could not actually run, is unverified — not the same
+                 // claim as "checked and found fine". Reported as its own
+                 // outcome so it can never be counted toward a healthy total.
+                 : checks.some(function(c){ return c.level === 'untested'; }) ? 'untested'
+                 : 'ok';
     return { id: d.id, icon: d.icon, name: ndLabel(d), status: status, checks: checks };
   }
 
@@ -26369,8 +26673,20 @@
         if(!pub) return { level:'idle', detail: t('pdSkipped') };
         try{
           const n = lpLoad(LP_KEYS.ENROLLMENTS).filter(function(e){ return e.programId === pub.id; }).length;
-          return n ? { level:'ok', detail: fmt('pdEnrolled', { n: n }) }
-                   : { level:'warn', detail: t('pdNoEnrolments') };
+          if(n) return { level:'ok', detail: fmt('pdEnrolled', { n: n }) };
+          /* Zero enrolments is not one finding — it is two different ones that
+             happened to look identical. A program published an hour ago with
+             no students yet is completely normal; the same silence from a
+             program published weeks ago is the actual warning sign. Treating
+             both as WARN buried the real signal in routine noise on every
+             fresh program. */
+          const createdRaw = pub.createdAt || pub.CreatedAt || null;
+          const createdMs = createdRaw ? new Date(createdRaw).getTime() : NaN;
+          const ageDays = isFinite(createdMs) ? (Date.now() - createdMs) / 86400000 : null;
+          if(ageDays !== null && ageDays < PD_NEW_PROGRAM_DAYS){
+            return { level:'idle', detail: fmt('pdNoEnrolmentsNew', { n: Math.round(ageDays) }) };
+          }
+          return { level:'warn', detail: t('pdNoEnrolments') };
         }catch(e){ return { level:'bad', detail: t('pdReadFailed') }; }
       } },
     { key:'pdChkDuplicates', run: function(p, pub){
@@ -26394,6 +26710,27 @@
       } }
   ];
 
+  /* Health Score — Phase 1 of the requested Diagnostics rebuild.
+     A deterministic weighting over the SAME six checks that already run,
+     never a separate judgement: bad=-30, warn=-10, idle=0, floored at 0. The
+     weights are a constant here, not hidden in the loop, so they can be
+     tuned or exposed as a setting later without touching the scoring logic
+     itself. */
+  // A program younger than this is given the benefit of the doubt on having
+  // no enrolments yet; older than this and the silence is worth a warning.
+  const PD_NEW_PROGRAM_DAYS = 14;
+  const PD_SCORE_PENALTY = { bad: 30, warn: 10, idle: 0, ok: 0 };
+  function pdScoreFor(results){
+    let score = 100;
+    results.forEach(function(r){ score -= (PD_SCORE_PENALTY[r.level] || 0); });
+    return Math.max(0, score);
+  }
+  function pdBand(score){
+    if(score >= 85) return 'healthy';
+    if(score >= 50) return 'attention';
+    return 'critical';
+  }
+
   function pdRunProgram(p){
     const pub = pdFindPublished(p);
     const results = PD_CHECKS.map(function(c){
@@ -26405,8 +26742,10 @@
     });
     const worst = results.some(function(r){ return r.level === 'bad'; }) ? 'bad'
                 : (results.some(function(r){ return r.level === 'warn'; }) ? 'warn' : 'ok');
+    const score = pdScoreFor(results);
     return { id: p.id, name: pdProgramName(p), icon: p.icon, kind: p.kind,
-             published: !!pub, status: worst, checks: results };
+             published: !!pub, status: worst, checks: results,
+             score: score, band: pdBand(score) };
   }
 
   function pdRunAll(){ return PD_PROGRAMS.map(pdRunProgram); }
@@ -27380,9 +27719,47 @@
     schTitleInput.value = ''; schSubject.value = ''; schAudience.value = '';
     schRenderList();
   }
+  const SCH_RACE_MS = 12000;
   async function schRenderList(){
-    schList.innerHTML = `<div class="dash-empty">${t('teachersLoading')}</div>`;
-    const res = await postToSheet('my_schedule', { username: '' });   // teacher view: everything
+    /* Same fault the shared-profile page had before it was fixed: this
+       screen showed one static sentence and left it there for as long as
+       postToSheetRaw's own 45-second ceiling allowed, with no spinner, no
+       progress, and no way to tell "still working" from "frozen" — which is
+       exactly what the "جارٍ التحميل..." screenshot showed. Reusing the
+       proven pattern rather than inventing a second one: a visible spinner
+       immediately, an honest note once it is taking longer than normal, and
+       a race against a much shorter ceiling so the screen never sits mute
+       for anywhere near the full 45 seconds. */
+    schList.innerHTML =
+      '<div class="dash-empty">' +
+      '<div style="width:28px;height:28px;margin:0 auto 12px;border-radius:50%;' +
+      'border:3px solid rgba(201,162,39,0.22);border-top-color:#C9A227;' +
+      'animation:spSpin 0.85s linear infinite"></div>' +
+      t('teachersLoading') +
+      '<div id="schSlowNote" style="font-size:11px;color:var(--ink-dim);margin-top:10px;min-height:16px"></div>' +
+      '</div>';
+    const slowTimer = setTimeout(function(){
+      const note = document.getElementById('schSlowNote');
+      if(note) note.textContent = t('pubStillWaiting');
+    }, 5000);
+
+    let res = null;
+    try{
+      res = await Promise.race([
+        postToSheet('my_schedule', { username: '' }),   // teacher view: everything
+        new Promise(function(resolve){ setTimeout(function(){ resolve(undefined); }, SCH_RACE_MS); })
+      ]);
+    }catch(e){ res = null; }
+    clearTimeout(slowTimer);
+
+    if(res === undefined){
+      schList.innerHTML = '<div class="dash-empty">' + t('pubTimedOut') +
+        '<div class="ex-actions" style="justify-content:center;margin-top:10px">' +
+        '<button class="secondary-btn" id="schRetryBtn">' + t('pubRetry') + '</button></div></div>';
+      const rb = document.getElementById('schRetryBtn');
+      if(rb) rb.addEventListener('click', schRenderList);
+      return;
+    }
     if(!res || !res.ok){ schList.innerHTML = `<div class="dash-empty">${t('schLoadFailed')}</div>`; return; }
     if(!res.schedule.length){ schList.innerHTML = `<div class="dash-empty">${t('schNone')}</div>`; return; }
     schList.innerHTML = res.schedule.map(function(sc){
@@ -28647,8 +29024,7 @@
       'border:3px solid rgba(201,162,39,0.22);border-top-color:#C9A227;' +
       'animation:spSpin 0.85s linear infinite"></div>' +
       '<div>' + t('pubLoading') + '</div>' +
-      '<div id="spSlowNote" style="font-size:11px;color:#A5A8B0;margin-top:12px;min-height:16px"></div>' +
-      '<style>@keyframes spSpin{to{transform:rotate(360deg)}}</style>';
+      '<div id="spSlowNote" style="font-size:11px;color:#A5A8B0;margin-top:12px;min-height:16px"></div>';
   }
 
   async function openSharedProfilePage(token, passcode){
