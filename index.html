@@ -13051,7 +13051,7 @@
      Apps Script deployment is older than the page, and every server-side fix
      — the tolerant username lookup, the login-code mailer, the password
      repair — is simply absent. */
-  const EXPECTED_GS_BUILD = 'gs-2026-08-20-0741-009fa45c';
+  const EXPECTED_GS_BUILD = 'gs-2026-08-20-0857-48a6a981';
 
   async function jaCheckBackendFresh(){
     if(!SHEET_API_URL || !adminLoginHint) return;
@@ -19628,7 +19628,7 @@
     teacherOverviewArea.innerHTML = `<div class="dash-empty">${t('teachersLoading')}</div>`;
     const res = await postToSheet('get_teacher_overview', { teacherUsername });
     if(!res || !res.ok){
-      teacherOverviewArea.innerHTML = `<div class="dash-empty">${describeSyncFailure(res, 'lpSyncCreateFailed')}</div>`;
+      teacherOverviewArea.innerHTML = `<div class="dash-empty">${exEsc(describeSyncFailure(res, 'lpSyncCreateFailed'))}</div>`;
       return;
     }
     /* Used to return here on zero classes, before ever reaching the class-
@@ -25332,7 +25332,7 @@
     taglineArabic: 'تعلّم · تطوّر · ارتقِ'
   };
 
-  var DIAG_BUILD = 'jasmin-2026-08-20-0741-c3db0e1fc74c';
+  var DIAG_BUILD = 'jasmin-2026-08-20-0857-d1831945aca7';
   var DIAG_BUILD_AT = '2026-08-17';
   /* Capability probes.
      These used to be `typeof X === 'function'` — a check that the code was
@@ -28587,7 +28587,7 @@
     let res = null;
     try{
       res = await Promise.race([
-        postToSheet('my_schedule', { username: '' }),   // teacher view: everything
+        postToSheet('my_schedule', Object.assign({ username: '' }, abCreds())),   // teacher view: everything
         new Promise(function(resolve){ setTimeout(function(){ resolve(undefined); }, SCH_RACE_MS); })
       ]);
     }catch(e){ res = null; }
@@ -29738,7 +29738,7 @@
   async function ocRenderOverview(){
     ocOverview.innerHTML = `<div class="dash-empty">${t('teachersLoading')}</div>`;
     const r = await postToSheet('owner_overview', ocCreds());
-    if(!r || !r.ok){ ocOverview.innerHTML = `<div class="dash-empty">${describeSyncFailure(r, 'ocLoadFailed')}</div>`; return; }
+    if(!r || !r.ok){ ocOverview.innerHTML = `<div class="dash-empty">${exEsc(describeSyncFailure(r, 'ocLoadFailed'))}</div>`; return; }
     const cells = [
       ['ocStatLearners', r.learners], ['ocStatAdmins', r.admins],
       ['ocStatExams', r.exams], ['ocStatExamQ', r.examQuestions],
@@ -29760,7 +29760,7 @@
   async function ocRenderAdmins(){
     ocAdmins.innerHTML = `<div class="dash-empty">${t('teachersLoading')}</div>`;
     const r = await postToSheet('owner_list_admins', ocCreds());
-    if(!r || !r.ok){ ocAdmins.innerHTML = `<div class="dash-empty">${describeSyncFailure(r, 'ocLoadFailed')}</div>`; return; }
+    if(!r || !r.ok){ ocAdmins.innerHTML = `<div class="dash-empty">${exEsc(describeSyncFailure(r, 'ocLoadFailed'))}</div>`; return; }
     const lastOwner = r.ownerCount <= 1;
     ocAdmins.innerHTML = r.admins.map(function(a){
       const role = (a.role || 'owner').toLowerCase();
@@ -30395,7 +30395,7 @@
   async function ocRenderAudit(){
     ocAudit.innerHTML = `<div class="dash-empty">${t('teachersLoading')}</div>`;
     const r = await postToSheet('owner_audit', ocCreds());
-    if(!r || !r.ok){ ocAudit.innerHTML = `<div class="dash-empty">${describeSyncFailure(r, 'ocLoadFailed')}</div>`; return; }
+    if(!r || !r.ok){ ocAudit.innerHTML = `<div class="dash-empty">${exEsc(describeSyncFailure(r, 'ocLoadFailed'))}</div>`; return; }
     if(!r.entries.length){ ocAudit.innerHTML = `<div class="dash-empty">${t('ocNoAudit')}</div>`; return; }
     ocAudit.innerHTML = r.entries.map(function(e){
       const when = e.at ? new Date(e.at).toLocaleString(currentLang === 'ar' ? 'ar-EG' : 'en-US') : '';
@@ -32061,7 +32061,7 @@
         return r;
       });
     if(!res || !res.ok){
-      examsList.innerHTML = `<div class="dash-empty">${describeSyncFailure(res, 'lpSyncProgressFailed')}</div>`;
+      examsList.innerHTML = `<div class="dash-empty">${exEsc(describeSyncFailure(res, 'lpSyncProgressFailed'))}</div>`;
       return;
     }
     // An empty bank is stated plainly. Filling it with generated questions
@@ -35226,7 +35226,7 @@
     slAdvance();
     if(!res || !res.ok){
       slEnd();
-      friendsListArea.innerHTML = `<div class="dash-empty">${describeSyncFailure(res, 'lpSyncCreateFailed')}</div>`;
+      friendsListArea.innerHTML = `<div class="dash-empty">${exEsc(describeSyncFailure(res, 'lpSyncCreateFailed'))}</div>`;
       return;
     }
     slEnd();
