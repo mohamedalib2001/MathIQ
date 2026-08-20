@@ -790,6 +790,23 @@
   .ex-insight p{ font-size:12.5px; line-height:1.85; color:var(--ex-ink); margin:0 0 10px; }
   .ex-insight .ex-src{ font-size:10px; color:var(--ex-ink2); line-height:1.7;
     border-top:1px solid var(--ex-line); padding-top:8px; margin-top:4px; }
+  .ex-attn-clear{ font-size:12.5px; color:var(--ex-ink); background:rgba(52,211,153,0.08);
+    border:1px solid rgba(52,211,153,0.3); border-radius:11px; padding:12px 14px; }
+  .ex-attn-row{ display:flex; align-items:center; gap:10px; padding:10px 13px;
+    border-radius:11px; margin-bottom:7px; cursor:pointer; font-size:12.5px;
+    background:var(--ex-card); border:1px solid var(--ex-line); transition:border-color .15s; }
+  .ex-attn-row:hover{ border-color:rgba(201,162,39,0.4); }
+  .ex-attn-row.bad{ border-color:rgba(239,68,68,0.28); }
+  .ex-attn-row.warn{ border-color:rgba(245,158,11,0.28); }
+  .ex-attn-dot{ width:7px; height:7px; border-radius:50%; flex:none; }
+  .ex-attn-dot.bad{ background:#f87171; }
+  .ex-attn-dot.warn{ background:#f59e0b; }
+  .teacher-status-badge{ font-size:9.5px; font-weight:800; padding:3px 9px; border-radius:20px; flex:none; }
+  .teacher-status-badge.active{ background:rgba(52,211,153,0.15); color:#34d399; }
+  .teacher-status-badge.suspended{ background:rgba(239,68,68,0.15); color:#f87171; }
+  .teacher-status-badge.leave{ background:rgba(245,158,11,0.15); color:#f59e0b; }
+  .teacher-status-select{ font-size:10.5px; background:var(--input-bg); color:var(--ink);
+    border:1px solid var(--chip-border); border-radius:8px; padding:3px 6px; flex:none; }
   .ex-row{ display:flex; align-items:center; gap:11px; padding:10px 12px;
     background:var(--ex-card); border:1px solid var(--ex-line); border-radius:11px; margin-bottom:7px; }
   .ex-row-av{ width:34px; height:34px; border-radius:50%; flex:none; background-size:cover;
@@ -3022,7 +3039,9 @@
   .pd-score{ flex:none; font-size:11px; font-weight:800; width:30px; height:30px;
     border-radius:50%; display:flex; align-items:center; justify-content:center; }
   .pd-score.healthy{ background:rgba(16,185,129,0.15); color:#34d399; }
-  .pd-score.attention{ background:rgba(245,158,11,0.15); color:#fbbf24; }
+  .pd-score.info{ background:rgba(96,165,250,0.15); color:#60a5fa; }
+  .pd-score.warning{ background:rgba(245,158,11,0.15); color:#fbbf24; }
+  .pd-score.high{ background:rgba(249,115,22,0.18); color:#fb923c; }
   .pd-score.critical{ background:rgba(239,68,68,0.15); color:#fca5a5; }
   .pd-overall{ display:flex; align-items:center; gap:14px; padding:16px 18px;
     border-radius:14px; margin-bottom:14px; border:1px solid var(--chip-border); }
@@ -3038,22 +3057,39 @@
   .pd-pattern{ display:flex; align-items:center; gap:9px; font-size:12px;
     color:var(--ink-dim); padding:5px 0; line-height:1.7; }
   .pd-pattern .pd-dot{ margin-top:0; }
+  .pd-pattern-fix{ display:block; font-size:10.5px; color:var(--ink-dim); margin-top:2px; font-weight:600; }
 
   /* ---------- LIVE DATA MAP ---------- */
   .ldm-header{ display:flex; align-items:center; justify-content:space-between;
     gap:10px; margin-bottom:10px; }
   .ldm-header-actions{ display:flex; gap:6px; }
+  .ldm-coverage{ font-size:10px; color:var(--ink-dim); margin-top:3px; font-weight:600; }
   .ldm-roundtrip{ font-size:11px; line-height:1.85; padding:9px 12px; border-radius:10px;
     margin-bottom:12px; border:1px solid var(--chip-border); background:var(--input-bg); }
   .ldm-roundtrip.ok{ border-color:rgba(52,211,153,0.35); color:#34d399; }
   .ldm-roundtrip.bad{ border-color:rgba(239,68,68,0.35); color:#fca5a5; }
   .ldm-header-title{ font-size:13px; font-weight:800; color:var(--ink);
     display:flex; align-items:center; gap:8px; }
-  .ldm-live-dot{ width:8px; height:8px; border-radius:50%; background:#34d399; flex:none; }
+  .ldm-live-dot{ width:8px; height:8px; border-radius:50%; background:#34d399; flex:none; display:inline-block; }
   @media (prefers-reduced-motion: no-preference){
+    /* Three states, three honest speeds — not decoration. A slow, calm pulse
+       says "healthy and settling"; a faster one says "actively working, do
+       not read this as stuck"; a scan that finished with a real problem gets
+       a steady glow with no pulse at all, because a flashing red dot reads
+       as an alarm nobody can silence, and a fixed one reads as a fact. */
     .ldm-live-dot{ animation:ldmBreathe 3.2s ease-in-out infinite; }
+    .ldm-live-dot.scanning{ background:#60a5fa; animation:ldmBreatheBlue 1.1s ease-in-out infinite; }
+    .ldm-live-dot.attention{ background:#f59e0b; animation:ldmBreathe 2.2s ease-in-out infinite; }
+    .ldm-live-dot.failed{ background:#f87171; animation:none; box-shadow:0 0 6px rgba(248,113,113,0.6); }
     @keyframes ldmBreathe{ 0%,100%{ opacity:1; box-shadow:0 0 0 0 rgba(52,211,153,0.5) }
       50%{ opacity:0.55; box-shadow:0 0 0 5px rgba(52,211,153,0) } }
+    @keyframes ldmBreatheBlue{ 0%,100%{ opacity:1; box-shadow:0 0 0 0 rgba(96,165,250,0.55) }
+      50%{ opacity:0.5; box-shadow:0 0 0 4px rgba(96,165,250,0) } }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .ldm-live-dot.scanning{ background:#60a5fa; }
+    .ldm-live-dot.attention{ background:#f59e0b; }
+    .ldm-live-dot.failed{ background:#f87171; }
   }
   .ldm-kpis{ display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:12px; }
   .ldm-kpi{ background:var(--input-bg); border:1px solid var(--chip-border);
@@ -3078,6 +3114,17 @@
   .ldm-card-purpose{ font-size:10.5px; color:var(--ink-dim); margin-bottom:6px;
     min-height:14px; line-height:1.5; }
   .ldm-card-meta{ display:flex; gap:10px; font-size:10px; color:var(--ink-dim); }
+  .ldm-phantom-note{ color:#f59e0b; font-size:9.5px; }
+  .ldm-issue-filters{ display:flex; gap:6px; margin:10px 0 8px; flex-wrap:wrap; }
+  .ldm-issue-filter{ font-size:10.5px; padding:5px 11px; border-radius:20px; cursor:pointer;
+    background:var(--input-bg); border:1px solid var(--chip-border); color:var(--ink-dim); }
+  .ldm-issue-filter.active{ background:rgba(201,162,39,0.16); border-color:rgba(201,162,39,0.4); color:var(--ink); }
+  .ldm-issue-row{ display:flex; align-items:center; gap:10px; padding:9px 12px; border-radius:9px;
+    margin-bottom:6px; font-size:11.5px; background:var(--card-bg); border:1px solid var(--chip-border); }
+  .ldm-issue-row .ldm-issue-type{ font-size:9px; font-weight:800; padding:2px 8px; border-radius:10px; flex:none; }
+  .ldm-issue-type.orphan{ background:rgba(239,68,68,0.15); color:#f87171; }
+  .ldm-issue-type.schema{ background:rgba(245,158,11,0.15); color:#f59e0b; }
+  .ldm-issue-type.dupe{ background:rgba(239,68,68,0.15); color:#f87171; }
   @media (max-width:900px){ .ldm-kpis{ grid-template-columns:repeat(2,1fr); } }
 
   /* ---------- JASMIN BRAND MARK ----------
@@ -4395,6 +4442,18 @@
          order (system leadership and daily academic work stay open; the
          advanced/maintenance tools — diagnostics, connections, activation —
          collapse, since they are exactly what that order ranks last). ==== -->
+    <!-- Recent Tools — the request's "Recent/Favorites" item. Built purely
+         from which tiles were actually clicked (localStorage, per device),
+         not a separate favourites system to maintain — clicking IS marking
+         something as used. Hidden entirely until there is real history, so
+         it never shows as an empty shelf on first login. -->
+    <div class="atg" id="atgRecentWrap" data-open="1" style="display:none;">
+      <div class="atg-head" role="button" tabindex="0" data-atg-toggle="recent">
+        <span class="atg-title" data-i18n="atgRecent">⭐ الأكثر استخدامًا</span>
+        <span class="atg-caret">▾</span>
+      </div>
+      <div class="admin-tools-grid" id="atgRecent"></div>
+    </div>
     <div class="atg" data-open="1">
       <div class="atg-head" role="button" tabindex="0" data-atg-toggle="ops">
         <span class="atg-title" data-i18n="atgOps">📚 العمليات اليومية</span>
@@ -4550,6 +4609,16 @@
       <div class="field-icon-wrap">
         <span class="field-icon"><svg class="nx-icon" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
         <input type="password" id="teacherPinInput" class="ltr-input" data-i18n-placeholder="pinPlaceholder" placeholder="كلمة المرور">
+      </div>
+      <!-- Optional: the backend has stored an Email column since Teacher ID /
+           Status were added, but nothing in this form ever collected it —
+           wired now so the capability that already exists server-side isn't
+           left unreachable from the actual add-teacher screen. Optional,
+           because requiring it would block a teacher record whose email
+           genuinely isn't known yet. -->
+      <div class="field-icon-wrap">
+        <span class="field-icon"><svg class="nx-icon" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 6 10 7L22 6"/></svg></span>
+        <input type="email" id="teacherEmailInput" class="ltr-input" data-i18n-placeholder="teacherEmailPh" placeholder="email@example.com (اختياري)">
       </div>
       <div class="feedback wrong" id="teacherError" style="min-height:16px;"></div>
       <div class="editor-actions">
@@ -5465,7 +5534,12 @@
     <div class="pd-actions">
       <button class="start-btn" id="pdRunBtn" data-i18n="pdRun">▶ افحص كل البرامج</button>
       <button class="secondary-btn" id="pdCopyBtn" data-i18n="pdCopy">📋 نسخ التقرير</button>
+      <button class="secondary-btn" id="pdRulesBtn" data-i18n="pdRulesBtn">⚙️ الفحوصات</button>
     </div>
+    <!-- Rule Registry — a minimal one: enable/disable each check, persisted
+         per device. A disabled check is really excluded from scoring (see
+         pdRunProgram), not just visually hidden. -->
+    <div id="pdRulesPanel" class="hidden" style="margin:8px 0;"></div>
     <div id="pdProgress" class="pd-progress"></div>
     <div id="pdSummary" class="pd-summary"></div>
     <div id="pdList"></div>
@@ -6176,6 +6250,14 @@
            leaving it for a different screen. -->
       <div id="ldmRoundtripOut" class="ldm-roundtrip hidden"></div>
       <div id="ldmOrphansOut" class="ldm-roundtrip hidden"></div>
+      <!-- Issue Center — one filterable table built from the SAME three
+           findings already computed above (duplicates, schema, orphans), not
+           a fourth data source. Hidden entirely when there is nothing to
+           list, exactly like every other empty-state in this project. -->
+      <div id="ldmIssueCenter" class="hidden">
+        <div class="ldm-issue-filters" id="ldmIssueFilters"></div>
+        <div id="ldmIssueTable"></div>
+      </div>
       <div class="ldm-kpis" id="ldmKpis"></div>
       <div class="ldm-grid" id="ldmGrid"></div>
     </div>
@@ -6822,6 +6904,7 @@
   const teacherNameInput = document.getElementById('teacherNameInput');
   const teacherUserInput = document.getElementById('teacherUserInput');
   const teacherPinInput = document.getElementById('teacherPinInput');
+  const teacherEmailInput = document.getElementById('teacherEmailInput');
   const teacherError = document.getElementById('teacherError');
   const saveTeacherBtn = document.getElementById('saveTeacherBtn');
   const cancelTeacherBtn = document.getElementById('cancelTeacherBtn');
@@ -8423,6 +8506,7 @@
       cmdOpenAbacus:'مدرّب الأباكوس', cmdOpenKnowledgeMap:'رحلتي التعليمية', cmdOpenPlacement:'اختبار تحديد المستوى',
       cmdOpenRace:'سباق مباشر', cmdTagTraining:'تدريب', cmdOpenMyStats:'إنجازاتي وسجلي', cmdEditProfile:'تعديل بياناتي',
       cmdLogout:'تسجيل الخروج', cmdTagAccount:'حسابي', cmdOpenAllStudents:'لوحة جميع الطلاب', cmdManageClasses:'إدارة الفصول',
+      cmdTagOwner:'المالك',
       cmdAddTeacher:'إضافة حساب معلم', cmdSheetConnection:'ربط جوجل شيت', cmdTagAdmin:'إدارة',
       cmdOpenStudent:'فتح حساب: {name}', cmdTagStudents:'الطلاب',
       serviceActivationLink:'تفعيل الخدمات', serviceActivationTitle:'🧩 تفعيل الخدمات',
@@ -8494,13 +8578,18 @@
       ldmRoundtripRunning:'جارٍ الكتابة… ثم القراءة من جديد للتأكد…',
       ldmRoundtripOk:'✅ الكتابة والقراءة نجحتا فعليًا — كتابة {w}ms · قراءة {r}ms · إجمالي {t}ms.',
       ldmRoundtripLost:'⛔ كُتِب الصف لكن تعذّرت قراءته مجددًا — مشكلة حقيقية في المزامنة.',
+      ldmIssueFilter_all:'الكل', ldmIssueFilter_dupe:'تكرار', ldmIssueFilter_schema:'Schema', ldmIssueFilter_orphan:'مرجع يتيم',
+      ldmIssueDupe:'{sheet}: {n} هوية مكرَّرة', ldmIssueSchema:'{sheet}: أعمدة ناقصة — {cols}',
+      ldmIssueOrphan:'{child} → {parent}: {n} صفًا يتيمًا',
       ldmOrphansFound:'⛔ {n} مرجعًا يتيمًا — يشير إلى سجلّ لم يعد موجودًا.',
       ldmOrphanLine:'{child} → {parent}: {n} صفًا',
       ldmRoundtripFail:'تعذّر تنفيذ الاختبار',
+      ldmCoverage:'التغطية: {p}٪ موثَّقة الغرض · {s}٪ Schema معروف',
       ldmHeader:'{n} صفحة مكتشَفة في قاعدة البيانات', ldmRefresh:'🔄 تحديث الخريطة',
       ldmKpiSchema:'صفحات ناقصة الأعمدة', ldmSchemaWarn:'⚠ أعمدة متوقَّعة مفقودة: {cols}',
       ldmKpiDupes:'هويات مكرَّرة', ldmDupeWarn:'⛔ {n} هوية مكرَّرة — نفس المعرّف في أكثر من صف.',
       ldmKpiSheets:'صفحة', ldmKpiWithData:'بها بيانات', ldmKpiLabelled:'معروفة الغرض', ldmKpiRows:'إجمالي السجلات',
+      ldmPhantomRows:'(النطاق المنسَّق يمتد لـ{n} صفًا — تنسيق قديم، ليس بيانات فعلية)',
       ldmRows:'{n} سجل', ldmCols:'{n} عمود',
       ldmUnlabelled:'صفحة غير موثَّقة بعد — تحتاج مراجعة، وليست بالضرورة خطأ.',
       connectionLink:'🔗 ربط جوجل شيت', connectionTitle:'ربط جوجل شيت',
@@ -8540,6 +8629,13 @@
       guardianAuditMismatch:'كلمة المرور مختلفة عن نفس الاسم في طفل آخر — وحّديها ليظهر الأبناء معًا.',
       guardianAuditNoLearner:'هذا الاسم غير مرتبط بأي حساب متعلّم — لن يظهر عنصر «أبنائي».',
       guardianAuditOk:'✓ سليم — سيظهر «أبنائي» داخل حساب {name}',
+      teacherEditProfBtn:'✏️ تعديل المعلومات المهنية', teacherQualPh:'المؤهل العلمي (مثال: بكالوريوس تربية)',
+      teacherSubjectPh:'المادة الأساسية — من البرامج المنشورة فعليًا',
+      teacherSpecPh:'التخصص (مثال: رياضيات)', teacherYearsPh:'سنوات الخبرة',
+      teacherYearsExp:'⏳ {n} سنة خبرة', teacherProfSaved:'حُفظت المعلومات المهنية.',
+      teacherEmailPh:'البريد الإلكتروني (اختياري)',
+      teacherStatus_active:'نشط', teacherStatus_suspended:'موقوف', teacherStatus_leave:'إجازة',
+      teacherChangeStatus:'تغيير الحالة', teacherStatusChanged:'حالة {u}: {s}',
       addTeacherLink:'➕ إضافة حساب معلم', addTeacherTitle:'إضافة حساب معلم', teacherNamePh:'اسم المعلم/ة',
       teacherUsernameTaken:'اسم المستخدم مستخدم بالفعل', teacherCreated:'✓ تم إنشاء الحساب',
       parentBannerText:'👪 نتائج أبنائك فقط', teacherBannerText:'🏫 نتائج جميع الطلاب',
@@ -9190,9 +9286,17 @@
       exAvgScore:'متوسط الدرجات', exCompletion:'نسبة الإكمال', exRevenue:'الإيراد الشهري',
       exNoSource:'لا يوجد مصدر', exNoSourceHint:'لم يُسجَّل شيء لهذا المؤشر',
       exVsPrev:'مقارنة بالفترة السابقة', exNewActivity:'نشاط جديد',
+      ocAttnTitle:'⚠️ مركز انتباه المالك', ocAttnSub:'كل ما يحتاج قرارًا منك، في مكان واحد.',
+      ocAttnClear:'كل الأنظمة تعمل بصورة طبيعية — لا شيء يحتاج تدخّلك الآن.',
+      ocAttnAtRisk:'{n} متعلّمًا لم يسجّلوا دخولًا منذ ٧ أيام أو أكثر.',
+      ocAttnOrphans:'{n} سجلًّا يشير لحساب غير موجود — راجع خريطة البيانات الحية.',
+      ocAttnDupes:'{n} هوية مكرَّرة في صفحات رئيسية — راجع خريطة البيانات الحية.',
+      ocAttnSchema:'{n} صفحة ينقصها عمود متوقَّع — راجع خريطة البيانات الحية.',
       exIntelTitle:'ذكاء جاسمين', exIntelSub:'ما حدث، وما يستحق انتباهك',
       exWhatHappened:'ماذا حدث؟',
       exBasedOn:'مبني على: {u} حساب · {s} جلسة · {r} نتيجة · {e} تسجيل', exGeneratedAt:'وقت التوليد:',
+      exNarrWeekDown:'⚠ انخفض عدد الحاضرين هذا الأسبوع بنسبة {p}٪ مقارنة بالأسبوع الماضي.',
+      exNarrWeekUp:'✓ ارتفع عدد الحاضرين هذا الأسبوع بنسبة {p}٪ مقارنة بالأسبوع الماضي.',
       exNarrGrow:'{n} متعلمًا نشطًا خلال ٣٠ يومًا، بارتفاع {p}٪ عن الفترة السابقة.',
       exNarrActive:'{n} متعلمًا سجّلوا دخولًا خلال آخر ٣٠ يومًا.',
       exNarrQuiet:'لا تسجيلات دخول خلال آخر ٣٠ يومًا — الأكاديمية ساكنة حاليًا.',
@@ -9482,10 +9586,15 @@
       ndSyncLocal:'تعمل من البيانات المحلية — لا تحتاج مزامنة',
       pdTitle:'🩺 تشخيص البرامج',
       pdNote:'فحص حيّ لكل برنامج من نفس المصادر التي يقرأها المتعلّم — فنجاح الفحص يعني أن البرنامج يعمل فعلًا.',
+      pdRulesBtn:'⚙️ الفحوصات', pdRulesNote:'فحص مُعطَّل لا يُحتسَب في الدرجة، وليس مخفيًّا فقط.',
       pdRun:'▶ افحص كل البرامج', pdCopy:'📋 نسخ التقرير',
       pdIdle:'اضغط «افحص» لبدء الفحص.', pdRunning:'جارٍ الفحص…',
-      pdBand_healthy:'سليمة', pdBand_attention:'تحتاج متابعة', pdBand_critical:'حرجة',
+      pdBand_healthy:'سليمة', pdBand_info:'ملاحظة', pdBand_warning:'تحتاج متابعة', pdBand_high:'تحتاج تدخلًا', pdBand_critical:'حرجة',
       pdPatternsTitle:'📊 أنماط مشتركة — قبل التفاصيل',
+      pdFixContent:'أضِف وحدة ودرسًا واحدًا على الأقل لكل برنامج في هذه المجموعة، ثم أعد الفحص.',
+      pdFixQuestions:'أضِف سؤالًا واحدًا على الأقل لكل درس منشور، ثم أعد الفحص.',
+      pdFixVisible:'راجع حالة النشر لهذه البرامج — إما انشرها فعليًا أو أرشفها صراحةً.',
+      pdArchivedTotal:'{n} نسخة أرشيفية متراكمة إجمالًا عبر هذه البرامج — لا تؤثّر على المتعلّمين، لكن يمكن مراجعتها وحذفها يدويًا.',
       pdPatternLine:'{n} برامج تشترك في: {label}',
       pdNoEnrolmentsNew:'لا تسجيلات بعد — طبيعي، البرنامج عمره {n} يوم فقط.',
       pdRecheckOne:'أعد فحص هذا البرنامج فقط', pdRecheckedOne:'{name}: {score}/100 — تحديث فوري بلا مسح الباقي.',
@@ -10051,9 +10160,17 @@
       goToRegisterLink:'ليس لديكِ حساب؟ سجّلي الآن', adminLink:'🛠️ إدارة الحسابات (لصاحب التطبيق)',
       adminLinkShort:'إدارة الحسابات', certVerifyLinkShort:'التحقق من شهادة',
       guestLimitTitle:'يلزم التسجيل للمتابعة',
+      /* A second guestLimitBody used to sit further down this same object,
+         shadowing this one — the survivor said "you've used all your free
+         tries," which stopped matching reality once guest mode was disabled
+         outright rather than rate-limited (see the comment at the guest
+         button's click handler). Removed the stale duplicate; this message,
+         which was dead code until now, is the one that actually describes
+         current behaviour. ar_m had no duplicate to reveal the mismatch —
+         its single definition carried the same stale wording and needed
+         the same correction applied directly. */
       guestLimitBody:'محتوى الأكاديمية وبرامجها متاح للأعضاء المسجَّلين فقط، حمايةً لبيانات الطلاب. سجّلي حسابًا الآن واحصلي على شهر مجاني كامل.',
       authRequiredMsg:'🔒 يلزم تسجيل الدخول للوصول إلى هذه الصفحة',
-      guestLimitBody:'استخدمتِ كل المحاولات المجانية كضيف. سجّلي حسابًا للمتابعة والحصول على شهر مجاني كامل!',
       registerNowBtn:'سجّلي الآن',
       subscriptionRequiredTitle:'انتهت الفترة التجريبية',
       subscriptionRequiredBody:'انتهت فترتك المجانية لمدة شهر. يلزم الاشتراك السنوي للمتابعة.',
@@ -10068,6 +10185,7 @@
       trialActive:'نشطة — تبقّى {n} يوم', trialNone:'لم تبدأ بعد', trialExpired:'انتهت',
       accountDisabledTitle:'هذا الحساب معطّل حاليًا', accountDisabledBody:'تواصلي مع صاحب التطبيق لإعادة تفعيل الحساب.',
       perStudentSubNote:'حالة الاشتراك والتفعيل الآن لكل حساب على حدة — راجعيها من قائمة الطلاب في لوحة الإدارة الرئيسية.',
+      atgRecent:'⭐ الأكثر استخدامًا',
       atgOps:'📚 العمليات اليومية', atgLead:'🧭 القيادة والذكاء الاصطناعي',
       atgData:'🔗 البيانات والاشتراكات', atgDiag:'🛠️ التشخيص والصيانة',
       adminDashTitle:'مركز تحكّم أكاديمية جاسمين', adminDashStudents:'المتعلّمون', adminDashTools:'الأدوات والإعدادات',
@@ -10234,7 +10352,7 @@
       placementApplyBtn:'▶ ابدأ بهذا المستوى',
       raceJoinNote:'إعدادات السباق تُحدَّد بالكامل من ينشئه — فقط الصق الكود وانضم.',
       raceOpponentWins:'🏆 فازت {name}! حاول مرة أخرى',
-      guestLimitBody:'استخدمت كل المحاولات المجانية كضيف. سجّل حسابًا للمتابعة والحصول على شهر مجاني كامل!',
+      guestLimitBody:'محتوى الأكاديمية وبرامجها متاح للأعضاء المسجَّلين فقط، حمايةً لبيانات الطلاب. سجّل حسابًا الآن واحصل على شهر مجاني كامل.',
       accountDisabledBody:'تواصل مع صاحب التطبيق لإعادة تفعيل الحساب.',
       handoffTitleTpl:'سلّم الجهاز لـ {name}',
       pbNoPrograms:'لا توجد برامج بعد. أنشئ أول برنامج.'
@@ -10435,6 +10553,7 @@
       cmdOpenAbacus:'Abacus trainer', cmdOpenKnowledgeMap:'My learning journey', cmdOpenPlacement:'Placement test',
       cmdOpenRace:'Live race', cmdTagTraining:'Training', cmdOpenMyStats:'My achievements & history', cmdEditProfile:'Edit my info',
       cmdLogout:'Log out', cmdTagAccount:'Account', cmdOpenAllStudents:'All students dashboard', cmdManageClasses:'Manage classes',
+      cmdTagOwner:'Owner',
       cmdAddTeacher:'Add teacher account', cmdSheetConnection:'Google Sheet connection', cmdTagAdmin:'Admin',
       cmdOpenStudent:'Open: {name}', cmdTagStudents:'Students',
       serviceActivationLink:'Service Activation', serviceActivationTitle:'🧩 Service Activation',
@@ -10506,13 +10625,18 @@
       ldmRoundtripRunning:'Writing… then reading it back to confirm…',
       ldmRoundtripOk:'✅ Write and read both actually succeeded — write {w}ms · read {r}ms · total {t}ms.',
       ldmRoundtripLost:'⛔ The row was written but could not be read back — a real sync problem.',
+      ldmIssueFilter_all:'All', ldmIssueFilter_dupe:'Duplicate', ldmIssueFilter_schema:'Schema', ldmIssueFilter_orphan:'Orphan',
+      ldmIssueDupe:'{sheet}: {n} duplicate identity', ldmIssueSchema:'{sheet}: missing columns — {cols}',
+      ldmIssueOrphan:'{child} → {parent}: {n} orphaned row(s)',
       ldmOrphansFound:'⛔ {n} orphaned reference(s) — pointing at a record that no longer exists.',
       ldmOrphanLine:'{child} → {parent}: {n} row(s)',
       ldmRoundtripFail:'Could not run the test',
+      ldmCoverage:'Coverage: {p}% purpose documented · {s}% schema known',
       ldmHeader:'{n} sheets discovered in the database', ldmRefresh:'🔄 Refresh the map',
       ldmKpiSchema:'sheets with missing columns', ldmSchemaWarn:'⚠ Expected columns missing: {cols}',
       ldmKpiDupes:'duplicate identities', ldmDupeWarn:'⛔ {n} duplicate identity — same key on more than one row.',
       ldmKpiSheets:'sheets', ldmKpiWithData:'with data', ldmKpiLabelled:'known purpose', ldmKpiRows:'total records',
+      ldmPhantomRows:'(the formatted range extends to {n} rows — old formatting, not real data)',
       ldmRows:'{n} rows', ldmCols:'{n} cols',
       ldmUnlabelled:'Not documented yet — worth a look, not necessarily an error.',
       connectionLink:'🔗 Connect Google Sheet', connectionTitle:'Connect Google Sheet',
@@ -10552,6 +10676,13 @@
       guardianAuditMismatch:'Password differs from the same username on another child — make them identical.',
       guardianAuditNoLearner:'This username matches no learner account — \"My children\" will not appear.',
       guardianAuditOk:'✓ Healthy — \"My children\" will appear inside {name}',
+      teacherEditProfBtn:'✏️ Edit professional info', teacherQualPh:'Qualification (e.g. B.Ed.)',
+      teacherSubjectPh:'Primary subject — from currently published programs',
+      teacherSpecPh:'Specialization (e.g. Mathematics)', teacherYearsPh:'Years of experience',
+      teacherYearsExp:'⏳ {n} years experience', teacherProfSaved:'Professional info saved.',
+      teacherEmailPh:'Email (optional)',
+      teacherStatus_active:'Active', teacherStatus_suspended:'Suspended', teacherStatus_leave:'On leave',
+      teacherChangeStatus:'Change status', teacherStatusChanged:'{u} status: {s}',
       addTeacherLink:'➕ Add a teacher account', addTeacherTitle:'Add a teacher account', teacherNamePh:"Teacher's name",
       teacherUsernameTaken:'That username is already taken', teacherCreated:'✓ Account created',
       parentBannerText:"👪 Your children's results only", teacherBannerText:"🏫 All students' results",
@@ -11106,9 +11237,17 @@
       exAvgScore:'Average score', exCompletion:'Completion rate', exRevenue:'Monthly revenue',
       exNoSource:'No source', exNoSourceHint:'nothing recorded for this metric',
       exVsPrev:'vs previous period', exNewActivity:'new activity',
+      ocAttnTitle:'⚠️ Owner Attention Center', ocAttnSub:'Everything that needs your decision, in one place.',
+      ocAttnClear:'All systems are working normally — nothing needs your attention right now.',
+      ocAttnAtRisk:'{n} learner(s) have not signed in for 7+ days.',
+      ocAttnOrphans:'{n} record(s) point to an account that no longer exists — check the live data map.',
+      ocAttnDupes:'{n} duplicate identity(ies) on key sheets — check the live data map.',
+      ocAttnSchema:'{n} sheet(s) missing an expected column — check the live data map.',
       exIntelTitle:'JASMIN Intelligence', exIntelSub:'What happened, and what deserves attention',
       exWhatHappened:'What happened?',
       exBasedOn:'Based on: {u} accounts · {s} sessions · {r} results · {e} enrolments', exGeneratedAt:'Generated at:',
+      exNarrWeekDown:'⚠ Attendance dropped {p}% this week compared to last week.',
+      exNarrWeekUp:'✓ Attendance rose {p}% this week compared to last week.',
       exNarrGrow:'{n} active learners over 30 days, up {p}% on the previous period.',
       exNarrActive:'{n} learners signed in over the last 30 days.',
       exNarrQuiet:'No sign-ins in the last 30 days — the academy is currently quiet.',
@@ -11398,10 +11537,15 @@
       ndSyncLocal:'runs from local data — no sync needed',
       pdTitle:'🩺 Program diagnostics',
       pdNote:'A live check of each program against the same sources the learner reads — so a pass means the program genuinely works.',
+      pdRulesBtn:'⚙️ Checks', pdRulesNote:'A disabled check is excluded from the score, not just hidden.',
       pdRun:'▶ Check all programs', pdCopy:'📋 Copy report',
       pdIdle:'Press Check to begin.', pdRunning:'Checking…',
-      pdBand_healthy:'Healthy', pdBand_attention:'Needs attention', pdBand_critical:'Critical',
+      pdBand_healthy:'Healthy', pdBand_info:'Note', pdBand_warning:'Needs attention', pdBand_high:'Needs action', pdBand_critical:'Critical',
       pdPatternsTitle:'📊 Shared patterns — before the detail',
+      pdFixContent:'Add one module and one lesson to each program in this group, then recheck.',
+      pdFixQuestions:'Add at least one question to every published lesson, then recheck.',
+      pdFixVisible:'Review these programs\' publish status — either publish them for real or archive them explicitly.',
+      pdArchivedTotal:'{n} archived copies accumulated across these programs in total — harmless to learners, but worth reviewing and clearing by hand.',
       pdPatternLine:'{n} programs share: {label}',
       pdNoEnrolmentsNew:'No enrolments yet — normal, the program is only {n} day(s) old.',
       pdRecheckOne:'Recheck this program only', pdRecheckedOne:'{name}: {score}/100 — updated instantly, without rescanning the rest.',
@@ -11969,7 +12113,6 @@
       guestLimitTitle:'Registration required',
       guestLimitBody:'Academy content and programs are available to registered members only, to protect student data. Register now and get a full free month.',
       authRequiredMsg:'🔒 Sign in is required to open this page',
-      guestLimitBody:"You've used all your free guest tries. Register an account to continue and get a full free month!",
       registerNowBtn:'Register now',
       subscriptionRequiredTitle:'Trial period ended',
       subscriptionRequiredBody:'Your free month has ended. An annual subscription is required to continue.',
@@ -11984,6 +12127,7 @@
       trialActive:'Active — {n} days left', trialNone:'Not started yet', trialExpired:'Expired',
       accountDisabledTitle:'This account is currently disabled', accountDisabledBody:'Contact the app owner to reactivate it.',
       perStudentSubNote:'Subscription and activation are now tracked per account — check the student list in the main admin dashboard.',
+      atgRecent:'⭐ Most used',
       atgOps:'📚 Daily Operations', atgLead:'🧭 Leadership & AI',
       atgData:'🔗 Data & Subscriptions', atgDiag:'🛠️ Diagnostics & Maintenance',
       adminDashTitle:'JASMIN Academy Command Center', adminDashStudents:'Learners', adminDashTools:'Tools & Settings',
@@ -12368,8 +12512,8 @@
       card.innerHTML = `
         <button class="edit-fab" data-edit="${key}" title="${t('editProfile')}">✏️</button>
         <div class="avatar" id="cardAvatar_${key}" style="background:${hexToSoftBg(p.color)};"></div>
-        <div class="p-name">${profileDisplayName(key)}</div>
-        ${p.username ? `<div class="p-username">@${p.username}</div>` : ''}
+        <div class="p-name">${exEsc(profileDisplayName(key))}</div>
+        ${p.username ? `<div class="p-username">@${exEsc(p.username)}</div>` : ''}
         <div class="p-age">${age}</div>
         <div class="p-best">${bestLine(p.best.score)}</div>
         ${statusBadgeHtml(key)}
@@ -12731,7 +12875,15 @@
             <span class="cr-left">${fmt('crRemaining', { n: cr.remaining })}</span>
           </span>`;
       }
-      card.innerHTML = `<span class="program-icon">${pickProgramIcon_(pr.title)}</span><span class="program-name">${pr.title}</span><span class="program-stat">${stat}</span>${scope}${adminRibbon}`;
+      /* CONFIRMED, EXPLOITABLE STORED XSS, found by a systematic scan and
+         proven by direct execution before this fix: pr.title is teacher-
+         entered free text, inserted here via innerHTML with no escaping, on
+         the program list every enrolled student loads. A title set to
+         '<img src=x onerror="...">' actually creates that element with a
+         live onerror handler — verified directly, not assumed. exEsc() is
+         the same escaping helper already used correctly elsewhere in this
+         file; it was simply never applied here. */
+      card.innerHTML = `<span class="program-icon">${pickProgramIcon_(pr.title)}</span><span class="program-name">${exEsc(pr.title)}</span><span class="program-stat">${stat}</span>${scope}${adminRibbon}`;
       card.addEventListener('click', ()=> openProgramPlayer(pr));
       const ribbonEl = card.querySelector('.cr-ribbon');
       if(ribbonEl) ribbonEl.addEventListener('click', function(ev){
@@ -12899,7 +13051,7 @@
      Apps Script deployment is older than the page, and every server-side fix
      — the tolerant username lookup, the login-code mailer, the password
      repair — is simply absent. */
-  const EXPECTED_GS_BUILD = 'gs-2026-08-19-1431-07becc14';
+  const EXPECTED_GS_BUILD = 'gs-2026-08-20-0710-8f72c274';
 
   async function jaCheckBackendFresh(){
     if(!SHEET_API_URL || !adminLoginHint) return;
@@ -13383,7 +13535,7 @@
     'signup','photo','result','save_learner_state','save_mindlab','save_class_report',
     'set_account_access','set_gender','set_service_flag','set_subscription_cost',
     'set_guardian_links','set_class_assignment','set_admin_password',
-    'register_teacher','register_admin','register_skill_certificate',
+    'register_teacher','register_admin','register_skill_certificate','set_teacher_status','set_teacher_profile',
     'create_class','create_classroom','create_plan','create_challenge','create_race',
     'add_student_to_class','remove_student_from_class','remove_friend',
     'send_chat','send_friend_request','join_classroom','join_race','end_classroom',
@@ -13434,6 +13586,23 @@
      the decision HERE, rather than asking 24 call sites to switch to
      queueWrite(), is what makes the guarantee hold: a caller cannot forget to
      opt in, and code added later inherits it automatically. */
+  /* Dozens of postToSheet(...) calls across this file are deliberately
+     fire-and-forget — a typing indicator, a local-first UI update that
+     re-renders immediately, a background sync — and were never meant to
+     block on a response. But none of them had a .catch(), which means a
+     genuine failure (a thrown exception, a rejected fetch) became an
+     UNHANDLED promise rejection: invisible to the person using the app,
+     and on a phone with no dev console attached, invisible to anyone at
+     all. This does not change any of those call sites — the fire-and-forget
+     design is correct for what they do — it only makes sure a real failure
+     among them is never completely silent, logged with enough context to
+     actually mean something later. */
+  window.addEventListener('unhandledrejection', function(event){
+    try{
+      console.error('[unhandled promise rejection]', event.reason);
+    }catch(e){ /* logging itself must never throw */ }
+  });
+
   function postToSheet(type, payload){
     if(WRITE_ACTIONS.indexOf(type) > -1) return queueWrite(type, payload);
     return postToSheetRaw(type, payload);
@@ -13488,7 +13657,7 @@
                            body.eduSystem || '', body.gradeStage || '', body.term || '']);
   }
 
-  function syncAccountRowUp(key, force){
+  async function syncAccountRowUp(key, force){
     if(!SHEET_API_URL) return false;
     const body = accountRowPayload(key);
     if(!body) return false;
@@ -13496,9 +13665,29 @@
     let seen = {};
     try{ seen = JSON.parse(localStorage.getItem(ACCOUNT_SIG_KEY) || '{}'); }catch(e){}
     if(!force && seen[body.username] === sig) return false;   // nothing changed
-    postToSheet('signup', body);
-    seen[body.username] = sig;
-    try{ localStorage.setItem(ACCOUNT_SIG_KEY, JSON.stringify(seen)); }catch(e){}
+
+    /* This used to mark the account "seen" the instant the request was sent,
+       before knowing whether it actually arrived — success, a safe queue for
+       guaranteed later delivery, and an outright server rejection were all
+       treated the same way. A queued write is fine to mark: the outbox
+       guarantees it eventually lands regardless of what happens here. A
+       genuine rejection is not — a stale, not-yet-redeployed backend
+       returning "unknown_type" for 'signup' (exactly the class of fault this
+       whole project has hit repeatedly) looks definitive, not queued, so the
+       old code closed the door on ever retrying an account that was never
+       actually created. Proven live: comparing this workbook's own Sessions
+       log against Users found 70 real, actively-used accounts with only 4
+       ever written to Users — 66 real learners whose very first sync attempt
+       most likely landed during exactly this kind of failure and was never
+       retried again. */
+    let res = null;
+    try{ res = await postToSheet('signup', body); }catch(e){ res = null; }
+    if(res && (res.ok || res.queued)){
+      seen[body.username] = sig;
+      try{ localStorage.setItem(ACCOUNT_SIG_KEY, JSON.stringify(seen)); }catch(e){}
+    }
+    // A definitive rejection or a dead network leaves the signature untouched
+    // on purpose — the very next login tries again instead of giving up forever.
     return true;
   }
 
@@ -13909,14 +14098,17 @@
   async function ldmLoad(){
     if(!SHEET_API_URL) return;
     ldmSection.classList.remove('hidden');
-    ldmHeaderTitle.innerHTML = '<span class="ldm-live-dot"></span>' + t('ldmLoading');
+    // "Scanning" — the fast blue pulse — is genuinely true right now: a real
+    // request is in flight. It is not left on afterward pretending nothing
+    // ever finishes; every exit path below sets its own honest state.
+    ldmHeaderTitle.innerHTML = '<span class="ldm-live-dot scanning"></span>' + t('ldmLoading');
     // Run alongside the census, not after it — an owner should not wait
     // twice for two facts that can both be gathered while they wait once.
     const orphanPromise = postToSheetRaw('diag_orphans', abCreds()).catch(function(){ return null; });
     let res = null;
     try{ res = await postToSheetRaw('diag_sheet_census', abCreds()); }catch(e){ res = null; }
     if(!res || !res.ok){
-      ldmHeaderTitle.textContent = t('ldmFailed');
+      ldmHeaderTitle.innerHTML = '<span class="ldm-live-dot failed"></span>' + t('ldmFailed');
       ldmKpis.innerHTML = ''; ldmGrid.innerHTML = '';
       return;
     }
@@ -13924,6 +14116,16 @@
     const withData = sheets.filter(function(s){ return s.rows > 0; }).length;
     const labelled = sheets.filter(function(s){ return s.purpose; }).length;
     const totalRows = sheets.reduce(function(s, x){ return s + x.rows; }, 0);
+    /* Coverage Score: a real percentage computed from what this scan just
+       found, never a fixed or invented number. Two sub-scores stay separate
+       on purpose: "purpose known" (documentation) and "schema known" (an
+       expected column list this app can actually verify against) measure
+       different things, and averaging them into one figure would let a
+       well-documented-but-unverified sheet hide a genuinely unchecked one.
+       100% can only happen when every discovered sheet truly has both. */
+    const schemaKnown = sheets.filter(function(s){ return s.schema !== null; }).length;
+    const coveragePurpose = sheets.length ? Math.round(100 * labelled / sheets.length) : 0;
+    const coverageSchema = sheets.length ? Math.round(100 * schemaKnown / sheets.length) : 0;
     // Only sheets actually checked (duplicateKeys !== null) count here — a
     // sheet nobody checked must never be silently folded into "zero found".
     const dupeSheets = sheets.filter(function(s){ return s.duplicateKeys > 0; });
@@ -13933,8 +14135,14 @@
     // it is simply not checked, and must never be counted either way.
     const schemaBroken = sheets.filter(function(s){ return s.schema && !s.schema.valid; });
 
-    ldmHeaderTitle.innerHTML = '<span class="ldm-live-dot"></span>' +
-      fmt('ldmHeader', { n: sheets.length });
+    // The dot after a real scan reflects what the scan actually found —
+    // amber when there is a genuine data-integrity issue on the sheet, green
+    // otherwise. Never red here: red means the scan itself could not run,
+    // which is a different, worse fact than "the scan ran and found something".
+    const liveDotClass = (dupeTotal > 0 || schemaBroken.length > 0) ? 'attention' : '';
+    ldmHeaderTitle.innerHTML = '<span class="ldm-live-dot ' + liveDotClass + '"></span>' +
+      fmt('ldmHeader', { n: sheets.length }) +
+      '<div class="ldm-coverage">' + fmt('ldmCoverage', { p: coveragePurpose, s: coverageSchema }) + '</div>';
     ldmKpis.innerHTML =
       ldmKpi(sheets.length, t('ldmKpiSheets')) +
       ldmKpi(withData, t('ldmKpiWithData')) +
@@ -13972,7 +14180,13 @@
           fmt('ldmDupeWarn', { n: s.duplicateKeys }) + '</div>' : '') +
         (hasSchemaIssue ? '<div class="ldm-card-dupewarn">' +
           fmt('ldmSchemaWarn', { cols: s.schema.missing.join('، ') }) + '</div>' : '') +
-        '<div class="ldm-card-meta"><span>' + fmt('ldmRows', { n: exNum(s.rows) }) + '</span>' +
+        '<div class="ldm-card-meta"><span>' + fmt('ldmRows', { n: exNum(s.rows) }) +
+        // Shown only when the gap is real and worth knowing — a formatted
+        // range a few rows past the data is normal and not worth a note on
+        // every single card; a sheet inflated 8x or 250x is worth flagging.
+        (s.formattedRange > s.rows * 2 && s.formattedRange > 20
+          ? ' <span class="ldm-phantom-note">' + fmt('ldmPhantomRows', { n: exNum(s.formattedRange) }) + '</span>' : '') +
+        '</span>' +
         '<span>' + fmt('ldmCols', { n: s.cols }) + '</span></div></div>';
     }).join('');
 
@@ -13994,6 +14208,46 @@
     } else {
       ldmOrphansOut.classList.add('hidden');
     }
+
+    /* Issue Center — one list, three sources, all already computed above.
+       Built here rather than as a separate function because every input it
+       needs (dupeSheets, schemaBroken, orphanRes) is already in scope from
+       this exact call — passing them elsewhere would just be extra plumbing
+       for no benefit. */
+    const issues = [];
+    dupeSheets.forEach(function(s){
+      issues.push({ type:'dupe', sheet:s.sheet, text: fmt('ldmIssueDupe', { sheet: exEsc(s.sheet), n: s.duplicateKeys }) });
+    });
+    schemaBroken.forEach(function(s){
+      issues.push({ type:'schema', sheet:s.sheet, text: fmt('ldmIssueSchema', { sheet: exEsc(s.sheet), cols: s.schema.missing.join('، ') }) });
+    });
+    if(orphanRes && orphanRes.ok && Array.isArray(orphanRes.orphanGroups)){
+      orphanRes.orphanGroups.forEach(function(g){
+        issues.push({ type:'orphan', sheet:g.childSheet,
+          text: fmt('ldmIssueOrphan', { child: exEsc(g.childSheet), parent: exEsc(g.parentSheet), n: g.count }) });
+      });
+    }
+    ldmRenderIssueCenter(issues);
+  }
+  let ldmIssueFilter = 'all';
+  function ldmRenderIssueCenter(issues){
+    if(!issues.length){ ldmIssueCenter.classList.add('hidden'); return; }
+    ldmIssueCenter.classList.remove('hidden');
+    const counts = { all: issues.length, dupe:0, schema:0, orphan:0 };
+    issues.forEach(function(i){ counts[i.type]++; });
+    const filters = ['all','dupe','schema','orphan'].filter(function(f){ return f === 'all' || counts[f] > 0; });
+    ldmIssueFilters.innerHTML = filters.map(function(f){
+      return '<span class="ldm-issue-filter' + (f === ldmIssueFilter ? ' active' : '') + '" data-issue-filter="' + f + '">' +
+        t('ldmIssueFilter_' + f) + ' (' + counts[f] + ')</span>';
+    }).join('');
+    ldmIssueFilters.querySelectorAll('[data-issue-filter]').forEach(function(el){
+      el.addEventListener('click', function(){ ldmIssueFilter = el.dataset.issueFilter; ldmRenderIssueCenter(issues); });
+    });
+    const shown = ldmIssueFilter === 'all' ? issues : issues.filter(function(i){ return i.type === ldmIssueFilter; });
+    ldmIssueTable.innerHTML = shown.map(function(i){
+      return '<div class="ldm-issue-row"><span class="ldm-issue-type ' + i.type + '">' +
+        t('ldmIssueFilter_' + i.type) + '</span><span>' + i.text + '</span></div>';
+    }).join('');
   }
   function ldmKpi(val, label, tone){
     return '<div class="ldm-kpi' + (tone ? ' ldm-kpi-' + tone : '') + '">' +
@@ -14006,6 +14260,9 @@
   const ldmRoundtripBtn = document.getElementById('ldmRoundtripBtn');
   const ldmRoundtripOut = document.getElementById('ldmRoundtripOut');
   const ldmOrphansOut = document.getElementById('ldmOrphansOut');
+  const ldmIssueCenter = document.getElementById('ldmIssueCenter');
+  const ldmIssueFilters = document.getElementById('ldmIssueFilters');
+  const ldmIssueTable = document.getElementById('ldmIssueTable');
   if(ldmRoundtripBtn) ldmRoundtripBtn.textContent = t('ldmRoundtripBtn');
   if(ldmRoundtripBtn) ldmRoundtripBtn.addEventListener('click', async function(){
     setBtnSaving(ldmRoundtripBtn, true);
@@ -14143,13 +14400,13 @@
     const dateStr = result.date ? new Date(result.date).toLocaleDateString(currentLang === 'ar' ? 'ar-EG' : 'en-US') : '';
     const badgesHtml = (result.badges && result.badges.length)
       ? `<div class="cvr-row"><span>${t('certVerifyBadges')}</span><b>${result.badges.length}</b></div>` : '';
-    const programHtml = result.programName ? `<div class="cvr-row"><span>${t('certVerifyProgram')}</span><b>${result.programName}</b></div>` : '';
+    const programHtml = result.programName ? `<div class="cvr-row"><span>${t('certVerifyProgram')}</span><b>${exEsc(result.programName)}</b></div>` : '';
     const streakHtml = (result.bestStreak !== undefined && result.bestStreak !== null && result.bestStreak !== '')
       ? `<div class="cvr-row"><span>${t('statBest')}</span><b>${result.bestStreak}</b></div>` : '';
     certVerifyResult.innerHTML = `
       <div class="cert-verify-result valid">
         <div class="cvr-row"><b>${nxIcon('check')} ${t('certVerifyValid')}</b></div>
-        <div class="cvr-row"><span>${t('certVerifyName')}</span><b>${result.name}</b></div>
+        <div class="cvr-row"><span>${t('certVerifyName')}</span><b>${exEsc(result.name)}</b></div>
         ${programHtml}
         <div class="cvr-row"><span>${t('statScore')}</span><b>${result.score}</b></div>
         <div class="cvr-row"><span>${t('sumAccLabel')}</span><b>${result.accuracy}%</b></div>
@@ -17421,7 +17678,7 @@
         const statusKey = p.status === 'draft' ? 'statusDraft' : (p.status === 'published' ? 'statusPublished' : 'statusArchived');
         row.innerHTML = `
           <div class="lp-row-info">
-            <div class="lp-row-title">${p.title} <span class="lp-status-badge status-${p.status}">${t(statusKey)}</span></div>
+            <div class="lp-row-title">${exEsc(p.title)} <span class="lp-status-badge status-${p.status}">${t(statusKey)}</span></div>
             <div class="lp-row-sub">${t('level'+capitalize(p.level))} · ${fmt('pbCourseCount',{ n: lpGetCoursesForProgram(p.id).length })}</div>
           </div>
           <div class="lp-row-actions">
@@ -17442,9 +17699,9 @@
       if(pbEditingProgram){
         pbCreateForm.innerHTML = `
           <div class="lp-create-form">
-            <div class="conn-note">${t('pbEditingLabel')}: ${pbEditingProgram.title}</div>
-            <input type="text" id="pbNewProgramTitle" value="${pbEditingProgram.title}">
-            <textarea id="pbNewProgramDesc" rows="2">${pbEditingProgram.description||''}</textarea>
+            <div class="conn-note">${t('pbEditingLabel')}: ${exEsc(pbEditingProgram.title)}</div>
+            <input type="text" id="pbNewProgramTitle" value="${exEsc(pbEditingProgram.title)}">
+            <textarea id="pbNewProgramDesc" rows="2">${exEsc(pbEditingProgram.description||'')}</textarea>
             <select id="pbNewProgramLevel">
               <option value="beginner" ${pbEditingProgram.level==='beginner'?'selected':''}>${t('levelBeginner')}</option>
               <option value="intermediate" ${pbEditingProgram.level==='intermediate'?'selected':''}>${t('levelIntermediate')}</option>
@@ -17578,7 +17835,7 @@
       });
 
     } else if(pbLevel === 'courses'){
-      pbBreadcrumb.innerHTML = `<span class="switch-player" id="pbCrumbPrograms">${t('pbBreadcrumbPrograms')}</span> › ${pbProgram.title}`;
+      pbBreadcrumb.innerHTML = `<span class="switch-player" id="pbCrumbPrograms">${t('pbBreadcrumbPrograms')}</span> › ${exEsc(pbProgram.title)}`;
       document.getElementById('pbCrumbPrograms').addEventListener('click', ()=> pbNavigate('programs'));
       const courses = lpGetCoursesForProgram(pbProgram.id);
       if(!courses.length) pbListArea.innerHTML = `<div class="dash-empty">${t('pbNoCourses')}</div>`;
@@ -17593,7 +17850,7 @@
         row.className = 'lp-row' + (c.archived ? ' disabled-service' : '');
         row.innerHTML = `
           <div class="lp-row-info">
-            <div class="lp-row-title">${c.title} ${c.archived ? `<span class="lp-status-badge status-archived">${t('statusArchived')}</span>` : ''}</div>
+            <div class="lp-row-title">${exEsc(c.title)} ${c.archived ? `<span class="lp-status-badge status-archived">${t('statusArchived')}</span>` : ''}</div>
             <div class="lp-row-sub">${fmt('pbModuleCount',{ n: lpGetModulesForCourse(c.id).length })}</div>
           </div>
           <div class="lp-row-actions">
@@ -17611,9 +17868,9 @@
       if(pbEditingType === 'course' && pbEditingEntity){
         pbCreateForm.innerHTML = `
           <div class="lp-create-form">
-            <div class="conn-note">${t('pbEditingLabel')}: ${pbEditingEntity.title}</div>
-            <input type="text" id="pbEditCourseTitle" value="${pbEditingEntity.title}">
-            <textarea id="pbEditCourseDesc" rows="2">${pbEditingEntity.description||''}</textarea>
+            <div class="conn-note">${t('pbEditingLabel')}: ${exEsc(pbEditingEntity.title)}</div>
+            <input type="text" id="pbEditCourseTitle" value="${exEsc(pbEditingEntity.title)}">
+            <textarea id="pbEditCourseDesc" rows="2">${exEsc(pbEditingEntity.description||'')}</textarea>
             <button class="start-btn" id="pbSaveCourseEditBtn">${t('pbSaveChangesBtn')}</button>
             <button class="secondary-btn" id="pbCancelEditBtn">${t('pbCancelBtn')}</button>
           </div>`;
@@ -17643,7 +17900,7 @@
       });
 
     } else if(pbLevel === 'modules'){
-      pbBreadcrumb.innerHTML = `<span class="switch-player" id="pbCrumbPrograms">${t('pbBreadcrumbPrograms')}</span> › <span class="switch-player" id="pbCrumbCourses">${pbProgram.title}</span> › ${pbCourse.title}`;
+      pbBreadcrumb.innerHTML = `<span class="switch-player" id="pbCrumbPrograms">${t('pbBreadcrumbPrograms')}</span> › <span class="switch-player" id="pbCrumbCourses">${exEsc(pbProgram.title)}</span> › ${exEsc(pbCourse.title)}`;
       document.getElementById('pbCrumbPrograms').addEventListener('click', ()=> pbNavigate('programs'));
       document.getElementById('pbCrumbCourses').addEventListener('click', ()=> pbNavigate('courses', pbProgram));
       const modules = lpGetModulesForCourse(pbCourse.id);
@@ -17659,7 +17916,7 @@
         row.className = 'lp-row' + (m.archived ? ' disabled-service' : '');
         row.innerHTML = `
           <div class="lp-row-info">
-            <div class="lp-row-title">${m.title} ${m.archived ? `<span class="lp-status-badge status-archived">${t('statusArchived')}</span>` : ''}</div>
+            <div class="lp-row-title">${exEsc(m.title)} ${m.archived ? `<span class="lp-status-badge status-archived">${t('statusArchived')}</span>` : ''}</div>
             <div class="lp-row-sub">${fmt('pbLessonCount',{ n: lpGetLessonsForModule(m.id).length })}</div>
           </div>
           <div class="lp-row-actions">
@@ -17677,9 +17934,9 @@
       if(pbEditingType === 'module' && pbEditingEntity){
         pbCreateForm.innerHTML = `
           <div class="lp-create-form">
-            <div class="conn-note">${t('pbEditingLabel')}: ${pbEditingEntity.title}</div>
-            <input type="text" id="pbEditModuleTitle" value="${pbEditingEntity.title}">
-            <textarea id="pbEditModuleDesc" rows="2">${pbEditingEntity.description||''}</textarea>
+            <div class="conn-note">${t('pbEditingLabel')}: ${exEsc(pbEditingEntity.title)}</div>
+            <input type="text" id="pbEditModuleTitle" value="${exEsc(pbEditingEntity.title)}">
+            <textarea id="pbEditModuleDesc" rows="2">${exEsc(pbEditingEntity.description||'')}</textarea>
             <button class="start-btn" id="pbSaveModuleEditBtn">${t('pbSaveChangesBtn')}</button>
             <button class="secondary-btn" id="pbCancelEditBtn">${t('pbCancelBtn')}</button>
           </div>`;
@@ -17716,7 +17973,7 @@
       });
 
     } else if(pbLevel === 'lessons'){
-      pbBreadcrumb.innerHTML = `<span class="switch-player" id="pbCrumbPrograms">${t('pbBreadcrumbPrograms')}</span> › <span class="switch-player" id="pbCrumbCourses">${pbProgram.title}</span> › <span class="switch-player" id="pbCrumbModules">${pbCourse.title}</span> › ${pbModule.title}`;
+      pbBreadcrumb.innerHTML = `<span class="switch-player" id="pbCrumbPrograms">${t('pbBreadcrumbPrograms')}</span> › <span class="switch-player" id="pbCrumbCourses">${exEsc(pbProgram.title)}</span> › <span class="switch-player" id="pbCrumbModules">${exEsc(pbCourse.title)}</span> › ${exEsc(pbModule.title)}`;
       document.getElementById('pbCrumbPrograms').addEventListener('click', ()=> pbNavigate('programs'));
       document.getElementById('pbCrumbCourses').addEventListener('click', ()=> pbNavigate('courses', pbProgram));
       document.getElementById('pbCrumbModules').addEventListener('click', ()=> pbNavigate('modules', pbProgram, pbCourse));
@@ -17734,7 +17991,7 @@
         const hasAssessment = !!lpGetAssessmentForLesson(l.id);
         row.innerHTML = `
           <div class="lp-row-info">
-            <div class="lp-row-title">${l.title} ${l.archived ? `<span class="lp-status-badge status-archived">${t('statusArchived')}</span>` : ''}</div>
+            <div class="lp-row-title">${exEsc(l.title)} ${l.archived ? `<span class="lp-status-badge status-archived">${t('statusArchived')}</span>` : ''}</div>
             <div class="lp-row-sub">${hasAssessment ? t('pbHasAssessment') : t('pbNoAssessmentYet')}</div>
           </div>
           <div class="lp-row-actions">
@@ -17753,8 +18010,8 @@
       if(pbEditingType === 'lesson' && pbEditingEntity){
         pbCreateForm.innerHTML = `
           <div class="lp-create-form">
-            <div class="conn-note">${t('pbEditingLabel')}: ${pbEditingEntity.title}</div>
-            <input type="text" id="pbEditLessonTitle" value="${pbEditingEntity.title}">
+            <div class="conn-note">${t('pbEditingLabel')}: ${exEsc(pbEditingEntity.title)}</div>
+            <input type="text" id="pbEditLessonTitle" value="${exEsc(pbEditingEntity.title)}">
             <textarea id="pbEditLessonContent" rows="3">${pbEditingEntity.content||''}</textarea>
             <button class="start-btn" id="pbSaveLessonEditBtn">${t('pbSaveChangesBtn')}</button>
             <button class="secondary-btn" id="pbCancelEditBtn">${t('pbCancelBtn')}</button>
@@ -17792,7 +18049,7 @@
       });
 
     } else if(pbLevel === 'assessment'){
-      pbBreadcrumb.innerHTML = `<span class="switch-player" id="pbCrumbLessons">${t('pbBreadcrumbPrograms')}</span> › ${pbLesson.title}`;
+      pbBreadcrumb.innerHTML = `<span class="switch-player" id="pbCrumbLessons">${t('pbBreadcrumbPrograms')}</span> › ${exEsc(pbLesson.title)}`;
       document.getElementById('pbCrumbLessons').addEventListener('click', ()=> pbNavigate('lessons', pbProgram, pbCourse, pbModule));
       if(SHEET_API_URL){
         const lessonIdAtFetchTime = pbLesson.id;
@@ -17806,7 +18063,7 @@
         const statusBadge = existing.archived ? `<span class="lp-status-badge status-archived">${t('statusArchived')}</span>` : '';
         pbListArea.innerHTML = `
           <div class="lp-row" style="cursor:default;">
-            <div class="lp-row-info"><span>${existing.title}</span> ${statusBadge}<div class="lp-row-sub">${fmt('pbQuestionCount',{ n: existing.questions.length })} · ${timeLabel}</div></div>
+            <div class="lp-row-info"><span>${exEsc(existing.title)}</span> ${statusBadge}<div class="lp-row-sub">${fmt('pbQuestionCount',{ n: existing.questions.length })} · ${timeLabel}</div></div>
             <div class="lp-row-actions">
               ${!existing.archived ? `<button class="lp-mini-btn" id="pbArchiveAssessBtn">${t('pbArchiveBtn')}</button>` : `<button class="lp-mini-btn" id="pbRestoreAssessBtn">${t('pbRestoreBtn')}</button>`}
             </div>
@@ -17824,7 +18081,7 @@
         const answerLabel = q.type === 'mcq' ? q.options[q.correctIndex]
           : q.type === 'truefalse' ? (q.correctAnswer ? t('pbTrueLabel') : t('pbFalseLabel'))
           : q.correctAnswer;
-        qFormHtml += `<div class="lp-question-block"><b>${i+1}. [${t('pbQType'+capitalize(q.type))}] ${q.text}</b> — ${t('pbCorrectAnswerLabel')}: ${answerLabel}</div>`;
+        qFormHtml += `<div class="lp-question-block"><b>${i+1}. [${t('pbQType'+capitalize(q.type))}] ${exEsc(q.text)}</b> — ${t('pbCorrectAnswerLabel')}: ${answerLabel}</div>`;
       });
       qFormHtml += `
           <input type="text" id="pbAssessTitle" placeholder="${t('pbAssessmentTitlePh')}" value="${existing ? existing.title : ''}">
@@ -17997,7 +18254,7 @@
       courses.forEach(c=>{
         const row = document.createElement('div');
         row.className = 'lp-row';
-        row.innerHTML = `<div class="lp-row-info"><div class="lp-row-title">${c.title}</div></div><span class="lp-row-badge">›</span>`;
+        row.innerHTML = `<div class="lp-row-info"><div class="lp-row-title">${exEsc(c.title)}</div></div><span class="lp-row-badge">›</span>`;
         row.addEventListener('click', ()=> ppNavigate('modules', c));
         ppContentArea.appendChild(row);
       });
@@ -18018,7 +18275,7 @@
       }
 
     } else if(ppLevel === 'modules'){
-      ppBreadcrumb.innerHTML = `<span class="switch-player" id="ppCrumbCourses">${ppProgram.title}</span> › ${ppCourse.title}`;
+      ppBreadcrumb.innerHTML = `<span class="switch-player" id="ppCrumbCourses">${exEsc(ppProgram.title)}</span> › ${exEsc(ppCourse.title)}`;
       document.getElementById('ppCrumbCourses').addEventListener('click', ()=> ppNavigate('courses'));
       const modules = lpGetActiveModulesForCourse(ppCourse.id);
       if(SHEET_API_URL){
@@ -18030,13 +18287,13 @@
       modules.forEach(m=>{
         const row = document.createElement('div');
         row.className = 'lp-row';
-        row.innerHTML = `<div class="lp-row-info"><div class="lp-row-title">${m.title}</div></div><span class="lp-row-badge">›</span>`;
+        row.innerHTML = `<div class="lp-row-info"><div class="lp-row-title">${exEsc(m.title)}</div></div><span class="lp-row-badge">›</span>`;
         row.addEventListener('click', ()=> ppNavigate('moduleDetails', ppCourse, m));
         ppContentArea.appendChild(row);
       });
 
     } else if(ppLevel === 'moduleDetails'){
-      ppBreadcrumb.innerHTML = `<span class="switch-player" id="ppCrumbCourses">${ppProgram.title}</span> › ${ppCourse.title}`;
+      ppBreadcrumb.innerHTML = `<span class="switch-player" id="ppCrumbCourses">${exEsc(ppProgram.title)}</span> › ${exEsc(ppCourse.title)}`;
       document.getElementById('ppCrumbCourses').addEventListener('click', ()=> ppNavigate('courses'));
       const lessons = lpGetActiveLessonsForModule(ppModule.id);
       const completedIds = new Set(lpLoad(LP_KEYS.LESSON_COMPLETIONS).filter(c=>c.learnerUsername===currentProfile).map(c=>c.lessonId));
@@ -18045,7 +18302,7 @@
       const assessCount = lessons.filter(l=> lpGetAssessmentForLesson(l.id)).length;
       ppContentArea.innerHTML = `
         <div class="lp-row-info" style="margin-bottom:10px;">
-          <div class="lp-row-title" style="font-size:16px;">${ppModule.title}</div>
+          <div class="lp-row-title" style="font-size:16px;">${exEsc(ppModule.title)}</div>
         </div>
         <div class="lp-progress-bar-wrap"><div class="lp-progress-bar" style="width:${modPct}%"></div></div>
         <div class="conn-note">${fmt('modDetailsProgress', { pct: modPct })}</div>
@@ -18058,7 +18315,7 @@
       document.getElementById('ppStartModuleBtn').addEventListener('click', ()=> ppNavigate('lessons', ppCourse, ppModule));
 
     } else if(ppLevel === 'lessons'){
-      ppBreadcrumb.innerHTML = `<span class="switch-player" id="ppCrumbCourses">${ppProgram.title}</span> › <span class="switch-player" id="ppCrumbModules">${ppModule.title}</span>`;
+      ppBreadcrumb.innerHTML = `<span class="switch-player" id="ppCrumbCourses">${exEsc(ppProgram.title)}</span> › <span class="switch-player" id="ppCrumbModules">${exEsc(ppModule.title)}</span>`;
       document.getElementById('ppCrumbCourses').addEventListener('click', ()=> ppNavigate('courses'));
       document.getElementById('ppCrumbModules').addEventListener('click', ()=> ppNavigate('moduleDetails', ppCourse, ppModule));
       const lessons = lpGetActiveLessonsForModule(ppModule.id);
@@ -18072,13 +18329,13 @@
         const done = lpIsLessonComplete(currentProfile, l.id);
         const row = document.createElement('div');
         row.className = 'lp-row' + (done ? ' completed' : '');
-        row.innerHTML = `<div class="lp-row-info"><div class="lp-row-title">${done ? nxIcon('check')+' ' : ''}${l.title}</div></div><span class="lp-row-badge">›</span>`;
+        row.innerHTML = `<div class="lp-row-info"><div class="lp-row-title">${done ? nxIcon('check')+' ' : ''}${exEsc(l.title)}</div></div><span class="lp-row-badge">›</span>`;
         row.addEventListener('click', ()=> ppNavigate('lesson', ppCourse, ppModule, l));
         ppContentArea.appendChild(row);
       });
 
     } else if(ppLevel === 'lesson'){
-      ppBreadcrumb.innerHTML = `<span class="switch-player" id="ppCrumbLessons">${ppModule.title}</span> › ${ppLesson.title}`;
+      ppBreadcrumb.innerHTML = `<span class="switch-player" id="ppCrumbLessons">${exEsc(ppModule.title)}</span> › ${exEsc(ppLesson.title)}`;
       document.getElementById('ppCrumbLessons').addEventListener('click', ()=> ppNavigate('lessons', ppCourse, ppModule));
       const done = lpIsLessonComplete(currentProfile, ppLesson.id);
       if(SHEET_API_URL){
@@ -18098,14 +18355,14 @@
 
       // sidebar: full module/lesson tree for this course, grouped, with done/current markers
       let sidebarHtml = `
-        <div class="cp-sidebar-course-title">${ppCourse.title}</div>
+        <div class="cp-sidebar-course-title">${exEsc(ppCourse.title)}</div>
         <div class="cp-sidebar-progress-wrap"><div class="cp-sidebar-progress" style="width:${coursePct}%"></div></div>`;
       lpGetActiveModulesForCourse(ppCourse.id).forEach(m=>{
-        sidebarHtml += `<div class="cp-sidebar-module">${m.title}</div>`;
+        sidebarHtml += `<div class="cp-sidebar-module">${exEsc(m.title)}</div>`;
         lpGetActiveLessonsForModule(m.id).forEach(l=>{
           const isDone = completedIds.has(l.id);
           const isCurrent = l.id === ppLesson.id;
-          sidebarHtml += `<div class="cp-sidebar-lesson ${isDone?'done':''} ${isCurrent?'current':''}" data-lesson-id="${l.id}" data-module-id="${m.id}"><span class="cp-lesson-dot"></span><span>${l.title}</span></div>`;
+          sidebarHtml += `<div class="cp-sidebar-lesson ${isDone?'done':''} ${isCurrent?'current':''}" data-lesson-id="${l.id}" data-module-id="${m.id}"><span class="cp-lesson-dot"></span><span>${exEsc(l.title)}</span></div>`;
         });
       });
 
@@ -18113,16 +18370,16 @@
         <div class="cp-mobile-header">
           <span class="cp-mobile-back" id="cpMobileBack">‹</span>
           <div class="cp-mobile-info">
-            <div class="cp-mobile-course-title">${ppCourse.title}</div>
+            <div class="cp-mobile-course-title">${exEsc(ppCourse.title)}</div>
             <div class="cp-sidebar-progress-wrap" style="margin:4px 0 0;"><div class="cp-sidebar-progress" style="width:${coursePct}%"></div></div>
           </div>
         </div>
         <div class="cp-shell">
           <div class="cp-sidebar">${sidebarHtml}</div>
           <div class="cp-main">
-            <div class="lp-row-title" style="font-size:15px; margin-bottom:8px;">${ppLesson.title}</div>
-            <div class="lp-row-sub" style="line-height:1.7; font-size:13px;">${ppLesson.content || ''}</div>
-            ${assessment ? `<button class="secondary-btn" id="ppTakeAssessmentBtn" style="margin-top:14px;">${assessment.title}</button>` : ''}
+            <div class="lp-row-title" style="font-size:15px; margin-bottom:8px;">${exEsc(ppLesson.title)}</div>
+            <div class="lp-row-sub" style="line-height:1.7; font-size:13px;">${exEsc(ppLesson.content || '')}</div>
+            ${assessment ? `<button class="secondary-btn" id="ppTakeAssessmentBtn" style="margin-top:14px;">${exEsc(assessment.title)}</button>` : ''}
             <div class="cp-bottom-bar">
               <button class="cp-nav-btn" id="cpPrevBtn" ${!prevLesson ? 'disabled' : ''}>‹ ${t('cpPrevious')}</button>
               <button class="start-btn cp-complete-btn" id="ppCompleteLessonBtn" ${done ? 'disabled' : ''}>${done ? t('ppLessonDone') : t('ppMarkCompleteBtn')}</button>
@@ -18174,7 +18431,7 @@
       let html = '<div class="lp-create-form">';
       if(assessment.timeLimit) html += `<div class="lp-timer-badge" id="ppTimerBadge">⏱ --:--</div>`;
       assessment.questions.forEach((q,i)=>{
-        html += `<div class="lp-question-block"><b>${i+1}. ${q.text}</b>`;
+        html += `<div class="lp-question-block"><b>${i+1}. ${exEsc(q.text)}</b>`;
         if(q.type === 'mcq'){
           q.options.forEach((opt,oi)=>{
             html += `<div style="margin-top:6px;"><label><input type="radio" name="ppq${i}" value="${oi}"> ${opt}</label></div>`;
@@ -18330,7 +18587,7 @@
     ppBreadcrumb.textContent = pgProgram.title + ' › ' + t('pgPracticeTitle');
     ppContentArea.innerHTML = `
       <div class="conn-note" style="text-align:center;">${fmt('questionOf', { n: pgIndex + 1, total: pgSet.length })}</div>
-      <div class="lp-question-block"><b style="line-height:1.9;">${q.text}</b>
+      <div class="lp-question-block"><b style="line-height:1.9;">${exEsc(q.text)}</b>
         ${q.options.map(function(o, i){ return `<div style="margin-top:8px;"><label><input type="radio" name="pgq" value="${i}"> ${o}</label></div>`; }).join('')}
       </div>
       <div class="feedback" id="pgFeedback" style="min-height:22px;"></div>
@@ -18864,7 +19121,7 @@
     try{ await runDiagnostics(); }
     catch(err){
       // The diagnostics screen must never be the thing that fails silently.
-      diagOut.innerHTML = `<div class="diag-verdict bad">${t('diagCrashed')}<br><br>${String(err && err.message || err)}</div>`;
+      diagOut.innerHTML = `<div class="diag-verdict bad">${t('diagCrashed')}<br><br>${exEsc(String(err && err.message || err))}</div>`;
     }
     setBtnSaving(diagRunBtn, false);
   });
@@ -18886,6 +19143,34 @@
   }
   pdTabPrograms.addEventListener('click', ()=> pdSetScope('programs'));
   pdTabNav.addEventListener('click', ()=> pdSetScope('nav'));
+
+  const pdRulesBtn = document.getElementById('pdRulesBtn');
+  const pdRulesPanel = document.getElementById('pdRulesPanel');
+  function pdRenderRulesPanel(){
+    const disabled = pdDisabledChecks();
+    pdRulesPanel.innerHTML = '<div class="lp-create-form">' +
+      PD_CHECKS.map(function(c){
+        const isOn = disabled.indexOf(c.key) === -1;
+        return '<label style="display:flex; align-items:center; gap:8px; padding:6px 0; font-size:12px; cursor:pointer;">' +
+          '<input type="checkbox" data-pd-rule="' + c.key + '" ' + (isOn ? 'checked' : '') + '>' +
+          '<span>' + t(c.key) + '</span></label>';
+      }).join('') +
+      '<div class="conn-note" style="margin-top:6px;">' + t('pdRulesNote') + '</div></div>';
+    pdRulesPanel.querySelectorAll('[data-pd-rule]').forEach(function(cb){
+      cb.addEventListener('change', function(){
+        pdSetCheckEnabled(cb.dataset.pdRule, cb.checked);
+        // A rule changed makes any score already on screen stale — the
+        // owner should not keep looking at numbers computed under rules
+        // that no longer apply. Re-running is the same one click as
+        // "افحص كل البرامج" already is, just triggered automatically here.
+        if(Array.isArray(pdRows) && pdRows.length) pdRunBtn.click();
+      });
+    });
+  }
+  if(pdRulesBtn) pdRulesBtn.addEventListener('click', function(){
+    pdRulesPanel.classList.toggle('hidden');
+    if(!pdRulesPanel.classList.contains('hidden')) pdRenderRulesPanel();
+  });
 
   pdRunBtn.addEventListener('click', async ()=>{
     setBtnSaving(pdRunBtn, true);
@@ -19089,6 +19374,7 @@
     showProgramsHub();
   });
   ownerCenterLink.addEventListener('click', openOwnerCenter);
+
   ocBackBtn.addEventListener('click', ()=>{
     ownerCenter.classList.add('hidden');
     profilesEl.classList.remove('hidden');
@@ -19137,7 +19423,7 @@
     });
     setBtnSaving(mailDiagRunBtn, false);
     if(!res || !res.ok){
-      mailDiagArea.innerHTML = `<div class="dash-empty">${(res && res.message) || t('lpSyncProgressFailed')}</div>`;
+      mailDiagArea.innerHTML = `<div class="dash-empty">${exEsc((res && res.message) || t('lpSyncProgressFailed'))}</div>`;
       return;
     }
     // The single most useful line: if the scope is not authorised, no email
@@ -19289,10 +19575,40 @@
         <span>👤</span>
         <div style="flex:1;">
           <div style="font-weight:700;">${tc.name}</div>
-          <div style="font-size:11px; color:var(--ink-dim);">@${tc.username}</div>
+          <div style="font-size:11px; color:var(--ink-dim);">@${tc.username}${tc.teacherId ? ' · ' + tc.teacherId : ''}</div>
         </div>
+        ${tc.status ? `<span class="teacher-status-badge ${tc.status}">${t('teacherStatus_' + tc.status)}</span>` : ''}
+        <select class="teacher-status-select" data-status-user="${tc.username}" title="${t('teacherChangeStatus')}">
+          <option value="">${t('teacherChangeStatus')}</option>
+          <option value="active">${t('teacherStatus_active')}</option>
+          <option value="suspended">${t('teacherStatus_suspended')}</option>
+          <option value="leave">${t('teacherStatus_leave')}</option>
+        </select>
         <span>›</span>
       </div>`).join('');
+    // A change on the status control still lives inside the clickable row;
+    // stopping propagation here keeps opening the dropdown from also opening
+    // the class overview below — the same separation used for the
+    // diagnostics recheck button earlier this session.
+    teachersListArea.querySelectorAll('.teacher-status-select').forEach(sel=>{
+      sel.addEventListener('click', function(e){ e.stopPropagation(); });
+      sel.addEventListener('change', async function(){
+        const next = sel.value;
+        if(!next) return;
+        const uname = sel.dataset.statusUser;
+        sel.disabled = true;
+        const res2 = await postToSheet('set_teacher_status',
+          Object.assign({ username: uname, status: next }, abCreds ? abCreds() : {}));
+        if(res2 && res2.ok){
+          showToast(fmt('teacherStatusChanged', { u: uname, s: t('teacherStatus_' + next) }), nxIcon('check'), 'system');
+          teachersListLink.click();   // refresh the list to show the new badge
+        } else {
+          sel.disabled = false;
+          sel.value = '';
+          showToast(describeSyncFailure(res2, 'lpSyncCreateFailed'), nxIcon('warning'), 'system');
+        }
+      });
+    });
     teachersListArea.querySelectorAll('.lp-row').forEach(row=>{
       row.addEventListener('click', ()=> openTeacherOverview(row.dataset.username));
     });
@@ -19315,18 +19631,83 @@
       teacherOverviewArea.innerHTML = `<div class="dash-empty">${describeSyncFailure(res, 'lpSyncCreateFailed')}</div>`;
       return;
     }
-    if(!res.classes.length){
-      teacherOverviewArea.innerHTML = `<div class="dash-empty">${t('teacherNoClasses')}</div>`;
-      return;
-    }
-    teacherOverviewArea.innerHTML = res.classes.map(c => `
+    /* Used to return here on zero classes, before ever reaching the class-
+       rendering code below — which also meant the profile card this adds
+       would have been skipped for exactly the teachers most likely to be
+       newly added and worth checking on. The profile now renders first,
+       unconditionally; "no classes yet" becomes a small note underneath it
+       instead of replacing the whole screen. */
+    const p = res.profile;
+    const profileHtml = p ? `
+      <div class="lp-create-form" style="margin-bottom:10px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <div style="font-weight:700;">${p.name}${p.teacherId ? ' · ' + p.teacherId : ''}</div>
+          ${p.status ? `<span class="teacher-status-badge ${p.status}">${t('teacherStatus_' + p.status)}</span>` : ''}
+        </div>
+        <div style="font-size:11.5px; color:var(--ink-dim); line-height:1.9;">
+          ${p.email ? `✉️ ${p.email}<br>` : ''}${p.phone ? `📞 ${p.phone}<br>` : ''}
+          ${p.qualification ? `🎓 ${p.qualification}<br>` : ''}
+          ${p.specialization ? `📘 ${p.specialization}<br>` : ''}
+          ${p.primarySubject ? `📖 ${p.primarySubject}<br>` : ''}
+          ${p.yearsExperience ? fmt('teacherYearsExp', { n: p.yearsExperience }) : ''}
+        </div>
+        <button class="secondary-btn" id="teacherEditProfBtn" style="margin-top:8px;">${t('teacherEditProfBtn')}</button>
+        <div id="teacherProfEditForm" class="hidden" style="margin-top:8px;">
+          <input type="text" id="teacherQualInput" placeholder="${t('teacherQualPh')}" value="${p.qualification || ''}">
+          <input type="text" id="teacherSpecInput" placeholder="${t('teacherSpecPh')}" value="${p.specialization || ''}">
+          <input type="number" id="teacherYearsInput" placeholder="${t('teacherYearsPh')}" value="${p.yearsExperience || ''}" min="0" max="60">
+          <select id="teacherSubjectSelect">
+            <option value="">${t('teacherSubjectPh')}</option>
+          </select>
+          <button class="start-btn" id="teacherSaveProfBtn">${t('savePlayer')}</button>
+        </div>
+      </div>` : '';
+    const classesHtml = res.classes.length
+      ? res.classes.map(c => `
       <div class="lp-create-form" style="margin-bottom:10px;">
         <div style="font-weight:700; margin-bottom:6px;">📚 ${c.className}</div>
         <div style="font-size:11.5px; color:var(--ink-dim); margin-bottom:6px;">${fmt('teacherStudentCount', { n: c.students.length })}</div>
         ${c.students.map(s => `<div class="lp-row" style="padding:8px 10px;"><span>🧑‍🎓</span><span>@${s.username}</span></div>`).join('')}
         ${c.assignments.length ? `<div style="margin-top:8px; font-size:11.5px; color:var(--ink-dim);">${t('teacherAssignmentsLabel')}</div>` : ''}
         ${c.assignments.map(a => `<div class="lp-question-block"><b>${a.operation} / ${a.difficulty}</b>${a.note ? ' — ' + a.note : ''} ${a.cost ? `<span style="color:var(--yellow);">(${a.cost} ${t('costCurrencyLabel')})</span>` : ''}</div>`).join('')}
-      </div>`).join('');
+      </div>`).join('')
+      : `<div class="dash-empty">${t('teacherNoClasses')}</div>`;
+    teacherOverviewArea.innerHTML = profileHtml + classesHtml;
+
+    const editBtn = document.getElementById('teacherEditProfBtn');
+    const editForm = document.getElementById('teacherProfEditForm');
+    if(editBtn) editBtn.addEventListener('click', async ()=>{
+      editForm.classList.toggle('hidden');
+      const subjSelect = document.getElementById('teacherSubjectSelect');
+      // Populated once, lazily, only when the form is actually opened — no
+      // reason to fetch the subject list for a screen the admin never edits.
+      if(subjSelect && !subjSelect.dataset.loaded){
+        subjSelect.dataset.loaded = '1';
+        const subjRes = await postToSheet('list_subjects', {});
+        if(subjRes && subjRes.ok && Array.isArray(subjRes.subjects)){
+          subjSelect.innerHTML = `<option value="">${t('teacherSubjectPh')}</option>` +
+            subjRes.subjects.map(s => `<option value="${exEsc(s)}" ${s === p.primarySubject ? 'selected' : ''}>${exEsc(s)}</option>`).join('');
+        }
+      }
+    });
+    const saveBtn = document.getElementById('teacherSaveProfBtn');
+    if(saveBtn) saveBtn.addEventListener('click', async ()=>{
+      setBtnSaving(saveBtn, true);
+      const res2 = await postToSheet('set_teacher_profile', Object.assign({
+        username: teacherUsername,
+        qualification: document.getElementById('teacherQualInput').value.trim(),
+        specialization: document.getElementById('teacherSpecInput').value.trim(),
+        yearsExperience: document.getElementById('teacherYearsInput').value.trim(),
+        primarySubject: document.getElementById('teacherSubjectSelect').value
+      }, abCreds ? abCreds() : {}));
+      setBtnSaving(saveBtn, false);
+      if(res2 && res2.ok){
+        showToast(t('teacherProfSaved'), nxIcon('check'), 'system');
+        openTeacherOverview(teacherUsername);   // refresh to show the saved values
+      } else {
+        showToast(describeSyncFailure(res2, 'lpSyncCreateFailed'), nxIcon('warning'), 'system');
+      }
+    });
   }
   closeDashboardBtn.addEventListener('click', ()=>{
     dashboardEl.classList.add('hidden');
@@ -19374,7 +19755,7 @@
     ).join('');
     card.innerHTML = `
       <div class="class-title-row">
-        <span class="class-name">${cls.className}</span>
+        <span class="class-name">${exEsc(cls.className)}</span>
         <span class="class-code">${cls.classId}</span>
       </div>
       <div class="class-roster">${rosterHtml}</div>
@@ -19385,7 +19766,7 @@
       <div class="class-assignment-form">
         <select id="assignOp_${cls.classId}">${opOptions}</select>
         <select id="assignDiff_${cls.classId}">${diffOptions}</select>
-        <input type="text" id="assignNote_${cls.classId}" placeholder="${t('assignmentNotePh')}" value="${cls.assignment ? (cls.assignment.note||'') : ''}">
+        <input type="text" id="assignNote_${cls.classId}" placeholder="${t('assignmentNotePh')}" value="${cls.assignment ? exEsc(cls.assignment.note||'') : ''}">
         <button data-assign="${cls.classId}">${t('setAssignmentBtn')}</button>
       </div>
     `;
@@ -19443,10 +19824,10 @@
         const card = document.createElement('div');
         card.className = 'my-class-card';
         const assignHtml = cls.assignment
-          ? `<div class="assignment-note">📝 ${fmt('classAssignmentLine', { op: t('op'+capitalize(cls.assignment.operation||'mix')) })}${cls.assignment.note ? ' — ' + cls.assignment.note : ''}</div>
+          ? `<div class="assignment-note">📝 ${fmt('classAssignmentLine', { op: t('op'+capitalize(cls.assignment.operation||'mix')) })}${cls.assignment.note ? ' — ' + exEsc(cls.assignment.note) : ''}</div>
              <button data-start-assignment="${cls.classId}">${t('startAssignmentBtn')}</button>`
           : `<div class="assignment-note">${t('noAssignmentYet')}</div>`;
-        card.innerHTML = `<div class="name">🏫 ${cls.className}</div>${assignHtml}`;
+        card.innerHTML = `<div class="name">🏫 ${exEsc(cls.className)}</div>${assignHtml}`;
         if(cls.assignment){
           card.querySelector('[data-start-assignment]').addEventListener('click', ()=>{
             selectChip(opChips, 'op', cls.assignment.operation || 'mix', v=>op=v);
@@ -19483,7 +19864,7 @@
       const insightId = 'teacherInsight_' + key;
       const avatarSlotId = 'teacherAvatarSlot_' + key;
       box.innerHTML = `
-        <h3><span class="dash-avatar-slot" id="${avatarSlotId}" style="display:inline-block; vertical-align:middle; width:22px; height:22px; margin-inline-end:6px;"></span>${profileDisplayName(key)}</h3>
+        <h3><span class="dash-avatar-slot" id="${avatarSlotId}" style="display:inline-block; vertical-align:middle; width:22px; height:22px; margin-inline-end:6px;"></span>${exEsc(profileDisplayName(key))}</h3>
         <div class="dash-table">${any ? rowsHtml : `<div class="dash-empty">${t('dashNoData')}</div>`}</div>
         <div class="mystats-section" style="margin-top:10px;">
           <h4 style="font-size:12px;">📅 ${t('weeklyReportTitle')}</h4>
@@ -19503,6 +19884,7 @@
   /* ---------- teacher account creation (admin only) ---------- */
   addTeacherLink.addEventListener('click', ()=>{
     teacherNameInput.value = ''; teacherUserInput.value = ''; teacherPinInput.value = '';
+    if(teacherEmailInput) teacherEmailInput.value = '';
     teacherError.textContent = '';
     profilesEl.classList.add('hidden');
     addTeacherPanelEl.classList.remove('hidden');
@@ -19515,6 +19897,7 @@
     const name = teacherNameInput.value.trim();
     const username = teacherUserInput.value.trim();
     const pass = teacherPinInput.value;
+    const email = teacherEmailInput ? teacherEmailInput.value.trim() : '';
     if(!name || !username || !pass){ teacherError.textContent = t('enterBothFields'); return; }
     if(isUsernameTakenGlobally(username, null)){ teacherError.textContent = t('teacherUsernameTaken'); return; }
     setBtnSaving(saveTeacherBtn, true);
@@ -19523,7 +19906,7 @@
       // Real sync — without this, the teacher never appears in the admin's
       // "👥 المعلّمون" list from any other device (the original local-only
       // bug this whole feature was built to fix).
-      const res = await postToSheet('register_teacher', { username, pin: hash, name });
+      const res = await postToSheet('register_teacher', Object.assign({ username, pin: hash, name }, email ? { email } : {}));
       if(!res || !res.ok){
         setBtnSaving(saveTeacherBtn, false);
         teacherError.className = 'feedback wrong';
@@ -19599,8 +19982,8 @@
             <span class="child-ring-inner" id="${avatarSlotId}"></span>
           </span>
           <span class="child-tile-id">
-            <span class="child-tile-name">${profileDisplayName(key)}</span>
-            <span class="child-tile-sub">${ageStr || (p.username ? '@' + p.username : '')}</span>
+            <span class="child-tile-name">${exEsc(profileDisplayName(key))}</span>
+            <span class="child-tile-sub">${exEsc(ageStr || (p.username ? '@' + p.username : ''))}</span>
           </span>
           <span class="child-tile-chev">›</span>
         </div>
@@ -20097,8 +20480,8 @@
     childDetailArea.innerHTML = `
       <div class="fp-hero">
         <div class="fp-avatar-wrap"><span class="fp-avatar" id="${heroAvatarId}" style="display:flex; align-items:center; justify-content:center; font-size:44px; overflow:hidden;"></span></div>
-        <div class="fp-name">${profileDisplayName(key)}</div>
-        ${p.username ? `<div class="fp-sub">@${p.username}</div>` : ''}
+        <div class="fp-name">${exEsc(profileDisplayName(key))}</div>
+        ${p.username ? `<div class="fp-sub">@${exEsc(p.username)}</div>` : ''}
         ${ageStr ? `<div class="fp-since">${ageStr}</div>` : ''}
       </div>
       <div class="fp-grid">
@@ -21982,34 +22365,14 @@
   /* ---- 3. RECOMMENDATION ENGINE ----
      "What should I do today?" answered by rules over real data. The order is
      deliberate: overdue review first, because forgetting what was learned
-     costs more than not learning something new. */
-  function novaRecommend(){
-    const f = novaProgressFacts();
-    if(!f) return null;
-    const steps = [];
+     costs more than not learning something new.
 
-    if(f.due + f.knowledgeDue > 0){
-      steps.push(fmt('recReview', { n: f.due + f.knowledgeDue }));
-    }
-    if(f.lastActiveDays !== null && f.lastActiveDays > 5){
-      steps.push(fmt('recReturn', { n: f.lastActiveDays }));
-    }
-    if(f.errorPattern){
-      steps.push(fmt('recError', { e: f.errorPattern.type }));
-    }
-    if(f.weakest && f.weakest.mastery < 70){
-      steps.push(fmt('recWeak', { op: f.weakest.name, m: f.weakest.mastery }));
-    }
-    // A stalled program is worth naming: half-finished courses are the most
-    // common quiet failure on any learning platform.
-    const stalled = f.programs.filter(function(p){ return p.percent > 0 && p.percent < 100; });
-    if(stalled.length) steps.push(fmt('recProgram', { p: stalled[0].title, n: stalled[0].percent }));
-
-    if(!f.answered) return t('recFirstTime');
-    if(!steps.length) return fmt('recAllClear', { m: f.mastered, total: f.total });
-    // Two items at most. A list of six is a list nobody acts on.
-    return t('recIntro') + '\n' + steps.slice(0, 2).map(function(x, i){ return (i + 1) + ') ' + x; }).join('\n');
-  }
+     An earlier, string-returning novaRecommend() used to live here, shadowed
+     silently by the array-returning one defined further down under the same
+     name — JavaScript keeps only the later declaration, so this first one
+     never actually ran for any caller. Removed rather than kept as a second,
+     confusing definition; see the fix note where its one real caller was
+     corrected, further down this file, for what it was doing wrong. */
 
   /* ---- 4. MATHEMATICAL CONCEPT EXPLANATIONS ----
      Static teaching content: it never needed a model, and a model would
@@ -23314,8 +23677,22 @@
     }
     // "What should I do today" — rules over the learner's real state.
     if(/اعمل ايه|أعمل ماذا|ماذا افعل|ماذا أفعل|ايه اللي المفروض|بم تنصحني|انصحني|أنصحني|what should i (do|study)|recommend|advice/i.test(text)){
-      const rec = novaRecommend();
-      if(rec){ novaSay(rec); return; }
+      /* This called a novaRecommend() that took no arguments and returned a
+         formatted string — a definition that used to exist further up this
+         file but was silently shadowed by a second, later declaration with
+         the same name and a completely different contract (an array of
+         {key, urgency, run} objects, built for buttons). JavaScript keeps
+         only the later declaration; the one this call was written against
+         never actually ran. The real, active novaRecommend() returned an
+         array here, so novaSay(rec) set a DOM node's textContent to that
+         array — which JavaScript stringifies as
+         "[object Object],[object Object]" — visible, literally, to any
+         learner who asked "ماذا أفعل؟". novaSayRecommendations() already
+         renders this array correctly with real prose and action buttons
+         (it is what the working command-palette-style recommendation flow
+         uses); this now calls that instead of duplicating its formatting. */
+      novaSayRecommendations();
+      return;
     }
     // A parent asking about their child.
     const parentAns = novaParentAnswer(q);
@@ -24352,7 +24729,7 @@
           return `<div class="syn-prog-cell"><b${v === null ? ' class="unmeasured"' : ''}>${v === null ? '—' : v + '%'}</b><span>${t(a.label)}</span></div>`;
         }).join('');
         return `<div class="syn-prog-row">
-          <div class="syn-prog-name">${p.title}<span>${fmt('synProgramAttempts', { n: p.ind.attempts })}</span></div>
+          <div class="syn-prog-name">${exEsc(p.title)}<span>${fmt('synProgramAttempts', { n: p.ind.attempts })}</span></div>
           <div class="syn-prog-cells">${cells}</div>
         </div>`;
       }).join('');
@@ -24545,7 +24922,7 @@
     knowRevArea.innerHTML = `
       <div class="review-badge"><span>${t('reviewBadgeLabel')}</span></div>
       ${source}
-      <div class="lp-question-block"><b>${q.text}</b>${inputHtml}</div>
+      <div class="lp-question-block"><b>${exEsc(q.text)}</b>${inputHtml}</div>
       <div class="feedback" id="krFeedback" style="min-height:22px;"></div>
       <div id="krExplain"></div>
       <button class="start-btn" id="krSubmitBtn">${t('submitBtn')}</button>`;
@@ -24584,7 +24961,7 @@
       const answerText = q.type === 'mcq' ? q.options[q.correctIndex]
         : (q.type === 'truefalse' ? (q.correctAnswer ? t('pbTrueLabel') : t('pbFalseLabel')) : q.correctAnswer);
       document.getElementById('krExplain').innerHTML =
-        `<div class="strategy-box"><div class="strategy-step"><span class="strategy-num">${nxIcon('check')}</span><span>${t('remedCorrectAnswer')}: <b>${answerText}</b></span></div></div>`;
+        `<div class="strategy-box"><div class="strategy-step"><span class="strategy-num">${nxIcon('check')}</span><span>${t('remedCorrectAnswer')}: <b>${exEsc(answerText)}</b></span></div></div>`;
     }
     const btn = document.getElementById('krSubmitBtn');
     btn.textContent = t('nextBtn');
@@ -24955,7 +25332,7 @@
     taglineArabic: 'تعلّم · تطوّر · ارتقِ'
   };
 
-  var DIAG_BUILD = 'jasmin-2026-08-19-1431-75b3403481b0';
+  var DIAG_BUILD = 'jasmin-2026-08-20-0710-832e58c431dc';
   var DIAG_BUILD_AT = '2026-08-17';
   /* Capability probes.
      These used to be `typeof X === 'function'` — a check that the code was
@@ -25217,7 +25594,7 @@
         diagAdd(t('diagGrpCert'), t('diagCertRender'), rendered ? t('diagYes') : t('diagNo'), rendered ? 'ok' : 'bad');
       }
     }catch(err){
-      diagAdd(t('diagGrpCert'), t('diagCertRender'), String(err && err.message || err), 'bad');
+      diagAdd(t('diagGrpCert'), t('diagCertRender'), exEsc(String(err && err.message || err)), 'bad');
       fatal = fatal || t('diagVerdictCert');
     }
 
@@ -25270,7 +25647,15 @@
        someone who already has a problem pressed it. Found by actually
        executing every clickable element in the file, not by inspection. */
     const showTextFallback = function(){
-      diagOut.innerHTML = `<textarea rows="14" style="width:100%; font-family:monospace; font-size:11px;">${text}</textarea>`;
+      /* A literal "</textarea>" anywhere in the diagnostic text (an error
+         message that happened to contain it, for instance) would end the
+         element early and hand the rest of the page's HTML to the browser's
+         parser — a real risk even though nothing here is directly user-
+         typed. Escaping is safe for a textarea specifically: the browser
+         decodes entities back to plain display characters inside it the
+         same as any other element content, so the owner still reads and
+         copies ordinary readable text. */
+      diagOut.innerHTML = `<textarea rows="14" style="width:100%; font-family:monospace; font-size:11px;">${exEsc(text)}</textarea>`;
     };
     if(navigator.clipboard && navigator.clipboard.writeText){
       navigator.clipboard.writeText(text).then(function(){
@@ -25610,6 +25995,7 @@
     // A LIVE match must be reachable at any moment. Everything before this
     // relied on catching a toast at the right second.
     renderChallengeBanner(live);
+    renderActiveChallengeCard();
 
     const busy = waiting.length || chalOutgoing.some(c => c.status === 'pending');
     const serverRate = Number(res.suggestedPollMs) || CHAL_POLL_ACTIVE;
@@ -25618,7 +26004,16 @@
   /* The entry point that was missing entirely. Without a visible banner the
      match vanished the moment the toast faded, and none of the three players
      had any way to reach it. */
-  function renderChallengeBanner(){
+  /* Renamed from renderChallengeBanner (its original name) to eliminate a
+     collision with the OTHER renderChallengeBanner defined further down —
+     JavaScript kept only that second one, and this whole function, along
+     with its target element #chalBannerHost, had been unreachable dead code
+     ever since. The two serve genuinely different purposes: the surviving
+     one is a general "you have N live challenges" notice; this one reads
+     activeChallenge specifically to show progress inside the match the
+     learner is actually looking at right now — complementary, not
+     redundant, and worth restoring rather than deleting. */
+  function renderActiveChallengeCard(){
     const host = document.getElementById('chalBannerHost');
     if(!host) return;
     if(!activeChallenge){ host.innerHTML = ''; return; }
@@ -26536,17 +26931,32 @@
      was asked to remove. This does not replace the per-program detail, which
      stays available in each card; it is read BEFORE that detail so the owner
      knows the shape of the problem in one glance. */
+  /* A concrete recommended action for a shared pattern — only for the checks
+     where the fix is genuinely the same regardless of which program failed
+     it. Duplicates and enrolment gaps are deliberately absent: those need a
+     human decision (which copy is the real one; whether silence is actually
+     a problem for this specific program) that a generic line would fake. */
+  const PD_FIX_HINTS_ = {
+    pdChkContent:   'pdFixContent',
+    pdChkQuestions: 'pdFixQuestions',
+    pdChkVisible:   'pdFixVisible'
+  };
+
   function pdPatterns(rows){
     const byCheck = {};
     rows.forEach(function(r){
       r.checks.forEach(function(c){
         if(c.level !== 'bad' && c.level !== 'warn') return;
         const k = c.key;
-        byCheck[k] = byCheck[k] || { key:k, label:c.label, level:c.level, programs: [] };
+        byCheck[k] = byCheck[k] || { key:k, label:c.label, level:c.level, programs: [], metaSum: 0 };
         // The worse of the two levels wins if programs disagree on severity
         // for the same check — a pattern is only as mild as its worst case.
         if(c.level === 'bad') byCheck[k].level = 'bad';
         byCheck[k].programs.push(r.name);
+        // Additive only where a check actually carries a real count — every
+        // other check's pattern simply keeps metaSum at 0 and is rendered
+        // exactly as before.
+        if(c.meta && typeof c.meta.archivedCount === 'number') byCheck[k].metaSum += c.meta.archivedCount;
       });
     });
     return Object.keys(byCheck).map(function(k){ return byCheck[k]; })
@@ -26663,9 +27073,20 @@
     if(patterns.length){
       html += '<div class="pd-patterns"><div class="pd-patterns-title">' + t('pdPatternsTitle') + '</div>' +
         patterns.map(function(p){
+          // A concrete next step for the shared cause, not just its name — a
+          // recommendation exists only for a check whose fix is genuinely
+          // the same action regardless of which program triggered it
+          // (PD_FIX_HINTS_ is deliberately incomplete for checks where that
+          // is not true, e.g. duplicates, which need a human decision about
+          // which copy survives — no line is shown rather than fake one).
+          const hint = PD_FIX_HINTS_[p.key];
           return '<div class="pd-pattern ' + p.level + '">' +
             '<span class="pd-dot ' + p.level + '"></span>' +
-            '<span>' + fmt('pdPatternLine', { n: p.programs.length, label: p.label }) + '</span></div>';
+            '<span>' + fmt('pdPatternLine', { n: p.programs.length, label: p.label }) +
+            (p.metaSum > 0 ? '<span class="pd-pattern-fix">↳ ' +
+              fmt('pdArchivedTotal', { n: p.metaSum }) + '</span>' : '') +
+            (hint ? '<span class="pd-pattern-fix">↳ ' + t(hint) + '</span>' : '') +
+            '</span></div>';
         }).join('') + '</div>';
     }
 
@@ -27087,7 +27508,11 @@
         if(pubN > 1) return { level:'bad', detail: fmt('pdDupPublished', { n: pubN }) };
         // Archived twins are harmless to learners but they are why this panel
         // used to misreport, and they make the builder list hard to work in.
-        if(arcN > 0) return { level:'warn', detail: fmt('pdDupArchived', { n: arcN }) };
+        // meta.archivedCount is additive — every other check still returns
+        // just {level, detail}; only this one carries a real number, so the
+        // pattern summary can add "46 archived copies across 11 programs" as
+        // one fact instead of asking the owner to sum eleven separate lines.
+        if(arcN > 0) return { level:'warn', detail: fmt('pdDupArchived', { n: arcN }), meta: { archivedCount: arcN } };
         return { level:'ok', detail: t('pdNoDuplicates') };
       } },
     { key:'pdChkVisible', run: function(p){
@@ -27113,15 +27538,43 @@
     results.forEach(function(r){ score -= (PD_SCORE_PENALTY[r.level] || 0); });
     return Math.max(0, score);
   }
+  /* Extended from three bands (healthy/attention/critical) to the full five-
+     tier taxonomy the original request named explicitly
+     (HEALTHY→INFO→WARNING→HIGH→CRITICAL). The underlying score is unchanged
+     — same six checks, same weights, same pdScoreFor() — only the mapping
+     from that one number to a name gained two more steps. Both real callers
+     (the per-program badge and the overall academy score) read whatever
+     this returns, so refining the boundaries here is enough; nothing else
+     needed to change to benefit from the finer distinction. */
   function pdBand(score){
-    if(score >= 85) return 'healthy';
-    if(score >= 50) return 'attention';
+    if(score >= 90) return 'healthy';
+    if(score >= 75) return 'info';
+    if(score >= 50) return 'warning';
+    if(score >= 25) return 'high';
     return 'critical';
   }
 
+  /* Minimal Rule Registry — the request named this explicitly. A disabled
+     check is not merely hidden: it is excluded from the results array AND
+     the score, or the visible score would silently disagree with the
+     checks actually shown, which would be worse than not having the toggle
+     at all. Persisted per device via localStorage, the same pattern every
+     other local preference in this app already uses — no new mechanism. */
+  const PD_DISABLED_KEY = 'jassiPdDisabledChecks';
+  function pdDisabledChecks(){
+    try{ return JSON.parse(localStorage.getItem(PD_DISABLED_KEY) || '[]'); }catch(e){ return []; }
+  }
+  function pdSetCheckEnabled(key, enabled){
+    let list = pdDisabledChecks();
+    if(enabled) list = list.filter(function(k){ return k !== key; });
+    else if(list.indexOf(key) === -1) list.push(key);
+    try{ localStorage.setItem(PD_DISABLED_KEY, JSON.stringify(list)); }catch(e){}
+  }
   function pdRunProgram(p){
     const pub = pdFindPublished(p);
-    const results = PD_CHECKS.map(function(c){
+    const disabled = pdDisabledChecks();
+    const activeChecks = PD_CHECKS.filter(function(c){ return disabled.indexOf(c.key) === -1; });
+    const results = activeChecks.map(function(c){
       let r;
       // A check that throws is itself a finding, not a reason to abort the row.
       try{ r = c.run(p, pub); }
@@ -28449,7 +28902,7 @@
     if(!clNewProgram) return;
     const programs = lpLoad(LP_KEYS.PROGRAMS).filter(function(p){ return !p.archived; });
     clNewProgram.innerHTML = `<option value="">${t('clNoProgram')}</option>` +
-      programs.map(function(p){ return `<option value="${p.id}">${p.title}</option>`; }).join('');
+      programs.map(function(p){ return `<option value="${p.id}">${exEsc(p.title)}</option>`; }).join('');
   }
 
   async function clCreateRoom(){
@@ -28790,7 +29243,7 @@
     spList.innerHTML = res.plans.map(function(p){
       return `<div class="sp-plan">
         <div class="sp-plan-head">
-          <span class="sp-plan-title">${p.title}</span>
+          <span class="sp-plan-title">${exEsc(p.title)}</span>
           <span class="sp-plan-pct">${p.percent}%</span>
         </div>
         <div class="sp-plan-meta">@${p.student} · ${fmt('spDoneOf', { d: p.done, t: p.total })}${
@@ -28839,7 +29292,7 @@
       }
       return `<div class="sp-plan">
         <div class="sp-plan-head">
-          <span class="sp-plan-title">${p.title}</span>
+          <span class="sp-plan-title">${exEsc(p.title)}</span>
           <span class="sp-plan-pct">${p.percent}%</span>
         </div>
         <div class="sp-plan-meta">${fmt('spFrom', { who: p.assignedBy })} · ${
@@ -28981,10 +29434,74 @@
     else if(act > 0) out.push(fmt('exNarrActive', { n: act }));
     else out.push(t('exNarrQuiet'));
 
+    /* Week-over-week attendance — the exact insight named as the example in
+       the original request ("انخفض الحضور ١٢٪ هذا الأسبوع"). Needed a real
+       comparison point (the 7 days immediately before this week) that the
+       payload never computed until now; activeThisWeek only ever reported
+       one number with nothing to compare it against. A rise is reported
+       too — the same rule applies to good news as to a drop, otherwise this
+       would only ever speak up to warn. */
+    const wk = k.activeThisWeek ? k.activeThisWeek.value : 0;
+    const wkPrev = k.activeThisWeek ? k.activeThisWeek.previous : 0;
+    if(wkPrev > 0 && wk !== wkPrev){
+      const pct = Math.round(Math.abs((wk - wkPrev) / wkPrev) * 100);
+      if(pct >= 5){   // below that, week-to-week noise isn't worth naming
+        out.push(fmt(wk < wkPrev ? 'exNarrWeekDown' : 'exNarrWeekUp', { p: pct }));
+      }
+    }
+
     if(comp !== null && comp < 25) out.push(fmt('exNarrLowComp', { p: comp }));
     if(d.atRisk && d.atRisk.count > 0) out.push(fmt('exNarrRisk', { n: d.atRisk.count }));
     if(k.revenue === 'NO_SOURCE') out.push(t('exNarrNoRevenue'));
     return out;
+  }
+
+  /* ==================== OWNER ATTENTION CENTER ====================
+     Everything genuinely worth the owner's decision, in one place — not a
+     new data source, a new READING of three already-shipped, already-tested
+     endpoints (diag_orphans, diag_sheet_census) plus the at-risk-learner
+     count the executive payload already computes and, until now, only the
+     narrative text below ever mentioned in passing. Read-only: this screen
+     never fixes anything itself, matching the rule this whole diagnostics
+     suite has followed throughout — a decision belongs to the owner, this
+     just stops making them go looking for it. */
+  async function ocAttentionHtml(execData){
+    const [orphanRes, censusRes] = await Promise.all([
+      postToSheetRaw('diag_orphans', abCreds()).catch(function(){ return null; }),
+      postToSheetRaw('diag_sheet_census', abCreds()).catch(function(){ return null; })
+    ]);
+
+    const items = [];
+    const atRisk = execData && execData.atRisk && execData.atRisk.count;
+    if(atRisk > 0){
+      items.push({ level:'warn', text: fmt('ocAttnAtRisk', { n: exNum(atRisk) }), action: 'exAtRisk' });
+    }
+    if(orphanRes && orphanRes.ok && Array.isArray(orphanRes.orphanGroups) && orphanRes.orphanGroups.length){
+      const total = orphanRes.orphanGroups.reduce(function(s, g){ return s + g.count; }, 0);
+      items.push({ level:'bad', text: fmt('ocAttnOrphans', { n: exNum(total) }), action: 'connectionLink' });
+    }
+    if(censusRes && censusRes.ok && Array.isArray(censusRes.sheets)){
+      const dupeTotal = censusRes.sheets.filter(function(s){ return s.duplicateKeys > 0; })
+        .reduce(function(s, x){ return s + x.duplicateKeys; }, 0);
+      if(dupeTotal > 0) items.push({ level:'bad', text: fmt('ocAttnDupes', { n: exNum(dupeTotal) }), action: 'connectionLink' });
+      const schemaBroken = censusRes.sheets.filter(function(s){ return s.schema && !s.schema.valid; }).length;
+      if(schemaBroken > 0) items.push({ level:'warn', text: fmt('ocAttnSchema', { n: exNum(schemaBroken) }), action: 'connectionLink' });
+    }
+
+    let body;
+    if(!items.length){
+      body = '<div class="ex-attn-clear">✓ ' + t('ocAttnClear') + '</div>';
+    } else {
+      // Worse first — the same priority order used everywhere else in this
+      // diagnostics suite, so a red fact never hides behind an amber one.
+      items.sort(function(a, b){ return (a.level === 'bad' ? 0 : 1) - (b.level === 'bad' ? 0 : 1); });
+      body = items.map(function(it){
+        return '<div class="ex-attn-row ' + it.level + '" data-attn-goto="' + it.action + '">' +
+          '<span class="ex-attn-dot ' + it.level + '"></span><span>' + it.text + '</span></div>';
+      }).join('');
+    }
+    return '<div class="ex-sec"><div class="ex-sec-title">' + t('ocAttnTitle') + '</div>' +
+      '<div class="ex-sec-sub">' + t('ocAttnSub') + '</div>' + body + '</div>';
   }
 
   async function ocRenderIntel(){
@@ -29034,6 +29551,14 @@
 
     // ---- narrative ----
     const lines = exNarrative(d);
+    // Owner Attention Center — everything that genuinely needs a decision,
+    // gathered in one place, ahead of the narrative below it. Built entirely
+    // from endpoints already shipped and tested elsewhere (diag_orphans,
+    // diag_sheet_census) — no new backend surface, only a new place that
+    // reads them together instead of asking the owner to visit three
+    // separate screens to notice the same three facts.
+    html += await ocAttentionHtml(d);
+
     html += '<div class="ex-sec"><div class="ex-sec-title">' + t('exIntelTitle') + '</div>' +
       '<div class="ex-sec-sub">' + t('exIntelSub') + '</div><div class="ex-insight">' +
       '<h4>' + t('exWhatHappened') + '</h4>' +
@@ -29153,6 +29678,16 @@
     html += '</div>';
     ocIntel.innerHTML = html;
 
+    // Clicking a finding takes the owner to the screen that already explains
+    // it in full — this panel is a summary, not a duplicate of those screens.
+    ocIntel.querySelectorAll('[data-attn-goto]').forEach(function(row){
+      row.addEventListener('click', function(){
+        const targetId = row.dataset.attnGoto;
+        if(targetId === 'connectionLink'){ ocBackBtn.click(); connectionLink.click(); return; }
+        row.scrollIntoView({ behavior:'smooth', block:'center' });
+      });
+    });
+
     const tg = document.getElementById('exTeachToggle');
     if(tg) tg.addEventListener('click', async function(){
       const res = await postToSheet('teach_set', Object.assign(abCreds(), { enabled: !ts.enabled }));
@@ -29192,7 +29727,9 @@
       const v = window.prompt(t('exUsagePrompt'), String(cur));
       if(v === null) return;
       const n = Math.max(0, Math.floor(Number(v) || 0));
+      setBtnSaving(bBtn, true);
       const res = await postToSheet('set_ai_budget', Object.assign(abCreds(), { budget: n }));
+      setBtnSaving(bBtn, false);
       if(res && res.ok){ showToast(t('exUsageSaved'), nxIcon('check'), 'system'); ocRenderIntel(); }
       else showToast(describeSyncFailure(res, 'abFailed'), nxIcon(res && res.queued ? 'clock' : 'alertTriangle'), 'system');
     });
@@ -29661,8 +30198,10 @@
       if(rec === null) return;
       const phone = window.prompt(t('oaAskPhone'), p.phone || '');
       if(phone === null) return;
+      setBtnSaving(eb, true);
       const res = await postToSheet('save_owner_profile', Object.assign(abCreds(),
         { name: name, email: email, recoveryEmail: rec, phone: phone }));
+      setBtnSaving(eb, false);
       if(res && res.error === 'recovery_same'){
         showToast(t('oaRecoverySame'), nxIcon('alertTriangle'), 'system'); return;
       }
@@ -29675,8 +30214,10 @@
     if(pb) pb.addEventListener('click', function(){
       const url = window.prompt(t('oaAskPhoto'), p.photoURL || '');
       if(url === null) return;
+      setBtnSaving(pb, true);
       postToSheet('save_owner_profile', Object.assign(abCreds(), { photoURL: url }))
         .then(function(res){
+          setBtnSaving(pb, false);
           showToast(res && res.ok ? t('oaSaved') : describeSyncFailure(res, 'abFailed'),
                     nxIcon(res && res.ok ? 'check' : (res && res.queued ? 'clock' : 'alertTriangle')), 'system');
           if(res && res.ok) ocRenderAccount();
@@ -29711,9 +30252,14 @@
          a way to take over a child's progress without their password. */
       const pw = window.prompt(t('oaAskLearnerPass'), '');
       if(pw === null || !pw) return;
+      // Covers both real async gaps — hashing and the network call — not
+      // just the request itself. Hashing alone is a measurable delay a
+      // second stray click could land inside.
+      setBtnSaving(lb, true);
       const hash = await computePasswordHash(u.trim(), pw);
       const res = await postToSheet('link_learner_account', Object.assign(abCreds(),
         { learnerUsername: u.trim(), learnerPin: hash }));
+      setBtnSaving(lb, false);
       if(res && res.ok){
         showToast(fmt('oaLinkDone', { n: res.name }), nxIcon('check'), 'system');
         roleLinked = null;              // force a re-read, not a stale cache
@@ -29732,7 +30278,9 @@
     const ub = document.getElementById('oaUnlinkBtn') || document.getElementById('oaUnlinkBtn2');
     if(ub) ub.addEventListener('click', async function(){
       if(!window.confirm(t('oaUnlinkConfirm'))) return;
+      setBtnSaving(ub, true);
       const res = await postToSheet('unlink_learner_account', abCreds());
+      setBtnSaving(ub, false);
       showToast(res && res.ok ? t('oaUnlinked') : t('abFailed'),
                 nxIcon(res && res.ok ? 'check' : 'alertTriangle'), 'system');
       if(res && res.ok){ roleLinked = null; refreshRoleSwitch(); ocRenderAccount(); }
@@ -31008,7 +31556,7 @@
     await buildPeer();
     const offer = await chatPc.createOffer();
     await chatPc.setLocalDescription(offer);
-    await sendSignal({ type: 'offer', sdp: offer.sdp, video: callIsVideo });
+    await sendCallSignal({ type: 'offer', sdp: offer.sdp, video: callIsVideo });
     startCallSignalPolling();
     armConnectTimeout();
   }
@@ -31023,7 +31571,7 @@
       logCallEvent('answered', '');
     };
     chatPc.onicecandidate = function(ev){
-      if(ev.candidate) sendSignal({ type: 'candidate', candidate: ev.candidate });
+      if(ev.candidate) sendCallSignal({ type: 'candidate', candidate: ev.candidate });
     };
     chatPc.onconnectionstatechange = function(){
       // Second leftover from the rename: `pc` is undefined, so a dropped
@@ -31059,7 +31607,18 @@
     if(!them) return chatRoom || '';
     return 'room_' + [me, them].sort().join('__');
   }
-  function sendSignal(signal){
+  /* Renamed from sendSignal — a name shared with a completely unrelated race-
+     mode signalling function defined further down this file, with a
+     different argument shape (one signal object here vs. two positional
+     args, sigType/payload, there). JavaScript kept only that second
+     definition, so every call below — offer, candidate, answer, bye — was
+     actually invoking THAT function instead, which opens with
+     "if(!raceCode) return;" and raceCode is never set during a voice/video
+     call. Every signal this feature ever tried to send therefore returned
+     immediately and never reached the network: proven by executing the
+     active function's real logic directly, not assumed from reading it.
+     The whole calling feature has been silently non-functional. */
+  function sendCallSignal(signal){
     const peer = callPeer || chatWith;
     const room = callRoomFor(peer);
     callDiag.lastSent = { type: signal && signal.type, to: peer, room: room, at: Date.now() };
@@ -31137,7 +31696,7 @@
     await flushPendingCandidates();
     const answer = await chatPc.createAnswer();
     await chatPc.setLocalDescription(answer);
-    await sendSignal({ type: 'answer', sdp: answer.sdp });
+    await sendCallSignal({ type: 'answer', sdp: answer.sdp });
     callIncomingOffer = null;
     startCallSignalPolling();
     armConnectTimeout();
@@ -31147,7 +31706,7 @@
     if(callIncomingOffer){
       callPeer = callIncomingOffer.from;
       if(callIncomingOffer.roomId) chatRoom = callIncomingOffer.roomId;
-      sendSignal({ type: 'bye' });
+      sendCallSignal({ type: 'bye' });
       callIncomingOffer = null;
     }
     callIncoming.classList.add('hidden');
@@ -31157,7 +31716,7 @@
     // the kind of bug users never forgive.
     clearTimeout(callConnectTimer);
     if(callSignalPollId){ clearInterval(callSignalPollId); callSignalPollId = null; }
-    if(chatPc){ try{ sendSignal({ type: 'bye' }); }catch(e){} try{ chatPc.close(); }catch(e){} chatPc = null; }
+    if(chatPc){ try{ sendCallSignal({ type: 'bye' }); }catch(e){} try{ chatPc.close(); }catch(e){} chatPc = null; }
     if(chatStream){ chatStream.getTracks().forEach(function(tr){ tr.stop(); }); chatStream = null; }
     pendingCandidates = [];
     callLocal.srcObject = null; callRemote.srcObject = null;
@@ -31292,7 +31851,7 @@
        </div>` +
       parsed.errors.map(function(e){ return `<div class="ex-err">${fmt('exLine', { n: e.line })}: ${e.msg}</div>`; }).join('') +
       parsed.questions.map(function(q, i){
-        return `<div class="ex-q"><b>${i + 1}. ${q.text}</b> <span style="font-size:10.5px; color:var(--ink-dim);">(${fmt('examsMarks', { n: q.marks })})</span>` +
+        return `<div class="ex-q"><b>${i + 1}. ${exEsc(q.text)}</b> <span style="font-size:10.5px; color:var(--ink-dim);">(${fmt('examsMarks', { n: q.marks })})</span>` +
           q.options.map(function(o, oi){
             return `<span class="ex-opt${oi === q.correctIndex ? ' right' : ''}">${oi === q.correctIndex ? '✓ ' : '• '}${o}</span>`;
           }).join('') + `</div>`;
@@ -31561,7 +32120,7 @@
           }).join('')
         : `<input type="text" data-short="${q.questionId}" style="margin-top:8px; width:100%; padding:9px; border-radius:8px; border:1.5px solid var(--input-border); background:var(--input-bg); color:var(--ink);">`;
       return `<div class="lp-question-block">
-        <b>${i + 1}. ${q.text}</b>
+        <b>${i + 1}. ${exEsc(q.text)}</b>
         <span style="float:inline-end; font-size:10.5px; color:var(--ink-dim);">${fmt('examsMarks', { n: q.marks })}</span>
         ${body}</div>`;
     }).join('');
@@ -31629,7 +32188,7 @@
         wrong.map(function(q){
           const d = byId[q.questionId];
           const ans = d.correctIndex !== null && q.options ? q.options[d.correctIndex] : d.correctText;
-          return `<div class="lp-question-block"><b>${q.text}</b>
+          return `<div class="lp-question-block"><b>${exEsc(q.text)}</b>
             <div class="strategy-step" style="margin-top:6px;">
               <span class="strategy-num">${nxIcon('check')}</span>
               <span>${t('remedCorrectAnswer')}: <b>${ans || '—'}</b>${d.explanation ? '<br>' + d.explanation : ''}</span>
@@ -32531,7 +33090,7 @@
     printReportArea.innerHTML = `
       <div class="print-report-header">
         <h2>${t('title')} — ${t('printReportTitle')}</h2>
-        <div class="sub">${profileDisplayName(key)} · ${dateStr}</div>
+        <div class="sub">${exEsc(profileDisplayName(key))} · ${exEsc(dateStr)}</div>
       </div>
       <div class="print-report-section">
         <h3>📅 ${t('weeklyReportTitle')}</h3>
@@ -33159,7 +33718,7 @@
     }
     const el = document.createElement('div');
     el.className = 'toast-item';
-    el.innerHTML = `<span class="toast-icon">${icon || nxIcon('bell')}</span><span>${message}</span>`;
+    el.innerHTML = `<span class="toast-icon">${icon || nxIcon('bell')}</span><span>${exEsc(message)}</span>`;
     toastStack.appendChild(el);
     setTimeout(()=>{
       el.classList.add('leaving');
@@ -33203,7 +33762,7 @@
       const row = document.createElement('div');
       row.className = 'notif-panel-item' + (n.read ? '' : ' unread');
       const dateStr = new Date(n.date).toLocaleDateString(currentLang === 'ar' ? 'ar-EG' : 'en-US', { hour:'2-digit', minute:'2-digit' });
-      row.innerHTML = `<span class="notif-icon">${n.icon}</span><div class="notif-body"><div class="notif-msg">${n.message}</div><div class="notif-date">${dateStr}</div></div>`;
+      row.innerHTML = `<span class="notif-icon">${n.icon}</span><div class="notif-body"><div class="notif-msg">${exEsc(n.message)}</div><div class="notif-date">${dateStr}</div></div>`;
       notifPanelList.appendChild(row);
     });
     if(p){
@@ -33991,7 +34550,7 @@
       card.className = 'compare-card';
       card.innerHTML = `
         <div class="avatar" id="compareAvatar_${key}"></div>
-        <div class="name">${profileDisplayName(key)}</div>
+        <div class="name">${exEsc(profileDisplayName(key))}</div>
         <div class="row"><span>${t('statScore')}</span><b>${res.score}</b></div>
         <div class="row"><span>${t('sumAccLabel')}</span><b>${res.acc}%</b></div>
       `;
@@ -34094,10 +34653,17 @@
   function buildMistakeRow(text, correctStr, userStr){
     const row = document.createElement('div');
     row.className = 'mistake-item';
+    /* text is always a system-generated arithmetic problem (the same class
+       already confirmed safe for the spaced-review queue) — never free
+       text. userStr is usually just a formatted date, but the one caller
+       that instead passes the learner's own typed answer is worth covering
+       too: self-only exposure and likely numeric in practice, but escaping
+       here is free and closes the gap regardless of how that field is
+       validated upstream. */
     row.innerHTML = `
       <div class="row-line">
         <span>${text}</span>
-        <span><span class="who">${userStr}</span> → <span class="right">${correctStr}</span></span>
+        <span><span class="who">${exEsc(userStr)}</span> → <span class="right">${correctStr}</span></span>
       </div>
       <div class="row-line">
         <button class="explain-btn">${nxIcon('lightbulb')} ${t('explainBtn')}</button>
@@ -34600,16 +35166,27 @@
     const stateTxt = p.presence.state === 'offline'
       ? (p.presence.lastSeen ? fmt('presenceLastSeen', { t: relativeTimeLabel(p.presence.lastSeen) }) : t('presence_offline'))
       : t('presence_' + p.presence.state);
+    /* shownName/p.username are a FRIEND's own name and username — shown in
+       one person's browser but genuinely controlled by someone else, the
+       same cross-user exposure fixed elsewhere this session. The onerror
+       case is a sharper version of the same problem: the fallback letter
+       used to be interpolated directly into a JS string INSIDE an HTML
+       attribute, so even HTML-escaping it would not have been enough — the
+       browser decodes HTML entities before that string is read as
+       JavaScript, so an encoded quote would still terminate the string
+       early once decoded. Moved the initial letter into a plain data-
+       attribute instead: attribute values are never re-parsed as script
+       syntax, so there is no nested context left to escape for. */
     const avatar = p.photoURL
-      ? `<img src="${driveImageUrl(p.photoURL)}" alt="" class="fp-avatar" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'fp-avatar fp-avatar-fallback',textContent:'${shownName.charAt(0)}'}))">`
-      : `<div class="fp-avatar fp-avatar-fallback">${shownName.charAt(0)}</div>`;
+      ? `<img src="${exEsc(driveImageUrl(p.photoURL))}" alt="" class="fp-avatar" data-fallback-initial="${exEsc(shownName.charAt(0))}" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'fp-avatar fp-avatar-fallback',textContent:this.dataset.fallbackInitial}))">`
+      : `<div class="fp-avatar fp-avatar-fallback">${exEsc(shownName.charAt(0))}</div>`;
     const avatarBlock = `<div class="fp-avatar-wrap">${avatar}<span class="fp-avatar-badge presence-${p.presence.state}"></span></div>`;
     // Every number below comes from the learner's real recorded history.
     friendProfileArea.innerHTML = `
       <div class="fp-hero">
         ${avatarBlock}
-        <div class="fp-name">${shownName}</div>
-        <div class="fp-sub">@${p.username}</div>
+        <div class="fp-name">${exEsc(shownName)}</div>
+        <div class="fp-sub">@${exEsc(p.username)}</div>
         ${age ? `<div class="fp-since">${age}</div>` : ''}
         <div class="fp-state"><span class="presence-dot presence-${p.presence.state}"></span>${stateTxt}</div>
         ${since ? `<div class="fp-since">${fmt('profileMemberSince', { d: since })}</div>` : ''}
@@ -35906,7 +36483,7 @@
     meCard.className = 'compare-card';
     meCard.innerHTML = `
       <div class="avatar" id="raceAvatarMe"></div>
-      <div class="name">${profileDisplayName(currentProfile)}</div>
+      <div class="name">${exEsc(profileDisplayName(currentProfile))}</div>
       <div class="row"><span>${t('statScore')}</span><b>${myScore}</b></div>
       <div class="row"><span>${t('sumAccLabel')}</span><b>${myAcc}%</b></div>
     `;
@@ -35917,7 +36494,7 @@
     oppCard.className = 'compare-card';
     oppCard.innerHTML = `
       <div class="avatar">${opponentLeft ? '🚩' : '🙂'}</div>
-      <div class="name">${raceOpponentName}</div>
+      <div class="name">${exEsc(raceOpponentName)}</div>
       <div class="row"><span>${t('statScore')}</span><b>${oppScore}</b></div>
       <div class="row"><span>${t('sumAccLabel')}</span><b>${oppAcc}%</b></div>
     `;
@@ -35964,6 +36541,79 @@
   /* Tool group collapse. A group's OWN grid element is toggled, not a
      fixed sibling-index guess — so a tile added or removed from a group
      later cannot silently break the fold. */
+  /* Recent Tools — tracks real clicks on .admin-tool-tile elements via
+     localStorage (per device, matching how every other per-device
+     preference in this app is stored), then renders lightweight PROXY tiles
+     that click the real, original tile by id when pressed. Proxies rather
+     than clones: cloning a tile would duplicate its id, and this whole
+     session has repeatedly found real bugs from exactly that class of
+     mistake — a second element with the same id makes getElementById
+     silently pick the wrong one. */
+  const RECENT_TOOLS_KEY = 'jassiRecentTools';
+  function recentToolsLoad(){
+    try{ return JSON.parse(localStorage.getItem(RECENT_TOOLS_KEY) || '{}'); }catch(e){ return {}; }
+  }
+  function recentToolsRecord(id){
+    if(!id) return;
+    const counts = recentToolsLoad();
+    counts[id] = (counts[id] || 0) + 1;
+    try{ localStorage.setItem(RECENT_TOOLS_KEY, JSON.stringify(counts)); }catch(e){}
+  }
+  function recentToolsRender(){
+    const wrap = document.getElementById('atgRecentWrap');
+    const grid = document.getElementById('atgRecent');
+    if(!wrap || !grid) return;
+    const counts = recentToolsLoad();
+    const top = Object.keys(counts)
+      .map(function(id){ return { id: id, n: counts[id], el: document.getElementById(id) }; })
+      // Only a tile that still exists AND is currently reachable — a
+      // teacher's history must never surface an owner-only tool they can no
+      // longer (or never could) actually open.
+      .filter(function(x){ return x.el && elIsReachableIgnoringCollapse(x.el); })
+      .sort(function(a, b){ return b.n - a.n; })
+      .slice(0, 6);
+    if(!top.length){ wrap.style.display = 'none'; return; }
+    wrap.style.display = '';
+    grid.innerHTML = top.map(function(x){
+      const icon = x.el.querySelector('.tile-icon');
+      const label = x.el.querySelector('[data-i18n]') || x.el;
+      return '<div class="admin-tool-tile" data-recent-target="' + x.id + '">' +
+        '<span class="tile-icon">' + (icon ? icon.textContent : '🔹') + '</span>' +
+        '<span>' + exEsc(label.textContent) + '</span></div>';
+    }).join('');
+    grid.querySelectorAll('[data-recent-target]').forEach(function(proxy){
+      proxy.addEventListener('click', function(){
+        const real = document.getElementById(proxy.dataset.recentTarget);
+        if(real) real.click();
+      });
+    });
+  }
+  // One listener on the container, not one per tile — the SAME pattern
+  // already used elsewhere in this file for click-heavy lists, and it means
+  // a tile added later is tracked automatically with no extra wiring.
+  document.addEventListener('click', function(e){
+    const tile = e.target.closest('.admin-tool-tile');
+    if(tile && tile.id && !tile.hasAttribute('data-recent-target')){
+      recentToolsRecord(tile.id);
+    }
+  });
+  /* Almost every tile click navigates AWAY from this screen — that is the
+     entire point of a tool tile — so re-rendering only right after a click
+     would usually run at the exact moment the panel it lives in is being
+     hidden. A MutationObserver on #profiles catches every return to this
+     screen regardless of which of the many code paths in this file did the
+     showing, without needing to find and edit each one individually. */
+  const profilesPanel = document.getElementById('profiles');
+  if(profilesPanel && typeof MutationObserver !== 'undefined'){
+    let wasHidden = profilesPanel.classList.contains('hidden');
+    new MutationObserver(function(){
+      const isHidden = profilesPanel.classList.contains('hidden');
+      if(wasHidden && !isHidden) recentToolsRender();
+      wasHidden = isHidden;
+    }).observe(profilesPanel, { attributes:true, attributeFilter:['class'] });
+  }
+  recentToolsRender();
+
   document.querySelectorAll('.atg-head').forEach(function(head){
     const groupId = head.getAttribute('data-atg-toggle');
     const grid = document.getElementById('atg' + groupId.charAt(0).toUpperCase() + groupId.slice(1));
@@ -36008,12 +36658,46 @@
     }
     return true;
   }
+  /* Same as elIsReachable, but a collapsed tool-group accordion (an
+     .admin-tools-grid whose only fault is data-open="0" on its .atg wrapper)
+     does not count as "not reachable" — collapsing a group is a display
+     preference the owner set, not a role that forbids the tool. Ctrl+K
+     exists specifically to skip navigating past exactly that kind of fold;
+     treating it the same as a genuinely role-hidden tile would defeat half
+     the point of building a palette at all. Every OTHER .hidden ancestor —
+     the owner-only wrapper this grid itself might sit inside, for one —
+     still blocks it exactly as before. */
+  function elIsReachableIgnoringCollapse(el){
+    if(!el) return false;
+    let node = el;
+    while(node && node !== document.body){
+      const isCollapsedGroup = node.classList && node.classList.contains('admin-tools-grid') &&
+        node.classList.contains('hidden') && node.closest('.atg[data-open="0"]');
+      if(node.classList && node.classList.contains('hidden') && !isCollapsedGroup) return false;
+      node = node.parentElement;
+    }
+    return true;
+  }
+  function expandCollapsedAncestor(el){
+    const wrap = el.closest('.atg[data-open="0"]');
+    const head = wrap && wrap.querySelector('.atg-head');
+    if(head) head.click();
+  }
   function buildCommandList(){
     const cmds = [];
     const addIfReachable = (id, icon, labelKey, tagKey)=>{
       const el = document.getElementById(id);
       if(elIsReachable(el)){
         cmds.push({ icon, label:t(labelKey), tag:t(tagKey), run: ()=> el.click() });
+      }
+    };
+    // For tools that live inside a collapsible accordion group specifically —
+    // expands the group first so the click that follows lands on a genuinely
+    // visible element, then proceeds exactly like any other command.
+    const addAdminTool = (id, icon, labelKey, tagKey)=>{
+      const el = document.getElementById(id);
+      if(elIsReachableIgnoringCollapse(el)){
+        cmds.push({ icon, label:t(labelKey), tag:t(tagKey), run: ()=>{ expandCollapsedAncestor(el); el.click(); } });
       }
     };
     // always-available utility commands
@@ -36034,6 +36718,32 @@
     addIfReachable('teacherClassesBtn', '🏫', 'cmdManageClasses', 'cmdTagAdmin');
     addIfReachable('addTeacherLink', '➕', 'cmdAddTeacher', 'cmdTagAdmin');
     addIfReachable('connectionLink', '🔗', 'cmdSheetConnection', 'cmdTagAdmin');
+    /* The tiles below already carry their own working i18n key as their
+       visible label (data-i18n="programBuilderLink" etc.) — reused directly
+       here rather than inventing a parallel cmd* key for each, which would
+       just be the same Arabic and English text typed a second time and one
+       more place for the two to quietly drift apart. addAdminTool sees past
+       a collapsed accordion fold but still fully respects an owner-only
+       wrapper, so a teacher session never lists a tile it cannot use. */
+    addAdminTool('programBuilderLink', '🎓', 'programBuilderLink', 'cmdTagAdmin');
+    addAdminTool('teachersListLink', '👥', 'teachersListLink', 'cmdTagAdmin');
+    addAdminTool('scheduleLink', '🗓', 'schTitle', 'cmdTagAdmin');
+    addAdminTool('reportsLink', '📋', 'repTitle', 'cmdTagAdmin');
+    addAdminTool('classroomLink', '🏫', 'clStartTitle', 'cmdTagAdmin');
+    addAdminTool('planAssignLink', '🎯', 'spAssignTitle', 'cmdTagAdmin');
+    addAdminTool('examImportLink', '📥', 'exImportLink', 'cmdTagAdmin');
+    addAdminTool('aiBankLink', '🧠', 'abTitle', 'cmdTagAdmin');
+    addAdminTool('subscriptionLink', '💳', 'subscriptionLink', 'cmdTagAdmin');
+    addAdminTool('serviceActivationLink', '🧩', 'serviceActivationLink', 'cmdTagAdmin');
+    addAdminTool('guardianAuditLink', '🔍', 'guardianAuditLink', 'cmdTagAdmin');
+    addAdminTool('mailDiagLink', '✉️', 'mailDiagLink', 'cmdTagAdmin');
+    addAdminTool('diagCenterLink', '🛠️', 'dcTitle', 'cmdTagAdmin');
+    // Owner-only — hidden entirely for anyone else via a wrapper ABOVE the
+    // accordion, which elIsReachableIgnoringCollapse still fully respects.
+    addAdminTool('ownerCenterLink', '👑', 'ocTitle', 'cmdTagOwner');
+    addAdminTool('execCenterLink', '📊', 'exTitle', 'cmdTagOwner');
+    addAdminTool('pdLink', '🩺', 'pdTitle', 'cmdTagOwner');
+    addAdminTool('diagLink', '🩺', 'diagTitle', 'cmdTagOwner');
     // jump directly to a specific student's profile (admin picker context only)
     if(elIsReachable(document.getElementById('profileCardsWrap'))){
       profileOrder.forEach(key=>{
@@ -36075,7 +36785,7 @@
     cmdkFilteredList.forEach((cmd, i)=>{
       const row = document.createElement('div');
       row.className = 'cmdk-item' + (i === 0 ? ' active' : '');
-      row.innerHTML = `<span class="cmdk-item-icon">${cmd.icon}</span><span class="cmdk-item-label">${cmd.label}</span><span class="cmdk-item-tag">${cmd.tag}</span>`;
+      row.innerHTML = `<span class="cmdk-item-icon">${cmd.icon}</span><span class="cmdk-item-label">${exEsc(cmd.label)}</span><span class="cmdk-item-tag">${cmd.tag}</span>`;
       row.addEventListener('click', ()=>{ closeCommandPalette(); cmd.run(); });
       cmdkResults.appendChild(row);
     });
@@ -36405,4 +37115,5 @@
      because a switch with one destination is clutter. -->
 <div id="roleSwitch" class="role-switch hidden" role="group"></div>
 </body>
+
 </html>
