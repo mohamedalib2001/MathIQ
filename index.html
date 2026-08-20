@@ -4589,7 +4589,7 @@
        already-built modules. No fabricated data, no fake business metrics. -->
   <div id="serviceActivation" class="panel hidden">
     <div class="group-label" style="text-align:center;" data-i18n="serviceActivationTitle">🧩 تفعيل الخدمات</div>
-    <div class="conn-note" data-i18n="serviceActivationNote">كل خدمة هنا حقيقية وموجودة بالفعل. عطّلي أي خدمة مش جاهزة لطالباتك بعد، وفعّليها فور ما تكوني مستعدة — التعطيل يخفيها عن كل الطالبات فورًا.</div>
+    <div class="conn-note" data-i18n="serviceActivationNote">كل خدمة هنا حقيقية وموجودة بالفعل. عطّلي أي خدمة مش جاهزة لطلابك بعد، وفعّليها فور ما تكوني مستعدة — التعطيل يخفيها عن كل الطلاب فورًا.</div>
     <div id="serviceActivationList"></div>
     <button class="secondary-btn" id="serviceActivationBackBtn" data-i18n="closeBtn">إغلاق</button>
   </div>
@@ -5229,6 +5229,32 @@
   <div id="aiBankScreen" class="panel hidden">
     <div class="group-label" style="text-align:center;" data-i18n="abTitle">🧠 بنك معرفة الذكاء الاصطناعي</div>
     <div class="conn-note" data-i18n="abIntro">هذا بنك استرجاع لا تدريب: يُبحث فيه عند كل سؤال وتُحقن أفضل المقاطع في سياق المساعد. أي إضافة هنا تعمل فورًا في السؤال التالي.</div>
+
+    <!-- Knowledge Intelligence Score: reuses the existing handleBrainReport_
+         backend (fixed this session for real-scale performance), previously
+         built but never called from any frontend. Triggered on demand, not
+         on page open, per the explicit "quick metrics first, heavy analysis
+         on request" guidance — a scan over the real 20,509-row bank still
+         takes real seconds even after the fix. -->
+    <div class="ab-inject">
+      <div class="ab-inject-title" data-i18n="abIntelTitle">🧠 مؤشر ذكاء بنك المعرفة</div>
+      <div class="ex-actions">
+        <button class="secondary-btn" id="abIntelBtn" data-i18n="abIntelBtn">📊 احسب مؤشر الذكاء</button>
+        <button class="secondary-btn" id="abReadinessBtn" data-i18n="abReadinessBtn">🎯 اختبر قابلية الاسترجاع</button>
+        <button class="secondary-btn" id="abStressBtn" data-i18n="abStressBtn">💪 اختبار ضغط الذكاء</button>
+      </div>
+      <div id="abIntelReport" class="ab-report hidden"></div>
+      <div id="abReadinessReport" class="ab-report hidden"></div>
+      <div id="abStressReport" class="ab-report hidden"></div>
+      <div class="ex-actions">
+        <button class="start-btn" id="abInjectPromptBtn" data-i18n="abInjectPromptBtn">✨ حلّل البنك وأنشئ الحقنة التالية</button>
+      </div>
+      <label class="nova-voice-toggle" style="margin:4px 0 8px;">
+        <input type="checkbox" id="abIncludeStressToggle">
+        <span data-i18n="abIncludeStressLabel">تضمين اختبار الضغط (أدق، لكن أبطأ — حوالي 20 ثانية إضافية)</span>
+      </label>
+      <div id="abInjectPromptReport" class="ab-report hidden"></div>
+    </div>
 
     <div class="ex-actions">
       <button class="secondary-btn" id="abSeedBtn" data-i18n="abSeedBtn">📚 ازرع وثائق الخدمات</button>
@@ -7020,6 +7046,15 @@
   const examsBackBtn = document.getElementById('examsBackBtn');
   const aiBankScreen = document.getElementById('aiBankScreen');
   const aiBankLink = document.getElementById('aiBankLink');
+  const abIntelBtn = document.getElementById('abIntelBtn');
+  const abIntelReport = document.getElementById('abIntelReport');
+  const abReadinessBtn = document.getElementById('abReadinessBtn');
+  const abReadinessReport = document.getElementById('abReadinessReport');
+  const abInjectPromptBtn = document.getElementById('abInjectPromptBtn');
+  const abInjectPromptReport = document.getElementById('abInjectPromptReport');
+  const abIncludeStressToggle = document.getElementById('abIncludeStressToggle');
+  const abStressBtn = document.getElementById('abStressBtn');
+  const abStressReport = document.getElementById('abStressReport');
   const abSeedBtn = document.getElementById('abSeedBtn');
   const abRefreshBtn = document.getElementById('abRefreshBtn');
   const abTemplateBtn = document.getElementById('abTemplateBtn');
@@ -8510,7 +8545,16 @@
       cmdAddTeacher:'إضافة حساب معلم', cmdSheetConnection:'ربط جوجل شيت', cmdTagAdmin:'إدارة',
       cmdOpenStudent:'فتح حساب: {name}', cmdTagStudents:'الطلاب',
       serviceActivationLink:'تفعيل الخدمات', serviceActivationTitle:'🧩 تفعيل الخدمات',
-      serviceActivationNote:'كل خدمة هنا حقيقية وموجودة بالفعل. عطّلي أي خدمة مش جاهزة لطالباتك بعد، وفعّليها فور ما تكوني مستعدة — التعطيل يخفيها عن كل الطالبات فورًا.',
+      /* was "طالباتك"/"الطالبات" (specifically FEMALE students) — the
+         English sibling has always said the genuinely gender-neutral
+         "your students"/"all students", confirming this was a real
+         translation-level bug affecting every admin regardless of their
+         own gender, not something the ar_m mechanism alone could fix
+         (that only helps a male READER; this noun choice was wrong for a
+         female admin with male or mixed students too). Corrected in the
+         base ar text itself so it benefits everyone; the remaining verb
+         conjugation for a male admin still gets its own ar_m entry below. */
+      serviceActivationNote:'كل خدمة هنا حقيقية وموجودة بالفعل. عطّلي أي خدمة مش جاهزة لطلابك بعد، وفعّليها فور ما تكوني مستعدة — التعطيل يخفيها عن كل الطلاب فورًا.',
       svcAbacusName:'مدرّب الأباكوس', svcAbacusDesc:'أداة الأباكوس التفاعلية بأوضاع التدريب الثلاثة',
       svcRaceName:'السباق المباشر', svcRaceDesc:'تحدٍّ مباشر بين طالبتين مع مزامنة لحظية',
       svcKnowledgeMapName:'الرحلة التعليمية', svcKnowledgeMapDesc:'خريطة المستويات الـ12 ونظام الإتقان',
@@ -9050,6 +9094,7 @@
       novaToolDenied:'الإجراء ده مش متاح لحسابك.',
       novaToolFailed:'حاولت أنفّذ الطلب ومنفّذش. مش هقول تم وهو ما حصلش.',
       outboxPending:'⏳ {n} عملية في انتظار الحفظ — هتتبعت لوحدها لما النت يرجع.',
+      outboxGaveUp:'⚠️ تعذّر حفظ {n} تغييرًا بعد محاولات متكرّرة على مدى ساعات — يُنصَح بالتحقّق يدويًا.',
       novaBrowserKeyRejected:'مفتاح المتصفح رفضه Google — غالبًا بسبب قيد النطاق (HTTP referrer). راجع إعدادات المفتاح في Google Cloud.',
       novaFallbackOff:'الخادم لا يستطيع الوصول للنموذج، والمسار البديل عبر المتصفح غير مُفعَّل.',
       novaDontKnowYet:'السؤال ده لسه معنديش عنه إجابة موثوقة، ومش عايز أقولك حاجة من عندي وتطلع غلط 🙂 جرّب تسألني بطريقة تانية أو بكلمات أبسط، وأنا غالبًا هفهم قصدك.',
@@ -9058,7 +9103,7 @@
       novaConfMid:'— دي أقرب إجابة عندي لسؤالك. لو مش دي اللي تقصدها، اسأل بكلمات تانية.',
       novaConfLow:'— مش متأكد إن دي إجابة سؤالك بالظبط. لو مش مناسبة، وضّح أكتر وأنا أدوّر تاني.',
       recIntro:'بصّيت على أداءك، ودي أهم حاجة تعملها دلوقتي:',
-      recNothing:'كل حاجة تمام حاليًا 👏 مفيش مراجعة متأخرة ولا مهارة ضعيفة. لو حابب، ابدأ تمرين جديد.',
+      recNothing:'كل حاجة تمام حاليًا 👏 مفيش مراجعة متأخرة ولا مهارة ضعيفة. ممكن نبدأ تمرين جديد.',
       recReview:'عندك {n} مراجعة متأخرة — دي الأهم، لأن اللي اتعلمته بينسى لو ما راجعتوش.',
       recReviewBtn:'ابدأ المراجعة',
       recKnowledge:'{n} مهارة في خريطة المعرفة محتاجة تثبيت.',
@@ -9198,6 +9243,78 @@
       abRefreshed:'✓ حُدِّثت {n} حقيقة تلقائية من بيانات النظام.',
       syncQueued:'اتحفظت على جهازك وهتتبعت للخادم لوحدها لما النت يرجع — مش محتاج تعيد المحاولة.',
       abFailed:'تعذّر تنفيذ العملية — تحقق من نشر ملف الخادم.',
+      abIntelTitle:'🧠 مؤشر ذكاء بنك المعرفة',
+      abIntelBtn:'📊 احسب مؤشر الذكاء',
+      abIntelInsufficient:'غير متاح — لا توجد بيانات كافية',
+      abIntelNotAiCapability:'هذا التصنيف يقيس جودة واستعداد المعرفة للاسترجاع والإجابة، وليس قدرة نموذج الذكاء الاصطناعي العامة.',
+      abIntelTotal:'إجمالي السجلات',
+      abIntelFiled:'مصنّفة',
+      abIntelUnfiled:'غير مصنّفة',
+      abIntelCollections:'عدد Collections',
+      abIntelExactDupes:'تكرار تام',
+      abIntelNearDupes:'تكرار شبه تام',
+      abIntelConflicts:'إجابات متعارضة',
+      abIntelExactDupeSample:'أمثلة تكرار تام',
+      abIntelNearDupeSample:'أمثلة تكرار شبه تام',
+      abIntelSourceTitle:'📚 صحة المصادر',
+      abIntelSourceCoverage:'تغطية المصادر',
+      abIntelDominantSource:'⚠️ المصدر "{name}" يغطي {n} سجلًا — كثافة غير طبيعية',
+      abIntelQualityTitle:'✅ مدقق جودة المعرفة',
+      abIntelQualityScore:'درجة الجودة',
+      abIntelVagueQ:'أسئلة غامضة',
+      abIntelShortA:'إجابات قصيرة',
+      abIntelThinMeta:'بيانات وصفية ضعيفة',
+      abIntelReviewQueue:'قائمة المراجعة',
+      abIntelCapped:'عينة',
+      abInjectPromptBtn:'✨ حلّل البنك وأنشئ الحقنة التالية',
+      abInjectAnalyzing:'جاري تحليل البنك (فحص سريع → فجوات → استرجاع → أسئلة فاشلة → تكرار → جمهور → أولوية → خطة → برومبت)…',
+      abInjectAnalyzingWithStress:'جاري تحليل شامل يتضمن اختبار الضغط (قد يستغرق ٢٠ ثانية تقريبًا)…',
+      abIncludeStressLabel:'تضمين اختبار الضغط (أدق، لكن أبطأ — حوالي 20 ثانية إضافية)',
+      abInjectNoTarget:'لا يوجد موضوع ضعيف حاليًا يستدعي حقنًا فوريًا.',
+      abInjectPreviewTitle:'📋 معاينة خطة الحقن',
+      abInjectTarget:'الهدف',
+      abInjectPriority:'الأولوية',
+      abInjectWhy:'السبب',
+      abInjectRows:'عدد الصفوف المقترح',
+      abInjectExistingTopics:'Topics موجودة حاليًا',
+      abInjectReadiness:'جاهزية البرومبت',
+      abInjectPromptTitle:'📝 البرومبت الجاهز للنسخ',
+      abInjectCopyBtn:'📋 انسخ البرومبت',
+      abStressBtn:'💪 اختبار ضغط الذكاء',
+      abStressRunning:'جاري تشغيل اختبار الضغط (فصحى، عامية، أخطاء إملائية، Topics ضعيفة وقوية)… قد يستغرق عدة ثوانٍ.',
+      abStressNoData:'البنك فارغ — لا يمكن إجراء اختبار ضغط.',
+      abStressScore:'درجة اختبار الضغط',
+      abStressHitRate:'نسبة النجاح',
+      abStressMissRate:'نسبة الفشل',
+      abStressLatency:'زمن الاستجابة',
+      abStressWeakHit:'نجاح Topics ضعيفة',
+      abStressStrongHit:'نجاح Topics قوية',
+      abStressLowConf:'ثقة منخفضة',
+      abStressNoResult:'بلا نتيجة',
+      abStressWrongTopic:'موضوع خاطئ',
+      abStressAmbiguous:'غامضة',
+      abStressExactSemantic:'تطابق حرفي/دلالي',
+      abIntelGroupsSkipped:'{n} موضوعًا تم تخطيه (كبير جدًا لفحص التعارض بأمان)',
+      abIntelScanMeta:'مدة الفحص: {ms} مللي ثانية · السجلات المحلَّلة: {rows}',
+      abIntelSizeTitle:'📏 حجم البنك وسعته',
+      abIntelTotalChars:'إجمالي الحروف',
+      abIntelApproxWords:'عدد الكلمات التقريبي',
+      abIntelAvgQLen:'متوسط طول السؤال',
+      abIntelAvgALen:'متوسط طول الإجابة',
+      abIntelLargestColl:'أكبر Collection',
+      abIntelLargestTopic:'أكبر Topic',
+      abIntelTopicCount:'عدد Topics',
+      abIntelAvgPerTopic:'متوسط السجلات لكل Topic',
+      abIntelUniqueQ:'أسئلة فريدة',
+      abIntelUniqueSrc:'مصادر فريدة',
+      abIntelNoSource:'بدون مصدر',
+      abIntelMemEstimate:'تقدير محلي تقريبي لحجم النص في الذاكرة: {kb} كيلوبايت (ليس قياسًا فعليًا لتخزين Sheets)',
+      abIntelGapTitle:'🔍 فجوات المعرفة',
+      abIntelWeakTopicsCount:'{n} موضوعًا بـ{threshold} سجل أو أقل — أولى مرشحي التوسيع',
+      abReadinessBtn:'🎯 اختبر قابلية الاسترجاع',
+      abReadinessRate:'نسبة النجاح: {rate}%',
+      abReadinessCounts:'{p} نجح · {w} ضعيف · {f} فشل',
+      abReadinessGot:'المسترجَع',
       schTitle:'جدول الحصص', schMyTitle:'🗓 حصصي القادمة', schMyNavLabel:'حصصي',
       schNewTitle:'جدولة حصة', schWhen:'الموعد', schDuration:'المدة',
       schAudience:'لمن؟', schAudiencePh:'اتركه فارغًا للجميع، أو أسماء مفصولة بفاصلة',
@@ -10227,9 +10344,91 @@
       /* Masculine forms. The mechanism existed but these keys were never
          added to it, so a boy was addressed with feminine verbs across the
          certificate, the assistant and every error message. */
+      toastLessonComplete:'📘 أكملت درس: {lesson}',
       pgMemoryQ:'احفظ هذه الأرقام ثم اكتبها بترتيب <b>عكسي</b>:<br><b style="letter-spacing:4px; direction:ltr; display:inline-block; margin-top:6px;">{seq}</b>',
       loginCodeNoEmail:'لا يوجد بريد إلكتروني مسجَّل على هذا الحساب، فلا يمكن إرسال كود إليه. سجّل الدخول بكلمة المرور ثم أضف بريدك من «حسابي».',
-      forgotAccountOwnerTitle:'أنت صاحبة التطبيق ونسيت حساب الإدارة؟',
+      forgotAccountOwnerTitle:'أنت صاحب التطبيق ونسيت حساب الإدارة؟',
+      /* forgotAccountOwnerTitle already existed here, but only fixed the
+         two feminine VERB endings (أنتِ/نسيتِ -> أنت/نسيت) and left
+         "صاحبة" untouched — an explicit feminine NOUN ("female owner"),
+         not fixable by dropping a diacritic the way the verbs were. A male
+         admin reading this still saw himself described as the app's female
+         owner. Corrected to صاحب. forgotAccountOwnerText, the paired body
+         text shown right below this same title, had no ar_m entry at all
+         until now — found by the same scan that caught the title's own
+         remaining bug. */
+      forgotAccountOwnerText:'حساب الإدارة محفوظ محليًا على هذا الجهاز فقط، وليس له استعادة تلقائية. لو فقدته فعلًا، الخيار الوحيد هو مسح بيانات الموقع من إعدادات المتصفح لهذا الرابط، ثم تسجيل حساب إدارة جديد — علمًا بأن هذا لن يمسح بيانات الطلاب المخزّنة، لكنه سيفصلك عن هوية الإدارة القديمة.',
+      friendsOutgoingLabel:'طلبات أرسلتها (في انتظار الرد)',
+      /* Stage 4: a precise scan for KNOWN feminine imperative/2nd-person
+         forms (the task's own example list: جرّبي، ركّزي، كمّلي، فهمتي، plus
+         siblings) found 20 more genuine gaps — real matches confirmed by
+         reading each string in full, not the earlier looser keyword scan.
+         recIntro was checked and excluded: its "بصّيت" is first-person
+         ("I looked"), the assistant describing its own action, not
+         addressing the reader — a real false positive, left untouched. */
+      forgotAccountStudentText:'أكاديمية جاسمين لا تُرسل رسائل استعادة تلقائيًا. تواصل مع معلّمتك أو ولي أمرك (صاحب/ة الحساب) — يقدر/تقدر يشوف/تشوف حسابك ويغيّر كلمة المرور من لوحة "إدارة الحسابات".',
+      forgotUsernameSuccessMsg:'لو البريد ده مسجَّل، وصلك بريد فيه كل أسماء المستخدمين المرتبطة بيه. راجع بريدك (وصندوق الرسائل غير المرغوبة أيضًا).',
+      enterEmailAndUsernameFirst:'أدخل البريد الإلكتروني واسم المستخدم أولًا',
+      emailSendCodeFailed:'تعذّر إرسال الكود. حاول مرة أخرى.',
+      forgotAccountSuccessMsg:'لو الحساب موجود وله بريد إلكتروني مسجَّل، وصله رابط إعادة تعيين كلمة المرور الآن. راجع بريدك (وصندوق الرسائل غير المرغوبة أيضًا).',
+      forgotAccountRequestFailed:'تعذّر إرسال الطلب. تأكد من الاتصال وحاول مرة أخرى.',
+      pbSeedEnglishFailed:'تعذّر إنشاء البرنامج بالكامل. راجع شيت الأخطاء للتفاصيل.',
+      pbSeedProgrammingFailed:'تعذّر إنشاء البرنامج بالكامل. راجع شيت الأخطاء للتفاصيل.',
+      pbSeedAiFailed:'تعذّر إنشاء البرنامج بالكامل. راجع شيت الأخطاء للتفاصيل.',
+      pbSeedRoboticsFailed:'تعذّر إنشاء البرنامج بالكامل. راجع شيت الأخطاء للتفاصيل.',
+      pbSeedDesignFailed:'تعذّر إنشاء البرنامج بالكامل. راجع شيت الأخطاء للتفاصيل.',
+      pbSeedStemFailed:'تعذّر إنشاء البرنامج بالكامل. راجع شيت الأخطاء للتفاصيل.',
+      pbSeedLogicFailed:'تعذّر إنشاء البرنامج بالكامل. راجع شيت الأخطاء للتفاصيل.',
+      pbSeedMemoryFailed:'تعذّر إنشاء البرنامج بالكامل. راجع شيت الأخطاء للتفاصيل.',
+      pbSeedCognitiveFailed:'تعذّر إنشاء البرنامج بالكامل. راجع شيت الأخطاء للتفاصيل.',
+      pbSeedAlreadyExists:'⚠️ هذا البرنامج موجود بالفعل — لم يتم إنشاء نسخة مكرَّرة. راجع القائمة، ولو محتاج نسخة جديدة احذف القديمة أولًا من Program Builder.',
+      novaOpening:'تمام، سأفتح لك {s}.',
+      novaOpenAction:'▸ افتح {s}',
+      abObsUnclear:'حركاتك على الأباكوس سريعة جدًا لتصنيف طريقة الحل — جرّب التمهّل قليلًا',
+      classNameRequired:'اكتب اسم الفصل أولًا',
+      novaChipReview:'ابدأ مراجعة اليوم',
+      novaChipOpenSynapse:'افتح سينابس',
+      perStudentSubNote:'حالة الاشتراك والتفعيل الآن لكل حساب على حدة — راجعها من قائمة الطلاب في لوحة الإدارة الرئيسية.',
+      /* Stage 5: a broader batch of known feminine imperative forms found
+         12 more genuine gaps, plus serviceActivationNote's remaining verb
+         conjugation (its noun-gender bug was already fixed in the base ar
+         text above, benefiting every admin regardless of reader gender).
+         Four candidates from this same scan (pubNotAllowed, pubVisFriends,
+         coCount, cbEndConfirm) were checked and excluded: "حددي"/"شاركي" matched only
+         as a coincidental substring inside unrelated plural nouns
+         ("محددين"="specified ones", "مشاركين"="participants"), not the actual
+         feminine imperative verbs حددي/شاركي — real false positives, left untouched. */
+      pgAnalogyQ:'أكمل التناظر:<br><b>{a} : {b} :: {c} : ؟</b>',
+      forgotUsernameEmailIntro:'أدخل بريدك الإلكتروني المسجَّل، وهنبعتلك كل أسماء المستخدمين المرتبطة بيه (لو عندك أكتر من طفل بنفس البريد، هتوصلك كلها).',
+      enterEmailOnly:'أدخل البريد الإلكتروني أولًا',
+      loginCodeIntro:'أدخل اسم المستخدم، وهنبعتلك كود تسجيل دخول لمدة 10 دقائق على بريدك المسجَّل.',
+      loginCodeEnterCode:'أدخل الكود اللي وصلك على بريدك الإلكتروني.',
+      enterCodeFirst:'أدخل الكود أولًا',
+      forgotAccountEmailIntro:'أدخل اسم المستخدم بتاعك، وهنبعتلك رابط لتعيين كلمة مرور جديدة على بريدك الإلكتروني المسجَّل (لو موجود).',
+      enterUsernameOnly:'أدخل اسم المستخدم أولًا',
+      pbSeedIndividualLabel:'أو فعّل برنامجًا واحدًا بمفرده:',
+      serviceActivationNote:'كل خدمة هنا حقيقية وموجودة بالفعل. عطّل أي خدمة مش جاهزة لطلابك بعد، وفعّلها فور ما تكون مستعدًا — التعطيل يخفيها عن كل الطلاب فورًا.',
+      mailDiagHint:'أدخل اسم مستخدم للتحقق من وجود بريد مسجّل له (اختياري).',
+      friendsNone:'لا يوجد أصدقاء بعد. أضف صديقًا باسم المستخدم أعلاه!',
+      guardianOfflineNoLinks:'لا يوجد اتصال بالخادم، ولا توجد روابط محفوظة على هذا الجهاز. اتصل بالإنترنت ثم أعد المحاولة.',
+      novaMicDenied:'المتصفح منع الميكروفون. اسمح بالوصول من إعدادات الموقع ثم أعد المحاولة.',
+      /* Stage 6: a predicate-adjective/standalone-pronoun scan found mostly
+         false positives — feminine grammatical agreement with feminine
+         Arabic NOUNS (محاولة="attempt", صورة="photo", كاميرا="camera", صفوف="rows"), not
+         the user's gender, correctly left untouched. novaStateIdle is
+         Nova's OWN persona status label ("جاهزة للمساعدة" = Nova herself is ready),
+         a different concern from user gender entirely, also untouched.
+         Four real gaps found: two straightforward, one needing a surgical
+         fix (only the part of novaStateListening that actually refers to
+         the USER, not Nova's own verb form), and one (leaveRaceConfirm)
+         with the SAME third-party-gender-assumption pattern already fixed
+         for forgotAccountStudentText's "معلّمتك" — here "لصديقتك" assumed the
+         race OPPONENT is female, rephrased to a generic noun instead of
+         guessing a third person's gender either way. */
+      notifWelcome:'يومك مبارك! جاهز لتمرين ممتع اليوم؟',
+      missionRecommendFresh:'جاهز لبداية تمرين جديد؟',
+      novaStateListening:'أستمع إليك…',
+      leaveRaceConfirm:'هل أنت متأكد من مغادرة السباق؟ سيظهر للاعب الآخر أنك غادرت فورًا، وستفوز تلقائيًا بالنتيجة الحالية.',
       resetPasswordFailed:'تعذّر تعيين كلمة المرور. حاول مرة أخرى.',
       pbSeedAllPartial:'اكتمل جزئيًا: {succeeded} من 9 برامج نجحت. فشل: {failedNames}. راجع شيت الأخطاء وحاول تفعيل الفاشلة يدويًا من الأزرار أدناه.',
       guardianPinRequired:'اكتب كلمة مرور لحساب ولي الأمر — بدونها لن يستطيع تسجيل الدخول.',
@@ -11000,6 +11199,7 @@
       novaToolDenied:'That action is not available to your account.',
       novaToolFailed:'I tried to run that and it did not go through. I will not say it worked when it did not.',
       outboxPending:'⏳ {n} change(s) waiting to save — they will send themselves when the connection returns.',
+      outboxGaveUp:'⚠️ Could not save {n} change(s) after repeated attempts over several hours — worth checking manually.',
       novaBrowserKeyRejected:'Google rejected the browser key — most likely an HTTP referrer restriction. Check the key settings in Google Cloud.',
       novaFallbackOff:'The server cannot reach the model, and the browser fallback is not enabled.',
       novaDontKnowYet:'I do not have a reliable answer for that one yet, and I would rather not make something up 🙂 Try asking it a different way or in simpler words — I will usually catch your meaning.',
@@ -11149,6 +11349,78 @@
       abRefreshed:'✓ {n} automatic facts refreshed from live data.',
       syncQueued:'Saved on your device and will send itself once the connection returns — no need to retry.',
       abFailed:'The action failed — check that the backend is deployed.',
+      abIntelTitle:'🧠 Knowledge Bank Intelligence Score',
+      abIntelBtn:'📊 Calculate Intelligence Score',
+      abIntelInsufficient:'Not available — insufficient data',
+      abIntelNotAiCapability:'This rating measures the readiness of the knowledge for retrieval and answering, not the general capability of the AI model.',
+      abIntelTotal:'Total records',
+      abIntelFiled:'Filed',
+      abIntelUnfiled:'Unfiled',
+      abIntelCollections:'Collections',
+      abIntelExactDupes:'Exact duplicates',
+      abIntelNearDupes:'Near duplicates',
+      abIntelConflicts:'Conflicting answers',
+      abIntelExactDupeSample:'Exact duplicate examples',
+      abIntelNearDupeSample:'Near duplicate examples',
+      abIntelSourceTitle:'📚 Source Health',
+      abIntelSourceCoverage:'Source coverage',
+      abIntelDominantSource:'⚠️ Source "{name}" covers {n} records — unnatural density',
+      abIntelQualityTitle:'✅ Knowledge Quality Auditor',
+      abIntelQualityScore:'Quality score',
+      abIntelVagueQ:'Vague questions',
+      abIntelShortA:'Short answers',
+      abIntelThinMeta:'Thin metadata',
+      abIntelReviewQueue:'Review queue',
+      abIntelCapped:'sample',
+      abInjectPromptBtn:'✨ Analyze Bank & Generate Next Injection',
+      abInjectAnalyzing:'Analyzing the bank (quick audit → gaps → retrieval → failed questions → duplication → audience → priority → plan → prompt)…',
+      abInjectAnalyzingWithStress:'Running a full analysis including the stress test (may take about 20 seconds)…',
+      abIncludeStressLabel:'Include stress test (more accurate, but slower — about 20 extra seconds)',
+      abInjectNoTarget:'No weak topic currently requires immediate injection.',
+      abInjectPreviewTitle:'📋 Injection Plan Preview',
+      abInjectTarget:'Target',
+      abInjectPriority:'Priority',
+      abInjectWhy:'Reason',
+      abInjectRows:'Recommended rows',
+      abInjectExistingTopics:'Existing Topics',
+      abInjectReadiness:'Prompt readiness',
+      abInjectPromptTitle:'📝 Ready-to-copy prompt',
+      abInjectCopyBtn:'📋 Copy prompt',
+      abStressBtn:'💪 AI Bank Stress Test',
+      abStressRunning:'Running the stress test (formal, colloquial, misspellings, weak and strong topics)… may take several seconds.',
+      abStressNoData:'Empty bank — cannot run a stress test.',
+      abStressScore:'Stress test score',
+      abStressHitRate:'Hit rate',
+      abStressMissRate:'Miss rate',
+      abStressLatency:'Latency',
+      abStressWeakHit:'Weak topic hit rate',
+      abStressStrongHit:'Strong topic hit rate',
+      abStressLowConf:'Low confidence',
+      abStressNoResult:'No result',
+      abStressWrongTopic:'Wrong topic',
+      abStressAmbiguous:'Ambiguous',
+      abStressExactSemantic:'Exact/semantic match',
+      abIntelGroupsSkipped:'{n} topic(s) skipped (too large to check safely for conflicts)',
+      abIntelScanMeta:'Scan time: {ms}ms · Rows analyzed: {rows}',
+      abIntelSizeTitle:'📏 Bank Size & Capacity',
+      abIntelTotalChars:'Total characters',
+      abIntelApproxWords:'Approx. word count',
+      abIntelAvgQLen:'Avg. question length',
+      abIntelAvgALen:'Avg. answer length',
+      abIntelLargestColl:'Largest Collection',
+      abIntelLargestTopic:'Largest Topic',
+      abIntelTopicCount:'Topic count',
+      abIntelAvgPerTopic:'Avg. records per Topic',
+      abIntelUniqueQ:'Unique questions',
+      abIntelUniqueSrc:'Unique sources',
+      abIntelNoSource:'No source',
+      abIntelMemEstimate:'Rough local estimate of text size in memory: {kb} KB (not an actual measurement of Sheets storage)',
+      abIntelGapTitle:'🔍 Knowledge Gaps',
+      abIntelWeakTopicsCount:'{n} topic(s) with {threshold} record(s) or fewer — top expansion candidates',
+      abReadinessBtn:'🎯 Test Retrieval Readiness',
+      abReadinessRate:'Pass rate: {rate}%',
+      abReadinessCounts:'{p} pass · {w} weak · {f} fail',
+      abReadinessGot:'Retrieved',
       schTitle:'Class schedule', schMyTitle:'🗓 My upcoming classes', schMyNavLabel:'My classes',
       schNewTitle:'Schedule a class', schWhen:'When', schDuration:'Duration',
       schAudience:'For whom?', schAudiencePh:'Leave blank for everyone, or comma-separated usernames',
@@ -13051,7 +13323,7 @@
      Apps Script deployment is older than the page, and every server-side fix
      — the tolerant username lookup, the login-code mailer, the password
      repair — is simply absent. */
-  const EXPECTED_GS_BUILD = 'gs-2026-08-20-0911-6be1e4d0';
+  const EXPECTED_GS_BUILD = 'gs-2026-08-20-1349-12f413d7';
 
   async function jaCheckBackendFresh(){
     if(!SHEET_API_URL || !adminLoginHint) return;
@@ -13829,6 +14101,18 @@
       let list = outboxLoad();
       if(!list.length) return;
       const still = [];
+      /* Two different "permanent" drops below, deliberately treated
+         differently. A session/auth rejection (the queued token going stale
+         before the retry fires) is routine and self-recovering — the
+         user's real data typically still exists locally, and simply doing
+         the action again after their next login succeeds normally, exactly
+         as it already did silently before any of this session's identity
+         fixes existed. Alerting loudly for that would manufacture alarm
+         over something expected. Attempts genuinely exhausted after hours
+         of real, sustained failure is a different situation — that is a
+         real write that will not come back on its own, and staying silent
+         about it (as before, console-only) is the part that needed fixing. */
+      let goneCount = 0;
       for(let i = 0; i < list.length; i++){
         const item = list[i];
         let res = null;
@@ -13842,10 +14126,13 @@
         }
         item.attempts++;
         if(item.attempts < OUTBOX_MAX_ATTEMPTS) still.push(item);
-        else console.error('[outbox] giving up after ' + item.attempts + ' attempts', item.type);
+        else { console.error('[outbox] giving up after ' + item.attempts + ' attempts', item.type); goneCount++; }
       }
       outboxSave(still);
       updateOutboxIndicator();
+      if(goneCount > 0){
+        showToast(fmt('outboxGaveUp', { n: goneCount }), nxIcon('alertTriangle'), 'system');
+      }
       if(still.length){
         // Exponential-ish backoff, capped, so a long outage does not hammer.
         const wait = Math.min(300000, 5000 * Math.pow(2, Math.min(6, still[0].attempts)));
@@ -15559,6 +15846,20 @@
   // Returns true if access is currently allowed for this student profile;
   // otherwise shows the right gate (disabled / expired) and returns false.
   function checkStudentAccessGate(key){
+    /* refreshAccessState existed to fetch the current server-side truth
+       before this decision, but nothing ever called it — this gate always
+       ran on whatever PROFILES[key] happened to hold locally, which could
+       be hours stale for a learner disabled or a trial expired since the
+       last sync. Making the gate itself await a fresh fetch would mean
+       converting all five call sites to async, a much larger and riskier
+       change for what the function's own existing comment already treats
+       as best-effort ("failure is silent, falls back to the local copy").
+       This keeps the immediate decision exactly as it already was — same
+       signature, same synchronous return, zero caller changes — and adds
+       only a background refresh so the NEXT check (a retry after "account
+       disabled", or simply reopening the app) has fresher data instead of
+       none ever arriving at all. */
+    if(typeof refreshAccessState === 'function') refreshAccessState(key).catch(function(){});
     const state = getStudentAccessState(key);
     if(state === 'disabled'){
       pendingAccessKey = key;
@@ -18829,6 +19130,21 @@
     if(serverKeys && serverKeys.length){
       guardianUnlockedChildren = serverKeys;
       showParentView(serverKeys);
+      return;
+    }
+    /* explainNoChildrenLinked existed, with its own comment stating exactly
+       this purpose, but nothing ever called it. Without this check, a
+       guardian with genuinely zero linked children — server already asked
+       and already confirmed empty, right above — fell through to a PIN
+       entry prompt with no PIN that could mean anything: the PIN modal's
+       own submit handler re-checks the identical server source when its
+       local links are also empty, so it can only ever land on the same
+       "no children" conclusion, just after an extra, confusing step asking
+       for a credential that was never going to unlock anything. Only show
+       the PIN modal when local links genuinely exist to unlock — the case
+       this fetch cannot have already ruled out. */
+    if(serverKeys !== null && myGuardianLinks().length === 0){
+      explainNoChildrenLinked();
       return;
     }
     guardianUnlockPin.value = '';
@@ -22963,6 +23279,12 @@
       name: profileDisplayName(key),
       username: p.username || key,
       age: age,
+      // gender is read exactly like age: from the real stored profile field,
+      // never guessed. 'male' or 'female' only when the user actually set
+      // it; anything else (unset, or any other stored value) reports as
+      // 'unspecified' rather than silently defaulting to either grammatical
+      // gender, matching age's own "no date, no claim" rule above.
+      gender: (p.gender === 'male' || p.gender === 'female') ? p.gender : 'unspecified',
       birthDate: p.birthDate || null,
       eduSystem: p.eduSystem ? t('eduSys_' + p.eduSystem) : null,
       grade: p.gradeStage ? t('grade_' + p.gradeStage) : null,
@@ -23092,6 +23414,143 @@
     return '- العمر غير معروف. استخدم لغة واضحة محايدة تناسب أي عمر، بلا صياغة طفولية وبلا مصطلحات ثقيلة.';
   }
 
+  /* ==================== JASMIN ADAPTIVE PERSONA ENGINE ====================
+     One shared source of truth for gender+age+role-aware address, feeding
+     BOTH the external AI prompt (novaAgeStyleRule's sibling below) AND local
+     response builders (novaSay, Knowledge Bank, quiz feedback, plans...).
+     REUSE FIRST: reads p.gender (already stored and synced — see
+     currentGender/isFemale/holderIsFemale elsewhere in this file, which this
+     does not replace, since those are narrow, already-tested, working call
+     sites) and the same novaAgeBand() age computation already built for the
+     AI prompt. No new Sheets column, no new localStorage key, no duplicate
+     age or gender field — exactly the fields already live in PROFILES. */
+
+  // gender: 'male' | 'female' | 'unspecified' — read, never guessed.
+  function jasminGender(profileKey){
+    const p = PROFILES[profileKey || currentProfile];
+    if(!p) return 'unspecified';
+    return (p.gender === 'male' || p.gender === 'female') ? p.gender : 'unspecified';
+  }
+
+  // ageGroup maps onto the same bands novaAgeBand() already defines, so the
+  // AI prompt and local templates always agree on where the lines fall —
+  // 'preteen' folded into 'teen' here to match the task's requested set
+  // (child/teen/young_adult/adult/senior/unspecified) without inventing a
+  // second age model the age-aware prompt rule above does not share.
+  function jasminAgeGroup(profileKey){
+    const band = novaAgeBandFor_(profileKey);
+    if(band === 'child') return 'child';
+    if(band === 'preteen' || band === 'teen') return 'teen';
+    if(band === 'adult') return 'adult';
+    return 'unspecified';
+  }
+  // novaAgeBand() only ever reads currentProfile; this lets the persona
+  // engine ask about a DIFFERENT profile (e.g. a parent viewing a specific
+  // child) without touching novaAgeBand's own signature or its one existing
+  // caller in the AI prompt path.
+  function novaAgeBandFor_(profileKey){
+    if(!profileKey || profileKey === currentProfile) return novaAgeBand();
+    const p = PROFILES[profileKey];
+    if(!p || !p.birthDate) return 'neutral';
+    const b = new Date(p.birthDate);
+    if(isNaN(b.getTime())) return 'neutral';
+    const age = Math.floor((Date.now() - b.getTime()) / (365.25 * 86400000));
+    if(age < 2 || age > 100) return 'neutral';
+    if(age <= 9)  return 'child';
+    if(age <= 14) return 'preteen';
+    if(age <= 18) return 'teen';
+    return 'adult';
+  }
+
+  // role: 'learner' | 'parent' | 'teacher' | 'admin' | 'owner' | 'guest' | 'other'
+  // reuses novaAskerRole() directly — a more complete, already-tested
+  // role detector (checks ADMIN.role for owner/controller/assistant,
+  // iAmAGuardian() for parent, and currentShellRole for teacher/admin/
+  // learner) that this file already had. An earlier version of this
+  // function duplicated a narrower version of the same checks; corrected
+  // to call the real one instead, per REUSE FIRST — found only once
+  // novaAskerRole's own definition was read, further down this file, not
+  // missed by design.
+  function jasminRole(){
+    if(!currentProfile || currentProfile === 'guest') return 'guest';
+    if(typeof novaAskerRole === 'function'){
+      const r = novaAskerRole();
+      if(r === 'owner') return 'owner';
+      if(r === 'controller' || r === 'assistant' || r === 'admin') return 'admin';
+      if(r === 'parent' || r === 'teacher' || r === 'learner') return r;
+      return 'other';
+    }
+    return 'learner';
+  }
+
+  /* The one function every response builder should call before wording
+     anything gender/age/role-sensitive. Returns a plain object, matching
+     the shape requested, cached per profile for the current tick so a
+     multi-sentence response does not re-read PROFILES/novaAgeBand per
+     clause. */
+  let jasminPersonaCache_ = null, jasminPersonaCacheKey_ = null;
+  function getJasminAudienceProfile(profileKey){
+    const key = profileKey || currentProfile;
+    if(jasminPersonaCache_ && jasminPersonaCacheKey_ === key) return jasminPersonaCache_;
+    const gender = jasminGender(key);
+    const profile = {
+      gender: gender,
+      ageGroup: jasminAgeGroup(key),
+      role: jasminRole(),
+      language: (typeof currentLang !== 'undefined' && currentLang) || 'ar',
+      dialect: 'egyptian',
+      grammaticalGender: gender === 'male' ? 'masculine' : (gender === 'female' ? 'feminine' : 'neutral')
+    };
+    jasminPersonaCache_ = profile; jasminPersonaCacheKey_ = key;
+    return profile;
+  }
+  // Called wherever PROFILES[currentProfile] itself changes (gender edited,
+  // account switched) so a stale cached persona never survives past the
+  // change that invalidated it — mirrors novaInvalidateCache's own pattern.
+  function jasminInvalidatePersonaCache(){ jasminPersonaCache_ = null; jasminPersonaCacheKey_ = null; }
+
+  /* Small, composable word-choice helpers — NOT a general Arabic grammar
+     engine (the task is explicit that regex substitution cannot carry
+     context), just an honest three-way choice the CALLER already knows how
+     to phrase for each case, matching the exact addressForm/genderWord
+     shape requested. Unspecified always takes the neutral form; there is no
+     silent default to either grammatical gender here, unlike the
+     certificate's existing isFemale/toFeminine convention which this
+     deliberately does not change (a certificate already belongs to one
+     real person's real record; a NEW request for neutral-by-default speaks
+     to conversational replies, not that specific, already-correct,
+     already-tested surface). */
+  function genderWord(profile, male, female, neutral){
+    if(!profile) return neutral;
+    if(profile.gender === 'male') return male;
+    if(profile.gender === 'female') return female;
+    return neutral;
+  }
+  function addressForm(profile, forms){
+    if(!forms) return '';
+    if(profile && profile.gender === 'male' && forms.male !== undefined) return forms.male;
+    if(profile && profile.gender === 'female' && forms.female !== undefined) return forms.female;
+    return forms.neutral !== undefined ? forms.neutral : '';
+  }
+
+  /* Mirrors novaAgeStyleRule's exact shape and calling convention, adding
+     the gender dimension the AI prompt never had. Kept as a SEPARATE
+     function rather than folded into novaAgeStyleRule itself, so the one
+     existing call site (novaHandle's prompt builder) can add this as one
+     more line without altering novaAgeStyleRule's own signature or the
+     one place that already calls it correctly. */
+  function jasminGenderPromptRule(profile, lang){
+    if(!profile || profile.gender === 'unspecified'){
+      return lang === 'en'
+        ? '- Gender: unspecified. Do not infer or guess it from the name or anything else. Use neutral phrasing.'
+        : '- الجنس: غير محدد. لا تخمّنه من الاسم أو من أي شيء آخر. استخدم صياغة عربية مصرية محايدة قدر الإمكان طوال الرد.';
+    }
+    const genderLabel = profile.gender === 'male' ? 'Male' : 'Female';
+    const arWord = profile.gender === 'male' ? 'مذكر' : 'مؤنث';
+    return lang === 'en'
+      ? '- Gender: ' + genderLabel + '. If any Arabic wording appears in the reply, keep it consistently ' + arWord + ' throughout — never switch partway through.'
+      : '- الجنس: ' + arWord + '. حافظ على صيغة ' + arWord + ' متّسقة في كامل الرد؛ لا يجوز الانتقال للصيغة الأخرى في أي جملة لاحقة.';
+  }
 
   /* A compact, readable summary for the AI prompt. Written as prose rather
      than JSON because the model answers a parent better when it reads a
@@ -23509,6 +23968,20 @@
       test:/شروط|سياس[هة]|اشتراك|الغاء|سعر الاشتراك|شهاد[هة] ازاي|policy|terms|subscription|refund/i },
     { type:'PLATFORM',    source:'ACADEMY',   collection:'12_PLATFORM',
       test:/ازاي|فين|كيف استخدم|الصفح[هة]|الزرار|how do i|where is/i },
+    /* islamic_religious — the task's own diagnosis, proven against the real
+       1,273-row bank before this rule was written: content genuinely exists
+       (e.g. اركان الاسلام, قصص الانبياء, محمد ﷺ) but no route sent these
+       questions to ACADEMY at all, so they fell straight to the generic
+       MODEL and bypassed the bank entirely regardless of how good the
+       retrieval scoring was. Deliberately does NOT trigger on a single
+       word like حرام/حلال alone (the task's own explicit warning) — each
+       term here is specific to genuinely religious phrasing, and حرام/حلال
+       only fire combined with the actual ruling-question pattern. Placed
+       before LEARNING (the catch-all "ما هو/ما هي" rule) since "ما هي
+       اركان الاسلام" would otherwise match that broader rule first and
+       never reach this one. */
+    { type:'ISLAMIC_RELIGIOUS', source:'ACADEMY', collection:'',
+      test:/نبي الاسلام|نبي المسلمين|خاتم الانبياء|خاتم الرسل|خاتم النبيين|اركان الاسلام|اركان الايمان|الصلوات المفروض[ةه]|فرض في اليوم|نصلي كام|اذان|وضوء|صحاب[ةه] النبي|السن[ةه] النبوي[ةه]|القران الكريم|سور[ةه] ال|ايه الحلال وايه الحرام|حلال ولا حرام|زكا[ةه] المال|صيام رمضان|فريض[ةه] الحج|رمضان كريم|الدين الاسلامي|شهاد[ةه] ان لا اله|محمد رسول الله|nabi al|five pillars|islamic pillars|prophet muhammad|who is the prophet/i },
     { type:'LEARNING',    source:'MODEL',     collection:'',
       test:/اشرح|وضح|علمني|يعني ايه|ما هو|ما هي|explain|teach me|what is/i }
   ];
@@ -23903,7 +24376,8 @@
         ? 'IMPORTANT: the user wrote in English — reply in English.\n\n'
         : 'مهم: المستخدم كتب بالعربية — أجب بالعربية.\n\n') +
       'أسلوب هذه الرسالة تحديدًا:\n' + toneRule + '\n' +
-      novaAgeStyleRule(novaAgeBand(), replyLang) + '\n\n' +
+      novaAgeStyleRule(novaAgeBand(), replyLang) + '\n' +
+      jasminGenderPromptRule(getJasminAudienceProfile(), replyLang) + '\n\n' +
       'من تخاطب: أطفال وطلاب بين 6 و15 سنة، وأولياء أمور، ومعلّمات.\n\n' +
       'أسلوبك:\n' +
       '- لبق ودافئ ومحترم، بلا تصنّع وبلا مبالغة في المديح.\n' +
@@ -25332,7 +25806,7 @@
     taglineArabic: 'تعلّم · تطوّر · ارتقِ'
   };
 
-  var DIAG_BUILD = 'jasmin-2026-08-20-0911-a77ac03f7aa7';
+  var DIAG_BUILD = 'jasmin-2026-08-20-1349-845f40e857cf';
   var DIAG_BUILD_AT = '2026-08-17';
   /* Capability probes.
      These used to be `typeof X === 'function'` — a check that the code was
@@ -25817,6 +26291,14 @@
     catch(e){ rtLog('startUnreadPolling THREW: ' + (e && e.message)); }
     try{ if(typeof startCallWatch === 'function') startCallWatch(); }
     catch(e){ rtLog('startCallWatch THREW: ' + (e && e.message)); }
+    /* jaScheduleNudge — the assistant's own 90-second-delayed, mute-aware
+       arrival prompt — was fully built (including its own comment naming
+       the exact delay and the reasoning behind it) but had no caller
+       anywhere in the file, so it had never once fired for a real user.
+       Same isolated pattern as its three siblings just above: one more
+       service starting here, failing on its own if it fails at all. */
+    try{ if(typeof jaScheduleNudge === 'function') jaScheduleNudge(); }
+    catch(e){ rtLog('jaScheduleNudge THREW: ' + (e && e.message)); }
     rtLog('started | chal=' + !!chalPollId +
           ' unread=' + (typeof msgPollId !== 'undefined' ? !!msgPollId : 'n/a'));
   }
@@ -28508,7 +28990,295 @@
       });
     });
   }
-  /* ==================== END MODULE: AI KNOWLEDGE BANK ==================== */
+  /* ==================== KNOWLEDGE INTELLIGENCE SCORE ====================
+     Reuses handleBrainReport_ entirely — no new backend logic, no new
+     Sheet, no duplicated metric computation. This function's only job is
+     turning that existing, real output into an honest on-screen report,
+     including the tier classification the backend does not compute itself. */
+  function abIntelTier_(score){
+    if(score === null || score === undefined) return null;
+    if(score >= 97) return { key:'elite',      lo:97,  labelAr:'محرك معرفة نخبوي إدراكيًا' };
+    if(score >= 90) return { key:'expert',     lo:90,  labelAr:'نظام معرفة خبير' };
+    if(score >= 75) return { key:'advanced',   lo:75,  labelAr:'متقدم' };
+    if(score >= 60) return { key:'strong',     lo:60,  labelAr:'قوي' };
+    if(score >= 40) return { key:'developing', lo:40,  labelAr:'قيد التطور' };
+    return { key:'basic', lo:0, labelAr:'بنك معرفة أساسي' };
+  }
+  const AB_INTEL_DIM_LABELS_ = {
+    coverage:'التغطية', retrievability:'قابلية الاسترجاع', freshness:'الحداثة',
+    uniqueness:'التفرّد', consistency:'الاتساق', completeness:'الاكتمال',
+    usage:'الاستخدام', accuracy:'الدقة', verification:'التوثيق'
+  };
+  async function abRenderIntelligence(){
+    abIntelReport.classList.remove('hidden');
+    abIntelReport.innerHTML = `<div class="row">${exEsc(t('teachersLoading'))}</div>`;
+    setBtnSaving(abIntelBtn, true);
+    const t0 = Date.now();
+    let res = null;
+    try{ res = await postToSheet('brain_report', abCreds()); }catch(e){ res = null; }
+    const scanMs = Date.now() - t0;
+    setBtnSaving(abIntelBtn, false);
+    if(!res || !res.ok){
+      abIntelReport.innerHTML = `<div class="row bad">${exEsc(t('abFailed'))}</div>`;
+      return;
+    }
+
+    const lines = [];
+    const scoreVal = (res.brainScore === 'INSUFFICIENT_DATA') ? null : res.brainScore;
+    const tier = abIntelTier_(scoreVal);
+    if(scoreVal !== null && tier){
+      lines.push(`<div class="row ${scoreVal>=60?'ok':(scoreVal>=40?'warn':'bad')}">
+        <b>Knowledge Intelligence: ${scoreVal}/100</b> — ${exEsc(tier.labelAr)}
+      </div>`);
+    } else {
+      lines.push(`<div class="row warn">Knowledge Intelligence: ${exEsc(t('abIntelInsufficient'))}</div>`);
+    }
+    lines.push(`<div class="row" style="font-size:10.5px; opacity:.75;">${exEsc(res.scoreNote || '')}</div>`);
+    lines.push(`<div class="row" style="font-size:10.5px; opacity:.6;">${exEsc(t('abIntelNotAiCapability'))}</div>`);
+
+    // Component dimensions, each with its own value — never a single opaque
+    // number, matching the task's own explicit requirement.
+    Object.keys(res.dimensions || {}).forEach(function(k){
+      const d = res.dimensions[k];
+      const label = AB_INTEL_DIM_LABELS_[k] || k;
+      if(d === 'INSUFFICIENT_DATA' || d === null){
+        lines.push(`<div class="row" style="opacity:.6;">${exEsc(label)}: ${exEsc(t('abIntelInsufficient'))}</div>`);
+      } else {
+        lines.push(`<div class="row">${exEsc(label)}: <b>${d.value}</b> <span style="opacity:.55; font-size:10px;">(n=${d.n})</span></div>`);
+      }
+    });
+
+    // Volume — real counts only, via the same countRealRows_-equivalent
+    // logic the backend already uses, never getLastRow.
+    const v = res.volume || {};
+    lines.push(`<div class="row">${exEsc(t('abIntelTotal'))}: <b>${v.total ?? '—'}</b> · ${exEsc(t('abIntelFiled'))}: ${v.filed ?? '—'} · ${exEsc(t('abIntelUnfiled'))}: ${v.unfiled ?? '—'}</div>`);
+    if(v.byCollection){
+      const collCount = Object.keys(v.byCollection).length;
+      lines.push(`<div class="row">${exEsc(t('abIntelCollections'))}: <b>${collCount}</b></div>`);
+    }
+
+    // Duplication / conflicts, with the honest sampling disclosure this
+    // session added to the backend surfaced here rather than hidden.
+    const dup = res.duplication || {};
+    lines.push(`<div class="row ${dup.exact>0?'warn':''}">${exEsc(t('abIntelExactDupes'))}: <b>${dup.exact ?? 0}</b> · ${exEsc(t('abIntelNearDupes'))}: <b>${dup.near ?? 0}</b></div>`);
+    if(dup.nearScanSampled){
+      lines.push(`<div class="row" style="font-size:10px; opacity:.65;">${exEsc(dup.note || '')}</div>`);
+    }
+    // Section 8: actual reviewable pairs, not just a count. Never deleted
+    // automatically -- shown for the owner to inspect and decide, matching
+    // the task's explicit "no automatic deletion" rule.
+    if((dup.exactSample || []).length){
+      lines.push(`<div class="row" style="font-size:10px; opacity:.5;">${exEsc(t('abIntelExactDupeSample'))}:</div>`);
+      dup.exactSample.forEach(function(d){
+        lines.push(`<div class="row" style="font-size:10.5px; padding-right:14px;">• ${exEsc(d.topic)} — "${exEsc(d.question)}"</div>`);
+      });
+    }
+    if((dup.nearSample || []).length){
+      lines.push(`<div class="row" style="font-size:10px; opacity:.5;">${exEsc(t('abIntelNearDupeSample'))}:</div>`);
+      dup.nearSample.forEach(function(d){
+        lines.push(`<div class="row" style="font-size:10.5px; padding-right:14px;">• ${exEsc(d.a)} ⟷ ${exEsc(d.b)} (${Math.round(d.similarity*100)}%)</div>`);
+      });
+    }
+    const cf = res.conflicts || {};
+    if(cf.count > 0){
+      lines.push(`<div class="row warn">${exEsc(t('abIntelConflicts'))}: <b>${cf.count}</b></div>`);
+    }
+    // Section 9: actual conflict pairs, never auto-resolved.
+    if((cf.sample || []).length){
+      cf.sample.forEach(function(c){
+        lines.push(`<div class="row" style="font-size:10.5px; padding-right:14px;">• ${exEsc(c.topic)} — ${exEsc(c.sourceA)} ⟷ ${exEsc(c.sourceB)}</div>`);
+      });
+    }
+    if(cf.groupsSkippedTooLarge > 0){
+      lines.push(`<div class="row" style="font-size:10px; opacity:.65;">${exEsc(fmt('abIntelGroupsSkipped', {n: cf.groupsSkippedTooLarge}))}</div>`);
+    }
+
+    // Section 10: source health. sh is INSUFFICIENT_DATA only when total is 0.
+    const sh = (res.sourceHealth === 'INSUFFICIENT_DATA') ? null : res.sourceHealth;
+    if(sh){
+      lines.push(`<div class="row" style="margin-top:6px; font-weight:800;">${exEsc(t('abIntelSourceTitle'))}</div>`);
+      lines.push(`<div class="row">${exEsc(t('abIntelSourceCoverage'))}: <b>${sh.sourceCoverageScore}%</b> · ${exEsc(t('abIntelUniqueSrc'))}: ${sh.uniqueSources} · ${exEsc(t('abIntelNoSource'))}: ${sh.noSource}</div>`);
+      if(sh.dominantSource){
+        lines.push(`<div class="row warn">${exEsc(fmt('abIntelDominantSource', {name: sh.dominantSource.name, n: sh.dominantSource.n}))}</div>`);
+      }
+      if((sh.topSources || []).length){
+        lines.push(`<div class="row" style="font-size:10.5px; opacity:.8;">` +
+          sh.topSources.slice(0,5).map(function(s){ return exEsc(s.name) + ' (' + s.n + ')'; }).join(' · ') +
+        `</div>`);
+      }
+    }
+
+    // Section 7: quality auditor. qa is INSUFFICIENT_DATA only for an
+    // empty bank. Real, named per-record issues shown as a review queue --
+    // never auto-fixed, matching the task's explicit rule.
+    const qa = (res.qualityAudit === 'INSUFFICIENT_DATA') ? null : res.qualityAudit;
+    if(qa){
+      lines.push(`<div class="row" style="margin-top:6px; font-weight:800;">${exEsc(t('abIntelQualityTitle'))}</div>`);
+      lines.push(`<div class="row ${qa.qualityScore>=80?'ok':(qa.qualityScore>=60?'warn':'bad')}">${exEsc(t('abIntelQualityScore'))}: <b>${qa.qualityScore}%</b></div>`);
+      lines.push(`<div class="row">${exEsc(t('abIntelVagueQ'))}: <b>${qa.vagueQuestions}</b> · ${exEsc(t('abIntelShortA'))}: <b>${qa.shortAnswers}</b> · ${exEsc(t('abIntelThinMeta'))}: <b>${qa.thinMetadataCount}</b></div>`);
+      if((qa.reviewQueue || []).length){
+        lines.push(`<div class="row" style="font-size:10px; opacity:.5;">${exEsc(t('abIntelReviewQueue'))}${qa.reviewQueueCapped ? ' ('+exEsc(t('abIntelCapped'))+')' : ''}:</div>`);
+        qa.reviewQueue.slice(0, 8).forEach(function(item){
+          lines.push(`<div class="row" style="font-size:10px; padding-right:14px; opacity:.85;">• ${exEsc(item.topic || '—')} — "${exEsc(item.question)}" [${item.issues.map(exEsc).join(', ')}]</div>`);
+        });
+      }
+    }
+
+    // Section 3: size & capacity. size is null only when total is 0 (an
+    // empty bank) -- every other case reports real, computed numbers, and
+    // the collection extremes are honestly "not available" rather than
+    // invented when no row has ever been filed into a collection at all.
+    const sz = res.size;
+    if(sz){
+      lines.push(`<div class="row" style="margin-top:6px; font-weight:800;">${exEsc(t('abIntelSizeTitle'))}</div>`);
+      lines.push(`<div class="row">${exEsc(t('abIntelTotalChars'))}: <b>${sz.totalChars.toLocaleString()}</b> · ${exEsc(t('abIntelApproxWords'))}: ${sz.approxWords.toLocaleString()}</div>`);
+      lines.push(`<div class="row">${exEsc(t('abIntelAvgQLen'))}: <b>${sz.avgQuestionLength}</b> · ${exEsc(t('abIntelAvgALen'))}: <b>${sz.avgAnswerLength}</b></div>`);
+      lines.push(`<div class="row">${exEsc(t('abIntelLargestColl'))}: ${sz.largestCollection ? '<b>'+exEsc(sz.largestCollection.name)+'</b> ('+sz.largestCollection.n+')' : exEsc(t('abIntelInsufficient'))}</div>`);
+      lines.push(`<div class="row">${exEsc(t('abIntelLargestTopic'))}: ${sz.largestTopic ? '<b>'+exEsc(sz.largestTopic.name)+'</b> ('+sz.largestTopic.n+')' : exEsc(t('abIntelInsufficient'))}</div>`);
+      lines.push(`<div class="row">${exEsc(t('abIntelTopicCount'))}: <b>${sz.topicCount}</b> · ${exEsc(t('abIntelAvgPerTopic'))}: ${sz.avgRecordsPerTopic ?? '—'}</div>`);
+      lines.push(`<div class="row">${exEsc(t('abIntelUniqueQ'))}: <b>${sz.uniqueQuestions.toLocaleString()}</b> · ${exEsc(t('abIntelUniqueSrc'))}: ${sz.uniqueSources} · ${exEsc(t('abIntelNoSource'))}: ${sz.noSource}</div>`);
+      lines.push(`<div class="row" style="font-size:10px; opacity:.6;">${exEsc(fmt('abIntelMemEstimate', {kb: sz.memoryFootprintEstimateKB.toLocaleString()}))}</div>`);
+    }
+
+    // Sections 4/5: coverage map + gap detector, reusing weakTopics computed
+    // in the same backend pass. No modification is applied automatically --
+    // this is read-only reporting, matching the task's own explicit rule.
+    const wt = res.weakTopics;
+    if(wt && wt.count > 0){
+      lines.push(`<div class="row" style="margin-top:6px; font-weight:800;">${exEsc(t('abIntelGapTitle'))}</div>`);
+      lines.push(`<div class="row warn">${exEsc(fmt('abIntelWeakTopicsCount', {n: wt.count, threshold: wt.threshold}))}</div>`);
+      const sample = wt.sample.slice(0, 10);
+      if(sample.length){
+        lines.push(`<div class="row" style="font-size:10.5px; opacity:.85;">` +
+          sample.map(function(w){ return exEsc(w.topic) + ' (' + w.count + ')'; }).join(' · ') +
+        `</div>`);
+      }
+    }
+
+    // Scan performance — Section 28's own explicit requirement: show scan
+    // duration and rows analysed, never hide how long the heavy analysis took.
+    lines.push(`<div class="row" style="font-size:10px; opacity:.6;">${exEsc(fmt('abIntelScanMeta', {ms: scanMs, rows: v.total || 0}))}</div>`);
+
+    abIntelReport.innerHTML = lines.join('');
+  }
+  if(abIntelBtn) abIntelBtn.addEventListener('click', abRenderIntelligence);
+
+  /* Section 6: Retrieval Readiness Test. Calls the new ai_retrieval_readiness
+     action, which reuses searchAiBank_ directly server-side -- no external
+     model call, matching the task's explicit "local search engine only"
+     requirement, and deliberately does not touch usage counts or gap logs
+     since these are synthetic diagnostic queries, not real user questions. */
+  async function abRenderReadiness(){
+    abReadinessReport.classList.remove('hidden');
+    abReadinessReport.innerHTML = `<div class="row">${exEsc(t('teachersLoading'))}</div>`;
+    setBtnSaving(abReadinessBtn, true);
+    let res = null;
+    try{ res = await postToSheet('ai_retrieval_readiness', abCreds()); }catch(e){ res = null; }
+    setBtnSaving(abReadinessBtn, false);
+    if(!res || !res.ok){
+      abReadinessReport.innerHTML = `<div class="row bad">${exEsc(t('abFailed'))}</div>`;
+      return;
+    }
+    const s = res.summary || {};
+    const lines = [];
+    lines.push(`<div class="row ${s.passRate>=70?'ok':(s.passRate>=40?'warn':'bad')}">
+      <b>${exEsc(fmt('abReadinessRate', {rate: s.passRate}))}</b> — ${exEsc(fmt('abReadinessCounts', {p:s.pass, w:s.weak, f:s.fail}))}
+    </div>`);
+    (res.results || []).forEach(function(r){
+      const cls = r.result === 'PASS' ? 'ok' : (r.result === 'WEAK' ? 'warn' : 'bad');
+      lines.push(`<div class="row ${cls}">
+        <b>${exEsc(r.result)}</b> · ${exEsc(r.category)} — "${exEsc(r.query)}"
+      </div>`);
+      lines.push(`<div class="row" style="font-size:10px; opacity:.65; padding-right:14px;">
+        ${exEsc(t('abReadinessGot'))}: ${r.retrievedTopic ? exEsc(r.retrievedTopic) : exEsc(t('abIntelInsufficient'))}
+        · coverage ${r.coverage}
+      </div>`);
+    });
+    abReadinessReport.innerHTML = lines.join('');
+  }
+  if(abReadinessBtn) abReadinessBtn.addEventListener('click', abRenderReadiness);
+
+  /* Section 46: the one-click command. Calls ai_generate_injection_prompt,
+     which internally reuses handleBrainReport_'s full real analysis --
+     quick audit, gap analysis, source health, duplication, and quality --
+     to build a single, evidence-based prompt. READ ONLY + ANALYSIS: this
+     never writes to the bank, matching the task's explicit rule. */
+  let abLastInjectPrompt = '';
+  async function abRenderInjectPrompt(){
+    abInjectPromptReport.classList.remove('hidden');
+    setBtnSaving(abInjectPromptBtn, true);
+    let res = null;
+    const includeStress = !!(abIncludeStressToggle && abIncludeStressToggle.checked);
+    abInjectPromptReport.innerHTML = `<div class="row">${exEsc(includeStress ? t('abInjectAnalyzingWithStress') : t('abInjectAnalyzing'))}</div>`;
+    try{ res = await postToSheet('ai_generate_injection_prompt', Object.assign({}, abCreds(), { includeStressTest: includeStress })); }catch(e){ res = null; }
+    setBtnSaving(abInjectPromptBtn, false);
+    if(!res || !res.ok){
+      abInjectPromptReport.innerHTML = `<div class="row bad">${exEsc(t('abFailed'))}</div>`;
+      return;
+    }
+    if(!res.hasTarget){
+      abInjectPromptReport.innerHTML = `<div class="row ok">${exEsc(res.message || t('abInjectNoTarget'))}</div>`;
+      return;
+    }
+    abLastInjectPrompt = res.prompt || '';
+    const lines = [];
+    const p = res.preview || {};
+    lines.push(`<div class="row" style="font-weight:800;">${exEsc(t('abInjectPreviewTitle'))}</div>`);
+    lines.push(`<div class="row ${p.priority==='CRITICAL'||p.priority==='HIGH'?'warn':''}">${exEsc(t('abInjectTarget'))}: <b>${exEsc(p.target)}</b> · ${exEsc(t('abInjectPriority'))}: <b>${exEsc(p.priority)}</b></div>`);
+    lines.push(`<div class="row" style="font-size:10.5px; opacity:.75;">${exEsc(t('abInjectWhy'))}: ${exEsc(res.target ? res.target.reason : '')}</div>`);
+    lines.push(`<div class="row">${exEsc(t('abInjectRows'))}: <b>${p.rows}</b> · ${exEsc(t('abInjectExistingTopics'))}: ${p.existingTopics}</div>`);
+    const pr = res.promptReadiness || {};
+    lines.push(`<div class="row ${pr.score>=80?'ok':'warn'}">${exEsc(t('abInjectReadiness'))}: <b>${pr.score}/100</b></div>`);
+    lines.push(`<div class="row" style="margin-top:6px; font-weight:800;">${exEsc(t('abInjectPromptTitle'))}</div>`);
+    lines.push(`<textarea readonly rows="10" style="width:100%; padding:9px; border-radius:9px; font-size:10.5px; font-family:monospace; direction:ltr; text-align:left;">${exEsc(abLastInjectPrompt)}</textarea>`);
+    lines.push(`<div class="ex-actions"><button class="secondary-btn" id="abInjectCopyBtn" type="button">${exEsc(t('abInjectCopyBtn'))}</button></div>`);
+    abInjectPromptReport.innerHTML = lines.join('');
+    const copyBtn = document.getElementById('abInjectCopyBtn');
+    if(copyBtn) copyBtn.addEventListener('click', function(){
+      // Reuses the same mobile-safe copy path already used by abPromptBtn
+      // elsewhere on this screen, rather than a new clipboard mechanism.
+      skCopy(abLastInjectPrompt, copyBtn);
+    });
+  }
+  if(abInjectPromptBtn) abInjectPromptBtn.addEventListener('click', abRenderInjectPrompt);
+
+  /* Section 12: AI Bank Stress Test. Calls ai_stress_test, which reuses
+     searchAiBank_ directly (read-only, same choke point as the
+     readiness test) and real weak/strong topic data from
+     handleBrainReport_ -- never adds synthetic rows to the bank. This
+     specific analysis genuinely takes several seconds at the bank's
+     current real scale (self-measured and disclosed, not hidden), so the
+     loading message says so honestly rather than implying it is instant. */
+  async function abRenderStress(){
+    abStressReport.classList.remove('hidden');
+    abStressReport.innerHTML = `<div class="row">${exEsc(t('abStressRunning'))}</div>`;
+    setBtnSaving(abStressBtn, true);
+    let res = null;
+    try{ res = await postToSheet('ai_stress_test', abCreds()); }catch(e){ res = null; }
+    setBtnSaving(abStressBtn, false);
+    if(!res || !res.ok){
+      abStressReport.innerHTML = `<div class="row bad">${exEsc(t('abFailed'))}</div>`;
+      return;
+    }
+    if(!res.hasData){
+      abStressReport.innerHTML = `<div class="row">${exEsc(res.message || t('abStressNoData'))}</div>`;
+      return;
+    }
+    const lines = [];
+    lines.push(`<div class="row ${res.stressScore>=70?'ok':(res.stressScore>=40?'warn':'bad')}"><b>${exEsc(t('abStressScore'))}: ${res.stressScore}/100</b></div>`);
+    lines.push(`<div class="row">${exEsc(t('abStressHitRate'))}: <b>${res.hitRate}%</b> · ${exEsc(t('abStressMissRate'))}: ${res.missRate}%</div>`);
+    lines.push(`<div class="row">${exEsc(t('abStressLatency'))}: avg ${res.latency.avgMs}ms · P50 ${res.latency.p50Ms}ms · P95 ${res.latency.p95Ms}ms</div>`);
+    if(res.weakTopicHitRate !== null){
+      lines.push(`<div class="row">${exEsc(t('abStressWeakHit'))}: <b>${res.weakTopicHitRate}%</b> (n=${res.weakTopicSampleSize}) · ${exEsc(t('abStressStrongHit'))}: <b>${res.strongTopicHitRate}%</b> (n=${res.strongTopicSampleSize})</div>`);
+    }
+    lines.push(`<div class="row">${exEsc(t('abStressLowConf'))}: ${res.lowConfidenceCount} · ${exEsc(t('abStressNoResult'))}: ${res.noResultCount} · ${exEsc(t('abStressWrongTopic'))}: ${res.wrongTopicCount} · ${exEsc(t('abStressAmbiguous'))}: ${res.ambiguousCount}</div>`);
+    lines.push(`<div class="row" style="font-size:10px; opacity:.6;">${exEsc(t('abStressExactSemantic'))}: ${exEsc(res.exactMatchSuccess)} / ${exEsc(res.semanticMatchSuccess)} — ${exEsc(res.exactSemanticNote)}</div>`);
+    lines.push(`<div class="row" style="font-size:10px; opacity:.6;">${exEsc(fmt('abIntelScanMeta', {ms: res.analysisDurationMs, rows: res.totalQueries}))}</div>`);
+    abStressReport.innerHTML = lines.join('');
+  }
+  if(abStressBtn) abStressBtn.addEventListener('click', abRenderStress);
+
+  /* ==================== END MODULE: AI KNOWLEDGE BANK ====================== */
 
   /* ==================== MODULE: SCHEDULE & CLASS REPORTS ====================
      A class that appears without warning is one nobody attends. This adds the
@@ -31292,9 +32062,17 @@
   function startUnreadPolling(){
     if(msgPollId) clearInterval(msgPollId);
     pollUnread();
+    schCheckStarting();
+    /* schCheckStarting was fully built — including its own comment naming
+       this exact "same slow cadence as the message badge" — but was never
+       actually wired to any timer, so the class-starting-soon notice this
+       screen was clearly designed to give has never once fired for a real
+       user. Same pattern already used for chat's interval just above,
+       which already calls two functions from one setInterval rather than
+       running a second, redundant timer. */
     // 20s: a badge is ambient information. Polling it every few seconds would
     // cost more than the chat itself and change nothing a learner would notice.
-    msgPollId = setInterval(pollUnread, 20000);
+    msgPollId = setInterval(function(){ pollUnread(); schCheckStarting(); }, 20000);
   }
   function stopUnreadPolling(reason){
     if(msgPollId){
