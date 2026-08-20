@@ -13051,7 +13051,7 @@
      Apps Script deployment is older than the page, and every server-side fix
      — the tolerant username lookup, the login-code mailer, the password
      repair — is simply absent. */
-  const EXPECTED_GS_BUILD = 'gs-2026-08-20-0857-48a6a981';
+  const EXPECTED_GS_BUILD = 'gs-2026-08-20-0911-6be1e4d0';
 
   async function jaCheckBackendFresh(){
     if(!SHEET_API_URL || !adminLoginHint) return;
@@ -13541,7 +13541,7 @@
     'send_chat','send_friend_request','join_classroom','join_race','end_classroom',
     'report_challenge_result','submit_exam','import_exam','archive_exam','archive_plan',
     'log_observations','reset_password_with_token',
-    'save_prefs',
+    'save_prefs','set_profile_share',
     // Owner configuration: a share or an on/off flag changed on a poor
     // connection must still land, or the owner sets it twice and cannot tell
     // which value took.
@@ -25332,7 +25332,7 @@
     taglineArabic: 'تعلّم · تطوّر · ارتقِ'
   };
 
-  var DIAG_BUILD = 'jasmin-2026-08-20-0857-d1831945aca7';
+  var DIAG_BUILD = 'jasmin-2026-08-20-0911-a77ac03f7aa7';
   var DIAG_BUILD_AT = '2026-08-17';
   /* Capability probes.
      These used to be `typeof X === 'function'` — a check that the code was
@@ -29921,8 +29921,15 @@
     if(!uname) return;
     const body = Object.assign({ username: uname,
       visibility: pubShare.visibility, allowList: pubShare.allowList || [] }, patch);
-    const res = await postToSheetRaw('set_profile_share', body);
-    if(!res || !res.ok){ showToast(t('abFailed'), nxIcon('alertTriangle'), 'system'); return; }
+    /* Was postToSheetRaw, which never queues on a dropped connection: a
+       visibility or password change made on a weak connection could
+       silently vanish with no retry, and the owner would believe it took
+       when it never left the device — the exact class of "must still
+       land" write already documented above for teach_set/set_ai_budget.
+       Routed through postToSheet and added to WRITE_ACTIONS instead of
+       inventing a second delivery mechanism. */
+    const res = await postToSheet('set_profile_share', body);
+    if(!res || !res.ok){ showToast(describeSyncFailure(res, 'abFailed'), nxIcon(res && res.queued ? 'clock' : 'alertTriangle'), 'system'); return; }
     pubShare = res;
     pubRender();
     showToast(t('pubSaved'), nxIcon('check'), 'system');
