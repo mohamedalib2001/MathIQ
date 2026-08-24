@@ -13956,7 +13956,7 @@
      Apps Script deployment is older than the page, and every server-side fix
      — the tolerant username lookup, the login-code mailer, the password
      repair — is simply absent. */
-  const EXPECTED_GS_BUILD = 'gs-2026-08-24-0901-da691cd7';
+  const EXPECTED_GS_BUILD = 'gs-2026-08-24-1040-c0bcfd2a';
 
   async function jaCheckBackendFresh(){
     if(!SHEET_API_URL || !adminLoginHint) return;
@@ -27278,8 +27278,8 @@
     return 'jasmin_ai';
   }
 
-  var DIAG_BUILD = 'jasmin-2026-08-22-0047-01d3cd6958c0';
-  var DIAG_BUILD_AT = '2026-08-17';
+  var DIAG_BUILD = 'jasmin-2026-08-24-1000-DEPLOYMENT-MANAGER';
+  var DIAG_BUILD_AT = '2026-08-24';
   /* Capability probes.
      These used to be `typeof X === 'function'` — a check that the code was
      LOADED, not that it WORKS. A broken function passes that test perfectly,
