@@ -4656,6 +4656,7 @@
         <div class="admin-tool-tile hidden" id="ownerCenterLink"><span class="tile-icon">👑</span><span data-i18n="ocTitle">مركز تحكّم المالك</span></div>
         <div class="admin-tool-tile hidden" id="execCenterLink"><span class="tile-icon">📊</span><span data-i18n="exTitle">مركز القيادة التنفيذي</span></div>
         <div class="admin-tool-tile hidden" id="pdLink"><span class="tile-icon">🩺</span><span data-i18n="pdTitle">تشخيص البرامج</span></div>
+        <div class="admin-tool-tile hidden" id="dmLink"><span class="tile-icon">🚀</span><span data-i18n="dmTitle">إدارة النشر</span></div>
         <div class="admin-tool-tile" id="aiBankLink"><span class="tile-icon">🧠</span><span data-i18n="abTitle">بنك معرفة الذكاء الاصطناعي</span></div>
       </div>
     </div>
@@ -5811,6 +5812,22 @@
     <div id="pdList"></div>
     <button class="secondary-btn" id="pdCloseBtn" data-i18n="closeBtn">إغلاق</button>
   </div>
+
+  <!-- DEPLOYMENT MANAGER — owner only. Answers, in one place and with real
+       live checks, the exact question that cost real time this session:
+       "is what's running right now actually the latest code?" -->
+  <div id="dmScreen" class="panel hidden">
+    <div class="group-label" style="text-align:center;" data-i18n="dmTitle">🚀 إدارة النشر</div>
+    <div class="conn-note" data-i18n="dmNote">فحص حيّ حقيقي لتطابق النسخة بين الخادم والواجهة، وزمن استجابة الخادم الفعلي — وليس نشرًا تلقائيًا (Google Apps Script لا يسمح بذلك من داخل الكود).</div>
+    <button class="start-btn" id="dmRunBtn" data-i18n="dmRun">🔄 تحديث وفحص حالة النظام</button>
+    <div id="dmResult" style="margin-top:12px;"></div>
+    <div class="pd-actions" id="dmCopyRow" style="display:none;">
+      <button class="secondary-btn" id="dmCopyBtn" data-i18n="pdCopy">📋 نسخ التقرير</button>
+      <button class="secondary-btn" id="dmOpenPdBtn" data-i18n="dmOpenPd">🩺 فحص كامل للبرامج والمزامنة</button>
+    </div>
+    <button class="secondary-btn" id="dmCloseBtn" data-i18n="closeBtn">إغلاق</button>
+  </div>
+
 
   <!-- SMART LOADER
        A blank screen during a wait tells the learner nothing, and a spinner
@@ -7532,6 +7549,14 @@
   const pdProgress = document.getElementById('pdProgress');
   const pdCloseBtn = document.getElementById('pdCloseBtn');
   const pdLink = document.getElementById('pdLink');
+  const dmLink = document.getElementById('dmLink');
+  const dmScreen = document.getElementById('dmScreen');
+  const dmRunBtn = document.getElementById('dmRunBtn');
+  const dmResult = document.getElementById('dmResult');
+  const dmCopyRow = document.getElementById('dmCopyRow');
+  const dmCopyBtn = document.getElementById('dmCopyBtn');
+  const dmOpenPdBtn = document.getElementById('dmOpenPdBtn');
+  const dmCloseBtn = document.getElementById('dmCloseBtn');
   const execCenter = document.getElementById('execCenter');
   const exWho = document.getElementById('exWho');
   const exHeroLine = document.getElementById('exHeroLine');
@@ -10126,6 +10151,21 @@
       ndSyncLocal:'تعمل من البيانات المحلية — لا تحتاج مزامنة',
       pdTitle:'🩺 تشخيص البرامج',
       pdNote:'فحص حيّ لكل برنامج من نفس المصادر التي يقرأها المتعلّم — فنجاح الفحص يعني أن البرنامج يعمل فعلًا.',
+      dmTitle:'🚀 إدارة النشر',
+      dmNote:'فحص حيّ حقيقي لتطابق النسخة بين الخادم والواجهة، وزمن استجابة الخادم الفعلي — وليس نشرًا تلقائيًا (Google Apps Script لا يسمح بذلك من داخل الكود).',
+      dmRun:'🔄 تحديث وفحص حالة النظام',
+      dmOpenPd:'🩺 فحص كامل للبرامج والمزامنة',
+      dmLoaderTitle:'جارٍ فحص حالة النظام…',
+      dmStepBuild:'التحقق من نسخة الخادم الحيّة…',
+      dmStepPing:'قياس زمن استجابة الخادم…',
+      dmStepReport:'تجميع التقرير…',
+      dmChkBuild:'تطابق نسخة الخادم', dmChkPing:'استجابة الخادم',
+      dmBuildMatch:'النسخة الحيّة تطابق ما تتوقّعه الواجهة — كل شيء محدَّث.',
+      dmBuildMismatch:'تحذير: النسخة الحيّة على الخادم مختلفة عمّا تتوقّعه الواجهة — يلزم نشر جديد أو تحديث الواجهة.',
+      dmNoReply:'لا استجابة من الخادم',
+      dmPingOk:'استجاب خلال {ms} مللي ثانية',
+      dmAllGood:'كل شيء محدَّث ويعمل',
+      dmNeedsAttention:'يحتاج انتباهًا',
       pdRulesBtn:'⚙️ الفحوصات', pdRulesNote:'فحص مُعطَّل لا يُحتسَب في الدرجة، وليس مخفيًّا فقط.',
       pdRun:'▶ افحص كل البرامج', pdCopy:'📋 نسخ التقرير',
       pdIdle:'اضغط «افحص» لبدء الفحص.', pdRunning:'جارٍ الفحص…',
@@ -12372,6 +12412,21 @@
       ndSyncLocal:'runs from local data — no sync needed',
       pdTitle:'🩺 Program diagnostics',
       pdNote:'A live check of each program against the same sources the learner reads — so a pass means the program genuinely works.',
+      dmTitle:'🚀 Deployment Manager',
+      dmNote:'A real, live check of version match between server and frontend, and real server response time — not an automatic deployment (Google Apps Script does not allow that from within code).',
+      dmRun:'🔄 Refresh & check system status',
+      dmOpenPd:'🩺 Full programs & sync check',
+      dmLoaderTitle:'Checking system status…',
+      dmStepBuild:'Verifying live server version…',
+      dmStepPing:'Measuring server response time…',
+      dmStepReport:'Compiling report…',
+      dmChkBuild:'Server version match', dmChkPing:'Server response',
+      dmBuildMatch:'The live version matches what the frontend expects — everything is up to date.',
+      dmBuildMismatch:'Warning: the live server version differs from what the frontend expects — a new deployment or a frontend update is needed.',
+      dmNoReply:'No reply from the server',
+      dmPingOk:'Responded in {ms} ms',
+      dmAllGood:'Everything is up to date and working',
+      dmNeedsAttention:'Needs attention',
       pdRulesBtn:'⚙️ Checks', pdRulesNote:'A disabled check is excluded from the score, not just hidden.',
       pdRun:'▶ Check all programs', pdCopy:'📋 Copy report',
       pdIdle:'Press Check to begin.', pdRunning:'Checking…',
@@ -13334,6 +13389,7 @@
     // for every subsequent login.
     if(execCenterLink) execCenterLink.classList.toggle('hidden', !isOwnerSession());
     if(pdLink) pdLink.classList.toggle('hidden', !isOwnerSession());
+    if(dmLink) dmLink.classList.toggle('hidden', !isOwnerSession());
   }
   function renderProfiles(){
     applyOwnerVisibility();
@@ -13863,6 +13919,7 @@
     planAssign.classList.add('hidden');
     execCenter.classList.add('hidden');
     pdScreen.classList.add('hidden');
+    dmScreen.classList.add('hidden');
     aiBankScreen.classList.add('hidden');
     scheduleScreen.classList.add('hidden');
     reportsScreen.classList.add('hidden');
@@ -13899,7 +13956,7 @@
      Apps Script deployment is older than the page, and every server-side fix
      — the tolerant username lookup, the login-code mailer, the password
      repair — is simply absent. */
-  const EXPECTED_GS_BUILD = 'gs-2026-08-24-0811-66ccce6e';
+  const EXPECTED_GS_BUILD = 'gs-2026-08-24-0901-da691cd7';
 
   async function jaCheckBackendFresh(){
     if(!SHEET_API_URL || !adminLoginHint) return;
@@ -20148,6 +20205,81 @@
   execCenterLink.addEventListener('click', openExecutiveCenter);
   pdLink.addEventListener('click', openProgramDiagnostics);
   pdCloseBtn.addEventListener('click', ()=>{ pdScreen.classList.add('hidden'); goToProfiles(); });
+
+  // ==================== DEPLOYMENT MANAGER ====================
+  // يجيب فعليًا، بفحص حي حقيقي وليس تخمينًا، على السؤال الذي استغرق وقتًا
+  // حقيقيًا هذه الجلسة: "هل ما يعمل الآن فعلاً هو آخر كود، أم نسخة قديمة؟"
+  dmLink.addEventListener('click', openDeploymentManager);
+  dmCloseBtn.addEventListener('click', ()=>{ dmScreen.classList.add('hidden'); goToProfiles(); });
+  dmOpenPdBtn.addEventListener('click', ()=>{ dmScreen.classList.add('hidden'); openProgramDiagnostics(); });
+
+  function openDeploymentManager(){
+    if(!exIsOwner()){ showToast(t('exOwnerOnly'), nxIcon('lock'), 'system'); return; }
+    hideAllScreens();
+    dmScreen.classList.remove('hidden');
+    dmResult.innerHTML = '';
+    dmCopyRow.style.display = 'none';
+  }
+
+  let dmLastReport = '';
+
+  dmRunBtn.addEventListener('click', async function(){
+    if(!SHEET_API_URL){
+      dmResult.innerHTML = `<div class="dash-empty">${t('ndNoApi')}</div>`;
+      return;
+    }
+    await withLoader(t('dmLoaderTitle'), [t('dmStepBuild'), t('dmStepPing'), t('dmStepReport')], async function(loader){
+      const startedAt = new Date();
+
+      // خطوة 1: فحص حقيقي لتطابق النسخة — استدعاء gs_build الفعلي من
+      // الخادم الحي، لا افتراض، لا قراءة من الذاكرة المحلية.
+      let buildRes = null;
+      try{ buildRes = await postToSheet('gs_build', {}); }catch(e){ buildRes = null; }
+      const liveBuild = (buildRes && buildRes.ok) ? buildRes.build : null;
+      const buildMatch = liveBuild && (typeof EXPECTED_GS_BUILD === 'undefined' || liveBuild === EXPECTED_GS_BUILD);
+      await loader.advance();
+
+      // خطوة 2: فحص حقيقي لزمن استجابة الخادم — قياس فعلي، وليس تقديرًا.
+      const pingStart = Date.now();
+      let pingRes = null;
+      try{ pingRes = await postToSheet('ping', {}); }catch(e){ pingRes = null; }
+      const pingMs = Date.now() - pingStart;
+      await loader.advance();
+
+      // خطوة 3: تجميع تقرير حقيقي من النتائج الفعلية أعلاه فقط.
+      const lines = [];
+      lines.push('JASMIN ACADEMY — DEPLOYMENT MANAGER');
+      lines.push('frontend: ' + (typeof DIAG_BUILD !== 'undefined' ? DIAG_BUILD : '—'));
+      lines.push('expected_backend: ' + (typeof EXPECTED_GS_BUILD !== 'undefined' ? EXPECTED_GS_BUILD : '—'));
+      lines.push('live_backend: ' + (liveBuild || t('dmNoReply')));
+      lines.push('at: ' + startedAt.toISOString());
+      lines.push('');
+      lines.push('--- ' + t('dmChkBuild') + ' ---');
+      lines.push((liveBuild ? (buildMatch ? 'OK' : 'BAD') : 'BAD') + '  ' +
+        (liveBuild ? (buildMatch ? t('dmBuildMatch') : t('dmBuildMismatch')) : t('dmNoReply')));
+      lines.push('');
+      lines.push('--- ' + t('dmChkPing') + ' ---');
+      lines.push((pingRes && pingRes.ok ? 'OK' : 'BAD') + '  ' +
+        (pingRes && pingRes.ok ? fmt('dmPingOk', { ms: pingMs }) : t('dmNoReply')));
+
+      dmLastReport = lines.join('\n');
+      const overallOk = !!(liveBuild && buildMatch && pingRes && pingRes.ok);
+      dmResult.innerHTML = `
+        <div class="ex-kpi" style="border-color:${overallOk ? 'var(--mint)' : 'var(--coral)'};">
+          <div class="ex-kpi-label">${overallOk ? '✅ ' + t('dmAllGood') : '⚠️ ' + t('dmNeedsAttention')}</div>
+          <div class="ex-kpi-meta">${t('dmChkBuild')}: ${liveBuild ? exEsc(liveBuild) : t('dmNoReply')}${buildMatch ? ' ✅' : (liveBuild ? ' ❌' : '')}</div>
+          <div class="ex-kpi-meta">${t('dmChkPing')}: ${pingRes && pingRes.ok ? fmt('dmPingOk', { ms: pingMs }) : t('dmNoReply')}</div>
+        </div>`;
+      dmCopyRow.style.display = 'flex';
+    });
+  });
+
+  dmCopyBtn.addEventListener('click', function(){
+    if(!dmLastReport) return;
+    navigator.clipboard.writeText(dmLastReport).then(function(){
+      showToast(t('pdCopied'), nxIcon('check'), 'system');
+    }).catch(function(){});
+  });
   let pdScope = 'programs';
   function pdSetScope(scope){
     pdScope = scope;
@@ -39599,6 +39731,7 @@
     addAdminTool('ownerCenterLink', '👑', 'ocTitle', 'cmdTagOwner');
     addAdminTool('execCenterLink', '📊', 'exTitle', 'cmdTagOwner');
     addAdminTool('pdLink', '🩺', 'pdTitle', 'cmdTagOwner');
+    addAdminTool('dmLink', '🚀', 'dmTitle', 'cmdTagOwner');
     addAdminTool('diagLink', '🩺', 'diagTitle', 'cmdTagOwner');
     // jump directly to a specific student's profile (admin picker context only)
     if(elIsReachable(document.getElementById('profileCardsWrap'))){
